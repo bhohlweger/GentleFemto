@@ -9,15 +9,23 @@
 
 #include "TCanvas.h"
 #include <iostream>
-DreamPair::DreamPair()
+DreamPair::DreamPair(const char* name, float normleft, float normright)
     : fPair(nullptr),
       fPairShifted(),
       fPairRebinned(),
       fPairReweighted(),
-      fFirstBin(-99) {
+      fFirstBin(-99),
+      fNormLeft(normleft),
+      fNormRight(normright),
+      fName(name) {
 }
 
 DreamPair::~DreamPair() {
+}
+
+int DreamPair::GetNDists() {
+  //1 for the fPair itself
+  return 1 + fPairShifted.size() + fPairRebinned.size() + fPairReweighted.size();
 }
 
 void DreamPair::ShiftForEmpty(DreamDist* pair) {
@@ -28,32 +36,32 @@ void DreamPair::ShiftForEmpty(DreamDist* pair) {
 
   TH2F* SEMult = pair->GetSEMultDist();
   TH2F* MEMult = pair->GetMEMultDist();
-  fFirstBin = SE->FindFirstBinAbove(0);
+  int FirstBin = SE->FindFirstBinAbove(0);
   //+1 since we start counting bins at 1
-  const int nBinsEffSE = SE->GetNbinsX() - fFirstBin + 1;
-  const float SEkMin = SE->GetXaxis()->GetBinLowEdge(fFirstBin);
+  const int nBinsEffSE = SE->GetNbinsX() - FirstBin + 1;
+  fFirstBin = SE->GetXaxis()->GetBinLowEdge(FirstBin);
   const float SEkMax = SE->GetXaxis()->GetBinUpEdge(SE->GetNbinsX());
   const int multBins = SEMult->GetNbinsY();
   const int multMax = SEMult->GetYaxis()->GetBinUpEdge(multBins);
 
   const char* SEHistName = Form("%s_", SE->GetName());
-  TH1F* SEShifted = new TH1F(SEHistName, SEHistName, nBinsEffSE, SEkMin,
+  TH1F* SEShifted = new TH1F(SEHistName, SEHistName, nBinsEffSE, fFirstBin,
                              SEkMax);
   SEShifted->Sumw2();
   const char* MEHistName = Form("%s_", ME->GetName());
-  TH1F* MEShifted = new TH1F(MEHistName, MEHistName, nBinsEffSE, SEkMin,
+  TH1F* MEShifted = new TH1F(MEHistName, MEHistName, nBinsEffSE, fFirstBin,
                              SEkMax);
   MEShifted->Sumw2();
   const char* SEMultHistName = Form("%s_", SEMult->GetName());
   TH2F* SEMultShifted = new TH2F(SEMultHistName, SEMultHistName, nBinsEffSE,
-                                 SEkMin, SEkMax, multBins, 1, multMax);
+                                 fFirstBin, SEkMax, multBins, 1, multMax);
   SEMultShifted->Sumw2();
   const char* MEMultHistName = Form("%s_", MEMult->GetName());
   TH2F* MEMultShifted = new TH2F(MEMultHistName, MEMultHistName, nBinsEffSE,
-                                 SEkMin, SEkMax, multBins, 1, multMax);
+                                 fFirstBin, SEkMax, multBins, 1, multMax);
   MEMultShifted->Sumw2();
   int ckBin = 1;
-  for (int ikBin = fFirstBin; ikBin <= SE->GetNbinsX(); ++ikBin) {
+  for (int ikBin = FirstBin; ikBin <= SE->GetNbinsX(); ++ikBin) {
     SEShifted->SetBinContent(ckBin, SE->GetBinContent(ikBin));
     SEShifted->SetBinError(ckBin, SE->GetBinError(ikBin));
 
@@ -76,7 +84,7 @@ void DreamPair::ShiftForEmpty(DreamDist* pair) {
   PairShifted->SetSEMultDist(SEMultShifted, "Shifted");
   PairShifted->SetMEDist(MEShifted, "Shifted");
   PairShifted->SetMEMultDist(MEMultShifted, "Shifted");
-
+  PairShifted->Calculate_CF(fNormLeft, fNormRight);
   fPairShifted.push_back(PairShifted);
   delete SEShifted;
   delete SEMultShifted;
@@ -120,6 +128,82 @@ void DreamPair::ShiftForEmpty(DreamDist* pair) {
   //    c2->cd(iMult);
   //    MEProjMult[iMult-1]->Draw("hist");
   //  }
+  return;
+}
+
+void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, int kMin) {
+  if ((fFirstBin == -99) || kMin == -99) {
+    std::cout << "Internal kStar=" << fFirstBin << " and external one kStar="
+              << kMin << ". Check if you ran ShiftForEmpty!" << std::endl;
+  } else {
+    //we only need to do this in case this pair has a different starting bin.
+    if (fFirstBin > kMin) {
+      TH1F* otherSE = pair->GetSEDist();
+
+      TH1F* SE = pair->GetSEDist();
+      TH1F* SEMult = pair->GetSEMultDist();
+      TH1F* ME = pair->GetMEDist();
+      TH1F* MEMult = pair->GetMEMultDist();
+
+      int nBins = otherSE->GetXaxis()->GetNbins();
+      float xMin = otherSE->GetXaxis()->GetXmin();
+      float xMax = otherSE->GetXaxis()->GetXmax();
+
+      int multBins = SEMult->GetYaxis()->GetNbins();
+      int multMax = SEMult->GetYaxis()->GetXmax();
+
+      TH1F* SEShifted;
+      TH1F* MEShifted;
+      TH2F* SEMultShifted;
+      TH2F* MEMultShifted;
+      const char* SEHistName = Form("%s_", SE->GetName());
+      SEShifted = new TH1F(SEHistName, SEHistName, nBins, xMin, xMax);
+      SEShifted->Sumw2();
+      const char* MEHistName = Form("%s_", ME->GetName());
+      MEShifted = new TH1F(MEHistName, MEHistName, nBins, xMin, xMax);
+      MEShifted->Sumw2();
+      const char* SEMultHistName = Form("%s_", SEMult->GetName());
+      SEMultShifted = new TH2F(SEMultHistName, SEMultHistName, nBins, xMin,
+                               xMax, multBins, 1, multMax);
+      SEMultShifted->Sumw2();
+      const char* MEMultHistName = Form("%s_", MEMult->GetName());
+      MEMultShifted = new TH2F(MEMultHistName, MEMultHistName, nBins, xMin,
+                               xMax, multBins, 1, multMax);
+      MEMultShifted->Sumw2();
+      int startBin = SEShifted->FindBin(fFirstBin);
+      int endBin = SEShifted->GetNbinsX();
+      for (int iBin = startBin; iBin <= endBin; ++iBin) {
+        SEShifted->SetBinContent(iBin, SE->GetBinContent(iBin));
+        SEShifted->SetBinError(iBin, SE->GetBinError(iBin));
+
+        MEShifted->SetBinContent(iBin, ME->GetBinContent(iBin));
+        MEShifted->SetBinError(iBin, ME->GetBinError(iBin));
+        for (int iMult = 1; iMult <= multBins; ++iMult) {
+          SEMultShifted->SetBinContent(iBin, iMult,
+                                       SEMult->GetBinContent(iBin, iMult));
+          SEMultShifted->SetBinError(iBin, iMult,
+                                     SEMult->GetBinError(iBin, iMult));
+
+          MEMultShifted->SetBinContent(iBin, iMult,
+                                       MEMult->GetBinContent(iBin, iMult));
+          MEMultShifted->SetBinError(iBin, iMult,
+                                     MEMult->GetBinError(iBin, iMult));
+        }
+      }
+      DreamDist* PairFixShifted = new DreamDist();
+      PairFixShifted->SetSEDist(SEShifted, "FixShifted");
+      PairFixShifted->SetMEDist(MEShifted, "FixShifted");
+      PairFixShifted->SetSEMultDist(SEMultShifted, "FixShifted");
+      PairFixShifted->SetMEMultDist(MEMultShifted, "FixShifted");
+      PairFixShifted->Calculate_CF(fNormLeft, fNormRight);
+      fPairFixShifted.push_back(PairFixShifted);
+    } else {
+      DreamDist* PairFixShifted = new DreamDist(pair, "_FixShifted");
+      PairFixShifted->Calculate_CF(fNormLeft, fNormRight);
+      fPairFixShifted.push_back(PairFixShifted);
+    }
+  }
+  return;
 }
 
 void DreamPair::Rebin(DreamDist* pair, int rebin) {
@@ -128,8 +212,9 @@ void DreamPair::Rebin(DreamDist* pair, int rebin) {
   Rebinned->GetSEMultDist()->Rebin2D(rebin, 1);
   Rebinned->GetMEDist()->Rebin(rebin);
   Rebinned->GetMEMultDist()->Rebin2D(rebin, 1);
-
+  Rebinned->Calculate_CF(fNormLeft, fNormRight);
   fPairRebinned.push_back(Rebinned);
+  return;
 }
 
 void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
@@ -178,41 +263,39 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
           ikStar, iMult, MEMult->GetBinError(ikStar, iMult) * weight);
     }
   }
+  PairReweighted->Calculate_CF(fNormLeft, fNormRight);
   fPairReweighted.push_back(PairReweighted);
-//  delete SEReweighted;
-//  delete SEMultReweighted;
-//  delete MEReweighted;
-//  delete MEMultReweighted;
   delete MultProjSE;
   delete MultProjME;
 
-//  const char* can1Name=Form("c1%s",SE->GetName());
-//  TCanvas *c1 = new TCanvas(can1Name,can1Name,2000,1000);
-//  c1->Divide(2,2);
-//  c1->cd(1);
-//  PairReweighted->GetSEMultDist()->Draw("COLZ");
-//  c1->cd(2);
-//  SEMult->Draw("COLZ");
-//  c1->cd(3);
-//  MEMultReweighted->Draw("COLZ");
-//  c1->cd(4);
-//  MEMult->Draw("COLZ");
-//
-//  const char* can2Name=Form("c2%s",SE->GetName());
-//  TCanvas *c2 = new TCanvas(can2Name,can2Name,2000,1000);
-//  c2->Divide(2,2);
-//  c2->cd(1);
-//  SE->Draw();
-//  c2->cd(2);
-//  PairReweighted->GetSEDist()->Draw("same");
-//
-//  c2->cd(3);
-//  ME->Scale(1./ME->Integral());
-//  ME->Draw();
-//  c2->cd(4);
-//
-//  MEReweighted->SetLineColor(2);
-//  MEReweighted->Scale(1./MEReweighted->Integral());
-//  MEReweighted->Draw("same");
+  //  const char* can1Name=Form("c1%s",SE->GetName());
+  //  TCanvas *c1 = new TCanvas(can1Name,can1Name,2000,1000);
+  //  c1->Divide(2,2);
+  //  c1->cd(1);
+  //  PairReweighted->GetSEMultDist()->Draw("COLZ");
+  //  c1->cd(2);
+  //  SEMult->Draw("COLZ");
+  //  c1->cd(3);
+  //  MEMultReweighted->Draw("COLZ");
+  //  c1->cd(4);
+  //  MEMult->Draw("COLZ");
+  //
+  //  const char* can2Name=Form("c2%s",SE->GetName());
+  //  TCanvas *c2 = new TCanvas(can2Name,can2Name,2000,1000);
+  //  c2->Divide(2,2);
+  //  c2->cd(1);
+  //  SE->Draw();
+  //  c2->cd(2);
+  //  PairReweighted->GetSEDist()->Draw("same");
+  //
+  //  c2->cd(3);
+  //  ME->Scale(1./ME->Integral());
+  //  ME->Draw();
+  //  c2->cd(4);
+  //
+  //  MEReweighted->SetLineColor(2);
+  //  MEReweighted->Scale(1./MEReweighted->Integral());
+  //  MEReweighted->Draw("same");
+  return;
 }
 
