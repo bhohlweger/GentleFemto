@@ -14,17 +14,17 @@
 #include "DreamDist.h"
 class ReadDreamFile {
  public:
-  ReadDreamFile(int nPart1,int nPart2);
+  ReadDreamFile(int nPart1, int nPart2);
   virtual ~ReadDreamFile();
   void SetAnalysisFile(const char* AnalysisFile, const char* prefix);
-  DreamDist* GetPairDistributions(int iPart1,int iPart2, const char* name);
-  const int     fNPart1;
-  const int     fNPart2;
+  DreamDist* GetPairDistributions(int iPart1, int iPart2, const char* name);
+  const int fNPart1;
+  const int fNPart2;
  private:
-  TH1F***  fSE;
-  TH2F***  fSEMult;
-  TH1F***  fME;
-  TH2F***  fMEMult;
+  TH1F*** fSE;
+  TH2F*** fSEMult;
+  TH1F*** fME;
+  TH2F*** fMEMult;
 
 };
 

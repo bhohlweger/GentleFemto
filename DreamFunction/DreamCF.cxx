@@ -8,12 +8,10 @@
 #include "DreamCF.h"
 
 DreamCF::DreamCF()
-:fParticlePair(nullptr)
-,fAntiParticlePair(nullptr)
-{
+    : fParticlePair(nullptr),
+      fAntiParticlePair(nullptr) {
 }
 
-DreamCF::~DreamCF()
-{
+DreamCF::~DreamCF() {
 }
 

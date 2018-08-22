@@ -10,72 +10,72 @@
 #include "TCanvas.h"
 #include <iostream>
 DreamPair::DreamPair()
-:fPair(nullptr)
-,fPairShifted()
-,fPairRebinned()
-,fPairReweighted()
-,fFirstBin(-99)
-{
+    : fPair(nullptr),
+      fPairShifted(),
+      fPairRebinned(),
+      fPairReweighted(),
+      fFirstBin(-99) {
 }
 
-DreamPair::~DreamPair()
-{
+DreamPair::~DreamPair() {
 }
 
-void DreamPair::ShiftForEmpty(DreamDist* pair)
-{
-  DreamDist* PairShifted=new DreamDist();
+void DreamPair::ShiftForEmpty(DreamDist* pair) {
+  DreamDist* PairShifted = new DreamDist();
 
-  TH1F* SE=pair->GetSEDist();
-  TH1F* ME=pair->GetMEDist();
+  TH1F* SE = pair->GetSEDist();
+  TH1F* ME = pair->GetMEDist();
 
-  TH2F* SEMult=pair->GetSEMultDist();
-  TH2F* MEMult=pair->GetMEMultDist();
-  fFirstBin=SE->FindFirstBinAbove(0);
+  TH2F* SEMult = pair->GetSEMultDist();
+  TH2F* MEMult = pair->GetMEMultDist();
+  fFirstBin = SE->FindFirstBinAbove(0);
   //+1 since we start counting bins at 1
-  const int nBinsEffSE=SE->GetNbinsX()-fFirstBin+1;
-  const float SEkMin=SE->GetXaxis()->GetBinLowEdge(fFirstBin);
-  const float SEkMax=SE->GetXaxis()->GetBinUpEdge(SE->GetNbinsX());
-  const int multBins=SEMult->GetNbinsY();
-  const int multMax=SEMult->GetYaxis()->GetBinUpEdge(multBins);
+  const int nBinsEffSE = SE->GetNbinsX() - fFirstBin + 1;
+  const float SEkMin = SE->GetXaxis()->GetBinLowEdge(fFirstBin);
+  const float SEkMax = SE->GetXaxis()->GetBinUpEdge(SE->GetNbinsX());
+  const int multBins = SEMult->GetNbinsY();
+  const int multMax = SEMult->GetYaxis()->GetBinUpEdge(multBins);
 
-  const char* SEHistName=Form("%s_",SE->GetName());
-  TH1F* SEShifted=new TH1F(SEHistName,SEHistName,nBinsEffSE,SEkMin,SEkMax);
+  const char* SEHistName = Form("%s_", SE->GetName());
+  TH1F* SEShifted = new TH1F(SEHistName, SEHistName, nBinsEffSE, SEkMin,
+                             SEkMax);
   SEShifted->Sumw2();
-  const char* MEHistName=Form("%s_",ME->GetName());
-  TH1F* MEShifted=new TH1F(MEHistName,MEHistName,nBinsEffSE,SEkMin,SEkMax);
+  const char* MEHistName = Form("%s_", ME->GetName());
+  TH1F* MEShifted = new TH1F(MEHistName, MEHistName, nBinsEffSE, SEkMin,
+                             SEkMax);
   MEShifted->Sumw2();
-  const char* SEMultHistName=Form("%s_",SEMult->GetName());
-  TH2F* SEMultShifted=new TH2F(SEMultHistName,SEMultHistName,
-                               nBinsEffSE,SEkMin,SEkMax,
-                               multBins,1,multMax);
+  const char* SEMultHistName = Form("%s_", SEMult->GetName());
+  TH2F* SEMultShifted = new TH2F(SEMultHistName, SEMultHistName, nBinsEffSE,
+                                 SEkMin, SEkMax, multBins, 1, multMax);
   SEMultShifted->Sumw2();
-  const char* MEMultHistName=Form("%s_",MEMult->GetName());
-  TH2F* MEMultShifted=new TH2F(MEMultHistName,MEMultHistName,
-                               nBinsEffSE,SEkMin,SEkMax,
-                               multBins,1,multMax);
+  const char* MEMultHistName = Form("%s_", MEMult->GetName());
+  TH2F* MEMultShifted = new TH2F(MEMultHistName, MEMultHistName, nBinsEffSE,
+                                 SEkMin, SEkMax, multBins, 1, multMax);
   MEMultShifted->Sumw2();
-  int ckBin=1;
-  for (int ikBin=fFirstBin;ikBin<=SE->GetNbinsX();++ikBin) {
-    SEShifted->SetBinContent(ckBin,SE->GetBinContent(ikBin));
-    SEShifted->SetBinError(ckBin,SE->GetBinError(ikBin));
+  int ckBin = 1;
+  for (int ikBin = fFirstBin; ikBin <= SE->GetNbinsX(); ++ikBin) {
+    SEShifted->SetBinContent(ckBin, SE->GetBinContent(ikBin));
+    SEShifted->SetBinError(ckBin, SE->GetBinError(ikBin));
 
-    MEShifted->SetBinContent(ckBin,ME->GetBinContent(ikBin));
-    MEShifted->SetBinError(ckBin,ME->GetBinError(ikBin));
-    for (int iMult=1;iMult<=multBins;++iMult)
-    {
-      SEMultShifted->SetBinContent(ckBin,iMult,SEMult->GetBinContent(ikBin,iMult));
-      SEMultShifted->SetBinError(ckBin,iMult,SEMult->GetBinError(ikBin,iMult));
+    MEShifted->SetBinContent(ckBin, ME->GetBinContent(ikBin));
+    MEShifted->SetBinError(ckBin, ME->GetBinError(ikBin));
+    for (int iMult = 1; iMult <= multBins; ++iMult) {
+      SEMultShifted->SetBinContent(ckBin, iMult,
+                                   SEMult->GetBinContent(ikBin, iMult));
+      SEMultShifted->SetBinError(ckBin, iMult,
+                                 SEMult->GetBinError(ikBin, iMult));
 
-      MEMultShifted->SetBinContent(ckBin,iMult,MEMult->GetBinContent(ikBin,iMult));
-      MEMultShifted->SetBinError(ckBin,iMult,MEMult->GetBinError(ikBin,iMult));
+      MEMultShifted->SetBinContent(ckBin, iMult,
+                                   MEMult->GetBinContent(ikBin, iMult));
+      MEMultShifted->SetBinError(ckBin, iMult,
+                                 MEMult->GetBinError(ikBin, iMult));
     }
     ckBin++;
   }
-  PairShifted->SetSEDist(SEShifted,"Shifted");
-  PairShifted->SetSEMultDist(SEMultShifted,"Shifted");
-  PairShifted->SetMEDist(MEShifted,"Shifted");
-  PairShifted->SetMEMultDist(MEMultShifted,"Shifted");
+  PairShifted->SetSEDist(SEShifted, "Shifted");
+  PairShifted->SetSEMultDist(SEMultShifted, "Shifted");
+  PairShifted->SetMEDist(MEShifted, "Shifted");
+  PairShifted->SetMEMultDist(MEMultShifted, "Shifted");
 
   fPairShifted.push_back(PairShifted);
   delete SEShifted;
@@ -122,57 +122,60 @@ void DreamPair::ShiftForEmpty(DreamDist* pair)
   //  }
 }
 
-void DreamPair::Rebin(DreamDist* pair, int rebin)
-{
-  DreamDist* Rebinned=new DreamDist(pair,Form("_Rebinned_%i",rebin));
+void DreamPair::Rebin(DreamDist* pair, int rebin) {
+  DreamDist* Rebinned = new DreamDist(pair, Form("_Rebinned_%i", rebin));
   Rebinned->GetSEDist()->Rebin(rebin);
-  Rebinned->GetSEMultDist()->Rebin2D(rebin,1);
+  Rebinned->GetSEMultDist()->Rebin2D(rebin, 1);
   Rebinned->GetMEDist()->Rebin(rebin);
-  Rebinned->GetMEMultDist()->Rebin2D(rebin,1);
+  Rebinned->GetMEMultDist()->Rebin2D(rebin, 1);
 
   fPairRebinned.push_back(Rebinned);
 }
 
-void DreamPair::ReweightMixedEvent(DreamDist* pair,float kSMin,float kSMax)
-{
-  DreamDist* PairReweighted=new DreamDist(pair,"_Reweighted");
+void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
+  DreamDist* PairReweighted = new DreamDist(pair, "_Reweighted");
 
-  TH1F* SE=pair->GetSEDist();
-  TH1F* ME=pair->GetMEDist();
-  TH2F* SEMult=pair->GetSEMultDist();
-  TH2F* MEMult=pair->GetMEMultDist();
+  TH1F* SE = pair->GetSEDist();
+  TH1F* ME = pair->GetMEDist();
+  TH2F* SEMult = pair->GetSEMultDist();
+  TH2F* MEMult = pair->GetMEMultDist();
 
-  TH1F* MEReweighted=PairReweighted->GetMEDist();
-  TH2F* MEMultReweighted=PairReweighted->GetMEMultDist();
-  MEReweighted->Reset(); // this one we fill from scratch, we only want to keep the dimensions
+  TH1F* MEReweighted = PairReweighted->GetMEDist();
+  TH2F* MEMultReweighted = PairReweighted->GetMEMultDist();
+  MEReweighted->Reset();  // this one we fill from scratch, we only want to keep the dimensions
   MEMultReweighted->Reset();
 
-  int nKSbins=SEMult->GetXaxis()->GetNbins();
-  double kSMaxVal=SEMult->GetXaxis()->GetBinUpEdge(nKSbins);
+  int nKSbins = SEMult->GetXaxis()->GetNbins();
+  double kSMaxVal = SEMult->GetXaxis()->GetBinUpEdge(nKSbins);
   //k* range of the normalization of ME and SE in Multiplicity
-  int firstBin=SEMult->FindBin(kSMin);
-  int lastBin=SEMult->FindBin(kSMax);
-  TH1D* MultProjSE=SEMult->ProjectionY(Form("%skSProj",SEMult->GetName()),firstBin,lastBin);
-  TH1D* MultProjME=MEMult->ProjectionY(Form("%skSProj",MEMult->GetName()),firstBin,lastBin);
+  int firstBin = SEMult->FindBin(kSMin);
+  int lastBin = SEMult->FindBin(kSMax);
+  TH1D* MultProjSE = SEMult->ProjectionY(Form("%skSProj", SEMult->GetName()),
+                                         firstBin, lastBin);
+  TH1D* MultProjME = MEMult->ProjectionY(Form("%skSProj", MEMult->GetName()),
+                                         firstBin, lastBin);
 
-  int nMultBins=MEMult->GetYaxis()->GetNbins();
-  int multMax=MEMult->GetYaxis()->GetBinUpEdge(nMultBins);
-  double weight=0;
-  for (int iMult = 1;iMult<=nMultBins;++iMult) {
-    if (MultProjME->GetBinContent(iMult)>0) {
-      weight=MultProjSE->GetBinContent(iMult)/MultProjME->GetBinContent(iMult);
+  int nMultBins = MEMult->GetYaxis()->GetNbins();
+  int multMax = MEMult->GetYaxis()->GetBinUpEdge(nMultBins);
+  double weight = 0;
+  for (int iMult = 1; iMult <= nMultBins; ++iMult) {
+    if (MultProjME->GetBinContent(iMult) > 0) {
+      weight = MultProjSE->GetBinContent(iMult)
+          / MultProjME->GetBinContent(iMult);
     } else {
-      weight=0;
-      std::cout << "Weight = 0 for Mult Bin iMult = "
-          << iMult  << " in the case of " << SE->GetName() << std::endl;
+      weight = 0;
+      std::cout << "Weight = 0 for Mult Bin iMult = " << iMult
+                << " in the case of " << SE->GetName() << std::endl;
     }
-    TString MultBinName=Form("MEBin%i",iMult);
-    MEReweighted->Add(MEMult->ProjectionX(MultBinName.Data(),iMult,iMult),weight);
+    TString MultBinName = Form("MEBin%i", iMult);
+    MEReweighted->Add(MEMult->ProjectionX(MultBinName.Data(), iMult, iMult),
+                      weight);
 
-    for (int ikStar=1;ikStar<=MEMult->GetNbinsX();++ikStar)
-    {
-      MEMultReweighted->SetBinContent(ikStar,iMult,MEMult->GetBinContent(ikStar,iMult)*weight);
-      MEMultReweighted->SetBinError(ikStar,iMult,MEMult->GetBinError(ikStar,iMult)*weight);
+    for (int ikStar = 1; ikStar <= MEMult->GetNbinsX(); ++ikStar) {
+      MEMultReweighted->SetBinContent(
+          ikStar, iMult, MEMult->GetBinContent(ikStar, iMult) * weight);
+      MEMultReweighted->SetBinError(
+          ikStar, iMult, MEMult->GetBinError(ikStar, iMult) * weight);
     }
   }
   fPairReweighted.push_back(PairReweighted);

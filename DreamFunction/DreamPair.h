@@ -13,25 +13,37 @@
 class DreamPair {
  public:
   DreamPair();
-  void SetPair(DreamDist* Pair) {fPair=Pair;};
+  void SetPair(DreamDist* Pair) {
+    fPair = Pair;
+  }
+  ;
 
-  DreamDist* GetPair() {return fPair;};
+  DreamDist* GetPair() {
+    return fPair;
+  }
+  ;
   DreamDist* GetPairShifted(unsigned int iIter) {
-    return iIter<fPairShifted.size()?fPairShifted.at(iIter):nullptr;};
+    return iIter < fPairShifted.size() ? fPairShifted.at(iIter) : nullptr;
+  }
+  ;
   DreamDist* GetPairRebinned(unsigned int iIter) {
-    return iIter<fPairRebinned.size()?fPairRebinned.at(iIter):nullptr;};
+    return iIter < fPairRebinned.size() ? fPairRebinned.at(iIter) : nullptr;
+  }
+  ;
   DreamDist* GetPairReweighted(unsigned int iIter) {
-    return iIter<fPairReweighted.size()?fPairReweighted.at(iIter):nullptr;};
+    return iIter < fPairReweighted.size() ? fPairReweighted.at(iIter) : nullptr;
+  }
+  ;
   virtual ~DreamPair();
   void ShiftForEmpty(DreamDist* pair);
   void Rebin(DreamDist* pair, int rebin);
-  void ReweightMixedEvent(DreamDist* pair,float kSMin,float kSMax);
+  void ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax);
  private:
-  DreamDist*                fPair;
-  std::vector<DreamDist*>   fPairShifted;
-  std::vector<DreamDist*>   fPairRebinned;
-  std::vector<DreamDist*>   fPairReweighted;
-  int                       fFirstBin;
+  DreamDist* fPair;
+  std::vector<DreamDist*> fPairShifted;
+  std::vector<DreamDist*> fPairRebinned;
+  std::vector<DreamDist*> fPairReweighted;
+  int fFirstBin;
 };
 
 #endif /* DREAMFUNCTION_DREAMPAIR_H_ */

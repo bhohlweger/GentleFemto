@@ -13,8 +13,8 @@ class DreamCF {
   DreamCF();
   virtual ~DreamCF();
  private:
-   DreamPair* fParticlePair;
-   DreamPair* fAntiParticlePair;
+  DreamPair* fParticlePair;
+  DreamPair* fAntiParticlePair;
 };
 
 #endif /* DREAMCF_H_ */
