@@ -1,5 +1,5 @@
 /*
- * DreamPair.h
+ * DreamCF.h
  *
  *  Created on: Aug 21, 2018
  *      Author: hohlweger
@@ -7,28 +7,30 @@
 
 #ifndef DREAMFUNCTION_DREAMPAIR_H_
 #define DREAMFUNCTION_DREAMPAIR_H_
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TString.h"
+#include <vector>
 
+#include "DreamDist.h"
 class DreamPair {
  public:
-  DreamPair(const char* name);
-  DreamPair(DreamPair* pair,const char* name);
+  DreamPair();
+  void SetPair(DreamDist* Pair) {fPair=Pair;};
+
+  DreamDist* GetPair() {return fPair;};
+  DreamDist* GetPairShifted(unsigned int iIter) {
+    return iIter<fPairShifted.size()?fPairShifted.at(iIter):nullptr;};
+  DreamDist* GetPairRebinned(unsigned int iIter) {
+    return iIter<fPairRebinned.size()?fPairRebinned.at(iIter):nullptr;};
+  DreamDist* GetPairReweighted(unsigned int iIter) {
+    return iIter<fPairReweighted.size()?fPairReweighted.at(iIter):nullptr;};
   virtual ~DreamPair();
-  void SetSEDist(TH1F* SE) {fSE=(TH1F*)SE->Clone(Form("%s%s",SE->GetName(),fName));}
-  TH1F* GetSEDist() {return fSE;};
-  void SetSEMultDist(TH2F* SEMult) {fSEMult=(TH2F*)SEMult->Clone(Form("%s%s",SEMult->GetName(),fName));}
-  TH2F* GetSEMultDist() {return fSEMult;};
-  void SetMEDist(TH1F* ME) {fME=(TH1F*)ME->Clone(Form("%s%s",ME->GetName(),fName));}
-  TH1F* GetMEDist() {return fME;};
-  void SetMEMultDist(TH2F* MEMult) {fMEMult=(TH2F*)MEMult->Clone(Form("%s%s",MEMult->GetName(),fName));}
-  TH2F* GetMEMultDist() {return fMEMult;};
-  const char*   fName;
-  TH1F*         fSE;
-  TH2F*         fSEMult;
-  TH1F*         fME;
-  TH2F*         fMEMult;
+  void ShiftForEmpty(DreamDist* pair);
+  void Rebin(DreamDist* pair, int rebin);
+  void ReweightMixedEvent(DreamDist* pair,float kSMin,float kSMax);
+  DreamDist*                fPair;
+  std::vector<DreamDist*>   fPairShifted;
+  std::vector<DreamDist*>   fPairRebinned;
+  std::vector<DreamDist*>   fPairReweighted;
+  int                       fFirstBin;
 };
 
 #endif /* DREAMFUNCTION_DREAMPAIR_H_ */

@@ -91,7 +91,7 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
   }
 }
 
-DreamPair* ReadDreamFile::GetPairDistributions(
+DreamDist* ReadDreamFile::GetPairDistributions(
     int iPart1,
     int iPart2,
     const char* name)
@@ -102,10 +102,10 @@ DreamPair* ReadDreamFile::GetPairDistributions(
     std::cout << "Particle Combination does not exist \n";
     return nullptr;
   }
-  DreamPair* pair = new DreamPair(name);
-  pair->SetSEDist(fSE[iPart1][iPart2]);
-  pair->SetSEMultDist(fSEMult[iPart1][iPart2]);
-  pair->SetMEDist(fME[iPart1][iPart2]);
-  pair->SetMEMultDist(fMEMult[iPart1][iPart2]);
+  DreamDist* pair = new DreamDist();
+  pair->SetSEDist(fSE[iPart1][iPart2],name);
+  pair->SetSEMultDist(fSEMult[iPart1][iPart2],name);
+  pair->SetMEDist(fME[iPart1][iPart2],name);
+  pair->SetMEMultDist(fMEMult[iPart1][iPart2],name);
   return pair;
 }

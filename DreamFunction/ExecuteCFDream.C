@@ -1,11 +1,12 @@
 #include "TROOT.h"
 #include "TSystem.h"
 
-void ExecuteCFDream(const char* filename, const char* prefix) {
-  gROOT->LoadMacro("~/Plotting/DreamFunction/DreamCF.cxx+g");
-  gROOT->LoadMacro("~/Plotting/DreamFunction/DreamPair.cxx+g");
-  gROOT->LoadMacro("~/Plotting/DreamFunction/ReadDreamFile.cxx+g");
+void ExecuteCFDream(const char* filename, const char* prefix)
+{
+  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamDist.cxx+g");
+  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamPair.cxx+g");
+  gROOT->LoadMacro("~/GentleFemto/DreamFunction/ReadDreamFile.cxx+g");
   TString MacroName=
-      Form("/home/hohlweger/Plotting/DreamFunction/GetCorrelations.C (\"%s\",\"%s\")",filename,prefix);
+      Form("/home/hohlweger/GentleFemto/DreamFunction/GetCorrelations.C (\"%s\",\"%s\")",filename,prefix);
   gInterpreter->ExecuteMacro(MacroName.Data());
 }
