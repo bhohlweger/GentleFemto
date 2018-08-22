@@ -26,6 +26,7 @@ class DreamPair {
   void ShiftForEmpty(DreamDist* pair);
   void Rebin(DreamDist* pair, int rebin);
   void ReweightMixedEvent(DreamDist* pair,float kSMin,float kSMax);
+ private:
   DreamDist*                fPair;
   std::vector<DreamDist*>   fPairShifted;
   std::vector<DreamDist*>   fPairRebinned;

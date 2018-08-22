@@ -20,6 +20,7 @@ class ReadDreamFile {
   DreamDist* GetPairDistributions(int iPart1,int iPart2, const char* name);
   const int     fNPart1;
   const int     fNPart2;
+ private:
   TH1F***  fSE;
   TH2F***  fSEMult;
   TH1F***  fME;

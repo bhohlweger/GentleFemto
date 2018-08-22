@@ -28,6 +28,7 @@ class DreamDist {
   void SetMEMultDist(TH2F* MEMult, const char* name) {
     fMEMult=(TH2F*)MEMult->Clone(Form("%s%s",MEMult->GetName(),name));}
   TH2F* GetMEMultDist() {return fMEMult;};
+ private:
   TH1F*         fSE;
   TH2F*         fSEMult;
   TH1F*         fME;
