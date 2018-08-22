@@ -44,11 +44,17 @@ class DreamDist {
     return fMEMult;
   }
   ;
+  TH1F* GetCF() {
+    return fCF;
+  }
+  ;
+  void Calculate_CF(float normleft,float normright);
  private:
   TH1F* fSE;
   TH2F* fSEMult;
   TH1F* fME;
   TH2F* fMEMult;
+  TH1F* fCF;
 };
 
 #endif /* DREAMFUNCTION_DREAMDIST_H_ */
