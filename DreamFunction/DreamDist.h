@@ -9,7 +9,6 @@
 #define DREAMFUNCTION_DREAMDIST_H_
 #include "TH1F.h"
 #include "TH2F.h"
-#include "TString.h"
 
 class DreamDist {
  public:

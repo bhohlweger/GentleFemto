@@ -141,9 +141,9 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, int kMin) {
       TH1F* otherSE = pair->GetSEDist();
 
       TH1F* SE = pair->GetSEDist();
-      TH1F* SEMult = pair->GetSEMultDist();
+      TH2F* SEMult = pair->GetSEMultDist();
       TH1F* ME = pair->GetMEDist();
-      TH1F* MEMult = pair->GetMEMultDist();
+      TH2F* MEMult = pair->GetMEMultDist();
 
       int nBins = otherSE->GetXaxis()->GetNbins();
       float xMin = otherSE->GetXaxis()->GetXmin();

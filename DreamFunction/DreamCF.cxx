@@ -6,6 +6,7 @@
  */
 
 #include "DreamCF.h"
+#include <iostream>
 
 DreamCF::DreamCF()
     : fSE(),
