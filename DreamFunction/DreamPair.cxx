@@ -300,27 +300,27 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
 }
 
 void DreamPair::WriteOutput(TList *Outlist) {
-  TList *PairList=new TList();
+  TList *PairList = new TList();
   PairList->SetName("Pair");
   PairList->SetOwner();
   Outlist->Add(PairList);
 
-  TList *PairShiftedList=new TList();
+  TList *PairShiftedList = new TList();
   PairShiftedList->SetName("PairShifted");
   PairShiftedList->SetOwner();
   Outlist->Add(PairShiftedList);
 
-  TList *PairFixShiftedList=new TList();
+  TList *PairFixShiftedList = new TList();
   PairFixShiftedList->SetName("PairFixShifted");
   PairFixShiftedList->SetOwner();
   Outlist->Add(PairFixShiftedList);
 
-  TList *PairRebinnedList=new TList();
+  TList *PairRebinnedList = new TList();
   PairRebinnedList->SetName("PairRebinned");
   PairShiftedList->SetOwner();
   Outlist->Add(PairShiftedList);
 
-  TList *PairReweightedList=new TList();
+  TList *PairReweightedList = new TList();
   PairReweightedList->SetName("PairReweighted");
   PairReweightedList->SetOwner();
   Outlist->Add(PairReweightedList);

@@ -9,18 +9,18 @@
 
 #include <iostream>
 DreamDist::DreamDist()
-: fSE(nullptr),
-  fSEMult(nullptr),
-  fME(nullptr),
-  fMEMult(nullptr),
-  fCF(nullptr) {
+    : fSE(nullptr),
+      fSEMult(nullptr),
+      fME(nullptr),
+      fMEMult(nullptr),
+      fCF(nullptr) {
 }
 DreamDist::DreamDist(DreamDist* pair, const char* name)
-: fSE(nullptr),
-  fSEMult(nullptr),
-  fME(nullptr),
-  fMEMult(nullptr),
-  fCF(nullptr) {
+    : fSE(nullptr),
+      fSEMult(nullptr),
+      fME(nullptr),
+      fMEMult(nullptr),
+      fCF(nullptr) {
   this->SetSEDist(pair->GetSEDist(), name);
   this->SetSEMultDist(pair->GetSEMultDist(), name);
   this->SetMEDist(pair->GetMEDist(), name);
@@ -33,7 +33,7 @@ DreamDist::~DreamDist() {
 void DreamDist::Calculate_CF(float normleft, float normright) {
   if (!fCF) {
     TString CFname = fSE->GetName();
-    CFname.Replace(CFname.First("SE"),2,"CF");
+    CFname.Replace(CFname.First("SE"), 2, "CF");
     fCF = (TH1F*) fSE->Clone(CFname.Data());
     Double_t norm_relK = 0;
     double IntegralSE = fSE->Integral(fSE->FindBin(normleft),

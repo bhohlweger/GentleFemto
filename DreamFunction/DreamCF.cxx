@@ -91,13 +91,13 @@ void DreamCF::WriteOutput(const char* name) {
   PairDist->SetOwner();
   PairDist->SetName("PairDist");
   fPartPair->WriteOutput(PairDist);
-  PairDist->Write("PairDist",1);
+  PairDist->Write("PairDist", 1);
 
   TList *AntiPairDist = new TList();
   AntiPairDist->SetOwner();
   AntiPairDist->SetName("AntiPairDist");
   fAntiPartPair->WriteOutput(AntiPairDist);
-  AntiPairDist->Write("AntiPairDist",1);
+  AntiPairDist->Write("AntiPairDist", 1);
 
   output->Close();
   return;

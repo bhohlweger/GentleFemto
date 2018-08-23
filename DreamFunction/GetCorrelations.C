@@ -6,8 +6,8 @@ void GetCorrelations(const char* filename, const char* prefix) {
   DreamFile->SetAnalysisFile(filename, prefix);
 
   DreamCF* CF_pXi = new DreamCF();
-  DreamPair* pXi = new DreamPair("Part",0.2,0.4);
-  DreamPair* ApAXi = new DreamPair("AntiPart",0.2,0.4);
+  DreamPair* pXi = new DreamPair("Part", 0.2, 0.4);
+  DreamPair* ApAXi = new DreamPair("AntiPart", 0.2, 0.4);
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
   std::cout << "=========================" << std::endl;
