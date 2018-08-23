@@ -20,19 +20,15 @@ class DreamCF {
     fAntiPartPair = pairAntiPart;
   }
   ;
-  void GetCorrelations(const char* outName);
-  void SetOutputName(const char *name) {
-    fOutputNames.push_back(name);
-  }
-  ;
-  void WriteOutput();
+  void GetCorrelations();
+  void LoopCorrelations(std::vector<DreamDist*> partPair,
+                        std::vector<DreamDist*> antipartPair, const char* name);
+  void WriteOutput(const char* name);
+  TH1F* AddCF(TH1F* CF1, TH1F* CF2, const char* name);
  private:
-  std::vector<TH1F*> fSE;
-  std::vector<TH1F*> fME;
   std::vector<TH1F*> fCF;
   DreamPair* fPartPair;
   DreamPair* fAntiPartPair;
-  std::vector<const char*> fOutputNames;
 };
 
 #endif /* DREAMCF_H_ */
