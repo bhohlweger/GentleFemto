@@ -8,7 +8,7 @@
 #ifndef DREAMFUNCTION_DREAMPAIR_H_
 #define DREAMFUNCTION_DREAMPAIR_H_
 #include <vector>
-
+#include "TFile.h"
 #include "DreamDist.h"
 class DreamPair {
  public:
@@ -16,7 +16,7 @@ class DreamPair {
   virtual ~DreamPair();
   void SetPair(DreamDist* Pair) {
     fPair = Pair;
-    fPair->Calculate_CF(fNormLeft,fNormRight);
+    fPair->Calculate_CF(fNormLeft, fNormRight);
   }
   ;
   DreamDist* GetPair() {
@@ -27,16 +27,32 @@ class DreamPair {
     return iIter < fPairShifted.size() ? fPairShifted.at(iIter) : nullptr;
   }
   ;
+  std::vector<DreamDist*> GetShiftedEmpty() {
+    return fPairShifted;
+  }
+  ;
   DreamDist* GetPairFixShifted(unsigned int iIter) {
     return iIter < fPairFixShifted.size() ? fPairFixShifted.at(iIter) : nullptr;
+  }
+  ;
+  std::vector<DreamDist*> GetFixShifted() {
+    return fPairFixShifted;
   }
   ;
   DreamDist* GetPairRebinned(unsigned int iIter) {
     return iIter < fPairRebinned.size() ? fPairRebinned.at(iIter) : nullptr;
   }
   ;
+  std::vector<DreamDist*> GetRebinned() {
+    return fPairRebinned;
+  }
+  ;
   DreamDist* GetPairReweighted(unsigned int iIter) {
     return iIter < fPairReweighted.size() ? fPairReweighted.at(iIter) : nullptr;
+  }
+  ;
+  std::vector<DreamDist*> GetReweighted() {
+    return fPairReweighted;
   }
   ;
   const char* GetName() {
@@ -52,6 +68,7 @@ class DreamPair {
   void FixShift(DreamDist* pair, DreamDist* otherDist, int kMin);
   void Rebin(DreamDist* pair, int rebin);
   void ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax);
+  void WriteOutput(TList *Outlist);
  private:
   DreamDist* fPair;
   std::vector<DreamDist*> fPairShifted;

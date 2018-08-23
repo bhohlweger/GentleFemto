@@ -138,7 +138,7 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, int kMin) {
   } else {
     //we only need to do this in case this pair has a different starting bin.
     if (fFirstBin > kMin) {
-      TH1F* otherSE = pair->GetSEDist();
+      TH1F* otherSE = otherDist->GetSEDist();
 
       TH1F* SE = pair->GetSEDist();
       TH2F* SEMult = pair->GetSEMultDist();
@@ -299,3 +299,39 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
   return;
 }
 
+void DreamPair::WriteOutput(TList *Outlist) {
+  TList *PairList=new TList();
+  PairList->SetName("Pair");
+  PairList->SetOwner();
+  Outlist->Add(PairList);
+
+  TList *PairShiftedList=new TList();
+  PairShiftedList->SetName("PairShifted");
+  PairShiftedList->SetOwner();
+  Outlist->Add(PairShiftedList);
+
+  TList *PairFixShiftedList=new TList();
+  PairFixShiftedList->SetName("PairFixShifted");
+  PairFixShiftedList->SetOwner();
+  Outlist->Add(PairFixShiftedList);
+
+  TList *PairRebinnedList=new TList();
+  PairRebinnedList->SetName("PairRebinned");
+  PairShiftedList->SetOwner();
+  Outlist->Add(PairShiftedList);
+
+  TList *PairReweightedList=new TList();
+  PairReweightedList->SetName("PairReweighted");
+  PairReweightedList->SetOwner();
+  Outlist->Add(PairReweightedList);
+
+  fPair->WriteOutput(PairList);
+  for (auto& it : fPairShifted)
+    it->WriteOutput(PairShiftedList);
+  for (auto& it : fPairFixShifted)
+    it->WriteOutput(PairFixShiftedList);
+  for (auto& it : fPairRebinned)
+    it->WriteOutput(PairRebinnedList);
+  for (auto& it : fPairReweighted)
+    it->WriteOutput(PairReweightedList);
+}
