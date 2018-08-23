@@ -9,7 +9,6 @@
 #define DREAMFUNCTION_DREAMDIST_H_
 #include "TH1F.h"
 #include "TH2F.h"
-
 class DreamDist {
  public:
   DreamDist();
@@ -47,7 +46,15 @@ class DreamDist {
     return fCF;
   }
   ;
-  void Calculate_CF(float normleft,float normright);
+  void WriteOutput(TList *Outlist) {
+    Outlist->Add(fSE);
+    Outlist->Add(fSEMult);
+    Outlist->Add(fME);
+    Outlist->Add(fMEMult);
+    Outlist->Add(fCF);
+  }
+  ;
+  void Calculate_CF(float normleft, float normright);
  private:
   TH1F* fSE;
   TH2F* fSEMult;
