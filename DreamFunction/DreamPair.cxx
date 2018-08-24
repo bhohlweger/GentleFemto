@@ -131,7 +131,7 @@ void DreamPair::ShiftForEmpty(DreamDist* pair) {
   return;
 }
 
-void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, int kMin) {
+void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin) {
   if ((fFirstBin == -99) || kMin == -99) {
     std::cout << "Internal kStar=" << fFirstBin << " and external one kStar="
               << kMin << ". Check if you ran ShiftForEmpty!" << std::endl;
@@ -170,12 +170,14 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, int kMin) {
       MEMultShifted = new TH2F(MEMultHistName, MEMultHistName, nBins, xMin,
                                xMax, multBins, 1, multMax);
       MEMultShifted->Sumw2();
-      int startBin = SEShifted->FindBin(fFirstBin);
+      int startBin = SEShifted->FindBin(kMin);
+      int startBinSE = SEShifted->FindBin(fFirstBin);
       int endBin = SEShifted->GetNbinsX();
       for (int iBin = startBin; iBin <= endBin; ++iBin) {
-        SEShifted->SetBinContent(iBin, SE->GetBinContent(iBin));
-        SEShifted->SetBinError(iBin, SE->GetBinError(iBin));
-
+        if (iBin > startBinSE) {
+          SEShifted->SetBinContent(iBin, SE->GetBinContent(iBin));
+          SEShifted->SetBinError(iBin, SE->GetBinError(iBin));
+        }
         MEShifted->SetBinContent(iBin, ME->GetBinContent(iBin));
         MEShifted->SetBinError(iBin, ME->GetBinError(iBin));
         for (int iMult = 1; iMult <= multBins; ++iMult) {

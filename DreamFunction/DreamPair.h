@@ -65,7 +65,7 @@ class DreamPair {
   ;
   int GetNDists();
   void ShiftForEmpty(DreamDist* pair);
-  void FixShift(DreamDist* pair, DreamDist* otherDist, int kMin);
+  void FixShift(DreamDist* pair, DreamDist* otherDist, float kMin);
   void Rebin(DreamDist* pair, int rebin);
   void ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax);
   void WriteOutput(TList *Outlist);

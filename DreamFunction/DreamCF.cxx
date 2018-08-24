@@ -46,7 +46,7 @@ void DreamCF::GetCorrelations() {
                      "hCk_Reweighted");
   } else {
     std::cout << "Part Pair with " << fPartPair->GetNDists()
-              << "Distributions, Anti Part Pair with "
+              << " Distributions, Anti Part Pair with "
               << fAntiPartPair->GetNDists() << std::endl;
   }
   return;
@@ -138,7 +138,9 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
       }
     } else {
       std::cout << "Skipping " << CF1->GetName() << " and " << CF2->GetName()
-                << " due to uneven beginning of binning \n";
+                << " due to uneven beginning of binning ("
+                << CF1->GetXaxis()->GetXmin() << " and "
+                << CF2->GetXaxis()->GetXmin() << ") \n";
     }
   }
   return hist_CF_sum;
