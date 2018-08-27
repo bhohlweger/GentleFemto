@@ -77,26 +77,26 @@ void GetCorrelations(const char* filename, const char* prefix) {
   std::cout << "==Rebinning & Weighting==" << std::endl;
   std::cout << "=========================" << std::endl;
 
-  for (int iReb = 3; iReb < 6; ++iReb) {
+  for (int iReb = 4; iReb < 6; ++iReb) {
     std::cout << "==Rebinning==" << std::endl;
     pL->Rebin(pL->GetPairFixShifted(0), iReb);
     LL->Rebin(LL->GetPairFixShifted(0), iReb);
     pXi->Rebin(pXi->GetPairFixShifted(0), iReb);
     std::cout << "==Weighting==" << std::endl;
-    pL->ReweightMixedEvent(pL->GetPairRebinned(iReb - 3), 0., 3.0);
-    LL->ReweightMixedEvent(LL->GetPairRebinned(iReb - 3), 0., 3.0);
-    pXi->ReweightMixedEvent(pXi->GetPairRebinned(iReb - 3), 0., 3.0);
+    pL->ReweightMixedEvent(pL->GetPairRebinned(iReb - 4), 0.2, 0.4);
+    LL->ReweightMixedEvent(LL->GetPairRebinned(iReb - 4), 0.2, 0.4);
+    pXi->ReweightMixedEvent(pXi->GetPairRebinned(iReb - 4), 0.2, 0.4);
     std::cout << "==Rebinning==" << std::endl;
     ApAL->Rebin(ApAL->GetPairFixShifted(0), iReb);
     ALAL->Rebin(ALAL->GetPairFixShifted(0), iReb);
     ApAXi->Rebin(ApAXi->GetPairFixShifted(0), iReb);
     std::cout << "==Weighting==" << std::endl;
-    ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(iReb - 3), 0., 3.0);
-    ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(iReb - 3), 0., 3.0);
-    ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(iReb - 3), 0., 3.0);
+    ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(iReb - 4), 0.2, 0.4);
+    ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(iReb - 4), 0.2, 0.4);
+    ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(iReb - 4), 0.2, 0.4);
   }
-  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0., 3.0);
-  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0., 3.0);
+  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.4);
+  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.4);
 
   pL->Rebin(pL->GetPair(), 4);
   pL->Rebin(pL->GetPair(), 5);
@@ -108,8 +108,8 @@ void GetCorrelations(const char* filename, const char* prefix) {
   ALAL->Rebin(ALAL->GetPair(), 5);
   pXi->Rebin(pXi->GetPair(), 4);
   pXi->Rebin(pXi->GetPair(), 5);
-  ApAXi->Rebin(pXi->GetPair(), 4);
-  ApAXi->Rebin(pXi->GetPair(), 5);
+  ApAXi->Rebin(ApAXi->GetPair(), 4);
+  ApAXi->Rebin(ApAXi->GetPair(), 5);
 
   std::cout << "=========================" << std::endl;
   std::cout << "=========CFs=============" << std::endl;
