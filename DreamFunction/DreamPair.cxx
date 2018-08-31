@@ -170,26 +170,30 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin) {
       MEMultShifted = new TH2F(MEMultHistName, MEMultHistName, nBins, xMin,
                                xMax, multBins, 1, multMax);
       MEMultShifted->Sumw2();
-      int startBin = SEShifted->FindBin(kMin);
-      int startBinSE = SEShifted->FindBin(fFirstBin);
+      int startBin = SEShifted->FindBin(fFirstBin);
       int endBin = SEShifted->GetNbinsX();
+      int iOtherBin = 1;
+      int endOtherBin = SE->GetXaxis()->GetNbins();
       for (int iBin = startBin; iBin <= endBin; ++iBin) {
-        if (iBin > startBinSE) {
-          SEShifted->SetBinContent(iBin, SE->GetBinContent(iBin));
-          SEShifted->SetBinError(iBin, SE->GetBinError(iBin));
-        }
-        MEShifted->SetBinContent(iBin, ME->GetBinContent(iBin));
-        MEShifted->SetBinError(iBin, ME->GetBinError(iBin));
-        for (int iMult = 1; iMult <= multBins; ++iMult) {
-          SEMultShifted->SetBinContent(iBin, iMult,
-                                       SEMult->GetBinContent(iBin, iMult));
-          SEMultShifted->SetBinError(iBin, iMult,
-                                     SEMult->GetBinError(iBin, iMult));
+        if (iOtherBin < endOtherBin) {
+          SEShifted->SetBinContent(iBin, SE->GetBinContent(iOtherBin));
+          SEShifted->SetBinError(iBin, SE->GetBinError(iOtherBin));
+          MEShifted->SetBinContent(iBin, ME->GetBinContent(iOtherBin));
+          MEShifted->SetBinError(iBin, ME->GetBinError(iOtherBin));
+          for (int iMult = 1; iMult <= multBins; ++iMult) {
+            SEMultShifted->SetBinContent(iBin, iMult,
+                                         SEMult->GetBinContent(iOtherBin, iMult));
+            SEMultShifted->SetBinError(iBin, iMult,
+                                       SEMult->GetBinError(iOtherBin, iMult));
 
-          MEMultShifted->SetBinContent(iBin, iMult,
-                                       MEMult->GetBinContent(iBin, iMult));
-          MEMultShifted->SetBinError(iBin, iMult,
-                                     MEMult->GetBinError(iBin, iMult));
+            MEMultShifted->SetBinContent(
+                iBin, iMult, MEMult->GetBinContent(iOtherBin, iMult));
+            MEMultShifted->SetBinError(iBin, iMult,
+                                       MEMult->GetBinError(iOtherBin, iMult));
+          }
+          iOtherBin++;
+        } else {
+          continue;
         }
       }
       DreamDist* PairFixShifted = new DreamDist();
@@ -242,8 +246,8 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
   TH1D* MultProjME = MEMult->ProjectionY(Form("%skSProj", MEMult->GetName()),
                                          firstBin, lastBin);
   TString MultProjRewName = Form("Weighted%s", MultProjME->GetName());
-//  TH1D* MultProjMEReweighted = (TH1D*)MultProjME->Clone(MultProjRewName.Data());
-//  MultProjMEReweighted->Reset();
+  //  TH1D* MultProjMEReweighted = (TH1D*)MultProjME->Clone(MultProjRewName.Data());
+  //  MultProjMEReweighted->Reset();
 
   int nMultBins = MEMult->GetYaxis()->GetNbins();
   int multMax = MEMult->GetYaxis()->GetBinUpEdge(nMultBins);
@@ -257,7 +261,7 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
       std::cout << "Weight = 0 for Mult Bin iMult = " << iMult
                 << " in the case of " << SE->GetName() << std::endl;
     }
-//    MultProjMEReweighted->SetBinContent(iMult,weight*MultProjME->GetBinContent(iMult));
+    //    MultProjMEReweighted->SetBinContent(iMult,weight*MultProjME->GetBinContent(iMult));
     TString MultBinName = Form("MEBin%i", iMult);
     MEReweighted->Add(MEMult->ProjectionX(MultBinName.Data(), iMult, iMult),
                       weight);
@@ -269,19 +273,19 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
           ikStar, iMult, MEMult->GetBinError(ikStar, iMult) * weight);
     }
   }
-//  TString CanName = Form("Can%s",SE->GetName());
-//  TCanvas* c1 = new TCanvas(CanName.Data(),CanName.Data(),2000,1000);
-//  c1->cd();
-//  MultProjSE->SetLineColor(2);
-//  MultProjSE->Scale(1./MultProjSE->Integral());
-//  MultProjSE->DrawCopy();
-//  MultProjME->SetLineColor(3);
-//  MultProjME->Scale(1./MultProjME->Integral());
-//  MultProjME->DrawCopy("same");
-//  MultProjMEReweighted->SetLineColor(4);
-//  MultProjMEReweighted->SetLineStyle(4);
-//  MultProjMEReweighted->Scale(1./MultProjMEReweighted->Integral());
-//  MultProjMEReweighted->DrawCopy("same");
+  //  TString CanName = Form("Can%s",SE->GetName());
+  //  TCanvas* c1 = new TCanvas(CanName.Data(),CanName.Data(),2000,1000);
+  //  c1->cd();
+  //  MultProjSE->SetLineColor(2);
+  //  MultProjSE->Scale(1./MultProjSE->Integral());
+  //  MultProjSE->DrawCopy();
+  //  MultProjME->SetLineColor(3);
+  //  MultProjME->Scale(1./MultProjME->Integral());
+  //  MultProjME->DrawCopy("same");
+  //  MultProjMEReweighted->SetLineColor(4);
+  //  MultProjMEReweighted->SetLineStyle(4);
+  //  MultProjMEReweighted->Scale(1./MultProjMEReweighted->Integral());
+  //  MultProjMEReweighted->DrawCopy("same");
   PairReweighted->Calculate_CF(fNormLeft, fNormRight);
   fPairReweighted.push_back(PairReweighted);
   delete MultProjSE;
