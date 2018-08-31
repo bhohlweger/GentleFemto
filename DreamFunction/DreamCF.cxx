@@ -68,6 +68,11 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> partPair,
                           CFSumName.Data());
       if (CFSum) {
         fCF.push_back(CFSum);
+        TString CFSumMeVName = Form("%sMeV_%i", name, iIter);
+        TH1F* CFMeVSum=ConvertToOtherUnit(CFSum,1000,CFSumMeVName.Data());
+        if (CFMeVSum) {
+          fCF.push_back(CFMeVSum);
+        }
       } else {
         if (PartPair->GetCF()) {
           std::cout << "For iteration " << iIter << " Particle Pair CF ("
@@ -86,6 +91,7 @@ void DreamCF::WriteOutput(const char* name) {
   TFile* output = TFile::Open(name, "RECREATE");
   for (auto& it : fCF) {
     it->Write();
+    delete it;
   }
   TList *PairDist = new TList();
   PairDist->SetOwner();
@@ -146,3 +152,14 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
   return hist_CF_sum;
 }
 
+TH1F* DreamCF::ConvertToOtherUnit(TH1F* HistCF, int Scale, const char* name) {
+  int nBins = HistCF->GetNbinsX();
+  float kMin = HistCF->GetXaxis()->GetXmin();
+  float kMax = HistCF->GetXaxis()->GetXmax();
+  TH1F* HistScaled = new TH1F(name, name, nBins, kMin * Scale, kMax * Scale);
+  for (int iBin = 1; iBin <= nBins; ++iBin) {
+    HistScaled->SetBinContent(iBin, HistCF->GetBinContent(iBin));
+    HistScaled->SetBinError(iBin, HistCF->GetBinError(iBin));
+  }
+  return HistScaled;
+}
