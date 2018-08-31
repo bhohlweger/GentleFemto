@@ -12,7 +12,6 @@ void GetQADistributions(const char* PairName, DreamDist* PairOrg,
   TH1F* MERew = PairRew->GetMEDist();
   TH2F* MEMultRew = PairRew->GetMEMultDist();
   TH1F* CFRew = PairRew->GetCF();
-
   c1->cd(1);
   TLegend leg = TLegend();
 
@@ -38,18 +37,18 @@ void GetQADistributions(const char* PairName, DreamDist* PairOrg,
   MEMultProjRew->SetLineStyle(5);
   leg.AddEntry(MEMultProjRew, "ME Weighted", "lep");
 
-  SEMultProjRaw->Draw();
-  MEMultProjRaw->Draw("same");
-  MEMultProjRew->Draw("Same");
+  SEMultProjRaw->DrawCopy();
+  MEMultProjRaw->DrawCopy("same");
+  MEMultProjRew->DrawCopy("Same");
   leg.Draw("same");
 
   c1->cd(2);
   TH1F* MERawNorm = (TH1F*) MERaw->Clone(Form("%s_Norm", MERaw->GetName()));
-  MERawNorm->Scale(1. / MERawNorm->GetEntries());
+  MERawNorm->Scale(1. / MERawNorm->Integral());
   MERawNorm->SetLineColor(3);
   MERawNorm->Draw();
   TH1F* MERewNorm = (TH1F*) MERew->Clone(Form("%s_Norm", MERew->GetName()));
-  MERewNorm->Scale(1. / MERewNorm->GetEntries());
+  MERewNorm->Scale(1. / MERewNorm->Integral());
   MERewNorm->SetLineColor(4);
   MERewNorm->Draw("same");
 
