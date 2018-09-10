@@ -17,6 +17,7 @@ class ReadDreamFile {
   ReadDreamFile(int nPart1, int nPart2);
   virtual ~ReadDreamFile();
   void SetAnalysisFile(const char* AnalysisFile, const char* prefix);
+  void ReadkTHistos(const char* AnalysisFile, const char* prefix);
   DreamDist* GetPairDistributions(int iPart1, int iPart2, const char* name);
   const int fNPart1;
   const int fNPart2;

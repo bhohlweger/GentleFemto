@@ -85,6 +85,10 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
   }
 }
 
+void ReadDreamFile::ReadkTHistos(const char* AnalysisFile, const char* prefix) {
+  return;
+}
+
 DreamDist* ReadDreamFile::GetPairDistributions(int iPart1, int iPart2,
                                                const char* name) {
   //user needs to ensure deletion
@@ -99,3 +103,4 @@ DreamDist* ReadDreamFile::GetPairDistributions(int iPart1, int iPart2,
   pair->SetMEMultDist(fMEMult[iPart1][iPart2], name);
   return pair;
 }
+
