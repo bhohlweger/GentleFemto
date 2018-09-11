@@ -56,6 +56,7 @@ void DreamKayTee::ObtainTheCorrelationFunction() {
         fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(),2);
       }
     }
+    this->AveragekT();
     fSum = new DreamCF*[fNKayTeeBins];
     TFile* allCFsOut = TFile::Open("CFOutputALLkT_pp.root","RECREATE");
     if (fAveragekT) {
