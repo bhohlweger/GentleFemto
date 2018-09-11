@@ -215,9 +215,9 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin) {
 void DreamPair::Rebin(DreamDist* pair, int rebin) {
   DreamDist* Rebinned = new DreamDist(pair, Form("_Rebinned_%i", rebin));
   Rebinned->GetSEDist()->Rebin(rebin);
-  Rebinned->GetSEMultDist()->Rebin2D(rebin, 1);
+  if(Rebinned->GetSEMultDist())Rebinned->GetSEMultDist()->Rebin2D(rebin, 1);
   Rebinned->GetMEDist()->Rebin(rebin);
-  Rebinned->GetMEMultDist()->Rebin2D(rebin, 1);
+  if (Rebinned->GetMEMultDist())Rebinned->GetMEMultDist()->Rebin2D(rebin, 1);
   Rebinned->Calculate_CF(fNormLeft, fNormRight);
   fPairRebinned.push_back(Rebinned);
   return;

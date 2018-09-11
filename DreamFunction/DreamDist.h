@@ -49,9 +49,9 @@ class DreamDist {
   ;
   void WriteOutput(TList *Outlist) {
     Outlist->Add(fSE);
-    Outlist->Add(fSEMult);
+    if (fSEMult)Outlist->Add(fSEMult);
     Outlist->Add(fME);
-    Outlist->Add(fMEMult);
+    if (fMEMult)Outlist->Add(fMEMult);
     Outlist->Add(fCF);
   }
   ;

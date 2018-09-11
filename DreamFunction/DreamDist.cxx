@@ -22,17 +22,24 @@ DreamDist::DreamDist(DreamDist* pair, const char* name)
       fMEMult(nullptr),
       fCF(nullptr) {
   this->SetSEDist(pair->GetSEDist(), name);
-  this->SetSEMultDist(pair->GetSEMultDist(), name);
+  if (pair->GetSEMultDist())
+    this->SetSEMultDist(pair->GetSEMultDist(), name);
   this->SetMEDist(pair->GetMEDist(), name);
-  this->SetMEMultDist(pair->GetMEMultDist(), name);
+  if (pair->GetMEMultDist())
+    this->SetMEMultDist(pair->GetMEMultDist(), name);
 }
 
 DreamDist::~DreamDist() {
-  if (fSE) delete fSE;
-  if (fSEMult) delete fSEMult;
-  if (fME) delete fME;
-  if (fMEMult) delete fMEMult;
-  if (fCF) delete fCF;
+  if (fSE)
+    delete fSE;
+  if (fSEMult)
+    delete fSEMult;
+  if (fME)
+    delete fME;
+  if (fMEMult)
+    delete fMEMult;
+  if (fCF)
+    delete fCF;
 }
 
 void DreamDist::Calculate_CF(float normleft, float normright) {
