@@ -12,8 +12,10 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fNPart2(nPart2),
       fSE(nullptr),
       fSEMult(nullptr),
+      fSEkT(nullptr),
       fME(nullptr),
-      fMEMult(nullptr) {
+      fMEMult(nullptr),
+      fMEkT(nullptr) {
 }
 
 ReadDreamFile::~ReadDreamFile() {
@@ -23,8 +25,6 @@ ReadDreamFile::~ReadDreamFile() {
 void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
                                     const char* Prefix) {
   TFile* _file0 = TFile::Open(PathAnalysisFile, "READ");
-  const float normleft = 200;
-  const float normright = 400;
 
   TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
       Form("%sResults", Prefix)));
@@ -86,6 +86,40 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
 }
 
 void ReadDreamFile::ReadkTHistos(const char* AnalysisFile, const char* prefix) {
+  fSEkT = new TH2F**[fNPart1];
+  fMEkT = new TH2F**[fNPart1];
+
+  TFile* _file0 = TFile::Open(AnalysisFile, "READ");
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults", prefix)));
+  TList *Results;
+  dirResults->GetObject(Form("%sResults", prefix), Results);
+  TList *PartList;
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+    fSEkT[iPart1] = new TH2F*[fNPart2];
+    fMEkT[iPart1] = new TH2F*[fNPart2];
+
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+      TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
+      PartList = (TList*) Results->FindObject(FolderName.Data());
+
+      fSEkT[iPart1][iPart2] = nullptr;
+      fSEkT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+          Form("SEkTDist_%s", FolderName.Data()));
+      if (!fSEkT[iPart1][iPart2]) {
+        std::cout << "SEkT Histogramm missing from " << FolderName.Data()
+                  << std::endl;
+      }
+
+      fMEkT[iPart1][iPart2] = nullptr;
+      fMEkT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+          Form("MEkTDist_%s", FolderName.Data()));
+      if (!fMEkT[iPart1][iPart2]) {
+        std::cout << "MEkT Histogramm missing from " << FolderName.Data()
+                  << std::endl;
+      }
+    }
+  }
   return;
 }
 
@@ -101,6 +135,23 @@ DreamDist* ReadDreamFile::GetPairDistributions(int iPart1, int iPart2,
   pair->SetSEMultDist(fSEMult[iPart1][iPart2], name);
   pair->SetMEDist(fME[iPart1][iPart2], name);
   pair->SetMEMultDist(fMEMult[iPart1][iPart2], name);
+  return pair;
+}
+
+DreamKayTee* ReadDreamFile::GetkTPairDistributions(int iPart1, int iPart2,
+                                                   int iAPart1, int iAPart2) {
+  //user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEkTDist(0,fSEkT[iPart1][iPart2]);
+  pair->SetMEkTDist(0,fMEkT[iPart1][iPart2]);
+
+  pair->SetSEkTDist(1,fSEkT[iPart1][iPart2]);
+  pair->SetMEkTDist(1,fMEkT[iPart1][iPart2]);
+
   return pair;
 }
 

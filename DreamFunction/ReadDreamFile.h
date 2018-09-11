@@ -11,6 +11,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 
+#include "DreamKayTee.h"
 #include "DreamDist.h"
 class ReadDreamFile {
  public:
@@ -19,14 +20,16 @@ class ReadDreamFile {
   void SetAnalysisFile(const char* AnalysisFile, const char* prefix);
   void ReadkTHistos(const char* AnalysisFile, const char* prefix);
   DreamDist* GetPairDistributions(int iPart1, int iPart2, const char* name);
+  DreamKayTee* GetkTPairDistributions(int iPart1, int iPart2,int iAPart1, int iAPart2);
   const int fNPart1;
   const int fNPart2;
  private:
   TH1F*** fSE;
   TH2F*** fSEMult;
+  TH2F*** fSEkT;
   TH1F*** fME;
   TH2F*** fMEMult;
-
+  TH2F*** fMEkT;
 };
 
 #endif /* DREAMFUNCTION_READDREAMFILE_H_ */
