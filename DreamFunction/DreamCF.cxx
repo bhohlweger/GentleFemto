@@ -28,6 +28,11 @@ void DreamCF::GetCorrelations() {
                           "hCkTotNormWeight");
       if (CFSum) {
         fCF.push_back(CFSum);
+        TString CFSumMeVName = Form("%sMeV", CFSum->GetName());
+        TH1F* CFMeVSum=ConvertToOtherUnit(CFSum,1000,CFSumMeVName.Data());
+        if (CFMeVSum) {
+          fCF.push_back(CFMeVSum);
+        }
       }
     } else {
       std::cout << "No Anti-Particle Pair Set! \n";
@@ -89,6 +94,7 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> partPair,
 
 void DreamCF::WriteOutput(const char* name) {
   TFile* output = TFile::Open(name, "RECREATE");
+  output->cd();
   for (auto& it : fCF) {
     it->Write();
     delete it;

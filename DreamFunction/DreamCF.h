@@ -25,7 +25,11 @@ class DreamCF {
                         std::vector<DreamDist*> antipartPair, const char* name);
   void WriteOutput(const char* name);
   TH1F* AddCF(TH1F* CF1, TH1F* CF2, const char* name);
-  TH1F* ConvertToOtherUnit(TH1F* HistCF,int Scale,const char* name);
+  TH1F* ConvertToOtherUnit(TH1F* HistCF, int Scale, const char* name);
+  std::vector<TH1F*> GetCorrelationFunctions() {
+    return fCF;
+  }
+  ;
  private:
   std::vector<TH1F*> fCF;
   DreamPair* fPartPair;
