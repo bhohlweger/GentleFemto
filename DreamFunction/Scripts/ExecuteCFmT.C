@@ -1,7 +1,7 @@
 #include "TROOT.h"
 #include "TSystem.h"
 
-void ExecuteCFmT(const char* filename, const char* prefix) {
+void ExecuteCFmT(const char* filename, const char* prefix, const char* addon="") {
   gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamDist.cxx+g");
   gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamPair.cxx+g");
   gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamCF.cxx+g");
@@ -11,8 +11,8 @@ void ExecuteCFmT(const char* filename, const char* prefix) {
   gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamData.cxx+g");
 
   TString MacroNameOne = Form(
-      "~/GentleFemto/DreamFunction/Scripts/GetCFvskT.C (\"%s\",\"%s\")",
-      filename, prefix);
+      "~/GentleFemto/DreamFunction/Scripts/GetCFvskT.C (\"%s\",\"%s\", \"%s\")",
+      filename, prefix, addon);
 
   gInterpreter->ExecuteMacro(MacroNameOne.Data());
 
