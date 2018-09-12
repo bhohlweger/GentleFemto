@@ -23,13 +23,13 @@ ReadDreamFile::~ReadDreamFile() {
 }
 
 void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
-                                    const char* Prefix) {
+                                    const char* Prefix,
+				    const char* Addon) {
   TFile* _file0 = TFile::Open(PathAnalysisFile, "READ");
 
-  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
-      Form("%sResults", Prefix)));
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(Form("%sResults%s", Prefix, Addon)));
   TList *Results;
-  dirResults->GetObject(Form("%sResults", Prefix), Results);
+  dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
   TList *PartList;
 
   fSE = new TH1F**[fNPart1];
@@ -85,15 +85,14 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
   }
 }
 
-void ReadDreamFile::ReadkTHistos(const char* AnalysisFile, const char* prefix) {
+void ReadDreamFile::ReadkTHistos(const char* AnalysisFile, const char* prefix, const char* addon) {
   fSEkT = new TH2F**[fNPart1];
   fMEkT = new TH2F**[fNPart1];
 
   TFile* _file0 = TFile::Open(AnalysisFile, "READ");
-  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
-      Form("%sResults", prefix)));
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(Form("%sResults%s", prefix, addon)));
   TList *Results;
-  dirResults->GetObject(Form("%sResults", prefix), Results);
+  dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
   TList *PartList;
   for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
     fSEkT[iPart1] = new TH2F*[fNPart2];

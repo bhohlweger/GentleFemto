@@ -1,9 +1,9 @@
 #include "TROOT.h"
 
-void GetCorrelations(const char* filename, const char* prefix) {
+void GetCorrelations(const char* filename, const char* prefix, const char* addon = "") {
   //gStyle->SetOptStat(0);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
-  DreamFile->SetAnalysisFile(filename, prefix);
+  DreamFile->SetAnalysisFile(filename, prefix, addon);
 
   DreamCF* CF_pp = new DreamCF();
   DreamPair* pp = new DreamPair("Part", 0.2, 0.4);
