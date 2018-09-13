@@ -32,7 +32,7 @@ class DreamKayTee {
     fNormleft=left;
     fNormright=right;
   };
-  void ObtainTheCorrelationFunction();
+  void ObtainTheCorrelationFunction(const char *outFolder);
   void AveragekT();
  private:
   std::vector<float> fKayTeeBins;

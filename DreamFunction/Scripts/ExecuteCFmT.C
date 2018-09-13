@@ -1,20 +1,25 @@
-#include "TROOT.h"
-#include "TSystem.h"
+#include "DreamKayTee.h"
+#include "ReadDreamFile.h"
 
-void ExecuteCFmT(const char* filename, const char* prefix, const char* addon="") {
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamDist.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamPair.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamCF.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/ReadDreamFile.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamKayTee.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamPlot.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamData.cxx+g");
+int main(int argc, char* argv[]) {
+  const char* filename = argv[1];
+  const char* prefix = argv[2];
+  const char* addon = (argv[3]) ? argv[3] : "";
 
-  TString MacroNameOne = Form(
-      "~/GentleFemto/DreamFunction/Scripts/GetCFvskT.C (\"%s\",\"%s\", \"%s\")",
-      filename, prefix, addon);
+  ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
+  DreamKayTee* kTDists;
+  DreamFile->ReadkTHistos(filename, prefix, addon);
+  kTDists = DreamFile->GetkTPairDistributions(0, 0, 1, 1);
 
-  gInterpreter->ExecuteMacro(MacroNameOne.Data());
+  std::vector<float> kTBins = {0.48, 0.69, 1., 1.5};
+  // std::vector<float> kTBins = { 0.48, 0.69, 0.9, 1.2 };
 
-  return;
+  TString foldername = filename;
+  foldername.ReplaceAll("AnalysisResults.root", "");
+
+  kTDists->SetKayTeeBins(kTBins);
+  kTDists->SetNormalization(0.2, 0.4);
+  kTDists->ObtainTheCorrelationFunction(foldername.Data());
+
+  return 1;
 }
