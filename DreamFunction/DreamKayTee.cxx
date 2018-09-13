@@ -26,7 +26,7 @@ DreamKayTee::~DreamKayTee() {
   // TODO Auto-generated destructor stub
 }
 
-void DreamKayTee::ObtainTheCorrelationFunction() {
+void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder) {
   const int nBins = (int) fKayTeeBins.size();
   if (fSEkT[0]) {
     fKayTeeBins.push_back(fSEkT[0]->GetYaxis()->GetXmax());
@@ -58,7 +58,7 @@ void DreamKayTee::ObtainTheCorrelationFunction() {
     }
     this->AveragekT();
     fSum = new DreamCF*[fNKayTeeBins];
-    TFile* allCFsOut = TFile::Open("CFOutputALLkT_pp.root","RECREATE");
+    TFile* allCFsOut = TFile::Open(Form("%s/CFOutputALLkT_pp.root", outFolder),"RECREATE");
     if (fAveragekT) {
       fAveragekT->Write("AveragekT");
     }
@@ -67,7 +67,7 @@ void DreamKayTee::ObtainTheCorrelationFunction() {
       fSum[ikT]->SetPairs(fCFPart[0][ikT],fCFPart[1][ikT]);
       fSum[ikT]->GetCorrelations();
       std::vector<TH1F*> CFs = fSum[ikT]->GetCorrelationFunctions();
-      TString outfileName = Form("CFOutput_pp_ikT%i.root",ikT);
+      TString outfileName = Form("%s/CFOutput_pp_ikT%i.root", outFolder, ikT);
       allCFsOut->cd();
       for (auto &it : CFs) {
         TString OutName = Form("%s_kTBin_%i",it->GetName(),ikT);

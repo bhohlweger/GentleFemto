@@ -1,20 +1,15 @@
-#include "TROOT.h"
-#include "TSystem.h"
+#include "GetCorrelations.C"
+#include "METoSEReweighting.C"
 
-void ExecuteCFDream(const char* filename, const char* prefix, const char* addon="") {
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamDist.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamPair.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamCF.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/ReadDreamFile.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamPlot.cxx+g");
-  gROOT->LoadMacro("~/GentleFemto/DreamFunction/DreamData.cxx+g");
-  TString MacroNameOne = Form("~/GentleFemto/DreamFunction/Scripts/GetCorrelations.C (\"%s\",\"%s\", \"%s\")", filename, prefix, addon);
-  gInterpreter->ExecuteMacro(MacroNameOne.Data());
+int main(int argc, char* argv[]) {
+  const char* filename = argv[1];
+  const char* prefix = argv[2];
+  const char* addon = (argv[3]) ? argv[3] : "";
+  GetCorrelations(filename, prefix, addon);
 
   TString foldername = filename;
-  TString FileName = "AnalysisResults.root";
+  foldername.ReplaceAll("AnalysisResults.root", "");
+  METoSEReweighting(foldername.Data());
 
-  foldername.Replace(foldername.First(FileName.Data()),FileName.Length(),"");
-  TString MacroNameTwo = Form("~/GentleFemto/DreamFunction/Scripts/METoSEReweighting.C (\"%s\")", foldername.Data());
-  gInterpreter->ExecuteMacro(MacroNameTwo.Data());
+  return 1;
 }

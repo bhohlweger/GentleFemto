@@ -1,4 +1,8 @@
 #include "TROOT.h"
+#include "ReadDreamFile.h"
+#include "TCanvas.h"
+#include "TLegend.h"
+#include <iostream>
 
 void GetCorrelations(const char* filename, const char* prefix, const char* addon = "") {
   //gStyle->SetOptStat(0);
@@ -114,19 +118,23 @@ void GetCorrelations(const char* filename, const char* prefix, const char* addon
   std::cout << "=========================" << std::endl;
   std::cout << "=========CFs=============" << std::endl;
   std::cout << "=========================" << std::endl;
+
+  TString foldername = filename;
+  foldername.ReplaceAll("AnalysisResults.root", "");
+
   CF_pp->SetPairs(pp, ApAp);
   CF_pp->GetCorrelations();
-  CF_pp->WriteOutput("CFOutput_pp.root");
+  CF_pp->WriteOutput(Form("%s/CFOutput_pp.root", foldername.Data()));
 
   CF_pL->SetPairs(pL, ApAL);
   CF_pL->GetCorrelations();
-  CF_pL->WriteOutput("CFOutput_pL.root");
+  CF_pL->WriteOutput(Form("%s/CFOutput_pL.root", foldername.Data()));
 
   CF_LL->SetPairs(LL, ALAL);
   CF_LL->GetCorrelations();
-  CF_LL->WriteOutput("CFOutput_LL.root");
+  CF_LL->WriteOutput(Form("%s/CFOutput_LL.root", foldername.Data()));
 
   CF_pXi->SetPairs(pXi, ApAXi);
   CF_pXi->GetCorrelations();
-  CF_pXi->WriteOutput("CFOutput_pXi.root");
+  CF_pXi->WriteOutput(Form("%s/CFOutput_pXi.root", foldername.Data()));
 }
