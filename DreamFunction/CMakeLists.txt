@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(GentleFemto)
 
-# IMPORTANT - SET HERE THE PATH TO YOUR BASE DIR
-SET(BaseDir "~/Software/GentleFemto/DreamFunction")
-
-# DONT CHANGE THE REST
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS "-std=c++1y ${CMAKE_CXX_FLAGS}")
   set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS} -undefined dynamic_lookup")
@@ -18,37 +14,38 @@ include(${ROOT_USE_FILE})
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${ROOT_INCLUDE_DIRS})
 add_definitions(${ROOT_CXX_FLAGS})
 
+
 set(SRCS
-  ${BaseDir}/DreamCF.cxx
-  ${BaseDir}/DreamData.cxx
-  ${BaseDir}/DreamDist.cxx
-  ${BaseDir}/DreamKayTee.cxx
-  ${BaseDir}/DreamPair.cxx
-  ${BaseDir}/DreamPlot.cxx
-  ${BaseDir}/ReadDreamFile.cxx
-  ${BaseDir}/global.cxx
+  ${CMAKE_SOURCE_DIR}/DreamCF.cxx
+  ${CMAKE_SOURCE_DIR}/DreamData.cxx
+  ${CMAKE_SOURCE_DIR}/DreamDist.cxx
+  ${CMAKE_SOURCE_DIR}/DreamKayTee.cxx
+  ${CMAKE_SOURCE_DIR}/DreamPair.cxx
+  ${CMAKE_SOURCE_DIR}/DreamPlot.cxx
+  ${CMAKE_SOURCE_DIR}/ReadDreamFile.cxx
+  ${CMAKE_SOURCE_DIR}/global.cxx
   )
 
 set(HEADERS
-  ${BaseDir}/DreamCF.h
-  ${BaseDir}/DreamData.h
-  ${BaseDir}/DreamDist.h
-  ${BaseDir}/DreamKayTee.h
-  ${BaseDir}/DreamPair.h
-  ${BaseDir}/DreamPlot.h
-  ${BaseDir}/ReadDreamFile.h
-  ${BaseDir}/global.h
+  ${CMAKE_SOURCE_DIR}/DreamCF.h
+  ${CMAKE_SOURCE_DIR}/DreamData.h
+  ${CMAKE_SOURCE_DIR}/DreamDist.h
+  ${CMAKE_SOURCE_DIR}/DreamKayTee.h
+  ${CMAKE_SOURCE_DIR}/DreamPair.h
+  ${CMAKE_SOURCE_DIR}/DreamPlot.h
+  ${CMAKE_SOURCE_DIR}/ReadDreamFile.h
+  ${CMAKE_SOURCE_DIR}/global.h
   )
 
-ROOT_GENERATE_DICTIONARY(G__GentleFemto ${HEADERS} LINKDEF ${BaseDir}/LinkDef.h)
+ROOT_GENERATE_DICTIONARY(G__GentleFemto ${HEADERS} LINKDEF ${CMAKE_SOURCE_DIR}/LinkDef.h)
 add_library(GentleFemto SHARED ${SRCS} G__GentleFemto)
 target_link_libraries(GentleFemto ${ROOT_LIBRARIES})
 
-add_executable(executeDream ${BaseDir}/Scripts/ExecuteCFDream.C)
+add_executable(executeDream ${CMAKE_SOURCE_DIR}/Scripts/ExecuteCFDream.C)
 target_link_libraries(executeDream GentleFemto)
 
-add_executable(executeKayTee ${BaseDir}/Scripts/ExecuteCFmT.C)
+add_executable(executeKayTee ${CMAKE_SOURCE_DIR}/Scripts/ExecuteCFmT.C)
 target_link_libraries(executeKayTee GentleFemto)
 
-add_executable(executePlot ${BaseDir}/Scripts/ExecutePlotCF.C)
+add_executable(executePlot ${CMAKE_SOURCE_DIR}/Scripts/ExecutePlotCF.C)
 target_link_libraries(executePlot GentleFemto)
