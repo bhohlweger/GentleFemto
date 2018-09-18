@@ -7,18 +7,18 @@ int main(int argc, char* argv[]) {
   const char* addon = (argv[3]) ? argv[3] : "";
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
-  DreamKayTee* mTDists;
-  DreamFile->ReadmTHistos(filename, prefix, addon);
-  mTDists = DreamFile->GetmTPairDistributions(0, 0, 1, 1);
+  DreamKayTee* kTDists;
+  DreamFile->ReadkTHistos(filename, prefix, addon);
+  kTDists = DreamFile->GetkTPairDistributions(0, 0, 1, 1);
 
-  std::vector<float> mTBins = {0.48, 0.69, 1., 1.5};
+  std::vector<float> kTBins = {0.48, 0.69, 1., 1.5};
 
   TString foldername = filename;
   foldername.ReplaceAll("AnalysisResults.root", "");
 
-  mTDists->SetKayTeeBins(mTBins);
-  mTDists->SetNormalization(0.2, 0.4);
-  mTDists->ObtainTheCorrelationFunction(foldername.Data());
+  kTDists->SetKayTeeBins(kTBins);
+  kTDists->SetNormalization(0.2, 0.4);
+  kTDists->ObtainTheCorrelationFunction(foldername.Data());
 
   return 1;
 }

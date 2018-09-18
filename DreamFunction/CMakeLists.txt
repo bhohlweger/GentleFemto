@@ -44,7 +44,10 @@ target_link_libraries(GentleFemto ${ROOT_LIBRARIES})
 add_executable(executeDream ${CMAKE_SOURCE_DIR}/Scripts/ExecuteCFDream.C)
 target_link_libraries(executeDream GentleFemto)
 
-add_executable(executeKayTee ${CMAKE_SOURCE_DIR}/Scripts/ExecuteCFmT.C)
+add_executable(executeEmmTee ${CMAKE_SOURCE_DIR}/Scripts/ExecuteCFmT.C)
+target_link_libraries(executeEmmTee GentleFemto)
+
+add_executable(executeKayTee ${CMAKE_SOURCE_DIR}/Scripts/ExecuteCFkT.C)
 target_link_libraries(executeKayTee GentleFemto)
 
 add_executable(executePlot ${CMAKE_SOURCE_DIR}/Scripts/ExecutePlotCF.C)

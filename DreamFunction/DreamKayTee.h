@@ -28,6 +28,14 @@ class DreamKayTee {
   void SetMEkTDist(int iPart,TH2F* MEkT) {
     fMEkT[iPart]=MEkT;
   };
+  void SetSEmTDist(int iPart, TH2F* SEmT) {
+    fSEkT[iPart] = SEmT;
+    fIskT = false;
+  }
+  void SetMEmTDist(int iPart, TH2F* MEmT) {
+    fMEkT[iPart] = MEmT;
+    fIskT = false;
+  }
   void SetNormalization(float left, float right) {
     fNormleft=left;
     fNormright=right;
@@ -35,6 +43,7 @@ class DreamKayTee {
   void ObtainTheCorrelationFunction(const char *outFolder);
   void AveragekT();
  private:
+  bool fIskT;
   std::vector<float> fKayTeeBins;
   int fNKayTeeBins;
   TH2F* fSEkT[2];

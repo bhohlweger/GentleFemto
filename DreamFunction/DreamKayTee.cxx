@@ -9,7 +9,8 @@
 #include "TCanvas.h"
 #include <iostream>
 DreamKayTee::DreamKayTee()
-    : fKayTeeBins(),
+    : fIskT(true),
+      fKayTeeBins(),
       fNKayTeeBins(0),
       fAveragekT(0),
       fCFPart(nullptr),
@@ -27,6 +28,7 @@ DreamKayTee::~DreamKayTee() {
 }
 
 void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder) {
+  const char* variable = (fIskT) ? "kT" : "mT";
   const int nBins = (int) fKayTeeBins.size();
   if (fSEkT[0]) {
     fKayTeeBins.push_back(fSEkT[0]->GetYaxis()->GetXmax());
@@ -35,7 +37,7 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder) {
     for (int iPart = 0; iPart < 2; ++iPart) {
       fCFPart[iPart] = new DreamPair*[fNKayTeeBins];
       for (int ikT = 0; ikT < fNKayTeeBins; ++ikT) {
-        TString PairName = Form("%s_kT_%i", PartName[iPart].Data(), ikT);
+        TString PairName = Form("%s_%s_%i", PartName[iPart].Data(), variable, ikT);
         fCFPart[iPart][ikT] = new DreamPair(PairName.Data(), fNormleft,
                                             fNormright);
         int kTminBin = fSEkT[iPart]->GetYaxis()->FindBin(fKayTeeBins[ikT]);
@@ -58,19 +60,19 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder) {
     }
     this->AveragekT();
     fSum = new DreamCF*[fNKayTeeBins];
-    TFile* allCFsOut = TFile::Open(Form("%s/CFOutputALLkT_pp.root", outFolder),"RECREATE");
+    TFile* allCFsOut = TFile::Open(Form("%s/CFOutputALL%s_pp.root", outFolder, variable),"RECREATE");
     if (fAveragekT) {
-      fAveragekT->Write("AveragekT");
+      fAveragekT->Write(Form("Average%s", variable));
     }
     for (int ikT = 0; ikT<fNKayTeeBins; ++ikT) {
       fSum[ikT] = new DreamCF();
       fSum[ikT]->SetPairs(fCFPart[0][ikT],fCFPart[1][ikT]);
       fSum[ikT]->GetCorrelations();
       std::vector<TH1F*> CFs = fSum[ikT]->GetCorrelationFunctions();
-      TString outfileName = Form("%s/CFOutput_pp_ikT%i.root", outFolder, ikT);
+      TString outfileName = Form("%s/CFOutput_pp_i%s%i.root", outFolder, variable, ikT);
       allCFsOut->cd();
       for (auto &it : CFs) {
-        TString OutName = Form("%s_kTBin_%i",it->GetName(),ikT);
+        TString OutName = Form("%s_%sBin_%i",it->GetName(),variable,ikT);
 //        std::cout << OutName.Data() << std::endl;
         it->Write(OutName.Data());
       }
@@ -78,16 +80,17 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder) {
 
     }
   } else {
-    std::cout << "No SE kT histogram with index 0 \n";
+    std::cout << "No SE " << variable << " histogram with index 0 \n";
   }
   return;
 }
 
 void DreamKayTee::AveragekT() {
+  const char* variable = (fIskT) ? "kT" : "mT";
   fAveragekT=  new TGraphErrors();
-  TH2F* kTkStar = (TH2F*)fSEkT[0]->Clone("kTkStarForAverage");
+  TH2F* kTkStar = (TH2F*)fSEkT[0]->Clone(Form("%skStarForAverage", variable));
   kTkStar->Add(fSEkT[1]);
-  TH1F* kTProjection = (TH1F*)kTkStar->ProjectionY("kDist",0,-1,"e");
+  TH1F* kTProjection = (TH1F*)kTkStar->ProjectionY(Form("%sDist", variable) ,0,-1,"e");
   for (int ikT = 0; ikT < fNKayTeeBins; ++ikT) {
     int binLow = kTProjection->GetXaxis()->FindBin(fKayTeeBins.at(ikT));
     int binUp = kTProjection->GetXaxis()->FindBin(fKayTeeBins.at(ikT+1));

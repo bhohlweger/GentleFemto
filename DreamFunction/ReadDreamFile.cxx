@@ -122,6 +122,43 @@ void ReadDreamFile::ReadkTHistos(const char* AnalysisFile, const char* prefix, c
   return;
 }
 
+void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix, const char* addon) {
+  fSEmT = new TH2F**[fNPart1];
+  fMEmT = new TH2F**[fNPart1];
+
+  TFile* _file0 = TFile::Open(AnalysisFile, "READ");
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(Form("%sResults%s", prefix, addon)));
+  TList *Results;
+  dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
+  TList *PartList;
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+    fSEmT[iPart1] = new TH2F*[fNPart2];
+    fMEmT[iPart1] = new TH2F*[fNPart2];
+
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+      TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
+      PartList = (TList*) Results->FindObject(FolderName.Data());
+
+      fSEmT[iPart1][iPart2] = nullptr;
+      fSEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+          Form("SEmTDist_%s", FolderName.Data()));
+      if (!fSEmT[iPart1][iPart2]) {
+        std::cout << "SEmT Histogramm missing from " << FolderName.Data()
+                  << std::endl;
+      }
+
+      fMEmT[iPart1][iPart2] = nullptr;
+      fMEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+          Form("MEmTDist_%s", FolderName.Data()));
+      if (!fMEmT[iPart1][iPart2]) {
+        std::cout << "MEmT Histogramm missing from " << FolderName.Data()
+                  << std::endl;
+      }
+    }
+  }
+  return;
+}
+
 DreamDist* ReadDreamFile::GetPairDistributions(int iPart1, int iPart2,
                                                const char* name) {
   //user needs to ensure deletion
@@ -154,3 +191,19 @@ DreamKayTee* ReadDreamFile::GetkTPairDistributions(int iPart1, int iPart2,
   return pair;
 }
 
+DreamKayTee* ReadDreamFile::GetmTPairDistributions(int iPart1, int iPart2,
+                                                   int iAPart1, int iAPart2) {
+  //user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEmTDist(0,fSEmT[iPart1][iPart2]);
+  pair->SetMEmTDist(0,fMEmT[iPart1][iPart2]);
+
+  pair->SetSEmTDist(1,fSEmT[iPart1][iPart2]);
+  pair->SetMEmTDist(1,fMEmT[iPart1][iPart2]);
+
+  return pair;
+}
