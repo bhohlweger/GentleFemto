@@ -40,7 +40,9 @@ class DreamKayTee {
     fNormleft=left;
     fNormright=right;
   };
-  void ObtainTheCorrelationFunction(const char *outFolder);
+  void ObtainTheCorrelationFunction(const char* outFolder,
+                                    const char* prefix = "MB",
+                                    const char* pair = "pp");
   void AveragekT();
  private:
   bool fIskT;

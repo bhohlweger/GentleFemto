@@ -27,7 +27,7 @@ DreamKayTee::~DreamKayTee() {
   // TODO Auto-generated destructor stub
 }
 
-void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder) {
+void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder, const char* prefix, const char* pair) {
   const char* variable = (fIskT) ? "kT" : "mT";
   const int nBins = (int) fKayTeeBins.size();
   if (fSEkT[0]) {
@@ -60,7 +60,15 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder) {
     }
     this->AveragekT();
     fSum = new DreamCF*[fNKayTeeBins];
-    TFile* allCFsOut = TFile::Open(Form("%s/CFOutputALL%s_pp.root", outFolder, variable),"RECREATE");
+    TString outname = outFolder;
+    outname += "/CFOutputALL_";
+    outname += variable;
+    outname += "_";
+    outname += pair;
+    outname += "_";
+    outname += prefix;
+    outname += ".root";
+    TFile* allCFsOut = TFile::Open(outname.Data(),"RECREATE");
     if (fAveragekT) {
       fAveragekT->Write(Form("Average%s", variable));
     }
@@ -69,7 +77,16 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder) {
       fSum[ikT]->SetPairs(fCFPart[0][ikT],fCFPart[1][ikT]);
       fSum[ikT]->GetCorrelations();
       std::vector<TH1F*> CFs = fSum[ikT]->GetCorrelationFunctions();
-      TString outfileName = Form("%s/CFOutput_pp_i%s%i.root", outFolder, variable, ikT);
+      TString outfileName = outFolder;
+      outfileName += "/CFOutput_";
+      outfileName += variable;
+      outfileName += "_";
+      outfileName += pair;
+      outfileName += "_";
+      outfileName += prefix;
+      outfileName += "_";
+      outfileName += ikT;
+      outfileName += ".root";
       allCFsOut->cd();
       for (auto &it : CFs) {
         TString OutName = Form("%s_%sBin_%i",it->GetName(),variable,ikT);
@@ -77,7 +94,6 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder) {
         it->Write(OutName.Data());
       }
       fSum[ikT]->WriteOutput(outfileName.Data());
-
     }
   } else {
     std::cout << "No SE " << variable << " histogram with index 0 \n";
