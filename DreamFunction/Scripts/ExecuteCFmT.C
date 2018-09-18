@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 
   mTDists->SetKayTeeBins(mTBins);
   mTDists->SetNormalization(0.2, 0.4);
-  mTDists->ObtainTheCorrelationFunction(foldername.Data());
+  mTDists->ObtainTheCorrelationFunction(foldername.Data(), prefix, "pp");
 
   return 1;
 }
