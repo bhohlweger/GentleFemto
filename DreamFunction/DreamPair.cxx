@@ -236,11 +236,9 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
   MEReweighted->Reset();  // this one we fill from scratch, we only want to keep the dimensions
   MEMultReweighted->Reset();
 
-  int nKSbins = SEMult->GetXaxis()->GetNbins();
-  double kSMaxVal = SEMult->GetXaxis()->GetBinUpEdge(nKSbins);
   //k* range of the normalization of ME and SE in Multiplicity
-  int firstBin = SEMult->FindBin(kSMin);
-  int lastBin = SEMult->FindBin(kSMax);
+  int firstBin = SEMult->GetXaxis()->FindBin(kSMin);
+  int lastBin = SEMult->GetXaxis()->FindBin(kSMax);
   TH1D* MultProjSE = SEMult->ProjectionY(Form("%skSProj", SEMult->GetName()),
                                          firstBin, lastBin);
   TH1D* MultProjME = MEMult->ProjectionY(Form("%skSProj", MEMult->GetName()),
