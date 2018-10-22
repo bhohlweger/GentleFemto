@@ -52,3 +52,6 @@ target_link_libraries(executeKayTee GentleFemto)
 
 add_executable(executePlot ${CMAKE_SOURCE_DIR}/Scripts/ExecutePlotCF.C)
 target_link_libraries(executePlot GentleFemto)
+
+add_executable(executeSigma ${CMAKE_SOURCE_DIR}/Scripts/ExecuteSigma.C)
+target_link_libraries(executeSigma GentleFemto)

@@ -33,6 +33,19 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
   ExtractResults(Results);
 }
 
+void ReadDreamFile::SetSigmaAnalysisFile(const char* PathAnalysisFile,
+                                         const char* suffix) {
+  auto file = TFile::Open(PathAnalysisFile, "READ");
+  TString name = "Sigma0_Femto_";
+  name += suffix;
+  TDirectory *dir = file->GetDirectory(name);
+  name = "femto_";
+  name += suffix;
+  auto histoList = (TList *)dir->Get(name);
+  auto Results = (TList*)histoList->FindObject("Results");
+  ExtractResults(Results);
+}
+
 void ReadDreamFile::ExtractResults(const TList *Results) {
   TList *PartList;
 
