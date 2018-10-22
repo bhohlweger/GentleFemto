@@ -18,6 +18,7 @@ class ReadDreamFile {
   ReadDreamFile(int nPart1, int nPart2);
   virtual ~ReadDreamFile();
   void SetAnalysisFile(const char* AnalysisFile, const char* prefix, const char* Addon="");
+  void SetSigmaAnalysisFile(const char* PathAnalysisFile, const char* suffix);
   void ExtractResults(const TList *Results);
   void ReadkTHistos(const char* AnalysisFile, const char* prefix, const char* addon = "");
   void ReadmTHistos(const char* AnalysisFile, const char* prefix, const char* addon = "");
