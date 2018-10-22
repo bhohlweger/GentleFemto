@@ -30,6 +30,10 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
   TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(Form("%sResults%s", Prefix, Addon)));
   TList *Results;
   dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
+  ExtractResults(Results);
+}
+
+void ReadDreamFile::ExtractResults(const TList *Results) {
   TList *PartList;
 
   fSE = new TH1F**[fNPart1];
