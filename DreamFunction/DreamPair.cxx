@@ -131,13 +131,13 @@ void DreamPair::ShiftForEmpty(DreamDist* pair) {
   return;
 }
 
-void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin) {
+void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin, const bool fixedShift) {
   if ((fFirstBin == -99) || kMin == -99) {
     std::cout << "Internal kStar=" << fFirstBin << " and external one kStar="
               << kMin << ". Check if you ran ShiftForEmpty!" << std::endl;
   } else {
     //we only need to do this in case this pair has a different starting bin.
-    if (fFirstBin > kMin) {
+    if (fFirstBin > kMin || fixedShift) {
       TH1F* otherSE = otherDist->GetSEDist();
 
       TH1F* SE = pair->GetSEDist();
@@ -210,6 +210,12 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin) {
     }
   }
   return;
+}
+
+void DreamPair::FixShift(DreamDist* pair, DreamDist* otherPair1, DreamDist* otherPair2, float kMin1, float kMin2) {
+  const float kMin = (kMin1 < kMin2) ? kMin1 : kMin2;
+  DreamDist *otherDist = (kMin1 < kMin2) ? otherPair1 : otherPair2;
+  FixShift(pair, otherDist, kMin, true);
 }
 
 void DreamPair::Rebin(DreamDist* pair, int rebin) {
