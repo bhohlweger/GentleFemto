@@ -246,6 +246,22 @@ void DreamPlot::SetStyle(bool graypalette, bool title) {
   TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
 }
 
+void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color) {
+  histo->GetXaxis()->SetLabelSize(0.045);
+  histo->GetXaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetLabelOffset(0.01);
+  histo->GetXaxis()->SetTitleOffset(1.2);
+  histo->GetXaxis()->SetLabelFont(42);
+  histo->GetYaxis()->SetLabelSize(0.045);
+  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetYaxis()->SetLabelOffset(0.01);
+  histo->GetYaxis()->SetTitleOffset(1.25);
+  histo->SetMarkerStyle(marker);
+  histo->SetMarkerColor(color);
+  histo->SetLineColor(color);
+}
+
+
 void DreamPlot::DrawCorrelationFunctions() {
   SetStyle();
   const float right = 0.025;
