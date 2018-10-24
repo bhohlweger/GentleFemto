@@ -1,5 +1,11 @@
+#include "DreamPlot.h"
+#include "TStyle.h"
+
 void GetQADistributions(const char* PairName, DreamDist* PairOrg,
                         DreamDist* PairRew) {
+  gStyle->SetOptStat(false);
+  DreamPlot::SetStyle();
+
   TString CanvasName = Form("Can%s", PairName);
   TCanvas* c1 = new TCanvas(CanvasName.Data(), CanvasName.Data(), 2000, 1000);
   c1->Divide(2, 2);
@@ -18,26 +24,26 @@ void GetQADistributions(const char* PairName, DreamDist* PairOrg,
   TH1F* SEMultProjRaw = (TH1F*) SEMultRaw->ProjectionY("SEMultProjRaw",
                                                        SEMultRaw->FindBin(0.2),
                                                        SEMultRaw->FindBin(0.4));
-  SEMultProjRaw->SetLineColor(2);
-  SEMultProjRaw->GetXaxis()->SetTitle("Multiplicity Bin");
+  SEMultProjRaw->SetTitle("; Multiplicity Bin; Normalized counts");
   leg.AddEntry(SEMultProjRaw, "SE", "lep");
   SEMultProjRaw->Scale(1. / SEMultProjRaw->Integral());
   TH1F* MEMultProjRaw = (TH1F*) MEMultRaw->ProjectionY("MEMultProjRaw",
                                                        MEMultRaw->FindBin(0.2),
                                                        MEMultRaw->FindBin(0.4));
   MEMultProjRaw->Scale(1. / MEMultProjRaw->Integral());
-  MEMultProjRaw->SetLineColor(3);
   leg.AddEntry(MEMultProjRaw, "ME Unweighted", "lep");
 
   TH1F* MEMultProjRew = (TH1F*) MEMultRew->ProjectionY("MEMultProjRew",
                                                        MEMultRew->FindBin(0.2),
                                                        MEMultRew->FindBin(0.4));
   MEMultProjRew->Scale(1. / MEMultProjRew->Integral());
-  MEMultProjRew->SetLineColor(4);
-  MEMultProjRew->SetLineStyle(5);
   leg.AddEntry(MEMultProjRew, "ME Weighted", "lep");
 
+  DreamPlot::SetStyleHisto(SEMultProjRaw, 21, kGreen+2);
+  DreamPlot::SetStyleHisto(MEMultProjRaw, 22, kRed+2);
+  DreamPlot::SetStyleHisto(MEMultProjRew, 23, kBlue+2);
   SEMultProjRaw->DrawCopy();
+  SEMultProjRaw->SetStats(false);
   MEMultProjRaw->DrawCopy("same");
   MEMultProjRew->DrawCopy("Same");
   leg.Draw("same");
@@ -45,24 +51,39 @@ void GetQADistributions(const char* PairName, DreamDist* PairOrg,
   c1->cd(2);
   TH1F* MERawNorm = (TH1F*) MERaw->Clone(Form("%s_Norm", MERaw->GetName()));
   MERawNorm->Scale(1. / MERawNorm->Integral());
-  MERawNorm->SetLineColor(3);
+  MERawNorm->SetTitle("; #it{k}* (GeV/#it{c}); Normalized counts");
   MERawNorm->Draw();
+  MERawNorm->SetStats(false);
   TH1F* MERewNorm = (TH1F*) MERew->Clone(Form("%s_Norm", MERew->GetName()));
   MERewNorm->Scale(1. / MERewNorm->Integral());
-  MERewNorm->SetLineColor(4);
   MERewNorm->Draw("same");
+  DreamPlot::SetStyleHisto(MERawNorm, 22, kRed+2);
+  DreamPlot::SetStyleHisto(MERewNorm, 23, kBlue+2);
+  TLegend leg2 = TLegend();
+  leg2.AddEntry(MERawNorm, "ME Unweighted", "lep");
+  leg2.AddEntry(MERewNorm, "ME Weighted", "lep");
+  leg2.Draw("same");
+
 
   c1->cd(3);
-  CFRaw->GetXaxis()->SetRangeUser(0, 0.2);
-  CFRaw->SetLineColor(3);
-  CFRew->SetLineColor(4);
+  CFRaw->SetTitle(";#it{k}* (GeV/#it{c}); C(#it{k}*)");
   CFRaw->Draw();
+  CFRaw->SetStats(false);
   CFRew->Draw("same");
+  DreamPlot::SetStyleHisto(CFRaw, 22, kRed+2);
+  DreamPlot::SetStyleHisto(CFRew, 23, kBlue+2);
+  TLegend leg3 = TLegend();
+  leg3.AddEntry(CFRaw, "CF Unweighted", "lep");
+  leg3.AddEntry(CFRew, "CF Weighted", "lep");
+  leg3.Draw("same");
 
   c1->cd(4);
   TH1F* Ratio = (TH1F*)CFRaw->Clone("Ratio");
   if (Ratio->Divide(CFRew)) {
     Ratio->Draw();
+    Ratio->SetStats(false);
+    DreamPlot::SetStyleHisto(Ratio, 20, kBlue+2);
+    Ratio->SetTitle("; #it{k}* (GeV/#it{c}); C(#it{k}*)_{raw} / C(#it{k}*)_{reweighted}");
   }
   c1->Write();
   delete c1;
