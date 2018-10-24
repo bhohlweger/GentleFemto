@@ -44,7 +44,8 @@ class DreamPlot {
     fCollisionSystem = system;
     fMonteCarloGen = mcGen;
   }
-  void SetStyle(bool graypalette=false, bool title=false);
+  static void SetStyle(bool graypalette=false, bool title=false);
+  static void SetStyleHisto(TH1 *histo, int marker = 20, int color = kBlue+2);
   void DrawCorrelationFunctions();
   void DrawSystemInfo(TCanvas* c);
   DreamData* fProtonProton;
