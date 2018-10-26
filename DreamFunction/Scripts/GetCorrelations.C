@@ -23,7 +23,7 @@ void GetCorrelations(const char* filename, const char* prefix, const char* addon
 
   DreamCF* CF_pXi = new DreamCF();
   DreamPair* pXi = new DreamPair("Part", 0.2, 0.4);
-  DreamPair* ApAXi = new DreamPair("AntiPart", 0.2, 0.4);
+  DreamPair* ApAXi = new DreamPair("AntiPart", 0.4, 0.6);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
@@ -87,20 +87,20 @@ void GetCorrelations(const char* filename, const char* prefix, const char* addon
     LL->Rebin(LL->GetPairFixShifted(0), iReb);
     pXi->Rebin(pXi->GetPairFixShifted(0), iReb);
     std::cout << "==Weighting==" << std::endl;
-    pL->ReweightMixedEvent(pL->GetPairRebinned(iReb - 4), 0.2, 0.4);
-    LL->ReweightMixedEvent(LL->GetPairRebinned(iReb - 4), 0.2, 0.4);
-    pXi->ReweightMixedEvent(pXi->GetPairRebinned(iReb - 4), 0.2, 0.4);
+    pL->ReweightMixedEvent(pL->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    LL->ReweightMixedEvent(LL->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    pXi->ReweightMixedEvent(pXi->GetPairRebinned(iReb - 4), 0.2, 0.9);
     std::cout << "==Rebinning==" << std::endl;
     ApAL->Rebin(ApAL->GetPairFixShifted(0), iReb);
     ALAL->Rebin(ALAL->GetPairFixShifted(0), iReb);
     ApAXi->Rebin(ApAXi->GetPairFixShifted(0), iReb);
     std::cout << "==Weighting==" << std::endl;
-    ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(iReb - 4), 0.2, 0.4);
-    ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(iReb - 4), 0.2, 0.4);
-    ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(iReb - 4), 0.2, 0.4);
+    ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(iReb - 4), 0.2, 0.9);
   }
-  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.4);
-  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.4);
+  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
 
   pL->Rebin(pL->GetPair(), 4);
   pL->Rebin(pL->GetPair(), 5);
@@ -124,17 +124,17 @@ void GetCorrelations(const char* filename, const char* prefix, const char* addon
 
   CF_pp->SetPairs(pp, ApAp);
   CF_pp->GetCorrelations();
-  CF_pp->WriteOutput(Form("%s/CFOutput_pp.root", foldername.Data()));
+  CF_pp->WriteOutput(Form("%sCFOutput_pp.root", foldername.Data()));
 
   CF_pL->SetPairs(pL, ApAL);
   CF_pL->GetCorrelations();
-  CF_pL->WriteOutput(Form("%s/CFOutput_pL.root", foldername.Data()));
+  CF_pL->WriteOutput(Form("%sCFOutput_pL.root", foldername.Data()));
 
   CF_LL->SetPairs(LL, ALAL);
   CF_LL->GetCorrelations();
-  CF_LL->WriteOutput(Form("%s/CFOutput_LL.root", foldername.Data()));
+  CF_LL->WriteOutput(Form("%sCFOutput_LL.root", foldername.Data()));
 
   CF_pXi->SetPairs(pXi, ApAXi);
   CF_pXi->GetCorrelations();
-  CF_pXi->WriteOutput(Form("%s/CFOutput_pXi.root", foldername.Data()));
+  CF_pXi->WriteOutput(Form("%sCFOutput_pXi.root", foldername.Data()));
 }

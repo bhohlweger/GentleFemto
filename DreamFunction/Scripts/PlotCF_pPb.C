@@ -25,12 +25,12 @@ void PlotCF_pPb(const char* expBaseDir, const char* sysBaseDir,
 
   PlotMe->SetRadius(radius,radiusStat,radiusSysUp,radiusSysLow);
   PlotMe->SetCollisionSystem(energy,Plotsystem,eventGenerator);
-  PlotMe->ReadData(expBaseDir,sysBaseDir,binWidth);
+  PlotMe->ReadData(expBaseDir,sysBaseDir,binWidth,1000);
   TString simDir=Form("%s",simBaseDir);
   if (simDir!="") {
     PlotMe->ReadSimulation(simBaseDir,binWidth);
   }
-  PlotMe->ReadFit(catsFile);
+  PlotMe->ReadFit(catsFile,1);
   PlotMe->DrawCorrelationFunctions();
   return;
 }

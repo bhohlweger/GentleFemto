@@ -18,12 +18,12 @@ int main(int argc, char* argv[]) {
                     globalRadiusSysLow);
   PlotMe->SetCollisionSystem(globalBeamEnergy, globalCollisionSystem,
                              globalEventGenerator);
-  PlotMe->ReadData(expBaseDir, sysBaseDir, globalBinWidth);
+  PlotMe->ReadData(expBaseDir, sysBaseDir, globalBinWidth,1000);
   TString simDir = Form("%s", simBaseDir);
   if (simDir != "") {
     PlotMe->ReadSimulation(simBaseDir, globalBinWidth);
   }
-  PlotMe->ReadFit(catsFile);
+  PlotMe->ReadFit(catsFile,1);
   PlotMe->DrawCorrelationFunctions();
-  return 1;
+  return 0;
 }
