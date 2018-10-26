@@ -14,18 +14,47 @@ DreamData::DreamData(const char* particlePair)
       fCorrelationFunctionSimulation(nullptr),
       fSystematics(nullptr),
       fSysError(nullptr),
-      fBaseLine(new TF1(Form("%sBaseLine", particlePair), "pol1", 0, 1)),
+      fBaseLine(new TF1(Form("%sBaseLine", particlePair), "pol1", 0, 1000)),
       fXMin(0),
       fXMax(0.5),
       fYMin(0),
       fYMax(0.5),
+      fXMinLegend(0),
+      fXMaxLegend(0.5),
+      fYMinLegend(0),
+      fYMaxLegend(0.5),
+      fUnitConversionData(1),
+      fUnitConversionCATS(1),
       fLegendName(),
+      fLegendOption(),
       fFemtoModdeled(),
       fFakeGraph() {
-  fFillColors = {kGray + 1, kRed - 10, kBlue - 9, kGreen - 8, kMagenta - 9,
-    kOrange - 9, kCyan - 3, kYellow - 7};
-  fColors = {kBlack, kRed + 1, kBlue + 2, kGreen + 3, kMagenta + 1, kOrange - 1,
-    kCyan + 2, kYellow + 2};
+  fFillColors = {
+    kGray + 1,
+    kRed - 10,
+    kBlue - 9,
+    kGreen - 8,
+    kMagenta - 9,
+    kOrange - 9,
+    kCyan - 3,
+    kYellow - 7
+  };
+  TColor myColor1;
+  fColors = {
+    kBlack,         //0
+    kRed + 1,//1
+    kBlue + 2,//2
+    kGreen + 3,//3
+    kMagenta + 1,//4
+    kOrange - 7,//5
+    kCyan + 2,//6
+    kYellow + 2,//7
+    kWhite,//8
+    kGreen - 5,//9
+    myColor1.GetColor(255,127,0),
+    myColor1.GetColor(31,120,180),
+    myColor1.GetColor(178,223,138)
+  };
   fMarkers = {kFullCircle, kFullSquare, kOpenCircle, kOpenSquare, kOpenDiamond,
     kOpenCross, kFullCross, kFullDiamond, kFullStar, kOpenStar};
   fBaseLine->SetLineStyle(2);
@@ -37,14 +66,8 @@ DreamData::~DreamData() {
   // TODO Auto-generated destructor stub
 }
 
-void DreamData::SetSystematics(TF1* parameters, int UnitConv,
-                               float errorwidth) {
+void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
   if (parameters) {
-//    TF1* UnbinnedSys = new TF1(Form("%sUnbinnedSyst", fName), "pol2", 0, 1);
-//    UnbinnedSys->SetParameter(0, parameters->GetBinContent(1));
-//    UnbinnedSys->SetParameter(1, parameters->GetBinContent(2));
-//    UnbinnedSys->SetParameter(2, parameters->GetBinContent(3));
-
     if (fCorrelationFunction) {
       int nBinsX = fCorrelationFunction->GetNbinsX();
       float minX = fCorrelationFunction->GetXaxis()->GetXmin();
@@ -54,14 +77,21 @@ void DreamData::SetSystematics(TF1* parameters, int UnitConv,
       for (int iBin = 1; iBin < nBinsX; iBin++) {
         const float x = fCorrelationFunction->GetBinCenter(iBin);
         const float y = fCorrelationFunction->GetBinContent(iBin);
-        fSystematics->SetBinContent(iBin,
-                                    y * parameters->Eval(x / (float) UnitConv));
+//        std::cout << "x = " << x << '\t' << " y = " << y << '\n'
+//                  << " rel error "
+//                  << parameters->Eval(x / (float) fUnitConversionData) << '\t'
+//                  << " Error = "
+//                  << y * parameters->Eval(x / (float) fUnitConversionData)
+//                  << std::endl;
+        fSystematics->SetBinContent(
+            iBin, y * parameters->Eval(x / (float) fUnitConversionData));
       }
       fSystematics->SetLineWidth(2.0);
       fSysError = new TGraphErrors();
 
       for (int i = 0; i < nBinsX; i++) {
-        if (fCorrelationFunction->GetBinCenter(i + 1) > 0.2)
+        if (fCorrelationFunction->GetBinCenter(i + 1)
+            > 0.2 * fUnitConversionData)
           continue;
         fSysError->SetPoint(i, fCorrelationFunction->GetBinCenter(i + 1),
                             fCorrelationFunction->GetBinContent(i + 1));
@@ -69,9 +99,10 @@ void DreamData::SetSystematics(TF1* parameters, int UnitConv,
                                  fSystematics->GetBinContent(i + 1));
       }
       TGraph *grFakeSys = new TGraph();
+      SetStyleGraph(grFakeSys, 2, 0);
       grFakeSys->SetFillColor(fFillColors[0]);
       grFakeSys->SetLineColor(fFillColors[0]);
-      SetStyleGraph(grFakeSys, 0, 0);
+      grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
     } else {
       std::cout << "For " << fName
@@ -84,7 +115,9 @@ void DreamData::SetSystematics(TF1* parameters, int UnitConv,
 }
 
 void DreamData::FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower,
-                                   TGraph *grUpper, int UnitConv, int color) {
+                                   TGraph *grUpper, int color, int lineStyle,
+                                   int lineWidth, int fillStyle,
+                                   bool addtoLegend) {
   if (fSystematics) {
     TGraphErrors *grFemtoModel = new TGraphErrors();
     grFemtoModel->SetName(grMedian1->GetName());
@@ -99,19 +132,29 @@ void DreamData::FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower,
       yAll.push_back(yLo);
       yAll.push_back(yUp);
       std::sort(yAll.begin(), yAll.end());
-      grFemtoModel->SetPoint(count, x / (float) UnitConv,
+      grFemtoModel->SetPoint(count, x / (float) fUnitConversionCATS,
                              (yAll[2] + yAll[0]) / 2.f);
       grFemtoModel->SetPointError(count++, 0,
                                   (yAll[2] + yAll[0]) / 2.f - yAll[0]);
     }
-    grFemtoModel->SetFillColor(fColors[color]);
     grFemtoModel->SetLineColor(fColors[color]);
-    grFemtoModel->SetLineWidth(3);
+    grFemtoModel->SetFillColor(fColors[color]);
+    grFemtoModel->SetLineWidth(lineWidth);
+    grFemtoModel->SetLineStyle(lineStyle);
+    if (fillStyle > 0)
+      grFemtoModel->SetFillStyle(fillStyle);
     fFemtoModdeled.push_back(grFemtoModel);
-    TGraph *grFakeModel = new TGraph();
-    grFakeModel->SetLineColor(fColors[color]);
-    grFakeModel->SetLineWidth(4);
-    fFakeGraph.push_back(grFakeModel);
+    if (addtoLegend) {
+      TGraph *grFakeModel = new TGraph();
+      grFakeModel->SetLineColor(fColors[color]);
+      grFakeModel->SetFillColor(fColors[color]);
+      grFakeModel->SetLineWidth(lineWidth * 1.8);
+      grFakeModel->SetLineStyle(lineStyle);
+      if (fillStyle > 0) {
+        grFakeModel->SetFillStyle(fillStyle);
+      }
+      fFakeGraph.push_back(grFakeModel);
+    }
   } else {
     std::cout << "Set Systematics first for " << fName << "\n";
   }
@@ -128,7 +171,7 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->GetYaxis()->SetTitleSize(0.05);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
-  histo->SetMarkerSize(1.5);
+  histo->SetMarkerSize(1.4);
   histo->SetLineWidth(2);
   histo->SetMarkerStyle(fMarkers[marker]);
   histo->SetMarkerColor(fColors[color]);
@@ -137,27 +180,41 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
 
 void DreamData::DrawCorrelationPlot(TCanvas* c) {
   c->cd();
-  SetStyleHisto(fCorrelationFunction, 0, 0);
-  fCorrelationFunction->GetXaxis()->SetRangeUser(0, 0.4);
-  fCorrelationFunction->GetXaxis()->SetRangeUser(0, 4);
+  SetStyleHisto(fCorrelationFunction, 2, 0);
+  fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
+  fCorrelationFunction->GetYaxis()->SetRangeUser(fYMin, fYMax);
   fSysError->SetLineColor(kWhite);
   fSysError->Draw("Ap");
   fBaseLine->Draw("same");
-  fSysError->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
+  if (fUnitConversionData == 1) {
+    fSysError->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
+  } else if (fUnitConversionData) {
+    fSysError->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  } else {
+    std::cout << "in DreamData::DrawCorrelationPlot we don't know this unit \n";
+  }
   fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
-  TLegend *leg = new TLegend(0.48,0.535,0.85,0.75);
+  TLegend *leg = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend,
+                             fYMaxLegend);
+//  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
   leg->SetBorderSize(0);
   leg->SetTextFont(42);
   leg->SetTextSize(gStyle->GetTextSize() * 0.75);
   int legendCounter = 1;
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
-  leg->AddEntry(fFakeGraph[0], fLegendName[0], "fpe");
-  leg->AddEntry(fBaseLine, "BaseLine", "l");
+  leg->AddEntry(fFakeGraph[0], fLegendName[0], fLegendOption[0]);
+  leg->AddEntry(fBaseLine, "Baseline", "l");
   leg->Draw("same");
   for (auto &it : fFemtoModdeled) {
+    std::cout << "leg counter " << legendCounter << std::endl;
     it->Draw("L3 same");
-    leg->AddEntry(fFakeGraph[legendCounter], fLegendName[legendCounter], "l");
+    std::cout << "size " << fFakeGraph.size()<< std::endl;
+    if (legendCounter < fFakeGraph.size()) {
+      std::cout << " leg counter 2 " << legendCounter << std::endl;
+    leg->AddEntry(fFakeGraph[legendCounter], fLegendName[legendCounter],
+                  fLegendOption[legendCounter]);
+    }
     legendCounter++;
   }
   fSysError->SetFillColorAlpha(kBlack, 0.4);
@@ -176,7 +233,7 @@ void DreamData::SetStyleGraph(TGraph *histo, int marker, int color) {
   histo->GetYaxis()->SetTitleSize(0.05);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
-  histo->SetMarkerSize(1.5);
+  histo->SetMarkerSize(1.4);
   histo->SetLineWidth(2);
   histo->SetMarkerStyle(fMarkers[marker]);
   histo->SetMarkerColor(fColors[color]);

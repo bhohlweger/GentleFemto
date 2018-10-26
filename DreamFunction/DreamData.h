@@ -17,7 +17,7 @@
 class DreamData {
  public:
   DreamData(const char* particlePair);
-  void SetSystematics(TF1* parameters, int UnitConv, float errorwidth);
+  void SetSystematics(TF1* parameters, float errorwidth);
   void SetCorrelationFunction(TH1F* CF) {
     fCorrelationFunction = CF;
   }
@@ -32,7 +32,8 @@ class DreamData {
   }
   ;
   void FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower, TGraph *grUpper,
-                          int UnitConv, int color);
+                          int color, int lineStyle, int lineWidth,
+                          int fillStyle,bool addtoLegend=true);
   void SetStyleHisto(TH1 *histo, int marker, int color);
   void DrawCorrelationPlot(TCanvas* c);
   void SetRangePlotting(float xMin, float xMax, float yMin, float yMax) {
@@ -42,16 +43,32 @@ class DreamData {
     fYMax = yMax;
   }
   ;
+  void SetLegendCoordinates(float xMin, float yMin, float xMax, float yMax) {
+    fXMinLegend = xMin;
+    fXMaxLegend = xMax;
+    fYMinLegend = yMin;
+    fYMaxLegend = yMax;
+  }
+  ;
   void SetNDivisions(int nDiv) {
     if (fSysError) {
-        fSysError->GetXaxis()->SetNdivisions(nDiv);
+      fSysError->GetXaxis()->SetNdivisions(nDiv);
     } else {
-        std::cout << "No sys err for " << fName;
+      std::cout << "No sys err for " << fName;
     }
   }
   ;
-  void SetLegendName(const char* name) {
+  void SetLegendName(const char* name, const char* option) {
     fLegendName.push_back(name);
+    fLegendOption.push_back(option);
+  }
+  ;
+  void SetUnitConversionData(int unit) {
+    fUnitConversionData = unit;
+  }
+  ;
+  void SetUnitConversionCATS(int unit) {
+    fUnitConversionCATS = unit;
   }
   ;
   void SetStyleGraph(TGraph *histo, int marker, int color);
@@ -66,7 +83,14 @@ class DreamData {
   float fXMax;
   float fYMin;
   float fYMax;
+  float fXMinLegend;
+  float fXMaxLegend;
+  float fYMinLegend;
+  float fYMaxLegend;
+  int fUnitConversionData;
+  int fUnitConversionCATS;
   std::vector<const char*> fLegendName;
+  std::vector<const char*> fLegendOption;
   std::vector<TGraphErrors*> fFemtoModdeled;
   std::vector<TGraph*> fFakeGraph;
   std::vector<int> fFillColors;
