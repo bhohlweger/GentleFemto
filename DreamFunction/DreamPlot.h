@@ -13,9 +13,9 @@ class DreamPlot {
   DreamPlot();
   virtual ~DreamPlot();
   void ReadData(const char* PathToDataFolder, const char* PathToSysFolder,
-                int binWidth);
+                int binWidth, int UnitConvData);
   void ReadSimulation(const char* PathToSimFolder, int binWidth);
-  void ReadFit(const char* fitPath);
+  void ReadFit(const char* fitPath, int UnitConvCATS);
   void SetProtonProtonBaseLine(float ppBL0, float ppBL1) {
     fProtonProton->SetBaseline(ppBL0, ppBL1);
   }
@@ -47,7 +47,7 @@ class DreamPlot {
   static void SetStyle(bool graypalette=false, bool title=false);
   static void SetStyleHisto(TH1 *histo, int marker = 20, int color = kBlue+2);
   void DrawCorrelationFunctions();
-  void DrawSystemInfo(TCanvas* c);
+  void DrawSystemInfo(TCanvas* c, bool plotRadius = true);
   DreamData* fProtonProton;
   DreamData* fProtonLambda;
   DreamData* fLambdaLambda;
