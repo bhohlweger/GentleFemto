@@ -57,8 +57,9 @@ DreamData::DreamData(const char* particlePair)
   };
   fMarkers = {kFullCircle, kFullSquare, kOpenCircle, kOpenSquare, kOpenDiamond,
     kOpenCross, kFullCross, kFullDiamond, kFullStar, kOpenStar};
-  fBaseLine->SetLineStyle(2);
-  fBaseLine->SetLineColor(fFillColors[6]);
+  fBaseLine->SetLineStyle(7);
+  fBaseLine->SetLineWidth(1);
+  fBaseLine->SetLineColor(fColors[0]);
 
 }
 
@@ -204,7 +205,7 @@ void DreamData::DrawCorrelationPlot(TCanvas* c) {
   int legendCounter = 1;
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
   leg->AddEntry(fFakeGraph[0], fLegendName[0], fLegendOption[0]);
-  leg->AddEntry(fBaseLine, "Baseline", "l");
+//  leg->AddEntry(fBaseLine, "Baseline", "l");
   leg->Draw("same");
   for (auto &it : fFemtoModdeled) {
     std::cout << "leg counter " << legendCounter << std::endl;
