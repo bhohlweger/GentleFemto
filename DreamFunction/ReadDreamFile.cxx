@@ -13,9 +13,12 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fSE(nullptr),
       fSEMult(nullptr),
       fSEkT(nullptr),
+      fSEmT(nullptr),
       fME(nullptr),
       fMEMult(nullptr),
-      fMEkT(nullptr) {
+      fMEkT(nullptr),
+      fMEmT(nullptr)
+{
 }
 
 ReadDreamFile::~ReadDreamFile() {
@@ -80,7 +83,12 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
                   << std::endl;
       }
       fSEMult[iPart1][iPart2]->Sumw2();
-
+      if (iPart1 == 1 && iPart2 == 5) {
+        fSE[iPart1][iPart2]->SetBinContent(1,0);
+        fSEMult[iPart1][iPart2]->SetBinContent(fSEMult[iPart1][iPart2]->GetXaxis()->FindBin(0.1),
+                                               fSEMult[iPart1][iPart2]->GetYaxis()->FindBin(12.1),
+                                               0);
+      }
       fME[iPart1][iPart2] = nullptr;
       fME[iPart1][iPart2] = (TH1F*) PartList->FindObject(
           Form("MEDist_%s", FolderName.Data()));
