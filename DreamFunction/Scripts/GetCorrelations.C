@@ -23,7 +23,7 @@ void GetCorrelations(const char* filename, const char* prefix, const char* addon
 
   DreamCF* CF_pXi = new DreamCF();
   DreamPair* pXi = new DreamPair("Part", 0.2, 0.4);
-  DreamPair* ApAXi = new DreamPair("AntiPart", 0.4, 0.6);
+  DreamPair* ApAXi = new DreamPair("AntiPart", 0.2, 0.4);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
