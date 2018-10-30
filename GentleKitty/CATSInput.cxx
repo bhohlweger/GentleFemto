@@ -32,11 +32,19 @@ void CATSInput::ReadResFile() {
 	} else {
 		FileRes->cd();
 		std::vector<TH2F*> inputHist;
-		std::vector<const char*> FileNames = { "hRes_pp_pL",
-				"hRes_pL_pSigma0", "hRes_pL_pXim",
-				"hRes_pXim_pXim1530" };
+		std::vector<const char*> FileNames = { "hRes_pp_pL", "hRes_pL_pSigma0",
+				"hRes_pL_pXim", "hRes_pXim_pXim1530" };
 		for (auto it : FileNames) {
-			inputHist.push_back((TH2F*) FileRes->Get(it));
+			if (FileRes->Get(it)) {
+				inputHist.push_back((TH2F*) FileRes->Get(it));
+			} else {
+				std::cout << it << " histogram not found \n";
+			}
+		}
+		if (inputHist.size() != FileNames.size()) {
+			std::cout
+					<< "Something went horrible wrong while reading the input Resolution hists \n";
+			return;
 		}
 		for (auto it : inputHist) {
 			TString histName = Form("%s_MeV", it->GetName());
@@ -77,7 +85,16 @@ void CATSInput::ReadSigmaFile() {
 				"hSigmaMeV_Proton_Lambda", "hSigmaMeV_Lambda_Lambda",
 				"hSigmaMeV_Proton_Xim" };
 		for (auto it : FileNames) {
-			inputHist.push_back((TH2F*) FileSigma->Get(it));
+			if (FileSigma->Get(it)) {
+				inputHist.push_back((TH2F*) FileSigma->Get(it));
+			} else {
+				std::cout << it << " histogram not found \n";
+			}
+		}
+		if (inputHist.size() != FileNames.size()) {
+			std::cout
+					<< "Something went horrible wrong while reading the input Resolution hists \n";
+			return;
 		}
 		for (auto it : inputHist) {
 			TString histName = Form("%s_MeV", it->GetName());
