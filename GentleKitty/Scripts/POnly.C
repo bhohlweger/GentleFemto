@@ -701,19 +701,19 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		Ck_pSigma0->Update();
 		Ck_pXim->Update();
 		Ck_pXim1530->Update();
-		if (CalibFiles->GetSigmaFile(0)) {
+		if (!CalibFiles->GetSigmaFile(0)) {
 			std::cout << "No Sigma file 0 \n";
 			return;
 		}
-		if (CalibFiles->GetSigmaFile(1)) {
+		if (!CalibFiles->GetSigmaFile(1)) {
 			std::cout << "No Sigma file 1 \n";
 			return;
 		}
-		if (CalibFiles->GetSigmaFile(2)) {
+		if (!CalibFiles->GetSigmaFile(2)) {
 			std::cout << "No Sigma file 2 \n";
 			return;
 		}
-		if (CalibFiles->GetSigmaFile(3)) {
+		if (!CalibFiles->GetSigmaFile(3)) {
 			std::cout << "No Sigma file 3 \n";
 			return;
 		}
