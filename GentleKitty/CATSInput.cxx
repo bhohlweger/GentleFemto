@@ -15,7 +15,7 @@ CATSInput::CATSInput() :
 		fNameBasedir(), fNameMomResFile(), fNameSigmaFile(), fFraction_Res(0), fFraction_Sig(
 				0), fUnitConv_Res(0), fUnitConv_Sig(0), fRes(), fSigma(), fDreamFile(
 				nullptr), fCF_pp(nullptr), fCF_pL(nullptr), fCF_LL(nullptr), fCF_pXi(
-				nullptr) {
+				nullptr), fnormalizationLeft(-100), fnormalizationRight(-100) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -140,98 +140,112 @@ void CATSInput::ObtainCFs(int rebin, float normleft, float normright) {
 	if (!fDreamFile) {
 		std::cout << "No File was set via ReadCorrelationFile\n";
 	} else {
-		fCF_pp = new DreamCF();
-		DreamPair* pp = new DreamPair("Part", normleft, normright);
-		DreamPair* ApAp = new DreamPair("AntiPart", normleft, normright);
+		if (fnormalizationLeft != normleft
+				|| fnormalizationRight != normright) {
+			if (fCF_pp) {
+				delete fCF_pp;
+			}
+			if (fCF_pL) {
+				delete fCF_pL;
+			}
+			if (fCF_LL) {
+				delete fCF_LL;
+			}
+			if (fCF_pXi) {
+				delete fCF_pXi;
+			}
+			fCF_pp = new DreamCF();
+			DreamPair* pp = new DreamPair("Part", normleft, normright);
+			DreamPair* ApAp = new DreamPair("AntiPart", normleft, normright);
 
-		fCF_pL = new DreamCF();
-		DreamPair* pL = new DreamPair("Part", normleft, normright);
-		DreamPair* ApAL = new DreamPair("AntiPart", normleft, normright);
+			fCF_pL = new DreamCF();
+			DreamPair* pL = new DreamPair("Part", normleft, normright);
+			DreamPair* ApAL = new DreamPair("AntiPart", normleft, normright);
 
-		fCF_LL = new DreamCF();
-		DreamPair* LL = new DreamPair("Part", normleft, normright);
-		DreamPair* ALAL = new DreamPair("AntiPart", normleft, normright);
+			fCF_LL = new DreamCF();
+			DreamPair* LL = new DreamPair("Part", normleft, normright);
+			DreamPair* ALAL = new DreamPair("AntiPart", normleft, normright);
 
-		fCF_pXi = new DreamCF();
-		DreamPair* pXi = new DreamPair("Part", normleft, normright);
-		DreamPair* ApAXi = new DreamPair("AntiPart", normleft, normright);
+			fCF_pXi = new DreamCF();
+			DreamPair* pXi = new DreamPair("Part", normleft, normright);
+			DreamPair* ApAXi = new DreamPair("AntiPart", normleft, normright);
+			std::cout << "Set pair\n";
+			pp->SetPair(fDreamFile->GetPairDistributions(0, 0, ""));
+			ApAp->SetPair(fDreamFile->GetPairDistributions(1, 1, ""));
 
-		pp->SetPair(fDreamFile->GetPairDistributions(0, 0, ""));
-		ApAp->SetPair(fDreamFile->GetPairDistributions(1, 1, ""));
+			pL->SetPair(fDreamFile->GetPairDistributions(0, 2, ""));
+			ApAL->SetPair(fDreamFile->GetPairDistributions(1, 3, ""));
 
-		pL->SetPair(fDreamFile->GetPairDistributions(0, 2, ""));
-		ApAL->SetPair(fDreamFile->GetPairDistributions(1, 3, ""));
+			LL->SetPair(fDreamFile->GetPairDistributions(2, 2, ""));
+			ALAL->SetPair(fDreamFile->GetPairDistributions(3, 3, ""));
 
-		LL->SetPair(fDreamFile->GetPairDistributions(2, 2, ""));
-		ALAL->SetPair(fDreamFile->GetPairDistributions(3, 3, ""));
+			pXi->SetPair(fDreamFile->GetPairDistributions(0, 4, ""));
+			ApAXi->SetPair(fDreamFile->GetPairDistributions(1, 5, ""));
+			pp->ShiftForEmpty(pp->GetPair());
+			ApAp->ShiftForEmpty(ApAp->GetPair());
 
-		pXi->SetPair(fDreamFile->GetPairDistributions(0, 4, ""));
-		ApAXi->SetPair(fDreamFile->GetPairDistributions(1, 5, ""));
+			pL->ShiftForEmpty(pL->GetPair());
+			ApAL->ShiftForEmpty(ApAL->GetPair());
 
-		pp->ShiftForEmpty(pp->GetPair());
-		ApAp->ShiftForEmpty(ApAp->GetPair());
+			LL->ShiftForEmpty(LL->GetPair());
+			ALAL->ShiftForEmpty(ALAL->GetPair());
 
-		pL->ShiftForEmpty(pL->GetPair());
-		ApAL->ShiftForEmpty(ApAL->GetPair());
+			pXi->ShiftForEmpty(pXi->GetPair());
+			ApAXi->ShiftForEmpty(ApAXi->GetPair());
+			pp->FixShift(pp->GetPairShiftedEmpty(0),
+					ApAp->GetPairShiftedEmpty(0), ApAp->GetFirstBin());
+			ApAp->FixShift(ApAp->GetPairShiftedEmpty(0),
+					pp->GetPairShiftedEmpty(0), pp->GetFirstBin());
 
-		LL->ShiftForEmpty(LL->GetPair());
-		ALAL->ShiftForEmpty(ALAL->GetPair());
+			pL->FixShift(pL->GetPairShiftedEmpty(0),
+					ApAL->GetPairShiftedEmpty(0), ApAL->GetFirstBin());
+			ApAL->FixShift(ApAL->GetPairShiftedEmpty(0),
+					pL->GetPairShiftedEmpty(0), pL->GetFirstBin());
 
-		pXi->ShiftForEmpty(pXi->GetPair());
-		ApAXi->ShiftForEmpty(ApAXi->GetPair());
+			LL->FixShift(LL->GetPairShiftedEmpty(0),
+					ALAL->GetPairShiftedEmpty(0), ALAL->GetFirstBin());
+			ALAL->FixShift(ALAL->GetPairShiftedEmpty(0),
+					LL->GetPairShiftedEmpty(0), LL->GetFirstBin());
 
-		pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
-				ApAp->GetFirstBin());
-		ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
-				pp->GetFirstBin());
+			pXi->FixShift(pXi->GetPairShiftedEmpty(0),
+					ApAXi->GetPairShiftedEmpty(0), ApAXi->GetFirstBin());
+			ApAXi->FixShift(ApAXi->GetPairShiftedEmpty(0),
+					pXi->GetPairShiftedEmpty(0), pXi->GetFirstBin());
+			pL->Rebin(pL->GetPairFixShifted(0), rebin);
+			ApAL->Rebin(ApAL->GetPairFixShifted(0), rebin);
 
-		pL->FixShift(pL->GetPairShiftedEmpty(0), ApAL->GetPairShiftedEmpty(0),
-				ApAL->GetFirstBin());
-		ApAL->FixShift(ApAL->GetPairShiftedEmpty(0), pL->GetPairShiftedEmpty(0),
-				pL->GetFirstBin());
+			LL->Rebin(LL->GetPairFixShifted(0), rebin);
+			ALAL->Rebin(ALAL->GetPairFixShifted(0), rebin);
 
-		LL->FixShift(LL->GetPairShiftedEmpty(0), ALAL->GetPairShiftedEmpty(0),
-				ALAL->GetFirstBin());
-		ALAL->FixShift(ALAL->GetPairShiftedEmpty(0), LL->GetPairShiftedEmpty(0),
-				LL->GetFirstBin());
+			pXi->Rebin(pXi->GetPairFixShifted(0), rebin);
+			ApAXi->Rebin(ApAXi->GetPairFixShifted(0), rebin);
+			pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+			ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
 
-		pXi->FixShift(pXi->GetPairShiftedEmpty(0),
-				ApAXi->GetPairShiftedEmpty(0), ApAXi->GetFirstBin());
-		ApAXi->FixShift(ApAXi->GetPairShiftedEmpty(0),
-				pXi->GetPairShiftedEmpty(0), pXi->GetFirstBin());
+			pL->ReweightMixedEvent(pL->GetPairRebinned(0), 0.2, 0.9);
+			ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(0), 0.2, 0.9);
 
-		pL->Rebin(pL->GetPairFixShifted(0), rebin);
-		ApAL->Rebin(ApAL->GetPairFixShifted(0), rebin);
+			LL->ReweightMixedEvent(LL->GetPairRebinned(0), 0.2, 0.9);
+			ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(0), 0.2, 0.9);
 
-		LL->Rebin(LL->GetPairFixShifted(0), rebin);
-		ALAL->Rebin(ALAL->GetPairFixShifted(0), rebin);
+			pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
+			ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
+			fCF_pp->SetPairs(pp, ApAp);
+			fCF_pp->GetCorrelations("pp");
 
-		pXi->Rebin(pXi->GetPairFixShifted(0), rebin);
-		ApAXi->Rebin(ApAXi->GetPairFixShifted(0), rebin);
+			fCF_pL->SetPairs(pL, ApAL);
+			fCF_pL->GetCorrelations("pL");
 
-		pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
-		ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+			fCF_LL->SetPairs(LL, ALAL);
+			fCF_LL->GetCorrelations("LL");
 
-		pL->ReweightMixedEvent(pL->GetPairRebinned(0), 0.2, 0.9);
-		ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(0), 0.2, 0.9);
-
-		LL->ReweightMixedEvent(LL->GetPairRebinned(0), 0.2, 0.9);
-		ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(0), 0.2, 0.9);
-
-		pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
-		ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
-
-		fCF_pp->SetPairs(pp, ApAp);
-		fCF_pp->GetCorrelations("pp");
-
-		fCF_pL->SetPairs(pL, ApAL);
-		fCF_pL->GetCorrelations("pL");
-
-		fCF_LL->SetPairs(LL, ALAL);
-		fCF_LL->GetCorrelations("LL");
-
-		fCF_pXi->SetPairs(pXi, ApAXi);
-		fCF_pXi->GetCorrelations("pXi");
+			fCF_pXi->SetPairs(pXi, ApAXi);
+			fCF_pXi->GetCorrelations("pXi");
+			fnormalizationLeft = normleft;
+			fnormalizationRight = normright;
+		} else {
+			std::cout << "Already existing normalization \n";
+		}
 	}
 }
 
@@ -292,11 +306,7 @@ void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {
 		sysName.Replace(2, 6, "");
 		TH1F* outputParam = (TH1F*) SystErrFile->Get(
 				Form("SysParam%s", sysName.Data()));
-		std::cout << Form("SysParam%s", sysName.Data()) << std::endl;
 		if (outputParam) {
-			std::cout << outputParam->GetBinContent(1) << std::endl;
-			std::cout << outputParam->GetBinContent(2) << std::endl;
-			std::cout << outputParam->GetBinContent(3) << std::endl;
 			TF1 *RelSyst = new TF1("sys", "pol2", 0, 3);
 			RelSyst->SetParameter(0, outputParam->GetBinContent(1));
 			RelSyst->SetParameter(1, outputParam->GetBinContent(2));

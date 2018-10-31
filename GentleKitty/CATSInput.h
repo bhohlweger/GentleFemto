@@ -66,6 +66,8 @@ private:
 	DreamCF* fCF_pL;
 	DreamCF* fCF_LL;
 	DreamCF* fCF_pXi;
+	float fnormalizationLeft;
+	float fnormalizationRight;
 };
 
 #endif /* GENTLEKITTY_CATSINPUT_H_ */
