@@ -19,6 +19,8 @@ DreamCF::~DreamCF() {
 	for (auto it : fCF) {
 		delete it;
 	}
+	delete fPartPair;
+	delete fAntiPartPair;
 }
 
 void DreamCF::GetCorrelations(const char* pairName) {

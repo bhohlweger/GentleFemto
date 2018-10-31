@@ -21,6 +21,21 @@ DreamPair::DreamPair(const char* name, float normleft, float normright)
 }
 
 DreamPair::~DreamPair() {
+	if (fPair) {
+		delete fPair;
+	}
+	for (auto it:fPairShifted) {
+		delete it;
+	}
+	for (auto it:fPairFixShifted) {
+		delete it;
+	}
+	for (auto it:fPairRebinned) {
+		delete it;
+	}
+	for (auto it:fPairReweighted) {
+		delete it;
+	}
 }
 
 int DreamPair::GetNDists() {
@@ -203,6 +218,10 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin, cons
       PairFixShifted->SetMEMultDist(MEMultShifted, "FixShifted");
       PairFixShifted->Calculate_CF(fNormLeft, fNormRight);
       fPairFixShifted.push_back(PairFixShifted);
+      delete SEShifted;
+      delete MEShifted;
+      delete SEMultShifted;
+      delete MEMultShifted;
     } else {
       DreamDist* PairFixShifted = new DreamDist(pair, "_FixShifted");
       PairFixShifted->Calculate_CF(fNormLeft, fNormRight);
