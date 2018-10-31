@@ -34,6 +34,7 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
   TList *Results;
   dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
   ExtractResults(Results);
+  _file0->Close();
 }
 
 void ReadDreamFile::SetSigmaAnalysisFile(const char* PathAnalysisFile,
@@ -73,7 +74,7 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
         std::cout << "SE Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
-      fSE[iPart1][iPart2]->Sumw2();
+//      fSE[iPart1][iPart2]->Sumw2();
 
       fSEMult[iPart1][iPart2] = nullptr;
       fSEMult[iPart1][iPart2] = (TH2F*) PartList->FindObject(
@@ -82,7 +83,7 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
         std::cout << "SEMult Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
-      fSEMult[iPart1][iPart2]->Sumw2();
+//      fSEMult[iPart1][iPart2]->Sumw2();
       if (iPart1 == 1 && iPart2 == 5) {
         fSE[iPart1][iPart2]->SetBinContent(1,0);
         fSEMult[iPart1][iPart2]->SetBinContent(fSEMult[iPart1][iPart2]->GetXaxis()->FindBin(0.1),
@@ -96,7 +97,7 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
         std::cout << "ME Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
-      fME[iPart1][iPart2]->Sumw2();
+//      fME[iPart1][iPart2]->Sumw2();
 
       fMEMult[iPart1][iPart2] = nullptr;
       fMEMult[iPart1][iPart2] = (TH2F*) PartList->FindObject(
@@ -105,7 +106,7 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
         std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
-      fMEMult[iPart1][iPart2]->Sumw2();
+//      fMEMult[iPart1][iPart2]->Sumw2();
     }
   }
 }
