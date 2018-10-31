@@ -34,7 +34,8 @@ int main(int argc, char *argv[]) {
 void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		const unsigned& JobID, int system, TString InputDir,
 		TString OutputDir) {
-	TRandom3 rangen(1 + JobID);
+//	TRandom3 rangen(1 + JobID);
+	TRandom3 rangen(0);
 	TString HistppName = "hCk_ReweightedppMeV_0";
 	TString HistpLName = "hCk_ReweightedpLMeV_0";
 	TString HistLLName = "hCk_ReweightedLLMeV_0";
@@ -170,6 +171,14 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 	BlRegion[1][1] = 500;
 	BlRegion[2][0] = 300;
 	BlRegion[2][1] = 540;
+
+	double normvar[3][2];
+	normvar[0][0] = 250;
+	normvar[0][1] = 450;
+	normvar[1][0] = 300;
+	normvar[1][1] = 500;
+	normvar[2][0] = 400;
+	normvar[2][1] = 600;
 
 	double PurityProton;
 	double PurityLambda;
@@ -334,7 +343,7 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 	int vFrac_pp_pL; //fraction of protons coming from Lambda variation (1 = default)
 	int vFrac_pL_pSigma0; //fraction of Lambdas coming from Sigma0 variation (1 = default)
 	int vFrac_pL_pXim; //fraction of Lambdas coming from Xim (1 = default)
-
+	int varNorm; //normalization variation of the correlation function
 	//each JOB produces a separate output file
 	TFile* OutFile = new TFile(
 			TString::Format("%sOutFile_%s_Iter%u_JOBS%u_ID%u.root",
@@ -389,7 +398,7 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		vFrac_pp_pL = rangen.Integer(3);
 		vFrac_pL_pSigma0 = rangen.Integer(3);
 		vFrac_pL_pXim = rangen.Integer(3);
-
+		varNorm = rangen.Integer(3);
 		if (rangen.Integer(2) == 1) {
 			SEPARATE_BL = true;
 			FIX_CL = false;
@@ -411,6 +420,7 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 			vFrac_pL_pXim = 1;
 			SEPARATE_BL = true;
 			FIX_CL = false;
+			varNorm = 1;
 		}
 //    vMod_pL = 1; // 0 = Usmani (Close to NLO) 1 = NLO Lednicky 2 = LO Lednicky (default)
 //    vMod_pXim = 0;
@@ -424,6 +434,7 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		printf("vFrac_pp_pL=%u\n", vFrac_pp_pL);
 		printf("vFrac_pL_pSigma0=%u\n", vFrac_pL_pSigma0);
 		printf("vFrac_pL_pXim=%u\n", vFrac_pL_pXim);
+		printf("varNorm=%u\n", varNorm);
 		printf("SEPERATE_BL=%u\n", SEPARATE_BL);
 		printf("FIX_CL=%u\n", FIX_CL);
 
@@ -459,46 +470,32 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 
 		std::cout << "Reading Data \n";
 
-		CATSinput->ObtainCFs(Rebin, 200, 400);
+		CATSinput->ObtainCFs(Rebin, normvar[varNorm][0], normvar[varNorm][1]);
 
 		TH1F* OliHisto_pp = CATSinput->GetCF("pp", HistppName);
-		if (OliHisto_pp)
-			std::cout << OliHisto_pp->GetName() << std::endl;
-		else {
+		if (!OliHisto_pp)
 			std::cout << HistppName.Data() << " Missing" << std::endl;
-		}
 		CATSinput->AddSystematics("C2totalsysPP.root", OliHisto_pp);
 		std::cout << "pp Done\n";
 
 		TH1F* OliHisto_pL = CATSinput->GetCF("pL", HistpLName.Data());
-		if (OliHisto_pL)
-			std::cout << OliHisto_pL->GetName() << std::endl;
-		else {
+		if (!OliHisto_pL)
 			std::cout << HistpLName.Data() << " pL Missing" << std::endl;
-		}
 
 		CATSinput->AddSystematics("C2totalsysPL.root", OliHisto_pL);
 
 		TH1F* OliHisto_LL = CATSinput->GetCF("LL", HistLLName.Data());
-		if (OliHisto_LL)
-			std::cout << OliHisto_LL->GetName() << std::endl;
-		else {
+		if (!OliHisto_LL)
 			std::cout << HistLLName.Data() << " LL Missing" << std::endl;
-		}
 
 		CATSinput->AddSystematics("C2totalsysLL.root", OliHisto_LL);
 
 		//!CHANGE PATH HERE
 
 		TH1F* OliHisto_pXim = CATSinput->GetCF("pXi", HistpXiName.Data());
-		if (OliHisto_pXim)
-			std::cout << OliHisto_pXim->GetName() << std::endl;
-		else {
+		if (!OliHisto_pXim)
 			std::cout << HistpXiName.Data() << " pXi Missing" << std::endl;
-		}
-		std::cout << OliHisto_pXim->GetXaxis()->GetNbins() << '\t'
-				<< OliHisto_pXim->GetXaxis()->GetXmin() << '\t'
-				<< OliHisto_pXim->GetXaxis()->GetXmax() << '\n';
+
 		TH1F *OliHisto_pXimFornSigma = nullptr;
 		if (!ExcludeXiSysError) {
 			CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim);
