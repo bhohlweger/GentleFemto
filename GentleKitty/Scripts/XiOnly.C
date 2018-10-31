@@ -17,24 +17,6 @@
 #include "TCanvas.h"
 #include <iostream>
 #include "stdlib.h"
-//void GetXiForRadius(TString InputDir, TString tmpOutputDir,
-//		double GaussSourceSize, const int tOut, TFile *file,
-//		const char* GraphName, bool saveCoulomb);
-//int main(int argc, char *argv[]) {
-//	TString outName = Form("%sXiVars.root", argv[2]);
-//	TFile* outFile = TFile::Open(outName.Data(), "RECREATE");
-//
-//	GetXiForRadius(argv[1], argv[2], atof(argv[3]), 13, outFile,"", true);
-//	GetXiForRadius(argv[1], argv[2], atof(argv[4]), 12, outFile,"", true);
-//	GetXiForRadius(argv[1], argv[2], atof(argv[5]), 11, outFile,"", false);
-//
-//	GetXiForRadius(argv[1], argv[2], atof(argv[6]), 13, outFile,"", false);
-//	GetXiForRadius(argv[1], argv[2], atof(argv[7]), 12, outFile,"", false);
-//	GetXiForRadius(argv[1], argv[2], atof(argv[8]), 11, outFile,"", true);
-//
-//	outFile->Close();
-//	return 0;
-//}
 
 void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 		double GaussSourceSize, const int tOut, TFile *file,
@@ -135,81 +117,14 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	TString SigmaMatrixFileName = TString::Format("%s/Sample3_MeV_compact.root",
 			CalibBaseDir.Data());
 
-	TFile* FileRes = new TFile(ResMatrixFileName, "read");
-	TFile* FileSigma = new TFile(SigmaMatrixFileName, "read");
+	CATSInput *CATSinput = new CATSInput();
+	CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
+	CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
+	CATSinput->ReadResFile();
+	CATSinput->SetSigmaFileName("Sample3_MeV_compact.root");
+	CATSinput->ReadSigmaFile();
 
-	TH2F* hRes_pXim_pXim1530;
-	TH2F* hSigma_pXim;
-
-	const int Fraction_Res = 2;
-	const int Fraction_Sig = 1;
-	const double UnitConv_Res = 1;
-	const double UnitConv_Sig = 1;
-
-	//for the Xi we will make the assumption that all residuals are flat since we do not know better
-	FileRes->cd();
-	hRes_pXim_pXim1530 = (TH2F*) FileRes->Get("hRes_pXim_pXim1530");
-
-	FileSigma->cd();
-	hSigma_pXim = (TH2F*) FileSigma->Get("hSigmaMeV_Proton_Xim");
-
-	TH2F* hRes_pXim_pXim1530_MeV =
-			hRes_pXim_pXim1530 == NULL ?
-					NULL :
-					new TH2F("hRes_pXim_pXim1530_MeV", "hRes_pXim_pXim1530_MeV",
-							hRes_pXim_pXim1530->GetNbinsX() / Fraction_Res,
-							hRes_pXim_pXim1530->GetXaxis()->GetBinLowEdge(1)
-									* UnitConv_Res,
-							hRes_pXim_pXim1530->GetXaxis()->GetBinUpEdge(
-									hRes_pXim_pXim1530->GetNbinsX()
-											/ Fraction_Res) * UnitConv_Res,
-							hRes_pXim_pXim1530->GetNbinsY() / Fraction_Res,
-							hRes_pXim_pXim1530->GetYaxis()->GetBinLowEdge(1)
-									* UnitConv_Res,
-							hRes_pXim_pXim1530->GetXaxis()->GetBinUpEdge(
-									hRes_pXim_pXim1530->GetNbinsY()
-											/ Fraction_Res) * UnitConv_Res);
-	TH2F* hSigma_pXim_MeV =
-			hSigma_pXim == NULL ?
-					NULL :
-					new TH2F("hSigma_pXi_MeV", "hSigma_pXi_MeV",
-							hSigma_pXim->GetNbinsX() / Fraction_Sig,
-							hSigma_pXim->GetXaxis()->GetBinLowEdge(1)
-									* UnitConv_Sig,
-							hSigma_pXim->GetXaxis()->GetBinUpEdge(
-									hSigma_pXim->GetNbinsX() / Fraction_Sig)
-									* UnitConv_Sig,
-							hSigma_pXim->GetNbinsY() / Fraction_Sig,
-							hSigma_pXim->GetYaxis()->GetBinLowEdge(1)
-									* UnitConv_Sig,
-							hSigma_pXim->GetXaxis()->GetBinUpEdge(
-									hSigma_pXim->GetNbinsY() / Fraction_Sig)
-									* UnitConv_Sig);
-
-	if (hRes_pXim_pXim1530 && hRes_pXim_pXim1530_MeV) {
-		for (int iBinX = 1;
-				iBinX <= hRes_pXim_pXim1530->GetNbinsX() / Fraction_Res;
-				iBinX++) {
-			for (int iBinY = 1;
-					iBinY <= hRes_pXim_pXim1530->GetNbinsY() / Fraction_Res;
-					iBinY++) {
-				hRes_pXim_pXim1530_MeV->SetBinContent(iBinX, iBinY,
-						hRes_pXim_pXim1530->GetBinContent(iBinX, iBinY));
-			}
-		}
-	}
-
-	if (hSigma_pXim && hSigma_pXim_MeV) {
-		for (int iBinX = 1; iBinX <= hSigma_pXim->GetNbinsX() / Fraction_Sig;
-				iBinX++) {
-			for (int iBinY = 1;
-					iBinY <= hSigma_pXim->GetNbinsY() / Fraction_Sig; iBinY++) {
-				hSigma_pXim_MeV->SetBinContent(iBinX, iBinY,
-						hSigma_pXim->GetBinContent(iBinX, iBinY));
-			}
-		}
-	}
-
+	CATSinput->ReadCorrelationFile(InputDir.Data());
 	//  int vCutID;//which data file (cut combination) should you take. 0 = default
 	//int vSource;//which source we use, see above
 	int vFemReg_pXim;  //which femto region we use for pXim (1 = default)
@@ -221,129 +136,41 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 		std::cout << tOut << " not supported \n";
 		return;
 	}
-	double pXimPotParsI0S0[10] = { 0, 0, pXim_HALQCD1, (double) tOut, 0, -1, 1,
-			0, 0, 0 };	//4th argument is the t parameter and can be:
-	double pXimPotParsI0S1[10] = { 0, 0, pXim_HALQCD1, (double) tOut, 0, -1, 1,
-			1, 0, 1 };	// 9, 10, 11, 12
-	double pXimPotParsI1S0[10] = { 0, 0, pXim_HALQCD1, (double) tOut, 1, 1, 1,
-			0, 0, 0 };	//This is shit. Corresponds to 9-14 t
-	double pXimPotParsI1S1[10] = { 0, 0, pXim_HALQCD1, (double) tOut, 1, 1, 1,
-			1, 0, 1 };	// this value 1-6
-	CATS AB_pXim;
 	double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
-			/ 1.2, 0.5 };
-	AB_pXim.SetAnaSource(GaussSource, Pars_pXi);
-	AB_pXim.SetUseAnalyticSource(true);
-	AB_pXim.SetThetaDependentSource(false);
-
-	AB_pXim.SetExcludeFailedBins(false);
-	AB_pXim.SetMomBins(NumMomBins_pXim, kMin_pXim, kMax_pXim);
-
-	AB_pXim.SetNumChannels(4);
-	AB_pXim.SetNumPW(0, 1);
-	AB_pXim.SetNumPW(1, 1);
-	AB_pXim.SetNumPW(2, 1);
-	AB_pXim.SetNumPW(3, 1);
-	AB_pXim.SetSpin(0, 0);		//I=0; S=0
-	AB_pXim.SetSpin(1, 1);		//I=0; S=1
-	AB_pXim.SetSpin(2, 0);		//I=1; S=0
-	AB_pXim.SetSpin(3, 1);		//I=1; S=1
-	AB_pXim.SetChannelWeight(0, 1. / 8.);
-	AB_pXim.SetChannelWeight(1, 3. / 8.);
-	AB_pXim.SetChannelWeight(2, 1. / 8.);
-	AB_pXim.SetChannelWeight(3, 3. / 8.);
-
-	AB_pXim.SetQ1Q2(-1);
-	//AB_pXim.SetPdgId(2212, 3312);
-
-	AB_pXim.SetPdgId(2212, 3122);//same as Lambda, in case we want to use EPOS pL source
-
-	const double Mass_p = 938.272;
-	const double Mass_Xim = 1321.7;
-	AB_pXim.SetRedMass((Mass_p * Mass_Xim) / (Mass_p + Mass_Xim));
-	AB_pXim.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI0S0);
-	AB_pXim.SetShortRangePotential(1, 0, fDlmPot, pXimPotParsI0S1);
-	AB_pXim.SetShortRangePotential(2, 0, fDlmPot, pXimPotParsI1S0);
-	AB_pXim.SetShortRangePotential(3, 0, fDlmPot, pXimPotParsI1S1);
-	AB_pXim.SetMaxRad(64);
-	AB_pXim.SetMaxRho(32);
-
+					/ 1.2, 0.5 };
+	TidyCats* tidy = new TidyCats();
+	CATS AB_pXim;
+	tidy->GetCatsProtonXiMinus(&AB_pXim, GaussSourceSize, Pars_pXi,
+			NumMomBins_pXim, kMin_pXim, kMax_pXim, true, 13);
 	AB_pXim.KillTheCat();
 
-	CATS AB_pXim1530;
 	double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
 			/ 1.2, 0.5 };
-
-	AB_pXim1530.SetAnaSource(GaussSource, Pars_pXim1530);
-	AB_pXim1530.SetUseAnalyticSource(true);
-	AB_pXim1530.SetThetaDependentSource(false);
-
-	AB_pXim1530.SetExcludeFailedBins(false);
-	AB_pXim1530.SetMomBins(NumMomBins_pXim, kMin_pXim, kMax_pXim);
-
-	AB_pXim1530.SetNumChannels(1);
-	AB_pXim1530.SetNumPW(0, 1);
-	AB_pXim1530.SetSpin(0, 0);
-	AB_pXim1530.SetChannelWeight(0, 1.);
-
-	AB_pXim1530.SetQ1Q2(-1);
-	AB_pXim1530.SetPdgId(2212, 3122);
-
-	const double Mass_Xim1530 = 1535;
-	AB_pXim1530.SetRedMass((Mass_p * Mass_Xim1530) / (Mass_p + Mass_Xim1530));
-
+	CATS AB_pXim1530;
+	tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, GaussSourceSize, Pars_pXim1530,
+			NumMomBins_pXim, kMin_pXim, kMax_pXim);
 	AB_pXim1530.KillTheCat();
 
-	//!CHANGE PATH HERE
-	TString InputFilePrefix = "CFOutput_";
-	TString HistName = "hCk_ReweightedMeV_1";
-	TString OliFileName_pXim = TString::Format("%s%spXi.root", InputDir.Data(),
-			InputFilePrefix.Data());
-	TFile* OliFile_pXim =
-			OliFileName_pXim != "" ? new TFile(OliFileName_pXim, "read") : NULL;
+	TString HistpXiName = "hCk_ReweightedpXiMeV_0";
+	TH1F* OliHisto_pXim = CATSinput->GetCF("pXi", HistpXiName.Data());
+	if (!OliHisto_pXim)
+		std::cout << HistpXiName.Data() << " pXi Missing" << std::endl;
 
-	TH1F* OliHisto_pXim =
-			OliFile_pXim ?
-					(TH1F*) OliFile_pXim->Get(Form("%s", HistName.Data())) :
-					NULL;
-	std::cout << OliHisto_pXim->GetXaxis()->GetNbins() << '\t'
-			<< OliHisto_pXim->GetXaxis()->GetXmin() << '\t'
-			<< OliHisto_pXim->GetXaxis()->GetXmax() << '\n';
-	//!CHANGE PATH HERE
-	TString SystErrFileName_pXim = Form("%s/C2totalsysPXi.root",
-			CalibBaseDir.Data());
-	TFile* SystErrFile_pXim =
-			SystErrFileName_pXim != "" ?
-					new TFile(SystErrFileName_pXim, "read") : NULL;
-	TH1F* outputParamPXi = (TH1F*) SystErrFile_pXim->Get("SysParamPXi");
-	std::cout << "PXi" << std::endl;
-	std::cout << outputParamPXi->GetBinContent(1) << std::endl;
-	std::cout << outputParamPXi->GetBinContent(2) << std::endl;
-	std::cout << outputParamPXi->GetBinContent(3) << std::endl;
-	TF1 *RelSystpXi = new TF1("sysPXi", "pol2", 0, 3);
-	RelSystpXi->SetParameter(0, outputParamPXi->GetBinContent(1));
-	RelSystpXi->SetParameter(1, outputParamPXi->GetBinContent(2));
-	RelSystpXi->SetParameter(2, outputParamPXi->GetBinContent(3));
-
-	int NumSEB_pXim = RelSystpXi == NULL ? 0 : OliHisto_pXim->FindBin(500);
 	TH1F *OliHisto_pXimFornSigma = nullptr;
-
 	OliHisto_pXimFornSigma = (TH1F*) OliHisto_pXim->Clone("pXiForNSigma");
-	for (int iBin = 0; iBin < NumSEB_pXim; iBin++) {
-		const float x = OliHisto_pXim->GetBinCenter(iBin + 1);
-		const float y = OliHisto_pXim->GetBinContent(iBin + 1);
-		OliHisto_pXim->SetBinError(iBin + 1,
-				sqrt(
-						pow(OliHisto_pXim->GetBinError(iBin + 1), 2.)
-								+ pow(y * RelSystpXi->Eval(x / 1000.), 2.)));
-	}
+	CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim);
+
 	const unsigned NumSourcePars = 1;
 	DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
 	DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
 	Ck_pXim->Update();
 	Ck_pXim1530->Update();
-
-	DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim, hSigma_pXim_MeV);
+	if (!CATSinput->GetSigmaFile(3)) {
+		std::cout << "No Sigma file 3 \n";
+		return;
+	}
+	DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
+			CATSinput->GetSigmaFile(3));
 	DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530, NULL);
 	int vFrac_pp_pL = 1;
 	const double lam_pXim = Purities_p[vFrac_pp_pL][0]
@@ -363,7 +190,7 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 
 	CkDec_pXim.AddContribution(0, lam_pXim_pXim1530,
 			DLM_CkDecomposition::cFeedDown, &CkDec_pXim1530,
-			hRes_pXim_pXim1530_MeV);		//from Xi-(1530)
+			CATSinput->GetResFile(3));		//from Xi-(1530)
 	CkDec_pXim.AddContribution(1,
 			1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
 			DLM_CkDecomposition::cFeedDown);		//other feed-down (flat)
@@ -406,12 +233,10 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 //	fitter->SetParameter("pXim", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
 //	fitter->SetParameter("pXim", DLM_Fitter1::p_b, 1e-4, 0, 2e-3);
 
-
 //	fitter->SetParameter("pXim", DLM_Fitter1::p_Cl, -0.9, -1.2, -0.8);
 	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -1.);
 
 	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
-
 
 	double StartPar = 1;
 	fitter->GoBabyGo();
@@ -436,7 +261,7 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	FitResult_pXim.SetName(TString::Format("pXimGraph%s", GraphName));
 	fitter->GetFitGraph(0, FitResult_pXim);
 
-//	CoulombStrong.SetName(
+//	CoulombStrong.SetNa 1221 total, 1053 done, 99 error, 69 active, 0 waiting me(
 //			TString::Format("FitResult_pXim_%.2f", GaussSourceSize));
 //	fitter->GetFitGraph(0, CoulombStrong);
 
@@ -508,7 +333,7 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 //	fitter->GetFitGraph(0, Coulomb);
 
 	double p_a_coulomb = fitter->GetParameter("pXim", DLM_Fitter1::p_a);
-	double p_b_coulomb  = fitter->GetParameter("pXim", DLM_Fitter1::p_b);
+	double p_b_coulomb = fitter->GetParameter("pXim", DLM_Fitter1::p_b);
 	double Cl_coulomb = fitter->GetParameter("pXim", DLM_Fitter1::p_c);
 
 	double Chi2_pXim_COULOMB = 0;
@@ -686,7 +511,5 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	if (saveCoulomb)
 		FitResult_pXim_COULOMB.Write();
 	FitResult_pXim.Write();
-//	delete hAxis_pXim;
-//	delete cfast;
 	return;
 }
