@@ -1212,7 +1212,7 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 
 			cfast->Write();
 			cfast->SaveAs(
-					TString::Format("%sIter%u_uIter%u.png", OutputDir.Data(),
+					TString::Format("%s/Iter%u_uIter%u.png", OutputDir.Data(),
 							NumIter, uIter));
 
 			delete info1;
