@@ -49,7 +49,7 @@ public:
 	;
 	void ReadCorrelationFile(const char* path);
 	void ObtainCFs(int rebin, float normleft, float normright);
-	TH1F* GetCF(const char* pair, TString hist);
+	TH1F* GetCF(TString pair, TString hist);
 	void AddSystematics(TString SysFile, TH1F* hist);
 private:
 	TString fNameBasedir;

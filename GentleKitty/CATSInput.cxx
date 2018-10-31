@@ -249,9 +249,9 @@ void CATSInput::ObtainCFs(int rebin, float normleft, float normright) {
 	}
 }
 
-TH1F* CATSInput::GetCF(const char* pair, TString hist) {
+TH1F* CATSInput::GetCF(TString pair, TString hist) {
 	TH1F* output = nullptr;
-	if (pair == "pp") {
+	if (pair == TString("pp")) {
 		for (auto it : fCF_pp->GetCorrelationFunctions()) {
 			TString itName = it->GetName();
 			if (hist == itName) {
@@ -259,7 +259,7 @@ TH1F* CATSInput::GetCF(const char* pair, TString hist) {
 				output = it;
 			}
 		}
-	} else if (pair == "pL") {
+	} else if (pair == TString("pL")) {
 		for (auto it : fCF_pL->GetCorrelationFunctions()) {
 			TString itName = it->GetName();
 			if (hist == itName) {
@@ -267,7 +267,7 @@ TH1F* CATSInput::GetCF(const char* pair, TString hist) {
 				output = it;
 			}
 		}
-	} else if (pair == "LL") {
+	} else if (pair == TString("LL")) {
 		for (auto it : fCF_LL->GetCorrelationFunctions()) {
 			TString itName = it->GetName();
 			if (hist == itName) {
@@ -275,7 +275,7 @@ TH1F* CATSInput::GetCF(const char* pair, TString hist) {
 				output = it;
 			}
 		}
-	} else if (pair == "pXi") {
+	} else if (pair == TString("pXi")) {
 		for (auto it : fCF_pXi->GetCorrelationFunctions()) {
 			TString itName = it->GetName();
 			if (hist == itName) {
