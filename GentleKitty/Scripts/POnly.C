@@ -7,6 +7,9 @@
 #include "DLM_Fitters.h"
 #include "TidyCats.h"
 #include "CATSInput.h"
+#include "ReadDreamFile.h"
+#include "DreamCF.h"
+#include "DreamPair.h"
 #include "TRandom3.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -32,21 +35,12 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		const unsigned& JobID, int system, TString InputDir,
 		TString OutputDir) {
 	TRandom3 rangen(1 + JobID);
-	TString HistName = "hCk_ReweightedMeV_";
-	TString HistppName = HistName + "0";
-	std::cout << HistppName.Data() << std::endl;
-	TString InputFilePrefix = "CFOutput_";
-	TString HistRestName = HistName;
+	TString HistppName = "hCk_ReweightedppMeV_0";
+	TString HistpLName = "hCk_ReweightedpLMeV_0";
+	TString HistLLName = "hCk_ReweightedLLMeV_0";
+	TString HistpXiName = "hCk_ReweightedpXiMeV_0";
+
 	int Rebin = 5;
-	if (Rebin == 4) {
-		HistRestName += "0";
-	} else if (Rebin == 5) {
-		HistRestName += "1";
-	} else {
-		std::cout << "Non supported Rebinning (Rebin =" << Rebin
-				<< "), please change your input file! \n";
-		return;
-	}
 	//!SETTING THAT YOU MIGHT NEED
 	//What source to use: 0 = Gauss; 1=Cauchy; 2=DoubleGauss
 	//int vSource = rangen.Integer(2); if(vSource==1) vSource=3; //chose Gauss/EPOS at random
@@ -321,12 +315,14 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 	//starting value, do not worry about it too much
 	const double GaussSourceSize = 1.2;
 
-	CATSInput *CalibFiles = new CATSInput();
-	CalibFiles->SetBaseDir(CalibBaseDir.Data());
-	CalibFiles->SetMomResFileName("run2_decay_matrices_old.root");
-	CalibFiles->ReadResFile();
-	CalibFiles->SetSigmaFileName("Sample3_MeV_compact.root");
-	CalibFiles->ReadSigmaFile();
+	CATSInput *CATSinput = new CATSInput();
+	CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
+	CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
+	CATSinput->ReadResFile();
+	CATSinput->SetSigmaFileName("Sample3_MeV_compact.root");
+	CATSinput->ReadSigmaFile();
+
+	CATSinput->ReadCorrelationFile(InputDir.Data());
 
 	//  int vCutID;//which data file (cut combination) should you take. 0 = default
 	//int vSource;//which source we use, see above
@@ -434,25 +430,6 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		//    InputFilePrefix
 		//    InputFileSuffix
 
-		//ADVANCED***
-		//#,#,POT_ID,POT_FLAG,t_tot,t1,t2,s,l,j
-		double PotPars1S0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 0, 0,
-				0 };
-		double PotPars3P0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
-				0 };
-		double PotPars3P1[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
-				1 };
-		double PotPars3P2[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
-				2 };
-
-		const double Weight1S0 = 3. / 12.;
-		const double Weight3P0 = 1. / 12.;
-		const double Weight3P1 = 3. / 12.;
-		const double Weight3P2 = 5. / 12.;
-
-		const double Mass_p = 938.272;
-		const double Mass_L = 1115.683;
-
 		double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
 				/ 1.2, 0.5 };
 		CATS AB_pp;
@@ -480,197 +457,59 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 				Pars_pXim1530, NumMomBins_pXim, kMin_pXim, kMax_pXim);
 		AB_pXim1530.KillTheCat();
 
-		//***
 		std::cout << "Reading Data \n";
-		//! DATA FILE
-		//    TString OliFileName_pp =
-		TString OliFileName_pp = TString::Format("%s%spp.root", InputDir.Data(),
-				InputFilePrefix.Data());
-		TFile* OliFile_pp =
-				OliFileName_pp != "" ? new TFile(OliFileName_pp, "read") : NULL;
-		TH1F* OliHisto_pp =
-				OliFile_pp ? (TH1F*) OliFile_pp->Get(HistppName.Data()) :
-				NULL;
+
+		CATSinput->ObtainCFs(Rebin, 200, 400);
+
+		TH1F* OliHisto_pp = CATSinput->GetCF("pp", HistppName);
 		if (OliHisto_pp)
 			std::cout << OliHisto_pp->GetName() << std::endl;
 		else {
-			std::cout << OliFileName_pp.Data() << "--" << HistppName.Data()
-					<< " Missing" << std::endl;
+			std::cout << HistppName.Data() << " Missing" << std::endl;
 		}
-		//!CHANGE PATH HERE
-		TString SystErrFileName_pp = TString::Format("%s/C2totalsysPP.root",
-				CalibBaseDir.Data());
-		TFile* SystErrFile_pp =
-				SystErrFileName_pp != "" ?
-						new TFile(SystErrFileName_pp, "read") : NULL;
-		TH1F* outputParamPP = (TH1F*) SystErrFile_pp->Get("SysParamPP");
-		std::cout << "PP" << std::endl;
-		std::cout << outputParamPP->GetBinContent(1) << std::endl;
-		std::cout << outputParamPP->GetBinContent(2) << std::endl;
-		std::cout << outputParamPP->GetBinContent(3) << std::endl;
-		TF1 *RelSystPP = new TF1("sysPP", "pol2", 0, 3);
-		RelSystPP->SetParameter(0, outputParamPP->GetBinContent(1));
-		RelSystPP->SetParameter(1, outputParamPP->GetBinContent(2));
-		RelSystPP->SetParameter(2, outputParamPP->GetBinContent(3));
+		CATSinput->AddSystematics("C2totalsysPP.root", OliHisto_pp);
+		std::cout << "pp Done\n";
 
-		int NumSEB_pp = RelSystPP == NULL ? 0 : OliHisto_pp->FindBin(500);
-
-		for (int iBin = 0; iBin < NumSEB_pp; iBin++) {
-			const float x = OliHisto_pp->GetBinCenter(iBin + 1);
-			const float y = OliHisto_pp->GetBinContent(iBin + 1);
-			OliHisto_pp->SetBinError(iBin + 1,
-					sqrt(
-							pow(OliHisto_pp->GetBinError(iBin + 1), 2.)
-									+ pow(y * RelSystPP->Eval(x / 1000.), 2.)));
+		TH1F* OliHisto_pL = CATSinput->GetCF("pL", HistpLName.Data());
+		if (OliHisto_pL)
+			std::cout << OliHisto_pL->GetName() << std::endl;
+		else {
+			std::cout << HistpLName.Data() << " pL Missing" << std::endl;
 		}
 
-		//!CHANGE PATH HERE
-		//    TString OliFileName_pL =
-		TString OliFileName_pL = TString::Format("%s%spL.root", InputDir.Data(),
-				InputFilePrefix.Data());
-		TFile* OliFile_pL;
-		if (OliFileName_pp == OliFileName_pL)
-			OliFile_pL = OliFile_pp;
-		else
-			OliFile_pL =
-					OliFileName_pL != "" ?
-							new TFile(OliFileName_pL, "read") : NULL;
-		TH1F* OliHisto_pL =
-				OliFile_pL ? (TH1F*) OliFile_pL->Get(HistRestName.Data()) :
-				NULL;
+		CATSinput->AddSystematics("C2totalsysPL.root", OliHisto_pL);
 
-		//!CHANGE PATH HERE
-		TString SystErrFileName_pL = TString::Format("%s/C2totalsysPL.root",
-				CalibBaseDir.Data());
-		TFile* SystErrFile_pL =
-				SystErrFileName_pL != "" ?
-						new TFile(SystErrFileName_pL, "read") : NULL;
-		TH1F* outputParamPL = (TH1F*) SystErrFile_pL->Get("SysParamPL");
-		std::cout << "PL" << std::endl;
-		std::cout << outputParamPL->GetBinContent(1) << std::endl;
-		std::cout << outputParamPL->GetBinContent(2) << std::endl;
-		std::cout << outputParamPL->GetBinContent(3) << std::endl;
-		TF1 *RelSystPL = new TF1("sysPL", "pol2", 0, 3);
-		RelSystPL->SetParameter(0, outputParamPL->GetBinContent(1));
-		RelSystPL->SetParameter(1, outputParamPL->GetBinContent(2));
-		RelSystPL->SetParameter(2, outputParamPL->GetBinContent(3));
-
-		int NumSEB_pL = RelSystPL == NULL ? 0 : OliHisto_pL->FindBin(500);
-
-		for (int iBin = 0; iBin < NumSEB_pL; iBin++) {
-			const float x = OliHisto_pL->GetBinCenter(iBin + 1);
-			const float y = OliHisto_pL->GetBinContent(iBin + 1);
-			OliHisto_pL->SetBinError(iBin + 1,
-					sqrt(
-							pow(OliHisto_pL->GetBinError(iBin + 1), 2.)
-									+ pow(y * RelSystPL->Eval(x / 1000.), 2.)));
+		TH1F* OliHisto_LL = CATSinput->GetCF("LL", HistLLName.Data());
+		if (OliHisto_LL)
+			std::cout << OliHisto_LL->GetName() << std::endl;
+		else {
+			std::cout << HistLLName.Data() << " LL Missing" << std::endl;
 		}
 
-		//!CHANGE PATH HERE
-		//    TString OliFileName_LL =
-		TString OliFileName_LL = TString::Format("%s%sLL.root", InputDir.Data(),
-				InputFilePrefix.Data());
-		TFile* OliFile_LL;
-		if (OliFileName_pp == OliFileName_LL)
-			OliFile_LL = OliFile_pp;
-		else
-			OliFile_LL =
-					OliFileName_LL != "" ?
-							new TFile(OliFileName_LL, "read") : NULL;
-		TH1F* OliHisto_LL =
-				OliFile_LL ? (TH1F*) OliFile_LL->Get(HistRestName.Data()) :
-				NULL;
+		CATSinput->AddSystematics("C2totalsysLL.root", OliHisto_LL);
 
 		//!CHANGE PATH HERE
-		TString SystErrFileName_LL = TString::Format("%s/C2totalsysLL.root",
-				CalibBaseDir.Data());
-		TFile* SystErrFile_LL =
-				SystErrFileName_LL != "" ?
-						new TFile(SystErrFileName_LL, "read") : NULL;
-		TH1F* outputParamLL = (TH1F*) SystErrFile_LL->Get("SysParamLL");
-		std::cout << "LL" << std::endl;
-		std::cout << outputParamLL->GetBinContent(1) << std::endl;
-		std::cout << outputParamLL->GetBinContent(2) << std::endl;
-		std::cout << outputParamLL->GetBinContent(3) << std::endl;
 
-		TF1 *RelSystLL = new TF1("sysLL", "pol2", 0, 3);
-		RelSystLL->SetParameter(0, outputParamLL->GetBinContent(1));
-		RelSystLL->SetParameter(1, outputParamLL->GetBinContent(2));
-		RelSystLL->SetParameter(2, outputParamLL->GetBinContent(3));
-
-		int NumSEB_LL = RelSystLL == NULL ? 0 : OliHisto_LL->FindBin(500);
-
-		for (int iBin = 0; iBin < NumSEB_LL; iBin++) {
-			const float x = OliHisto_LL->GetBinCenter(iBin + 1);
-			const float y = OliHisto_LL->GetBinContent(iBin + 1);
-			OliHisto_LL->SetBinError(iBin + 1,
-					sqrt(
-							pow(OliHisto_LL->GetBinError(iBin + 1), 2.)
-									+ pow(y * RelSystLL->Eval(x / 1000.), 2.)));
+		TH1F* OliHisto_pXim = CATSinput->GetCF("pXi", HistpXiName.Data());
+		if (OliHisto_pXim)
+			std::cout << OliHisto_pXim->GetName() << std::endl;
+		else {
+			std::cout << HistpXiName.Data() << " pXi Missing" << std::endl;
 		}
-
-		//!CHANGE PATH HERE
-		TString OliFileName_pXim = TString::Format("%s%spXi.root",
-				InputDir.Data(), InputFilePrefix.Data());
-		TFile* OliFile_pXim;
-		if (OliFileName_pp == OliFileName_pXim)
-			OliFile_pXim = OliFile_pp;
-		else
-			OliFile_pXim =
-					OliFileName_pXim != "" ?
-							new TFile(OliFileName_pXim, "read") : NULL;
-
-		TH1F* OliHisto_pXim =
-				OliFile_pXim ?
-						(TH1F*) OliFile_pXim->Get(
-								Form("%s", HistRestName.Data())) :
-						NULL;
 		std::cout << OliHisto_pXim->GetXaxis()->GetNbins() << '\t'
 				<< OliHisto_pXim->GetXaxis()->GetXmin() << '\t'
 				<< OliHisto_pXim->GetXaxis()->GetXmax() << '\n';
-		//!CHANGE PATH HERE
-		TString SystErrFileName_pXim = Form("%s/C2totalsysPXi.root",
-				CalibBaseDir.Data());
-		TFile* SystErrFile_pXim =
-				SystErrFileName_pXim != "" ?
-						new TFile(SystErrFileName_pXim, "read") : NULL;
-		TH1F* outputParamPXi = (TH1F*) SystErrFile_pXim->Get("SysParamPXi");
-		std::cout << "PXi" << std::endl;
-		std::cout << outputParamPXi->GetBinContent(1) << std::endl;
-		std::cout << outputParamPXi->GetBinContent(2) << std::endl;
-		std::cout << outputParamPXi->GetBinContent(3) << std::endl;
-		TF1 *RelSystpXi = new TF1("sysPXi", "pol2", 0, 3);
-		RelSystpXi->SetParameter(0, outputParamPXi->GetBinContent(1));
-		RelSystpXi->SetParameter(1, outputParamPXi->GetBinContent(2));
-		RelSystpXi->SetParameter(2, outputParamPXi->GetBinContent(3));
-
-		int NumSEB_pXim = RelSystpXi == NULL ? 0 : OliHisto_pXim->FindBin(500);
 		TH1F *OliHisto_pXimFornSigma = nullptr;
 		if (!ExcludeXiSysError) {
-			for (int iBin = 0; iBin < NumSEB_pXim; iBin++) {
-				const float x = OliHisto_pXim->GetBinCenter(iBin + 1);
-				const float y = OliHisto_pXim->GetBinContent(iBin + 1);
-				OliHisto_pXim->SetBinError(iBin + 1,
-						sqrt(
-								pow(OliHisto_pXim->GetBinError(iBin + 1), 2.)
-										+ pow(y * RelSystpXi->Eval(x / 1000.),
-												2.)));
-			}
+			CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim);
 			OliHisto_pXimFornSigma = (TH1F*) OliHisto_pXim->Clone(
 					"pXiForNSigma");
 		} else {
 			OliHisto_pXimFornSigma = (TH1F*) OliHisto_pXim->Clone(
 					"pXiForNSigma");
-			for (int iBin = 0; iBin < NumSEB_pXim; iBin++) {
-				const float x = OliHisto_pXim->GetBinCenter(iBin + 1);
-				const float y = OliHisto_pXim->GetBinContent(iBin + 1);
-				OliHisto_pXim->SetBinError(iBin + 1,
-						sqrt(
-								pow(OliHisto_pXim->GetBinError(iBin + 1), 2.)
-										+ pow(y * RelSystpXi->Eval(x / 1000.),
-												2.)));
-			}
+			CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim);
 		}
+
 		const unsigned NumSourcePars = 1;
 
 		//this way you define a correlation function using a CATS object.
@@ -701,32 +540,32 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		Ck_pSigma0->Update();
 		Ck_pXim->Update();
 		Ck_pXim1530->Update();
-		if (!CalibFiles->GetSigmaFile(0)) {
+		if (!CATSinput->GetSigmaFile(0)) {
 			std::cout << "No Sigma file 0 \n";
 			return;
 		}
-		if (!CalibFiles->GetSigmaFile(1)) {
+		if (!CATSinput->GetSigmaFile(1)) {
 			std::cout << "No Sigma file 1 \n";
 			return;
 		}
-		if (!CalibFiles->GetSigmaFile(2)) {
+		if (!CATSinput->GetSigmaFile(2)) {
 			std::cout << "No Sigma file 2 \n";
 			return;
 		}
-		if (!CalibFiles->GetSigmaFile(3)) {
+		if (!CATSinput->GetSigmaFile(3)) {
 			std::cout << "No Sigma file 3 \n";
 			return;
 		}
 		DLM_CkDecomposition CkDec_pp("pp", 3, *Ck_pp,
-				CalibFiles->GetSigmaFile(0));
+				CATSinput->GetSigmaFile(0));
 		DLM_CkDecomposition CkDec_pL("pLambda", 4, *Ck_pL,
-				CalibFiles->GetSigmaFile(1));
+				CATSinput->GetSigmaFile(1));
 		DLM_CkDecomposition CkDec_LL("LambdaLambda", 2, *Ck_LL,
-				CalibFiles->GetSigmaFile(2));
+				CATSinput->GetSigmaFile(2));
 		DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0,
 		NULL);
 		DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
-				CalibFiles->GetSigmaFile(3));
+				CATSinput->GetSigmaFile(3));
 		DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530,
 		NULL);
 
@@ -744,12 +583,12 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		printf("lam_pp_pL = %.3f\n", lam_pp_pL);
 		printf("lam_pp_fake = %.3f\n", lam_pp_fake);
 		printf("\n");
-		if (!CalibFiles->GetResFile(0)) {
+		if (!CATSinput->GetResFile(0)) {
 			std::cout << "No Calib 0 \n";
 			return;
 		}
 		CkDec_pp.AddContribution(0, lam_pp_pL, DLM_CkDecomposition::cFeedDown,
-				&CkDec_pL, CalibFiles->GetResFile(0));
+				&CkDec_pL, CATSinput->GetResFile(0));
 		CkDec_pp.AddContribution(1, 1. - lam_pp - lam_pp_pL - lam_pp_fake,
 				DLM_CkDecomposition::cFeedDown);
 		CkDec_pp.AddContribution(2, lam_pp_fake, DLM_CkDecomposition::cFake); //0.02
@@ -777,19 +616,19 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		printf("lam_pL_pXm=%.3f\n", lam_pL_pXm);
 		printf("lam_pL_fake=%.3f\n", lam_pL_fake);
 		printf("\n");
-		if (!CalibFiles->GetResFile(1)) {
+		if (!CATSinput->GetResFile(1)) {
 			std::cout << "No Calib 1 \n";
 			return;
 		}
-		if (!CalibFiles->GetResFile(2)) {
+		if (!CATSinput->GetResFile(2)) {
 			std::cout << "No Calib 2 \n";
 			return;
 		}
 
 		CkDec_pL.AddContribution(0, lam_pL_pS0, DLM_CkDecomposition::cFeedDown,
-				&CkDec_pSigma0, CalibFiles->GetResFile(1));
+				&CkDec_pSigma0, CATSinput->GetResFile(1));
 		CkDec_pL.AddContribution(1, lam_pL_pXm, DLM_CkDecomposition::cFeedDown,
-				&CkDec_pXim, CalibFiles->GetResFile(2));
+				&CkDec_pXim, CATSinput->GetResFile(2));
 		CkDec_pL.AddContribution(2,
 				1. - lam_pL - lam_pL_pS0 - lam_pL_pXm - lam_pL_fake,
 				DLM_CkDecomposition::cFeedDown);
@@ -829,13 +668,13 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		printf("lam_pXim_pXim1530 = %.3f\n", lam_pXim_pXim1530);
 		printf("lam_pXim_fake = %.3f\n", lam_pXim_fake);
 		printf("\n");
-		if (!CalibFiles->GetResFile(3)) {
+		if (!CATSinput->GetResFile(3)) {
 			std::cout << "No Calib 3 \n";
 			return;
 		}
 		CkDec_pXim.AddContribution(0, lam_pXim_pXim1530,
 				DLM_CkDecomposition::cFeedDown, &CkDec_pXim1530,
-				CalibFiles->GetResFile(3));    //from Xi-(1530)
+				CATSinput->GetResFile(3));    //from Xi-(1530)
 		CkDec_pXim.AddContribution(1,
 				1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
 				DLM_CkDecomposition::cFeedDown); //other feed-down (flat)
@@ -1394,39 +1233,6 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		delete Ck_pSigma0;
 		delete Ck_pXim;
 		delete Ck_pXim1530;
-
-		if (OliFile_pp) {
-			delete OliFile_pp;
-			OliFile_pp = NULL;
-		}
-		if (OliFile_pL) {
-			delete OliFile_pL;
-			OliFile_pL = NULL;
-		}
-		if (OliFile_LL) {
-			delete OliFile_LL;
-			OliFile_LL = NULL;
-		}
-		if (OliFile_pXim) {
-			delete OliFile_pXim;
-			OliFile_pXim = NULL;
-		}
-		if (SystErrFile_pp) {
-			delete SystErrFile_pp;
-			SystErrFile_pp = NULL;
-		}
-		if (SystErrFile_pL) {
-			delete SystErrFile_pL;
-			SystErrFile_pL = NULL;
-		}
-		if (SystErrFile_LL) {
-			delete SystErrFile_LL;
-			SystErrFile_LL = NULL;
-		}
-		if (SystErrFile_pXim) {
-			delete SystErrFile_pXim;
-			SystErrFile_pXim = NULL;
-		}
 
 		delete GraphFile;
 

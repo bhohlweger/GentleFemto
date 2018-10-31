@@ -289,7 +289,7 @@ void RUN2_main(const unsigned& NumIter, const unsigned& NumJobs,
 	//starting value, do not worry about it too much
 	const double GaussSourceSize = 1.2;
 	CATSInput *CalibFiles = new CATSInput();
-	CalibFiles->SetBaseDir(CalibBaseDir.Data());
+	CalibFiles->SetCalibBaseDir(CalibBaseDir.Data());
 	CalibFiles->SetMomResFileName("run2_decay_matrices_old.root");
 	CalibFiles->ReadResFile();
 	CalibFiles->SetSigmaFileName("Sample3_MeV_compact.root");
