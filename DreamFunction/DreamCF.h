@@ -20,7 +20,7 @@ class DreamCF {
     fAntiPartPair = pairAntiPart;
   }
   ;
-  void GetCorrelations();
+  void GetCorrelations(const char* pairName = "");
   void LoopCorrelations(std::vector<DreamDist*> partPair,
                         std::vector<DreamDist*> antipartPair, const char* name);
   void WriteOutput(const char* name);
