@@ -8,11 +8,14 @@
 #include <CATSInput.h>
 #include "TFile.h"
 #include <iostream>
-CATSInput::CATSInput(int Fraction_Res, int Fraction_Sig, double UnitConv_Res,
-		double UnitConv_Sig) :
-		fNameBasedir(), fNameMomResFile(), fNameSigmaFile(), fFraction_Res(
-				Fraction_Res), fFraction_Sig(Fraction_Sig), fUnitConv_Res(
-				UnitConv_Res), fUnitConv_Sig(UnitConv_Sig), fRes(), fSigma() {
+#include "TSystem.h"
+#include "TROOT.h"
+#include "TF1.h"
+CATSInput::CATSInput() :
+		fNameBasedir(), fNameMomResFile(), fNameSigmaFile(), fFraction_Res(0), fFraction_Sig(
+				0), fUnitConv_Res(0), fUnitConv_Sig(0), fRes(), fSigma(), fDreamFile(
+				nullptr), fCF_pp(nullptr), fCF_pL(nullptr), fCF_LL(nullptr), fCF_pXi(
+				nullptr) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -68,6 +71,7 @@ void CATSInput::ReadResFile() {
 			fRes.push_back(tmpResMeV);
 		}
 	}
+	return;
 }
 
 void CATSInput::ReadSigmaFile() {
@@ -117,5 +121,202 @@ void CATSInput::ReadSigmaFile() {
 			}
 			fSigma.push_back(tmpSigmaMeV);
 		}
+	}
+	return;
+}
+
+void CATSInput::ReadCorrelationFile(const char* path) {
+	TString filename = Form("%s/AnalysisResults.root", path);
+	fDreamFile = new ReadDreamFile(6, 6);
+	fDreamFile->SetAnalysisFile(filename.Data(), "MB", "");
+	return;
+}
+
+void CATSInput::ObtainCFs(int rebin, float normleft, float normright) {
+	//normleft & right in MeV!
+	normleft /= 1000.;
+	normright /= 1000.;
+
+	if (!fDreamFile) {
+		std::cout << "No File was set via ReadCorrelationFile\n";
+	} else {
+		fCF_pp = new DreamCF();
+		DreamPair* pp = new DreamPair("Part", normleft, normright);
+		DreamPair* ApAp = new DreamPair("AntiPart", normleft, normright);
+
+		fCF_pL = new DreamCF();
+		DreamPair* pL = new DreamPair("Part", normleft, normright);
+		DreamPair* ApAL = new DreamPair("AntiPart", normleft, normright);
+
+		fCF_LL = new DreamCF();
+		DreamPair* LL = new DreamPair("Part", normleft, normright);
+		DreamPair* ALAL = new DreamPair("AntiPart", normleft, normright);
+
+		fCF_pXi = new DreamCF();
+		DreamPair* pXi = new DreamPair("Part", normleft, normright);
+		DreamPair* ApAXi = new DreamPair("AntiPart", normleft, normright);
+
+		pp->SetPair(fDreamFile->GetPairDistributions(0, 0, ""));
+		ApAp->SetPair(fDreamFile->GetPairDistributions(1, 1, ""));
+
+		pL->SetPair(fDreamFile->GetPairDistributions(0, 2, ""));
+		ApAL->SetPair(fDreamFile->GetPairDistributions(1, 3, ""));
+
+		LL->SetPair(fDreamFile->GetPairDistributions(2, 2, ""));
+		ALAL->SetPair(fDreamFile->GetPairDistributions(3, 3, ""));
+
+		pXi->SetPair(fDreamFile->GetPairDistributions(0, 4, ""));
+		ApAXi->SetPair(fDreamFile->GetPairDistributions(1, 5, ""));
+
+		pp->ShiftForEmpty(pp->GetPair());
+		ApAp->ShiftForEmpty(ApAp->GetPair());
+
+		pL->ShiftForEmpty(pL->GetPair());
+		ApAL->ShiftForEmpty(ApAL->GetPair());
+
+		LL->ShiftForEmpty(LL->GetPair());
+		ALAL->ShiftForEmpty(ALAL->GetPair());
+
+		pXi->ShiftForEmpty(pXi->GetPair());
+		ApAXi->ShiftForEmpty(ApAXi->GetPair());
+
+		pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
+				ApAp->GetFirstBin());
+		ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
+				pp->GetFirstBin());
+
+		pL->FixShift(pL->GetPairShiftedEmpty(0), ApAL->GetPairShiftedEmpty(0),
+				ApAL->GetFirstBin());
+		ApAL->FixShift(ApAL->GetPairShiftedEmpty(0), pL->GetPairShiftedEmpty(0),
+				pL->GetFirstBin());
+
+		LL->FixShift(LL->GetPairShiftedEmpty(0), ALAL->GetPairShiftedEmpty(0),
+				ALAL->GetFirstBin());
+		ALAL->FixShift(ALAL->GetPairShiftedEmpty(0), LL->GetPairShiftedEmpty(0),
+				LL->GetFirstBin());
+
+		pXi->FixShift(pXi->GetPairShiftedEmpty(0),
+				ApAXi->GetPairShiftedEmpty(0), ApAXi->GetFirstBin());
+		ApAXi->FixShift(ApAXi->GetPairShiftedEmpty(0),
+				pXi->GetPairShiftedEmpty(0), pXi->GetFirstBin());
+
+		pL->Rebin(pL->GetPairFixShifted(0), rebin);
+		ApAL->Rebin(ApAL->GetPairFixShifted(0), rebin);
+
+		LL->Rebin(LL->GetPairFixShifted(0), rebin);
+		ALAL->Rebin(ALAL->GetPairFixShifted(0), rebin);
+
+		pXi->Rebin(pXi->GetPairFixShifted(0), rebin);
+		ApAXi->Rebin(ApAXi->GetPairFixShifted(0), rebin);
+
+		pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+		ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+
+		pL->ReweightMixedEvent(pL->GetPairRebinned(0), 0.2, 0.9);
+		ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(0), 0.2, 0.9);
+
+		LL->ReweightMixedEvent(LL->GetPairRebinned(0), 0.2, 0.9);
+		ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(0), 0.2, 0.9);
+
+		pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
+		ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
+
+		fCF_pp->SetPairs(pp, ApAp);
+		fCF_pp->GetCorrelations("pp");
+
+		fCF_pL->SetPairs(pL, ApAL);
+		fCF_pL->GetCorrelations("pL");
+
+		fCF_LL->SetPairs(LL, ALAL);
+		fCF_LL->GetCorrelations("LL");
+
+		fCF_pXi->SetPairs(pXi, ApAXi);
+		fCF_pXi->GetCorrelations("pXi");
+	}
+}
+
+TH1F* CATSInput::GetCF(const char* pair, TString hist) {
+	TH1F* output = nullptr;
+	if (pair == "pp") {
+		for (auto it : fCF_pp->GetCorrelationFunctions()) {
+			TString itName = it->GetName();
+			if (hist == itName) {
+				std::cout << it->GetName() << std::endl;
+				output = it;
+			}
+		}
+	} else if (pair == "pL") {
+		for (auto it : fCF_pL->GetCorrelationFunctions()) {
+			TString itName = it->GetName();
+			if (hist == itName) {
+				std::cout << it->GetName() << std::endl;
+				output = it;
+			}
+		}
+	} else if (pair == "LL") {
+		for (auto it : fCF_LL->GetCorrelationFunctions()) {
+			TString itName = it->GetName();
+			if (hist == itName) {
+				std::cout << it->GetName() << std::endl;
+				output = it;
+			}
+		}
+	} else if (pair == "pXi") {
+		for (auto it : fCF_pXi->GetCorrelationFunctions()) {
+			TString itName = it->GetName();
+			if (hist == itName) {
+				std::cout << it->GetName() << std::endl;
+				output = it;
+			}
+		}
+	} else {
+		std::cout << pair << " does not exist\n";
+	}
+	if (!output) {
+		std::cout << "Danger! Histogram not set, maybe histname " << hist
+				<< " does not exist? \n";
+	}
+	return output;
+}
+
+void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {
+	//!CHANGE PATH HERE
+	TString SystErrFileName = TString::Format("%s%s", fNameBasedir.Data(),
+			SysFile.Data());
+	TFile* SystErrFile =
+			SystErrFileName != "" ?
+					new TFile(SystErrFileName, "read") : nullptr;
+	if (SystErrFile) {
+		TString sysName = SysFile;
+		sysName.Replace(0, 10, "");
+		sysName.Replace(2, 6, "");
+		TH1F* outputParam = (TH1F*) SystErrFile->Get(
+				Form("SysParam%s", sysName.Data()));
+		std::cout << Form("SysParam%s", sysName.Data()) << std::endl;
+		if (outputParam) {
+			std::cout << outputParam->GetBinContent(1) << std::endl;
+			std::cout << outputParam->GetBinContent(2) << std::endl;
+			std::cout << outputParam->GetBinContent(3) << std::endl;
+			TF1 *RelSyst = new TF1("sys", "pol2", 0, 3);
+			RelSyst->SetParameter(0, outputParam->GetBinContent(1));
+			RelSyst->SetParameter(1, outputParam->GetBinContent(2));
+			RelSyst->SetParameter(2, outputParam->GetBinContent(3));
+
+			int NumSEB = RelSyst == NULL ? 0 : Hist->FindBin(500);
+
+			for (int iBin = 0; iBin < NumSEB; iBin++) {
+				const float x = Hist->GetBinCenter(iBin + 1);
+				const float y = Hist->GetBinContent(iBin + 1);
+				Hist->SetBinError(iBin + 1,
+						sqrt(
+								pow(Hist->GetBinError(iBin + 1), 2.)
+										+ pow(y * RelSyst->Eval(x / 1000.),
+												2.)));
+			}
+			delete RelSyst;
+		}
+	} else {
+		std::cout << "Sys File not found " << SystErrFileName.Data()
+				<< std::endl;
 	}
 }
