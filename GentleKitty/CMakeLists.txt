@@ -20,7 +20,7 @@ include(${ROOT_USE_FILE})
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${ROOT_INCLUDE_DIRS})
 add_definitions(${ROOT_CXX_FLAGS})
 
-find_library(DREAM_LIB libDreamFunctions.so HINTS ${DREAM_LIB_PATH})
+#find_library(DREAM_LIB libDreamFunctions.so HINTS ${DREAM_LIB_PATH})
 
 SET(VERSION_MAJOR 1)
 SET(VERSION_MINOR 0)
@@ -44,10 +44,10 @@ set(HEADERS
   )
 
 add_library(tidyCATS STATIC ${PROJECT_SOURCE_DIR}/TidyCats.cxx ${PROJECT_SOURCE_DIR}/CATSInput.cxx)
-target_link_libraries(tidyCATS ${DREAM_LIB} -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
+target_link_libraries(tidyCATS -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
 
 add_executable(POnly ${PROJECT_SOURCE_DIR}/Scripts/POnly.C)
-target_link_libraries(POnly tidyCATS ${DREAM_LIB} -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
+target_link_libraries(POnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
 
 
 #add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
