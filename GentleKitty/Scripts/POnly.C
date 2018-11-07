@@ -1,4 +1,3 @@
-#include "ForBernie.h"
 #include "DLM_Source.h"
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
@@ -175,10 +174,10 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 	double normvar[3][2];
 	normvar[0][0] = 250;
 	normvar[0][1] = 450;
-	normvar[1][0] = 300;
-	normvar[1][1] = 500;
-	normvar[2][0] = 400;
-	normvar[2][1] = 600;
+	normvar[1][0] = 200;
+	normvar[1][1] = 400;
+	normvar[2][0] = 300;
+	normvar[2][1] = 500;
 
 	double PurityProton;
 	double PurityLambda;
@@ -383,9 +382,9 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 	//***
 	//default -> True, false
 	//true => do the BL separately (as an RUN1), false => fit femto and BL region together (RUN2)
-	bool SEPARATE_BL = true;
+	bool HaveWeABaseLine = true;
 	//if true renormalization is NOT allowed
-	bool FIX_CL = false;
+	bool FIX_CL = false; //Renormalization at the moment is never allowed.
 	TidyCats* tidy = new TidyCats();
 	//the 0 iter is always the default!
 	for (unsigned uIter = FirstIter; uIter <= LastIter; uIter++) {
@@ -400,11 +399,9 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		vFrac_pL_pXim = rangen.Integer(3);
 		varNorm = rangen.Integer(3);
 		if (rangen.Integer(2) == 1) {
-			SEPARATE_BL = true;
-			FIX_CL = false;
+			HaveWeABaseLine = true; //use baseline
 		} else {
-			SEPARATE_BL = false;
-			FIX_CL = true; // variation
+			HaveWeABaseLine = false; // no baseline
 		}
 
 		//The defaults
@@ -418,8 +415,7 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 			vFrac_pp_pL = 1;
 			vFrac_pL_pSigma0 = 1;
 			vFrac_pL_pXim = 1;
-			SEPARATE_BL = true;
-			FIX_CL = false;
+			HaveWeABaseLine = false; // no base line in default
 			varNorm = 1;
 		}
 //    vMod_pL = 1; // 0 = Usmani (Close to NLO) 1 = NLO Lednicky 2 = LO Lednicky (default)
@@ -435,7 +431,7 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		printf("vFrac_pL_pSigma0=%u\n", vFrac_pL_pSigma0);
 		printf("vFrac_pL_pXim=%u\n", vFrac_pL_pXim);
 		printf("varNorm=%u\n", varNorm);
-		printf("SEPERATE_BL=%u\n", SEPARATE_BL);
+		printf("SEPERATE_BL=%u\n", HaveWeABaseLine);
 		printf("FIX_CL=%u\n", FIX_CL);
 
 		//    InputFilePrefix
@@ -698,18 +694,14 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 				FemtoRegion_pXim[vFemReg_pXim][0],
 				FemtoRegion_pXim[vFemReg_pXim][1], BlRegion[vBlReg][0],
 				BlRegion[vBlReg][1]);
-		if (SEPARATE_BL) {
-			fitter->SetSeparateBL(0, true);
-			fitter->SetSeparateBL(1, true);
-			fitter->SetSeparateBL(2, true);
-			fitter->SetSeparateBL(3, true);
+		fitter->SetSeparateBL(0, false);
+		fitter->SetSeparateBL(1, false);
+		fitter->SetSeparateBL(2, false);
+		fitter->SetSeparateBL(3, false);
+		if (HaveWeABaseLine) {
 			fitter->FixParameter("pp", DLM_Fitter1::p_a, 1.0);
 			fitter->FixParameter("pp", DLM_Fitter1::p_b, 0);
 		} else {
-			fitter->SetSeparateBL(0, false);
-			fitter->SetSeparateBL(1, false);
-			fitter->SetSeparateBL(2, false);
-			fitter->SetSeparateBL(3, false);
 			fitter->SetParameter("pp", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
 			fitter->SetParameter("pp", DLM_Fitter1::p_b, 1e-4, 0, 2e-3);
 			std::cout << "Fitting ranges for BL set \n";
@@ -792,7 +784,7 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
 		ntBuffer[19] = fitter->GetParError("pXim", DLM_Fitter1::p_sor0);
 		ntBuffer[20] = fitter->GetChi2Ndf();
 		ntBuffer[21] = fitter->GetPval();
-		ntBuffer[22] = (int) SEPARATE_BL;
+		ntBuffer[22] = (int) HaveWeABaseLine;
 		ntBuffer[23] = (int) FIX_CL;
 		ntResult->Fill(ntBuffer);
 

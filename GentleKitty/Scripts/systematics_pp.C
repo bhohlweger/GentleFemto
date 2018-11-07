@@ -1,4 +1,4 @@
-#include <XiOnly.C>
+//#include <XiOnly.C>
 #include <iostream>
 
 #include "CATStools.h"
@@ -195,12 +195,12 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, const char* OutDirName) {
 	outFile->cd();
 	outTuple->Write();
 
-	GetXiForRadius("~/cernbox/pPb/v0offlineFix/woDetadPhi/200_400/", OutDirName, rLower, 11,
-			outFile, "UpperLim", true);
-	GetXiForRadius("~/cernbox/pPb/v0offlineFix/woDetadPhi/200_400/", OutDirName, rDefault_pp, 12,
-			outFile, "Default", true);
-	GetXiForRadius("~/cernbox/pPb/v0offlineFix/woDetadPhi/200_400/", OutDirName, rUp, 13, outFile,
-			"LowerLim", true);
+//	GetXiForRadius("~/cernbox/pPb/v0offlineFix/woDetadPhi/200_400/", OutDirName, rLower, 11,
+//			outFile, "UpperLim", true);
+//	GetXiForRadius("~/cernbox/pPb/v0offlineFix/woDetadPhi/200_400/", OutDirName, rDefault_pp, 12,
+//			outFile, "Default", true);
+//	GetXiForRadius("~/cernbox/pPb/v0offlineFix/woDetadPhi/200_400/", OutDirName, rUp, 13, outFile,
+//			"LowerLim", true);
 
 	outFile->Close();
 }

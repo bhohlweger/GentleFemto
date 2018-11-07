@@ -1,4 +1,3 @@
-#include "ForBernie.h"
 #include "DLM_Source.h"
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
@@ -17,16 +16,23 @@
 #include "TCanvas.h"
 #include <iostream>
 #include "stdlib.h"
+#include "TidyCats.h"
+#include "CATSInput.h"
+#include "SideBandFit.h"
 
-void GetXiForRadius(TString InputDir, TString tmpOutputDir,
-		double GaussSourceSize, const int tOut, TFile *file,
-		const char* GraphName, bool saveCoulomb) {
-	std::cout << GaussSourceSize << std::endl;
+void GetXiForRadius(const unsigned& JobID, const unsigned& maxJobs,
+		TString InputDir, TString ppFile, TString OutputDir) {
+
+	TRandom3 rangen(0);
 	const int binwidth = 20;
 	const unsigned NumMomBins_pXim = 13;
 	double kMinXiP = 8.;
 	const double kMin_pXim = kMinXiP;
 	const double kMax_pXim = kMin_pXim + binwidth * NumMomBins_pXim;
+
+	const double NumMomBins_SideBand = 50;
+	const double kMin_SideBand = kMinXiP;
+	const double kMax_SideBand = 1000 + kMinXiP;
 
 	std::cout << "kMinXiP: " << kMin_pXim << std::endl;
 	std::cout << "kMax_pXim: " << kMax_pXim << std::endl;
@@ -48,6 +54,27 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	BlRegion[1][1] = 500;
 	BlRegion[2][0] = 300;
 	BlRegion[2][1] = 540;
+
+	double normvar[3][2];
+	normvar[0][0] = 250;
+	normvar[0][1] = 450;
+	normvar[1][0] = 200;
+	normvar[1][1] = 400;
+	normvar[2][0] = 300;
+	normvar[2][1] = 500;
+
+	double normvarCont[3][2];
+	normvarCont[0][0] = 450;
+	normvarCont[0][1] = 650;
+	normvarCont[1][0] = 400;
+	normvarCont[1][1] = 600;
+	normvarCont[2][0] = 500;
+	normvarCont[2][1] = 700;
+
+	int tQCDVars[3];
+	tQCDVars[0] = 11;
+	tQCDVars[1] = 12;
+	tQCDVars[2] = 13;
 
 	double PurityProton = 0.984265; //pPb 5 TeV
 	double PurityXi = 0.88; //new cuts
@@ -110,7 +137,15 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 		Fraction_Xim[uVar][3] = Omegam_to_Xim * OmegamXim_BR;
 		Fraction_Xim[uVar][4] = 1.;
 	}
-
+	TFile *ppVars = TFile::Open(ppFile, "READ");
+	TNtuple* ppTuple = (TNtuple*) ppVars->Get("outTuple");
+	double ppRadii[3];
+	ppTuple->SetBranchAddress("Rad_pp", &ppRadii[0]);
+	ppTuple->SetBranchAddress("RadLow_pXi", &ppRadii[1]);
+	ppTuple->SetBranchAddress("RadUp_pXi", &ppRadii[2]);
+	ppTuple->GetEntry(0);
+	std::cout << ppRadii[0] << '\t' << ppRadii[1] << '\t' << ppRadii[2]
+			<< std::endl;
 	TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/pPbRun2_MB";
 	TString ResMatrixFileName = TString::Format(
 			"%s/run2_decay_matrices_old.root", CalibBaseDir.Data());
@@ -129,19 +164,45 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	//int vSource;//which source we use, see above
 	int vFemReg_pXim;  //which femto region we use for pXim (1 = default)
 	int vBlReg;  //which baseline region to use (1 = default)
+	int tOut;
+	double GaussSourceSize;
+	int varSideNorm;
+	if (JobID == 0) {
+		vFemReg_pXim = 1;
+		vBlReg = 1;
+		tOut = 1;
+		GaussSourceSize = ppRadii[0];
+		varSideNorm = 1;
+	} else {
+		vFemReg_pXim = rangen.Integer(3);
+		vBlReg = rangen.Integer(3);
+		tOut = rangen.Integer(3);
+		GaussSourceSize = ppRadii[rangen.Integer(3)];
+		varSideNorm = rangen.Integer(3);
+	}
+	//***
 
-	vFemReg_pXim = 1;
-	vBlReg = 1;
+	SideBandFit* side = new SideBandFit();
+	side->SetRebin(5);
+	side->SetSideBandFile("/home/hohlweger/cernbox/pPb/Sidebands", "42", "43");
+	side->SetNormalizationRange(normvarCont[varSideNorm][0],
+			normvarCont[varSideNorm][1]);
+	//vary this
+	side->SideBandCFs();
+	TH1F* fitme = side->GetSideBands(5);
+	double SideBandPars[4];
+	side->FitSideBands(fitme, SideBandPars);
+
 	if (tOut < 11 && tOut > 13) {
 		std::cout << tOut << " not supported \n";
 		return;
 	}
 	double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
-					/ 1.2, 0.5 };
+			/ 1.2, 0.5 };
 	TidyCats* tidy = new TidyCats();
 	CATS AB_pXim;
 	tidy->GetCatsProtonXiMinus(&AB_pXim, GaussSourceSize, Pars_pXi,
-			NumMomBins_pXim, kMin_pXim, kMax_pXim, true, 13);
+			NumMomBins_pXim, kMin_pXim, kMax_pXim, true, tQCDVars[tOut]);
 	AB_pXim.KillTheCat();
 
 	double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
@@ -163,8 +224,15 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	const unsigned NumSourcePars = 1;
 	DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
 	DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
+	DLM_Ck* Ck_SideBand = new DLM_Ck(0, 4, NumMomBins_SideBand, kMin_SideBand,
+			kMax_SideBand, SideBandFit::Parameterization);
+	Ck_SideBand->SetPotPar(0, SideBandPars[0]);
+	Ck_SideBand->SetPotPar(1, SideBandPars[1]);
+	Ck_SideBand->SetPotPar(2, SideBandPars[2]);
+	Ck_SideBand->SetPotPar(3, SideBandPars[3]);
 	Ck_pXim->Update();
 	Ck_pXim1530->Update();
+	Ck_SideBand->Update();
 	if (!CATSinput->GetSigmaFile(3)) {
 		std::cout << "No Sigma file 3 \n";
 		return;
@@ -172,6 +240,8 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
 			CATSinput->GetSigmaFile(3));
 	DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530, NULL);
+	DLM_CkDecomposition CkDec_SideBand("pXiSideBand", 0, *Ck_SideBand,
+	NULL);
 	int vFrac_pp_pL = 1;
 	const double lam_pXim = Purities_p[vFrac_pp_pL][0]
 			* Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][0]
@@ -194,10 +264,10 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	CkDec_pXim.AddContribution(1,
 			1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
 			DLM_CkDecomposition::cFeedDown);		//other feed-down (flat)
-	CkDec_pXim.AddContribution(2, lam_pXim_fake, DLM_CkDecomposition::cFake);
+	CkDec_pXim.AddContribution(2, lam_pXim_fake, DLM_CkDecomposition::cFake,
+			&CkDec_SideBand);
 	CkDec_pXim.Update();
 	DLM_Fitter1* fitter = new DLM_Fitter1(1);
-//	fitter->SetOutputDir(tmpOutputDir.Data());
 	fitter->SetSystem(0, *OliHisto_pXim, 1, CkDec_pXim,
 			FemtoRegion_pXim[vFemReg_pXim][0],
 			FemtoRegion_pXim[vFemReg_pXim][1], BlRegion[vBlReg][0],
@@ -206,25 +276,6 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	fitter->SetSeparateBL(0, false); 	//Simultaneous BL
 	fitter->AddSameSource("pXim1530", "pXim", 1);
 	//Global Fit default
-	//baseline
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_a, 1.06826);
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_b, 1.2624e-13);
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
-//	//gaussian radius
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
-//	//normalization
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -0.933815);
-
-	//Standalone Fit default
-	//baseline
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_a, 1.05447);
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_b, 2.10185e-07);
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
-//	//gaussian radius
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
-//	//normalization
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -0.933603);
-
 	//Fit BL & Normalization
 	fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
 
@@ -237,6 +288,11 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -1.);
 
 	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
+
+	fitter->FixParameter("pXiSideBand", DLM_Fitter1::p_pot0, SideBandPars[0]);
+	fitter->FixParameter("pXiSideBand", DLM_Fitter1::p_pot1, SideBandPars[1]);
+	fitter->FixParameter("pXiSideBand", DLM_Fitter1::p_pot2, SideBandPars[2]);
+	fitter->FixParameter("pXiSideBand", DLM_Fitter1::p_pot3, SideBandPars[3]);
 
 	double StartPar = 1;
 	fitter->GoBabyGo();
@@ -258,12 +314,9 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 			<< std::endl;
 
 	TGraph FitResult_pXim;
-	FitResult_pXim.SetName(TString::Format("pXimGraph%s", GraphName));
-	fitter->GetFitGraph(0, FitResult_pXim);
 
-//	CoulombStrong.SetNa 1221 total, 1053 done, 99 error, 69 active, 0 waiting me(
-//			TString::Format("FitResult_pXim_%.2f", GaussSourceSize));
-//	fitter->GetFitGraph(0, CoulombStrong);
+	FitResult_pXim.SetName(TString::Format("pXimGraph"));
+	fitter->GetFitGraph(0, FitResult_pXim);
 
 	double Chi2 = fitter->GetChi2();
 	unsigned NDF = fitter->GetNdf();
@@ -318,19 +371,13 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	AB_pXim.RemoveShortRangePotential(2, 0);
 	AB_pXim.RemoveShortRangePotential(3, 0);
 	AB_pXim.KillTheCat(CATS::kPotentialChanged);
-	//AB_pXim.KillTheCat(CATS::kAllChanged);
 	printf("NEW AB_pXim[0] = %.2f\n", AB_pXim.GetCorrFun(0));
 
 	CkDec_pXim.Update(true);
 	fitter->GoBabyGo();
 	TGraph FitResult_pXim_COULOMB;
-	FitResult_pXim_COULOMB.SetName(
-			TString::Format("pXimGraph%s_COULOMB", GraphName));
+	FitResult_pXim_COULOMB.SetName(TString::Format("pXimGraph_COULOMB"));
 	fitter->GetFitGraph(0, FitResult_pXim_COULOMB);
-
-//	Coulomb.SetName(
-//			TString::Format("FitResult_pXim_COULOMB_%.2f", GaussSourceSize));
-//	fitter->GetFitGraph(0, Coulomb);
 
 	double p_a_coulomb = fitter->GetParameter("pXim", DLM_Fitter1::p_a);
 	double p_b_coulomb = fitter->GetParameter("pXim", DLM_Fitter1::p_b);
@@ -344,7 +391,6 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	unsigned EffNumBins_pXim_COULOMB_kSm60 = 0;
 
 	for (unsigned uBin = 0; uBin < maxkStarBin; uBin++) {
-		//    for(unsigned uBin=0; uBin<8; uBin++){
 
 		double mom = AB_pXim.GetMomentum(uBin);
 		double dataY;
@@ -504,12 +550,52 @@ void GetXiForRadius(TString InputDir, TString tmpOutputDir,
 	FitResult_pXim.Draw("CP,same");
 	FitResult_pXim_COULOMB.Draw("CP,same");
 	info4->Draw("same");
-	cfast->SaveAs(
-			TString::Format("%scfast_r%.2f.png", tmpOutputDir.Data(),
-					GaussSourceSize));
+	cfast->SaveAs(TString::Format("%s/cfast_%u.png", OutputDir.Data(), JobID));
+	TString outFileName = TString::Format("%s/pXiVariations_%uMax_%u.root",
+			OutputDir.Data(), maxJobs, JobID);
+	TFile* file = TFile::Open(outFileName.Data(), "RECREATE");
 	file->cd();
-	if (saveCoulomb)
-		FitResult_pXim_COULOMB.Write();
+	FitResult_pXim_COULOMB.Write();
 	FitResult_pXim.Write();
+	file->Close();
 	return;
 }
+
+int main(int argc, char *argv[]) {
+	GetXiForRadius(atoi(argv[1]), atoi(argv[2]), argv[3], argv[4], argv[5]);
+	return 0;
+}
+//
+//
+////Global Fit default
+//	//baseline
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_a, 1.06826);
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_b, 1.2624e-13);
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
+////	//gaussian radius
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
+////	//normalization
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -0.933815);
+//
+//	//Standalone Fit default
+//	//baseline
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_a, 1.05447);
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_b, 2.10185e-07);
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
+////	//gaussian radius
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
+////	//normalization
+////	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -0.933603);
+//
+//	//Fit BL & Normalization
+//	fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
+//
+//	fitter->FixParameter("pXim", DLM_Fitter1::p_a, 1.);
+//	fitter->FixParameter("pXim", DLM_Fitter1::p_b, 0);
+////	fitter->SetParameter("pXim", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
+////	fitter->SetParameter("pXim", DLM_Fitter1::p_b, 1e-4, 0, 2e-3);
+//
+////	fitter->SetParameter("pXim", DLM_Fitter1::p_Cl, -0.9, -1.2, -0.8);
+//	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -1.);
+//
+//	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
