@@ -41,18 +41,29 @@ include_directories(${DREAM_PATH})
 set(SRCS
   ${PROJECT_SOURCE_DIR}/TidyCats.cxx
   ${PROJECT_SOURCE_DIR}/CATSInput.cxx
+  ${PROJECT_SOURCE_DIR}/SideBandFit.cxx
   )
 
 set(HEADERS
   ${PROJECT_SOURCE_DIR}/TidyCats.h
   ${PROJECT_SOURCE_DIR}/CATSInput.h
+  ${PROJECT_SOURCE_DIR}/SideBandFit.h
   )
 
-add_library(tidyCATS STATIC ${PROJECT_SOURCE_DIR}/TidyCats.cxx ${PROJECT_SOURCE_DIR}/CATSInput.cxx)
+add_library(tidyCATS STATIC ${PROJECT_SOURCE_DIR}/TidyCats.cxx ${PROJECT_SOURCE_DIR}/CATSInput.cxx ${PROJECT_SOURCE_DIR}/SideBandFit.cxx)
 target_link_libraries(tidyCATS -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
 
 add_executable(POnly ${PROJECT_SOURCE_DIR}/Scripts/POnly.C)
 target_link_libraries(POnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
+
+add_executable(XiOnly ${PROJECT_SOURCE_DIR}/Scripts/XiOnly.C)
+target_link_libraries(XiOnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
+
+add_executable(SideBand ${PROJECT_SOURCE_DIR}/Scripts/SideBand.C)
+target_link_libraries(SideBand tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(ppSystematics ${PROJECT_SOURCE_DIR}/Scripts/systematics_pp.C)
+target_link_libraries(ppSystematics tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 
 #add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
