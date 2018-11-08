@@ -41,12 +41,14 @@ include_directories(${DREAM_PATH})
 set(SRCS
   ${PROJECT_SOURCE_DIR}/TidyCats.cxx
   ${PROJECT_SOURCE_DIR}/CATSInput.cxx
+  ${PROJECT_SOURCE_DIR}/CATSLambdaParam.cxx
   ${PROJECT_SOURCE_DIR}/SideBandFit.cxx
   )
 
 set(HEADERS
   ${PROJECT_SOURCE_DIR}/TidyCats.h
   ${PROJECT_SOURCE_DIR}/CATSInput.h
+  ${PROJECT_SOURCE_DIR}/CATSLambdaParam.h
   ${PROJECT_SOURCE_DIR}/SideBandFit.h
   )
 
@@ -82,3 +84,4 @@ target_link_libraries(EvalpXiCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 #target_link_libraries(EXECUTABLE -L -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev -L${GSL_LIB} ${ROOT_CXX_LIB_FLAGS} libgsl.a libgsl.so)
 #
 
+add_subdirectory(Test)
