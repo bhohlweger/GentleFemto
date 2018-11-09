@@ -283,7 +283,6 @@ void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->SetLineColor(color);
 }
 
-
 void DreamPlot::DrawCorrelationFunctions() {
   SetStyle();
   const float right = 0.025;

@@ -19,15 +19,18 @@ class DreamKayTee {
   DreamKayTee();
   virtual ~DreamKayTee();
   void SetKayTeeBins(std::vector<float> x) {
-    fKayTeeBins=x;
-    fNKayTeeBins=(int)x.size();
-  };
-  void SetSEkTDist(int iPart,TH2F* SEkT) {
-    fSEkT[iPart]=SEkT;
-  };
-  void SetMEkTDist(int iPart,TH2F* MEkT) {
-    fMEkT[iPart]=MEkT;
-  };
+    fKayTeeBins = x;
+    fNKayTeeBins = (int) x.size();
+  }
+  ;
+  void SetSEkTDist(int iPart, TH2F* SEkT) {
+    fSEkT[iPart] = SEkT;
+  }
+  ;
+  void SetMEkTDist(int iPart, TH2F* MEkT) {
+    fMEkT[iPart] = MEkT;
+  }
+  ;
   void SetSEmTDist(int iPart, TH2F* SEmT) {
     fSEkT[iPart] = SEmT;
     fIskT = false;
@@ -37,11 +40,12 @@ class DreamKayTee {
     fIskT = false;
   }
   void SetNormalization(float left, float right) {
-    fNormleft=left;
-    fNormright=right;
-  };
-  void ObtainTheCorrelationFunction(const char* outFolder,
-                                    const char* prefix = "MB",
+    fNormleft = left;
+    fNormright = right;
+  }
+  ;
+  void ObtainTheCorrelationFunction(const char* outFolder, const char* prefix =
+                                        "MB",
                                     const char* pair = "pp");
   void AveragekT();
  private:

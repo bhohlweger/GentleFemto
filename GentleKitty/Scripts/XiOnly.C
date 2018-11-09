@@ -507,8 +507,9 @@ void GetXiForRadius(const unsigned& JobID, const unsigned& maxJobs,
           nSigmaXiCoulomb));
   TGraph SideBand;
   for (int iBin = 0; iBin < Ck_SideBand->GetNbins(); iBin++) {
-    SideBand.SetPoint(iBin, Ck_SideBand->GetBinCenter(iBin),
-                      (Ck_SideBand->GetBinContent(iBin)-1)*lam_pXim_fake+1);
+    SideBand.SetPoint(
+        iBin, Ck_SideBand->GetBinCenter(iBin),
+        (Ck_SideBand->GetBinContent(iBin) - 1) * lam_pXim_fake + 1);
   }
   SideBand.SetLineColor(4);
   SideBand.SetMarkerColor(4);

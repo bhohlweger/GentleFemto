@@ -316,11 +316,13 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
                       "CutVarAdd", NumIter, NumJobs, JobID),
       "recreate");
   //you save a lot of stuff in an NTuple
-  TNtuple* ntResult = new TNtuple(
-      "ntResult", "ntResult",
-      "IterID:vFemReg_pp:vBlReg:vFrac_pp_pL:vFrac_pL_pSigma0:"
-      "vFrac_pL_pXim:BLSlope:Radius_pp:RadiusErr_pp:"
-      "pa_pp:paErr_pp:pb_pp:pbErr_pp:pCl_pp:pClErr_pp:Chi2NdfGlobal:pval:Chi2NdfLocal");
+  TNtuple* ntResult =
+      new TNtuple(
+          "ntResult",
+          "ntResult",
+          "IterID:vFemReg_pp:vBlReg:vFrac_pp_pL:vFrac_pL_pSigma0:"
+          "vFrac_pL_pXim:BLSlope:Radius_pp:RadiusErr_pp:"
+          "pa_pp:paErr_pp:pb_pp:pbErr_pp:pCl_pp:pClErr_pp:Chi2NdfGlobal:pval:Chi2NdfLocal");
 
   Float_t ntBuffer[17];
 

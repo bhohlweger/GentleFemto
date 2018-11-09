@@ -17,8 +17,7 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fME(nullptr),
       fMEMult(nullptr),
       fMEkT(nullptr),
-      fMEmT(nullptr)
-{
+      fMEmT(nullptr) {
 }
 
 ReadDreamFile::~ReadDreamFile() {
@@ -26,11 +25,11 @@ ReadDreamFile::~ReadDreamFile() {
 }
 
 void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
-                                    const char* Prefix,
-				    const char* Addon) {
+                                    const char* Prefix, const char* Addon) {
   TFile* _file0 = TFile::Open(PathAnalysisFile, "READ");
 
-  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(Form("%sResults%s", Prefix, Addon)));
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults%s", Prefix, Addon)));
   TList *Results;
   dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
   ExtractResults(Results);
@@ -45,8 +44,8 @@ void ReadDreamFile::SetSigmaAnalysisFile(const char* PathAnalysisFile,
   TDirectory *dir = file->GetDirectory(name);
   name = "femto_";
   name += suffix;
-  auto histoList = (TList *)dir->Get(name);
-  auto Results = (TList*)histoList->FindObject("Results");
+  auto histoList = (TList *) dir->Get(name);
+  auto Results = (TList*) histoList->FindObject("Results");
   ExtractResults(Results);
 }
 
@@ -85,10 +84,10 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       }
       fSEMult[iPart1][iPart2]->Sumw2();
       if (iPart1 == 1 && iPart2 == 5) {
-        fSE[iPart1][iPart2]->SetBinContent(1,0);
-        fSEMult[iPart1][iPart2]->SetBinContent(fSEMult[iPart1][iPart2]->GetXaxis()->FindBin(0.1),
-                                               fSEMult[iPart1][iPart2]->GetYaxis()->FindBin(12.1),
-                                               0);
+        fSE[iPart1][iPart2]->SetBinContent(1, 0);
+        fSEMult[iPart1][iPart2]->SetBinContent(
+            fSEMult[iPart1][iPart2]->GetXaxis()->FindBin(0.1),
+            fSEMult[iPart1][iPart2]->GetYaxis()->FindBin(12.1), 0);
       }
       fME[iPart1][iPart2] = nullptr;
       fME[iPart1][iPart2] = (TH1F*) PartList->FindObject(
@@ -111,12 +110,14 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
   }
 }
 
-void ReadDreamFile::ReadkTHistos(const char* AnalysisFile, const char* prefix, const char* addon) {
+void ReadDreamFile::ReadkTHistos(const char* AnalysisFile, const char* prefix,
+                                 const char* addon) {
   fSEkT = new TH2F**[fNPart1];
   fMEkT = new TH2F**[fNPart1];
 
   TFile* _file0 = TFile::Open(AnalysisFile, "READ");
-  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(Form("%sResults%s", prefix, addon)));
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults%s", prefix, addon)));
   TList *Results;
   dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
   TList *PartList;
@@ -148,12 +149,14 @@ void ReadDreamFile::ReadkTHistos(const char* AnalysisFile, const char* prefix, c
   return;
 }
 
-void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix, const char* addon) {
+void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
+                                 const char* addon) {
   fSEmT = new TH2F**[fNPart1];
   fMEmT = new TH2F**[fNPart1];
 
   TFile* _file0 = TFile::Open(AnalysisFile, "READ");
-  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(Form("%sResults%s", prefix, addon)));
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults%s", prefix, addon)));
   TList *Results;
   dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
   TList *PartList;
@@ -208,11 +211,11 @@ DreamKayTee* ReadDreamFile::GetkTPairDistributions(int iPart1, int iPart2,
     return nullptr;
   }
   DreamKayTee* pair = new DreamKayTee();
-  pair->SetSEkTDist(0,fSEkT[iPart1][iPart2]);
-  pair->SetMEkTDist(0,fMEkT[iPart1][iPart2]);
+  pair->SetSEkTDist(0, fSEkT[iPart1][iPart2]);
+  pair->SetMEkTDist(0, fMEkT[iPart1][iPart2]);
 
-  pair->SetSEkTDist(1,fSEkT[iPart1][iPart2]);
-  pair->SetMEkTDist(1,fMEkT[iPart1][iPart2]);
+  pair->SetSEkTDist(1, fSEkT[iPart1][iPart2]);
+  pair->SetMEkTDist(1, fMEkT[iPart1][iPart2]);
 
   return pair;
 }
@@ -225,11 +228,11 @@ DreamKayTee* ReadDreamFile::GetmTPairDistributions(int iPart1, int iPart2,
     return nullptr;
   }
   DreamKayTee* pair = new DreamKayTee();
-  pair->SetSEmTDist(0,fSEmT[iPart1][iPart2]);
-  pair->SetMEmTDist(0,fMEmT[iPart1][iPart2]);
+  pair->SetSEmTDist(0, fSEmT[iPart1][iPart2]);
+  pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
 
-  pair->SetSEmTDist(1,fSEmT[iPart1][iPart2]);
-  pair->SetMEmTDist(1,fMEmT[iPart1][iPart2]);
+  pair->SetSEmTDist(1, fSEmT[iPart1][iPart2]);
+  pair->SetMEmTDist(1, fMEmT[iPart1][iPart2]);
 
   return pair;
 }

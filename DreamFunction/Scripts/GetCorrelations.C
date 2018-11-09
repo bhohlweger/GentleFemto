@@ -4,7 +4,8 @@
 #include "TLegend.h"
 #include <iostream>
 
-void GetCorrelations(const char* filename, const char* prefix, const char* addon = "") {
+void GetCorrelations(const char* filename, const char* prefix,
+                     const char* addon = "") {
   //gStyle->SetOptStat(0);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   DreamFile->SetAnalysisFile(filename, prefix, addon);

@@ -210,11 +210,11 @@ void DreamData::DrawCorrelationPlot(TCanvas* c) {
   for (auto &it : fFemtoModdeled) {
     std::cout << "leg counter " << legendCounter << std::endl;
     it->Draw("L3 same");
-    std::cout << "size " << fFakeGraph.size()<< std::endl;
+    std::cout << "size " << fFakeGraph.size() << std::endl;
     if (legendCounter < fFakeGraph.size()) {
       std::cout << " leg counter 2 " << legendCounter << std::endl;
-    leg->AddEntry(fFakeGraph[legendCounter], fLegendName[legendCounter],
-                  fLegendOption[legendCounter]);
+      leg->AddEntry(fFakeGraph[legendCounter], fLegendName[legendCounter],
+                    fLegendOption[legendCounter]);
     }
     legendCounter++;
   }

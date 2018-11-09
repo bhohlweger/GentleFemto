@@ -39,9 +39,9 @@ void GetQADistributions(const char* PairName, DreamDist* PairOrg,
   MEMultProjRew->Scale(1. / MEMultProjRew->Integral());
   leg.AddEntry(MEMultProjRew, "ME Weighted", "lep");
 
-  DreamPlot::SetStyleHisto(SEMultProjRaw, 21, kGreen+2);
-  DreamPlot::SetStyleHisto(MEMultProjRaw, 22, kRed+2);
-  DreamPlot::SetStyleHisto(MEMultProjRew, 23, kBlue+2);
+  DreamPlot::SetStyleHisto(SEMultProjRaw, 21, kGreen + 2);
+  DreamPlot::SetStyleHisto(MEMultProjRaw, 22, kRed + 2);
+  DreamPlot::SetStyleHisto(MEMultProjRew, 23, kBlue + 2);
   SEMultProjRaw->DrawCopy();
   SEMultProjRaw->SetStats(false);
   MEMultProjRaw->DrawCopy("same");
@@ -57,33 +57,33 @@ void GetQADistributions(const char* PairName, DreamDist* PairOrg,
   TH1F* MERewNorm = (TH1F*) MERew->Clone(Form("%s_Norm", MERew->GetName()));
   MERewNorm->Scale(1. / MERewNorm->Integral());
   MERewNorm->Draw("same");
-  DreamPlot::SetStyleHisto(MERawNorm, 22, kRed+2);
-  DreamPlot::SetStyleHisto(MERewNorm, 23, kBlue+2);
+  DreamPlot::SetStyleHisto(MERawNorm, 22, kRed + 2);
+  DreamPlot::SetStyleHisto(MERewNorm, 23, kBlue + 2);
   TLegend leg2 = TLegend();
   leg2.AddEntry(MERawNorm, "ME Unweighted", "lep");
   leg2.AddEntry(MERewNorm, "ME Weighted", "lep");
   leg2.Draw("same");
-
 
   c1->cd(3);
   CFRaw->SetTitle(";#it{k}* (GeV/#it{c}); C(#it{k}*)");
   CFRaw->Draw();
   CFRaw->SetStats(false);
   CFRew->Draw("same");
-  DreamPlot::SetStyleHisto(CFRaw, 22, kRed+2);
-  DreamPlot::SetStyleHisto(CFRew, 23, kBlue+2);
+  DreamPlot::SetStyleHisto(CFRaw, 22, kRed + 2);
+  DreamPlot::SetStyleHisto(CFRew, 23, kBlue + 2);
   TLegend leg3 = TLegend();
   leg3.AddEntry(CFRaw, "CF Unweighted", "lep");
   leg3.AddEntry(CFRew, "CF Weighted", "lep");
   leg3.Draw("same");
 
   c1->cd(4);
-  TH1F* Ratio = (TH1F*)CFRaw->Clone("Ratio");
+  TH1F* Ratio = (TH1F*) CFRaw->Clone("Ratio");
   if (Ratio->Divide(CFRew)) {
     Ratio->Draw();
     Ratio->SetStats(false);
-    DreamPlot::SetStyleHisto(Ratio, 20, kBlue+2);
-    Ratio->SetTitle("; #it{k}* (GeV/#it{c}); C(#it{k}*)_{raw} / C(#it{k}*)_{reweighted}");
+    DreamPlot::SetStyleHisto(Ratio, 20, kBlue + 2);
+    Ratio->SetTitle(
+        "; #it{k}* (GeV/#it{c}); C(#it{k}*)_{raw} / C(#it{k}*)_{reweighted}");
   }
   c1->Write();
   delete c1;

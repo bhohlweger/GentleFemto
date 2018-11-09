@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
   DreamFile->ReadkTHistos(filename, prefix, addon);
   kTDists = DreamFile->GetkTPairDistributions(0, 0, 1, 1);
 
-  std::vector<float> kTBins = {0.48, 0.69, 1., 1.5};
+  std::vector<float> kTBins = { 0.48, 0.69, 1., 1.5 };
 
   TString foldername = filename;
   foldername.ReplaceAll("AnalysisResults.root", "");
