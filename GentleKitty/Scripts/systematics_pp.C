@@ -24,18 +24,23 @@
 #include "TLegend.h"
 #include "TMath.h"
 #include "TCanvas.h"
+#include "TStyle.h"
 
 void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
-                             const char* OutDirName) {
+                             const char* OutDirName, const int system) {
   const char* FileName = Form("%s/OutFile_CutVarAdd_Iter%u.root", InputFolder,
                               Numiter);
+  gStyle->SetOptStat(0);
+
   TFile* inFile = TFile::Open(FileName, "READ");
   TNtuple* sysVarTree = (TNtuple*) inFile->Get("ntResult");
   if (!sysVarTree) {
     std::cout << "no Tree loaded\n";
   }
-  auto histRad = new TH1D("hRad", "hRad", 1000, 1.2, 1.6);
-  auto histRadIter = new TH2D("hRadIter", "hRadIter", 1000, 1.2, 1.6, 2000, 0,
+  const float histRangeLow = (system == 0) ? 1.2 : 1.0;
+  const float histRangeUp = (system == 0) ? 1.6 : 1.4;
+  auto histRad = new TH1D("hRad", "hRad", 1000, histRangeLow, histRangeUp);
+  auto histRadIter = new TH2D("hRadIter", "hRadIter", 1000, histRangeLow, histRangeUp, 2000, 0,
                               2000);
   sysVarTree->Draw("Radius_pp>>hRad", "Chi2NdfLocal<6");
   auto mean = histRad->GetMean();
@@ -53,6 +58,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   auto canRad = new TCanvas("cRad", "cRad", 1200, 800);
   canRad->Divide(3, 3);
   canRad->cd(1);
+  histRad->SetTitle("; r_{0} (fm); Entries");
   histRad->Draw();
   canRad->cd(2);
   histRadCumulative->Scale(1 / (double) histRad->GetEntries());
@@ -114,9 +120,14 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   hIterLow->GetBinWithContent(1., uIterLow);
   std::cout << "uIterLow: " << uIterLow << std::endl;
 
-  canRad->SaveAs(Form("%scanRad.pdf", OutDirName));
+  canRad->SaveAs(Form("%s/canRad.pdf", OutDirName));
+
+  auto canRad2 = new TCanvas();
+  histRad->Draw();
+  canRad2->SaveAs(Form("%s/radius.pdf", OutDirName));
+
   TFile* outFile = TFile::Open(
-      Form("%sSYSTEMATICS_CutVarAdd_Global_Radius_Normal.root", OutDirName),
+      Form("%s/SYSTEMATICS_CutVarAdd_Global_Radius_Normal.root", OutDirName),
       "RECREATE");
 
   TFile* fileMean = TFile::Open(
@@ -197,8 +208,10 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
           rErr_pp * rErr_pp + (0.2 * rDefault_pp) * (0.2 * rDefault_pp)
               + errLow * errLow);
   float rUp = rDefault_pp + TMath::Sqrt(rErr_pp * rErr_pp + errLow * errLow);
-  std::cout << rDefault_pp << '\t' << rErr_pp << '\t' << errLow << '\t' << errUp
-            << '\t' << rLower << '\t' << rUp << '\n';
+  std::cout << "Default radius\t" << rDefault_pp << "\nStat. Error\t"
+            << rErr_pp << "\nSyst. Error low\t" << errLow
+            << "\nSyst. Error up\t" << errUp << "\nLower radius\t" << rLower
+            << "\nUpper radius\t" << rUp << '\n';
   TNtuple* outTuple = new TNtuple(
       "outTuple", "outTuple",
       "Rad_pp:RadStat_pp:RadSysLow_pp:RadSysUp_pp:RadLow_pXi:RadUp_pXi");
@@ -224,6 +237,6 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
 }
 
 int main(int argc, char *argv[]) {
-  RUN2_SYSTEMATICS_MEDIAN(argv[1], atoi(argv[2]), argv[3]);
+  RUN2_SYSTEMATICS_MEDIAN(argv[1], atoi(argv[2]), argv[3], atoi(argv[4]));
   return 0;
 }
