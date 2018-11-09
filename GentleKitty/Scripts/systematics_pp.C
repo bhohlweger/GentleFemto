@@ -25,15 +25,15 @@
 #include "TMath.h"
 #include "TCanvas.h"
 
-void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, const char* OutDirName) {
-  const char* FileName = Form("%sOutFile_CutVarAdd_2048.root", InputFolder);
+void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter, const char* OutDirName) {
+  const char* FileName = Form("%s/OutFile_CutVarAdd_Iter%u.root", InputFolder,Numiter);
   TFile* inFile = TFile::Open(FileName, "READ");
   TNtuple* sysVarTree = (TNtuple*) inFile->Get("ntResult");
   if (!sysVarTree) {
     std::cout << "no Tree loaded\n";
   }
-  auto histRad = new TH1D("hRad", "hRad", 10000, 1.2, 1.6);
-  auto histRadIter = new TH2D("hRadIter", "hRadIter", 10000, 1.2, 1.6, 2000, 0,
+  auto histRad = new TH1D("hRad", "hRad", 1000, 1.2, 1.6);
+  auto histRadIter = new TH2D("hRadIter", "hRadIter", 1000, 1.2, 1.6, 2000, 0,
                               2000);
   sysVarTree->Draw("Radius_pp>>hRad", "Chi2NdfLocal<6");
   auto mean = histRad->GetMean();
@@ -118,8 +118,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, const char* OutDirName) {
       "RECREATE");
 
   TFile* fileMean = TFile::Open(
-      Form("%sGraphFile_CutVarAdd_Iter2048_uIter%i.root", InputFolder,
-           uIterMean));
+      Form("%s/GraphFile_CutVarAdd_Iter%u_uIter%i.root", InputFolder,Numiter,uIterMean));
   if (!fileMean) {
     std::cout << "Missing file Mean \n";
   }
@@ -132,8 +131,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, const char* OutDirName) {
   fileMean->Close();
 
   TFile* fileSysLow = TFile::Open(
-      Form("%sGraphFile_CutVarAdd_Iter2048_uIter%i.root", InputFolder,
-           uIterLow));
+      Form("%s/GraphFile_CutVarAdd_Iter%u_uIter%i.root", InputFolder,Numiter,uIterLow));
   if (!fileSysLow) {
     std::cout << "Missing file Sys Low \n";
   }
@@ -146,8 +144,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, const char* OutDirName) {
   fileSysLow->Close();
 
   TFile* fileSysUp = TFile::Open(
-      Form("%sGraphFile_CutVarAdd_Iter2048_uIter%i.root", InputFolder,
-           uIterUp));
+      Form("%s/GraphFile_CutVarAdd_Iter%u_uIter%i.root", InputFolder,Numiter,uIterUp));
   if (!fileSysUp) {
     std::cout << "Missing file SysUp \n";
   }
@@ -180,7 +177,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, const char* OutDirName) {
           rErr_pp * rErr_pp + (0.2 * rDefault_pp) * (0.2 * rDefault_pp)
               + errLow * errLow);
   float rUp = rDefault_pp + TMath::Sqrt(rErr_pp * rErr_pp + errLow * errLow);
-
+  std::cout << rDefault_pp << '\t' << rErr_pp << '\t' << errLow << '\t' << errUp << '\t' << rLower << '\t' << rUp << '\n';
   TNtuple* outTuple = new TNtuple(
       "outTuple", "outTuple",
       "Rad_pp:RadStat_pp:RadSysLow_pp:RadSysUp_pp:RadLow_pXi:RadUp_pXi");
@@ -206,6 +203,6 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, const char* OutDirName) {
 }
 
 int main(int argc, char *argv[]) {
-  RUN2_SYSTEMATICS_MEDIAN(argv[1], argv[2]);
+  RUN2_SYSTEMATICS_MEDIAN(argv[1], atoi(argv[2]),argv[3]);
   return 0;
 }
