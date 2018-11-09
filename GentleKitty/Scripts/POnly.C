@@ -700,6 +700,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
               delete hAxis_pp;
               delete info1;
               delete cfast;
+              delete OliHisto_pp;
 
             }      //FAST_PLOT
             GraphFile->Close();

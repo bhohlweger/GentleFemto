@@ -300,7 +300,7 @@ TH1F* CATSInput::GetCF(TString pair, TString hist) {
     std::cout << "Danger! Histogram not set, maybe histname " << hist
               << " does not exist? \n";
   }
-  return output;
+  return (TH1F*)output->Clone(Form("%sCloned",output->GetName()));
 }
 
 void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {
