@@ -25,8 +25,10 @@
 #include "TMath.h"
 #include "TCanvas.h"
 
-void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter, const char* OutDirName) {
-  const char* FileName = Form("%s/OutFile_CutVarAdd_Iter%u.root", InputFolder,Numiter);
+void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
+                             const char* OutDirName) {
+  const char* FileName = Form("%s/OutFile_CutVarAdd_Iter%u.root", InputFolder,
+                              Numiter);
   TFile* inFile = TFile::Open(FileName, "READ");
   TNtuple* sysVarTree = (TNtuple*) inFile->Get("ntResult");
   if (!sysVarTree) {
@@ -118,7 +120,8 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter, const char* O
       "RECREATE");
 
   TFile* fileMean = TFile::Open(
-      Form("%s/GraphFile_CutVarAdd_Iter%u_uIter%i.root", InputFolder,Numiter,uIterMean));
+      Form("%s/GraphFile_CutVarAdd_Iter%u_uIter%i.root", InputFolder, Numiter,
+           uIterMean));
   if (!fileMean) {
     std::cout << "Missing file Mean \n";
   }
@@ -131,7 +134,8 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter, const char* O
   fileMean->Close();
 
   TFile* fileSysLow = TFile::Open(
-      Form("%s/GraphFile_CutVarAdd_Iter%u_uIter%i.root", InputFolder,Numiter,uIterLow));
+      Form("%s/GraphFile_CutVarAdd_Iter%u_uIter%i.root", InputFolder, Numiter,
+           uIterLow));
   if (!fileSysLow) {
     std::cout << "Missing file Sys Low \n";
   }
@@ -144,7 +148,8 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter, const char* O
   fileSysLow->Close();
 
   TFile* fileSysUp = TFile::Open(
-      Form("%s/GraphFile_CutVarAdd_Iter%u_uIter%i.root", InputFolder,Numiter,uIterUp));
+      Form("%s/GraphFile_CutVarAdd_Iter%u_uIter%i.root", InputFolder, Numiter,
+           uIterUp));
   if (!fileSysUp) {
     std::cout << "Missing file SysUp \n";
   }
@@ -157,18 +162,33 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter, const char* O
   fileSysUp->Close();
 
   float uIterIDDefault;
+  float vFemReg_pp;
+//  int vMod_pL;
+  float vFrac_pp_pL;
+  float vFrac_pL_pSigma0;
+  float vFrac_pL_pXim;
+  float HaveWeABaseLine;
+
   float rDefault_pp;
   float rErr_pp;
   sysVarTree->SetBranchAddress("IterID", &uIterIDDefault);
+  sysVarTree->SetBranchAddress("vFemReg_pp", &vFemReg_pp);
+//  sysVarTree->SetBranchAddress("vFemReg_pp", &vMod_pL);
+  sysVarTree->SetBranchAddress("vFrac_pp_pL", &vFrac_pp_pL);
+  sysVarTree->SetBranchAddress("vFrac_pL_pSigma0", &vFrac_pL_pSigma0);
+  sysVarTree->SetBranchAddress("vFrac_pL_pXim", &vFrac_pL_pXim);
+  sysVarTree->SetBranchAddress("BLSlope", &HaveWeABaseLine);
+  sysVarTree->SetBranchAddress("IterID", &uIterIDDefault);
   sysVarTree->SetBranchAddress("Radius_pp", &rDefault_pp);
   sysVarTree->SetBranchAddress("RadiusErr_pp", &rErr_pp);
+
   for (int iEntry = 0; iEntry < sysVarTree->GetEntries(); iEntry++) {
     sysVarTree->GetEntry(iEntry);
-    if (uIterIDDefault == 0) {
+    if (vFemReg_pp == 1 && vFrac_pp_pL == 1 && vFrac_pL_pSigma0 == 1
+        && vFrac_pL_pXim == 1 && HaveWeABaseLine == (int) false) {
       break;
     }
   }
-
   auto errLow = rDefault_pp - radMin;
   auto errUp = radMax - rDefault_pp;
 
@@ -177,7 +197,8 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter, const char* O
           rErr_pp * rErr_pp + (0.2 * rDefault_pp) * (0.2 * rDefault_pp)
               + errLow * errLow);
   float rUp = rDefault_pp + TMath::Sqrt(rErr_pp * rErr_pp + errLow * errLow);
-  std::cout << rDefault_pp << '\t' << rErr_pp << '\t' << errLow << '\t' << errUp << '\t' << rLower << '\t' << rUp << '\n';
+  std::cout << rDefault_pp << '\t' << rErr_pp << '\t' << errLow << '\t' << errUp
+            << '\t' << rLower << '\t' << rUp << '\n';
   TNtuple* outTuple = new TNtuple(
       "outTuple", "outTuple",
       "Rad_pp:RadStat_pp:RadSysLow_pp:RadSysUp_pp:RadLow_pXi:RadUp_pXi");
@@ -203,6 +224,6 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter, const char* O
 }
 
 int main(int argc, char *argv[]) {
-  RUN2_SYSTEMATICS_MEDIAN(argv[1], atoi(argv[2]),argv[3]);
+  RUN2_SYSTEMATICS_MEDIAN(argv[1], atoi(argv[2]), argv[3]);
   return 0;
 }
