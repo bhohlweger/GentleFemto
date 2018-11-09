@@ -35,7 +35,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, const char* OutDirName) {
 	auto histRad = new TH1D("hRad", "hRad", 10000, 1.2, 1.6);
 	auto histRadIter = new TH2D("hRadIter", "hRadIter", 10000, 1.2, 1.6, 2000,
 			0, 2000);
-	sysVarTree->Draw("Radius_pp>>hRad","Chi2Ndf<6");
+	sysVarTree->Draw("Radius_pp>>hRad","Chi2NdfLocal<6");
 	auto mean = histRad->GetMean();
 
 	int n = histRad->GetXaxis()->GetNbins();

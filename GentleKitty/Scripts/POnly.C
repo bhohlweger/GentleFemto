@@ -696,6 +696,7 @@ void FitPPVariations(const unsigned& NumIter, const unsigned& NumJobs,
     FitResult_pp.Write();
     fitter->GetFit()->SetName(TString::Format("GlobalFit_%u", uIter));
     fitter->GetFit()->Write();
+    GraphFile->Close();
 
     if (FAST_PLOT) {
       TPaveText* info1 = new TPaveText(0.45, 0.65, 0.9, 0.95, "blNDC");  //lbrt
