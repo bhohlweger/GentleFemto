@@ -245,12 +245,12 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
       "recreate");
   //you save a lot of stuff in an NTuple
   TNtuple* ntResult = new TNtuple(
-      "ntResult", "ntResult", "IterID:vFemReg_pp:vFrac_pp_pL:vFrac_pL_pSigma0:"
+      "ntResult", "ntResult", "IterID:vFemReg_pp:vFrac_pp_pL:vModpL:vFrac_pL_pSigma0:"
       "vFrac_pL_pXim:BLSlope:Radius_pp:RadiusErr_pp:"
       "pa_pp:paErr_pp:pb_pp:pbErr_pp:pCl_pp:pClErr_pp:"
       "Chi2NdfGlobal:pval:Chi2NdfLocal");
 
-  Float_t ntBuffer[17];
+  Float_t ntBuffer[18];
 
   int vFemReg_pp;  //which femto region we use for pp (1 = default)
   int vMod_pL;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
@@ -260,7 +260,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
   bool HaveWeABaseLine = true;
 
   TidyCats* tidy = new TidyCats();
-  int uIter = 0;
+  int uIter = 1;
 
   for (vFemReg_pp = 0; vFemReg_pp < 3; ++vFemReg_pp) {
     for (vMod_pL = 1; vMod_pL < 3; ++vMod_pL) {
@@ -563,20 +563,21 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             ntBuffer[0] = uIter;
             ntBuffer[1] = vFemReg_pp;
             ntBuffer[2] = vFrac_pp_pL;
-            ntBuffer[3] = vFrac_pL_pSigma0;
-            ntBuffer[4] = vFrac_pL_pXim;
-            ntBuffer[5] = (int) HaveWeABaseLine;
-            ntBuffer[6] = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
-            ntBuffer[7] = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
-            ntBuffer[8] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
-            ntBuffer[9] = fitter->GetParError("pp", DLM_Fitter1::p_a);
-            ntBuffer[10] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
-            ntBuffer[11] = fitter->GetParError("pp", DLM_Fitter1::p_b);
-            ntBuffer[12] = fitter->GetParameter("pp", DLM_Fitter1::p_Cl);
-            ntBuffer[13] = fitter->GetParError("pp", DLM_Fitter1::p_Cl);
-            ntBuffer[14] = fitter->GetChi2Ndf();
-            ntBuffer[15] = fitter->GetPval();
-            ntBuffer[16] = Chi2_pp / double(EffNumBins_pp);
+            ntBuffer[3] = vMod_pL;
+            ntBuffer[4] = vFrac_pL_pSigma0;
+            ntBuffer[5] = vFrac_pL_pXim;
+            ntBuffer[6] = (int) HaveWeABaseLine;
+            ntBuffer[7] = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
+            ntBuffer[8] = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
+            ntBuffer[9] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
+            ntBuffer[10] = fitter->GetParError("pp", DLM_Fitter1::p_a);
+            ntBuffer[11] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
+            ntBuffer[12] = fitter->GetParError("pp", DLM_Fitter1::p_b);
+            ntBuffer[13] = fitter->GetParameter("pp", DLM_Fitter1::p_Cl);
+            ntBuffer[14] = fitter->GetParError("pp", DLM_Fitter1::p_Cl);
+            ntBuffer[15] = fitter->GetChi2Ndf();
+            ntBuffer[16] = fitter->GetPval();
+            ntBuffer[17] = Chi2_pp / double(EffNumBins_pp);
 
             //    ntBuffer[23] = (int) FIX_CL;
             ntResult->Fill(ntBuffer);
