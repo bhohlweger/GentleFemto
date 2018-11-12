@@ -234,7 +234,11 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
   CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
   CATSinput->ReadResFile();
-  CATSinput->SetSigmaFileName("Sample3_MeV_compact.root");
+  if (system == 0) {
+    CATSinput->SetSigmaFileName("Sample3_MeV_compact.root");
+  } else if (system == 1) {
+    CATSinput->SetSigmaFileName("Sample6_MeV_compact.root");
+  }
   CATSinput->ReadSigmaFile();
 
   CATSinput->ReadCorrelationFile(InputDir.Data());

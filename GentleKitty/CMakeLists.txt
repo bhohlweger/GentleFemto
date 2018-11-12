@@ -10,8 +10,8 @@ project(GentleKitty)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 SET(GSL_INCLUDE "/usr/include/gsl")#where are all GSL related .h files
 SET(GSL_LIB "/usr/lib/x86_64-linux-gnu/")#where are the GSL .a and .so files
-SET(CATS_INCLUDE "$ENV{CATS}/install/include")#where are all CATS related .h files
-SET(CATS_LIB "$ENV{CATS}/install/lib")#where are the CATS related .a files
+SET(CATS_INCLUDE "$ENV{CATS}/include")#where are all CATS related .h files
+SET(CATS_LIB "$ENV{CATS}/lib")#where are the CATS related .a files
 SET(DREAM_PATH "${CMAKE_SOURCE_DIR}/DreamFunction")#where are all CATS related .h files
 SET(DREAM_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/../DreamFunction")
 #add_executable(EXECUTABLE ForBernie.cpp)
@@ -64,6 +64,9 @@ target_link_libraries(SideBand tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(ppSystematics ${PROJECT_SOURCE_DIR}/Scripts/systematics_pp.C)
 target_link_libraries(ppSystematics tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(DrawCurves ${PROJECT_SOURCE_DIR}/Scripts/DrawCurves.C)
+target_link_libraries(DrawCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 
 #add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
