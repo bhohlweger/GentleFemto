@@ -6,6 +6,7 @@
 #include "TGraph.h"
 #include "TCanvas.h"
 #include "TString.h"
+#include "TNtuple.h"
 #include "CATSInput.h"
 #include "DreamPlot.h"
 #include <iostream>
@@ -40,7 +41,10 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
   c1->cd(0);
   c1->SetCanvasSize(1920, 1280);
   c1->SetMargin(0.15, 0.05, 0.2, 0.05);
+  c1->cd();
   CF_Histo->Draw();
+  TNtuple *outCoulomb = new TNtuple("coulomb","coulomb","delta");
+  TNtuple *outCoulombStrong = new TNtuple("coulombStrong","coulombStrong","delta");
   while ((entry = (char*) gSystem->GetDirEntry(dirp))) {
     str = entry;
 //    std::cout << str << std::endl;
@@ -55,26 +59,32 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
         TGraph *Graph = (TGraph*) key->ReadObj();
         TString graphName = Form("%s", Graph->GetName());
         if (graphName.Contains(MygraphName.Data())) {
-
           if (TString(pair) == "pXi") {
             if (graphName.Contains("COULOMB")) {
               Graph->SetLineColor(3);
+              outCoulomb->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
             } else {
               Graph->SetLineColor(2);
+              outCoulombStrong->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
             }
           } else {
             Graph->SetLineColor(2);
+            outCoulombStrong->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
           }
+          c1->cd();
           Graph->Draw("CPsame");
         }
       }
       file->Close();
     }
   }
+
   c1->SaveAs(Form("%s/c1.png", varFolder));
   TFile* output = TFile::Open(Form("%s/outfile.root", varFolder), "RECREATE");
   output->cd();
   c1->Write();
+  outCoulomb->Write();
+  outCoulombStrong->Write();
   output->Close();
 }
 
