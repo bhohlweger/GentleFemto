@@ -47,9 +47,9 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
     std::cout << "Unknown bin width " << binWidth << std::endl;
   }
   double sysWidth = 5;
-  TFile* CFFile_pp = TFile::Open(Form("%sCFOutput_pp.root", PathToDataFolder));
+  TFile* CFFile_pp = TFile::Open(Form("%s/CFOutput_pp.root", PathToDataFolder));
   TFile* CFFile_ppSys = TFile::Open(
-      Form("%sC2totalsysPP.root", PathToSysFolder));
+      Form("%s/C2totalsysPP.root", PathToSysFolder));
   fProtonProton->SetCorrelationFunction(
       (TH1F*) CFFile_pp->Get("hCk_ReweightedMeV_0"));
 
@@ -65,26 +65,26 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
   fProtonProton->SetSystematics((TF1*) CFFile_ppSys->Get("RelSysPPUnbinned"),
                                 2);
 
-  TFile* CFFile_pL = TFile::Open(Form("%sCFOutput_pL.root", PathToDataFolder));
+  TFile* CFFile_pL = TFile::Open(Form("%s/CFOutput_pL.root", PathToDataFolder));
   TFile* CFFile_pLSys = TFile::Open(
-      Form("%sC2totalsysPL.root", PathToSysFolder));
+      Form("%s/C2totalsysPL.root", PathToSysFolder));
   fProtonLambda->SetCorrelationFunction(
       (TH1F*) CFFile_pL->Get(HistName.Data()));
   fProtonLambda->SetSystematics((TF1*) CFFile_pLSys->Get("RelSysPLUnbinned"),
                                 sysWidth);
 
-  TFile* CFFile_LL = TFile::Open(Form("%sCFOutput_LL.root", PathToDataFolder));
+  TFile* CFFile_LL = TFile::Open(Form("%s/CFOutput_LL.root", PathToDataFolder));
   TFile* CFFile_LLSys = TFile::Open(
-      Form("%sC2totalsysLL.root", PathToSysFolder));
+      Form("%s/C2totalsysLL.root", PathToSysFolder));
   fLambdaLambda->SetCorrelationFunction(
       (TH1F*) CFFile_LL->Get(HistName.Data()));
   fLambdaLambda->SetSystematics((TF1*) CFFile_LLSys->Get("RelSysLLUnbinned"),
                                 sysWidth);
 
   TFile* CFFile_pXi = TFile::Open(
-      Form("%sCFOutput_pXi.root", PathToDataFolder));
+      Form("%s/CFOutput_pXi.root", PathToDataFolder));
   TFile* CFFile_pXiSys = TFile::Open(
-      Form("%sC2totalsysPXi.root", PathToSysFolder));
+      Form("%s/C2totalsysPXi.root", PathToSysFolder));
   fProtonXi->SetCorrelationFunction((TH1F*) CFFile_pXi->Get(HistName.Data()));
   fProtonXi->SetSystematics((TF1*) CFFile_pXiSys->Get("RelSysPXiUnbinned"),
                             sysWidth);
@@ -101,19 +101,19 @@ void DreamPlot::ReadSimulation(const char* PathToSimFolder, int binWidth) {
   } else {
     std::cout << "Unknown bin width " << binWidth << std::endl;
   }
-  TFile* CFFile_pp = TFile::Open(Form("%sCFOutput_pp.root", PathToSimFolder));
+  TFile* CFFile_pp = TFile::Open(Form("%s/CFOutput_pp.root", PathToSimFolder));
   fProtonProton->SetCorrelationFunctionSimulation(
       (TH1F*) CFFile_pp->Get("hCk_Reweighted_0"));
 
-  TFile* CFFile_pL = TFile::Open(Form("%sCFOutput_pL.root", PathToSimFolder));
+  TFile* CFFile_pL = TFile::Open(Form("%s/CFOutput_pL.root", PathToSimFolder));
   fProtonLambda->SetCorrelationFunctionSimulation(
       (TH1F*) CFFile_pL->Get(HistName.Data()));
 
-  TFile* CFFile_LL = TFile::Open(Form("%sCFOutput_LL.root", PathToSimFolder));
+  TFile* CFFile_LL = TFile::Open(Form("%s/CFOutput_LL.root", PathToSimFolder));
   fLambdaLambda->SetCorrelationFunctionSimulation(
       (TH1F*) CFFile_LL->Get(HistName.Data()));
 
-  TFile* CFFile_pXi = TFile::Open(Form("%sCFOutput_pXi.root", PathToSimFolder));
+  TFile* CFFile_pXi = TFile::Open(Form("%s/CFOutput_pXi.root", PathToSimFolder));
   fProtonXi->SetCorrelationFunctionSimulation(
       (TH1F*) CFFile_pXi->Get(HistName.Data()));
 }
@@ -123,7 +123,7 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
   fProtonLambda->SetUnitConversionCATS(UnitConvCATS);
   fLambdaLambda->SetUnitConversionCATS(UnitConvCATS);
   fProtonXi->SetUnitConversionCATS(UnitConvCATS);
-  TString PathToFile = Form("%sSYSTEMATICS_CutVarAdd_Global_Radius_Normal.root",
+  TString PathToFile = Form("%s/SYSTEMATICS_CutVarAdd_Global_Radius_Normal.root",
                             fitPath);
   TFile *systFit = TFile::Open(PathToFile.Data());
   if (systFit) {
