@@ -65,6 +65,9 @@ target_link_libraries(SideBand tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(ppSystematics ${PROJECT_SOURCE_DIR}/Scripts/systematics_pp.C)
 target_link_libraries(ppSystematics tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(DrawCurves ${PROJECT_SOURCE_DIR}/Scripts/DrawCurves.C)
+target_link_libraries(DrawCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 
 #add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
 #target_link_libraries(EXECUTABLE tidyCATS DREAM_LIB -DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
