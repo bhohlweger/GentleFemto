@@ -295,7 +295,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_PP->SetTopMargin(top);
   fProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p} pairs", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
-  fProtonProton->SetRangePlotting(0, 125, 0.6, 3.);
+  fProtonProton->SetRangePlotting(0, 200, 0.6, 3.);
   fProtonProton->SetLegendCoordinates(0.5, 0.62, 0.7, 0.8);
   fProtonProton->DrawCorrelationPlot(c_PP);
   DrawSystemInfo(c_PP);
