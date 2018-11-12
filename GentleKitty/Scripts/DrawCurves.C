@@ -18,7 +18,7 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
   TString HistName = Form("hCk_Reweighted%sMeV_0", pair);
   TH1F* CF_Histo = CATSinput->GetCF(pair, HistName);
   CF_Histo->GetXaxis()->SetRangeUser(0, 500);
-  CF_Histo->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
+  CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   CF_Histo->SetStats(false);
   DreamPlot::SetStyle();
   DreamPlot::SetStyleHisto(CF_Histo);
@@ -59,6 +59,7 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
         TGraph *Graph = (TGraph*) key->ReadObj();
         TString graphName = Form("%s", Graph->GetName());
         if (graphName.Contains(MygraphName.Data())) {
+
           if (TString(pair) == "pXi") {
             if (graphName.Contains("COULOMB")) {
               Graph->SetLineColor(3);
@@ -71,15 +72,15 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
             Graph->SetLineColor(2);
             outCoulombStrong->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
           }
-          c1->cd();
-          Graph->Draw("CPsame");
+          Graph->Draw("L3same");
         }
       }
       file->Close();
     }
   }
-
-  c1->SaveAs(Form("%s/c1.png", varFolder));
+  c1->SaveAs(Form("%s/CF_%s_model.pdf", varFolder, pair));
+  CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
+  c1->SaveAs(Form("%s/CF_%s_model_zoom.pdf", varFolder, pair));
   TFile* output = TFile::Open(Form("%s/outfile.root", varFolder), "RECREATE");
   output->cd();
   c1->Write();
