@@ -41,15 +41,15 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 
   double FemtoRegion_pXim[3][2];
   FemtoRegion_pXim[0][0] = kMin_pXim;
-  FemtoRegion_pXim[0][1] = 360;
+  FemtoRegion_pXim[0][1] = 240;
   FemtoRegion_pXim[1][0] = kMin_pXim;
-  FemtoRegion_pXim[1][1] = 420;
+  FemtoRegion_pXim[1][1] = 280;
   FemtoRegion_pXim[2][0] = kMin_pXim;
-  FemtoRegion_pXim[2][1] = 480;
+  FemtoRegion_pXim[2][1] = 320;
 
   double BlRegion[2];
-  BlRegion[0] = 490;
-  BlRegion[1] = 490;
+  BlRegion[0] = 330;
+  BlRegion[1] = 500;
 
   double normvarCont[3][2];
   normvarCont[0][0] = 450;
