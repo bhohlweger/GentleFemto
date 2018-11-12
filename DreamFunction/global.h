@@ -12,12 +12,6 @@ extern int globalBinWidth;  // in MeV
 extern const char* globalCollisionSystem;
 extern const char* globalEventGenerator;
 extern float globalBeamEnergy;  // TeV
-extern float globalRadius;      // fm
-extern float globalRadiusStat;
-extern float globalRadiusSysLow;
-extern float globalRadiusSysUp;
-extern float globalBaselinePP0;
-extern float globalBaselinePP1;
 extern float globalBaselinePL0;
 extern float globalBaselinePL1;
 extern float globalBaselineLL0;

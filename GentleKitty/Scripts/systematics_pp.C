@@ -1,5 +1,6 @@
 //#include <XiOnly.C>
 #include <iostream>
+#include <fstream>
 
 #include "CATStools.h"
 #include "CATS.h"
@@ -174,7 +175,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
 
   float uIterIDDefault;
   float vFemReg_pp;
-//  int vMod_pL;
+  float vModpL;
   float vFrac_pp_pL;
   float vFrac_pL_pSigma0;
   float vFrac_pL_pXim;
@@ -182,9 +183,11 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
 
   float rDefault_pp;
   float rErr_pp;
+  float pa_pp, pb_pp;
+
   sysVarTree->SetBranchAddress("IterID", &uIterIDDefault);
   sysVarTree->SetBranchAddress("vFemReg_pp", &vFemReg_pp);
-//  sysVarTree->SetBranchAddress("vFemReg_pp", &vMod_pL);
+  sysVarTree->SetBranchAddress("vModpL", &vModpL);
   sysVarTree->SetBranchAddress("vFrac_pp_pL", &vFrac_pp_pL);
   sysVarTree->SetBranchAddress("vFrac_pL_pSigma0", &vFrac_pL_pSigma0);
   sysVarTree->SetBranchAddress("vFrac_pL_pXim", &vFrac_pL_pXim);
@@ -192,16 +195,22 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   sysVarTree->SetBranchAddress("IterID", &uIterIDDefault);
   sysVarTree->SetBranchAddress("Radius_pp", &rDefault_pp);
   sysVarTree->SetBranchAddress("RadiusErr_pp", &rErr_pp);
+  sysVarTree->SetBranchAddress("pa_pp", &pa_pp);
+  sysVarTree->SetBranchAddress("pb_pp", &pb_pp);
 
   for (int iEntry = 0; iEntry < sysVarTree->GetEntries(); iEntry++) {
     sysVarTree->GetEntry(iEntry);
     if (vFemReg_pp == 1 && vFrac_pp_pL == 1 && vFrac_pL_pSigma0 == 1
-        && vFrac_pL_pXim == 1 && HaveWeABaseLine == (int) false) {
+        && vFrac_pL_pXim == 1 && vModpL == 1
+        && HaveWeABaseLine == (int) false) {
       break;
     }
   }
   auto errLow = rDefault_pp - radMin;
   auto errUp = radMax - rDefault_pp;
+
+  const double BL_a = pa_pp;
+  const double BL_b = pb_pp;
 
   float rLower = rDefault_pp
       - TMath::Sqrt(
@@ -225,6 +234,16 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   outTuple->Fill(outArray);
   outFile->cd();
   outTuple->Write();
+
+  std::ofstream radiusOut;
+  radiusOut.open(Form("%s/radius.dat", OutDirName));
+  radiusOut << rDefault_pp << " " << rErr_pp << " " << errLow << " " << errUp << "\n";
+  radiusOut.close();
+
+  std::ofstream baseline;
+  baseline.open(Form("%s/baseline.dat", OutDirName));
+  baseline << BL_a << " " << BL_b << "\n";
+  baseline.close();
 
 //	GetXiForRadius("~/cernbox/pPb/v0offlineFix/woDetadPhi/200_400/", OutDirName, rLower, 11,
 //			outFile, "UpperLim", true);
