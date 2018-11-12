@@ -42,14 +42,14 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 
   double FemtoRegion_pXim[3][2];
   FemtoRegion_pXim[0][0] = kMin_pXim;
-  FemtoRegion_pXim[0][1] = 240;
+  FemtoRegion_pXim[0][1] = 360;
   FemtoRegion_pXim[1][0] = kMin_pXim;
-  FemtoRegion_pXim[1][1] = 280;
+  FemtoRegion_pXim[1][1] = 420;
   FemtoRegion_pXim[2][0] = kMin_pXim;
-  FemtoRegion_pXim[2][1] = 320;
+  FemtoRegion_pXim[2][1] = 480;
 
   double BlRegion[2];
-  BlRegion[0] = 330;
+  BlRegion[0] = 500;
   BlRegion[1] = 500;
 
   double normvarCont[3][2];
@@ -150,7 +150,7 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
   CATSinput->ReadCorrelationFile(InputDir.Data());
 
   TFile* OutFile = new TFile(
-      TString::Format("%sOutFilepXi_%s_Iter%u.root", OutputDir.Data(),
+      TString::Format("%s/OutFilepXi_%s_Iter%u.root", OutputDir.Data(),
                       "CutVarAdd", NumIter),
       "recreate");
   //you save a lot of stuff in an NTuple
@@ -179,6 +179,28 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
   side->SetSideBandFile("/home/hohlweger/cernbox/pPb/Sidebands", "42", "43");
   int uIter = 1;
 
+  CATSinput->ObtainCFs(5, 240, 340);
+  TString HistpXiName = "hCk_ReweightedpXiMeV_0";
+
+  TH1F* Prefit = CATSinput->GetCF("pXi", HistpXiName.Data());
+  TF1* funct_0 = new TF1("myPol0", "pol0", 250, 600);
+  Prefit->Fit(funct_0, "FSNRM");
+  float p_a_pol0 = funct_0->GetParameter(0);
+  float p_a_pol0_err = funct_0->GetParError(0);
+
+  TF1* funct_1 = new TF1("myPol1", "pol1", 250, 600);
+  Prefit->Fit(funct_1, "FSNRM");
+  float p_a_pol1 = funct_1->GetParameter(0);
+  float p_a_pol1_err = funct_1->GetParError(0);
+
+  float p_b_pol1 = funct_1->GetParameter(1);
+  float p_b_pol1_err = funct_1->GetParError(1);
+  std::cout << "p_a_pol0: " << p_a_pol0 << " pm " << p_a_pol0_err << std::endl;
+  std::cout << "p_a_pol1: " << p_a_pol1 << " pm " << p_a_pol1_err << std::endl;
+  std::cout << "p_b_pol1: " << p_b_pol1 << " pm " << p_b_pol1_err << std::endl;
+  delete Prefit;
+  delete funct_0;
+  delete funct_1;
   for (vFemReg_pXim = 0; vFemReg_pXim < 3; ++vFemReg_pXim) {
     for (vFrac_pXim_pXi1530 = 0; vFrac_pXim_pXi1530 < 3; ++vFrac_pXim_pXi1530) {
       for (tOut = 0; tOut < 3; ++tOut) {
@@ -222,8 +244,7 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                                              kMin_pXim, kMax_pXim);
               AB_pXim1530.KillTheCat();
 
-              TString HistpXiName = "hCk_ReweightedpXiMeV_0";
-              CATSinput->ObtainCFs(5, 240, 340);
+//              TString HistpXiName = "hCk_ReweightedpXiMeV_0";
 
               TH1F* OliHisto_pXim = CATSinput->GetCF("pXi", HistpXiName.Data());
               if (!OliHisto_pXim)
@@ -270,13 +291,15 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 //                  + Purities_p[vFrac_pXim_pXi1530][3] * Purities_Xim[0][4];
               int vFrac_pp_pL = 1;
               const double lam_pXim = Purities_p[vFrac_pp_pL][0]
-                  * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][0] * Fraction_Xim[0][0];
+                  * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][0]
+                  * Fraction_Xim[0][0];
               const double lam_pXim_pXim1530 = Purities_p[vFrac_pp_pL][0]
-                  * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][1] * Fraction_Xim[0][1];
-              const double lam_pXim_fake = Purities_p[vFrac_pp_pL][3] * Purities_Xim[0][0]
+                  * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][1]
+                  * Fraction_Xim[0][1];
+              const double lam_pXim_fake = Purities_p[vFrac_pp_pL][3]
+                  * Purities_Xim[0][0]
                   + Purities_p[vFrac_pp_pL][0] * Purities_Xim[0][4]
                   + Purities_p[vFrac_pp_pL][3] * Purities_Xim[0][4];
-
 
               printf("lam_pXim = %.3f\n", lam_pXim);
               printf("lam_pXim_pXim1530 = %.3f\n", lam_pXim_pXim1530);
@@ -300,12 +323,18 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                                 FemtoRegion_pXim[vFemReg_pXim][1], BlRegion[0],
                                 BlRegion[1]);
               fitter->SetSeparateBL(0, false);  //Simultaneous BL
-              fitter->SetParameter("pXim", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
               if (HaveWeABaseLine) {
-                fitter->SetParameter("pXim", DLM_Fitter1::p_b, 1e-4, -2e-3,
-                                     2e-3);
+                fitter->SetParameter("pXim", DLM_Fitter1::p_a, p_a_pol1,
+                                     p_a_pol1 - 3 * p_a_pol1_err,
+                                     p_a_pol1 + 3 * p_a_pol1_err);
+                fitter->SetParameter("pXim", DLM_Fitter1::p_b, p_b_pol1,
+                                     p_b_pol1 - 3 * p_b_pol1_err,
+                                     p_b_pol1 + 3 * p_b_pol1_err);
                 std::cout << "Fitting ranges for BL set \n";
               } else {
+                fitter->SetParameter("pXim", DLM_Fitter1::p_a, p_a_pol0,
+                                     p_a_pol0 - 3 * p_a_pol0_err,
+                                     p_a_pol0 + 3 * p_a_pol0_err);
                 fitter->FixParameter("pXim", DLM_Fitter1::p_b, 0);
               }
               fitter->AddSameSource("pXim1530", "pXim", 1);
@@ -320,7 +349,6 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                                    GaussSourceSize);
 
               fitter->GoBabyGo();
-
               double p_a_strong = fitter->GetParameter("pXim",
                                                        DLM_Fitter1::p_a);
               double p_a_strong_err = fitter->GetParError("pXim",
@@ -332,6 +360,10 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               double Cl_strong = fitter->GetParameter("pXim", DLM_Fitter1::p_c);
               double ChiSqStrongGlobal = fitter->GetChi2Ndf();
               double pValStrongGlobal = fitter->GetPval();
+
+              std::cout << "paStrongCoulomb = " << p_a_strong << " pm " << p_a_strong_err <<std::endl;
+              std::cout << "pbStrongCoulomb = " << p_b_strong << " pm " << p_b_strong_err <<std::endl;
+
               TGraph FitResult_pXim;
 
               FitResult_pXim.SetName(TString::Format("pXimGraph"));
@@ -437,7 +469,8 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                                                        DLM_Fitter1::p_c);
               double ChiSqCoulombGlobal = fitter->GetChi2Ndf();
               double pValCoulombGlobal = fitter->GetPval();
-
+              std::cout << "paCoulomb = " << p_a_coulomb << " pm " << p_a_coulomb_err <<std::endl;
+              std::cout << "pbCoulomb = " << p_b_coulomb << " pm " << p_b_coulomb_err <<std::endl;
               TGraph SideBandCoulombWithLambda;
               TGraph SideBandCoulombWithOutLambda;
               CATShisto<double>* CoulombWithLambda = CkDec_pXim
@@ -677,18 +710,17 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                 SideBandCoulombWithOutLambda.Draw("CP,SAME");
                 info4->Draw("same");
                 TF1* blPXiStrong = new TF1("blPP", "pol1", 0, 500);
-                blPXiStrong->SetParameters(p_a_strong,
-                                    p_b_strong);
+                blPXiStrong->SetParameters(p_a_strong, p_b_strong);
                 blPXiStrong->SetLineColor(2);
                 blPXiStrong->SetLineStyle(8);
 
                 TF1* blPXiCoulomb = new TF1("blPP", "pol1", 0, 500);
-                blPXiCoulomb->SetParameters(p_a_coulomb,
-                                    p_b_coulomb);
+                blPXiCoulomb->SetParameters(p_a_coulomb, p_b_coulomb);
                 blPXiCoulomb->SetLineColor(3);
                 blPXiCoulomb->SetLineStyle(4);
 
-                TH1F* hAxis_pXimILOVEROOT = (TH1F*)hAxis_pXim->Clone("ILOVEROOT");
+                TH1F* hAxis_pXimILOVEROOT = (TH1F*) hAxis_pXim->Clone(
+                    "ILOVEROOT");
 
                 hAxis_pXim->Draw("axis");
                 hAxis_pXimILOVEROOT->Draw("axig same");
