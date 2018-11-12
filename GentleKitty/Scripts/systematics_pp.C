@@ -38,11 +38,12 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   if (!sysVarTree) {
     std::cout << "no Tree loaded\n";
   }
-  const float histRangeLow = (system == 0) ? 1.2 : 1.0;
-  const float histRangeUp = (system == 0) ? 1.6 : 1.4;
-  auto histRad = new TH1D("hRad", "hRad", 1000, histRangeLow, histRangeUp);
-  auto histRadIter = new TH2D("hRadIter", "hRadIter", 1000, histRangeLow, histRangeUp, 2000, 0,
-                              2000);
+  const float histRangeLow = (system == 0) ? 1.2 : 1.1;
+  const float histRangeUp = (system == 0) ? 1.6 : 1.3;
+  const int nBins = (system == 0) ? 1000 : 500;
+  auto histRad = new TH1D("hRad", "hRad", nBins, histRangeLow, histRangeUp);
+  auto histRadIter = new TH2D("hRadIter", "hRadIter", nBins, histRangeLow,
+                              histRangeUp, 2000, 0, 2000);
   sysVarTree->Draw("Radius_pp>>hRad", "Chi2NdfLocal<6");
   auto mean = histRad->GetMean();
 
@@ -122,10 +123,6 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   std::cout << "uIterLow: " << uIterLow << std::endl;
 
   canRad->SaveAs(Form("%s/canRad.pdf", OutDirName));
-
-  auto canRad2 = new TCanvas();
-  histRad->Draw();
-  canRad2->SaveAs(Form("%s/radius.pdf", OutDirName));
 
   TFile* outFile = TFile::Open(
       Form("%s/SYSTEMATICS_CutVarAdd_Global_Radius_Normal.root", OutDirName),
@@ -244,6 +241,36 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   baseline.open(Form("%s/baseline.dat", OutDirName));
   baseline << BL_a << " " << BL_b << "\n";
   baseline.close();
+
+  auto canRad2 = new TCanvas();
+  histRad->Rebin(2);
+  histRad->Draw();
+
+  auto histRadLimits = (TH1F*)histRad->Clone("histRadLimits");
+  histRadLimits->Reset();
+  for(int i = 0; i<histRad->GetNbinsX(); ++i) {
+    if(histRad->GetBinCenter(i) < radMin || histRad->GetBinCenter(i) > radMax) continue;
+    histRadLimits->SetBinContent(i, histRad->GetBinContent(i));
+  }
+  histRadLimits->SetFillColor(kGray+1);
+  histRadLimits->Draw("same");
+
+  auto lineDefault = new TLine(rDefault_pp, 0, rDefault_pp, histRad->GetMaximum());
+  lineDefault->SetLineColor(kRed+2);
+  lineDefault->SetLineWidth(2);
+  lineDefault->Draw("same");
+
+  auto lineLow = new TLine(radMin, 0, radMin, histRad->GetMaximum());
+  lineLow->SetLineColor(kGreen+2);
+  lineLow->SetLineWidth(2);
+  lineLow->Draw("same");
+
+  auto lineUp = new TLine(radMax, 0, radMax, histRad->GetMaximum());
+  lineUp->SetLineColor(kGreen+2);
+  lineUp->SetLineWidth(2);
+  lineUp->Draw("same");
+
+  canRad2->SaveAs(Form("%s/radius.pdf", OutDirName));
 
 //	GetXiForRadius("~/cernbox/pPb/v0offlineFix/woDetadPhi/200_400/", OutDirName, rLower, 11,
 //			outFile, "UpperLim", true);
