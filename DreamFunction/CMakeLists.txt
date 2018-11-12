@@ -37,8 +37,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/global.h
   )
 
-ROOT_GENERATE_DICTIONARY(G__DreamFunctions ${HEADERS} LINKDEF ${PROJECT_SOURCE_DIR}/LinkDef.h)
-add_library(DreamFunctions SHARED ${SRCS} G__DreamFunctions)
+add_library(DreamFunctions SHARED ${SRCS})
 target_link_libraries(DreamFunctions ${ROOT_LIBRARIES})
 
 add_executable(executeDream ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFDream.C)

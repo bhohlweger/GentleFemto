@@ -50,7 +50,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/SideBandFit.h
   )
 
-add_library(tidyCATS STATIC ${PROJECT_SOURCE_DIR}/TidyCats.cxx ${PROJECT_SOURCE_DIR}/CATSInput.cxx ${PROJECT_SOURCE_DIR}/SideBandFit.cxx)
+add_library(tidyCATS STATIC ${SRCS})
 target_link_libraries(tidyCATS -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
 
 add_executable(POnly ${PROJECT_SOURCE_DIR}/Scripts/POnly.C)
@@ -67,15 +67,3 @@ target_link_libraries(ppSystematics tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(DrawCurves ${PROJECT_SOURCE_DIR}/Scripts/DrawCurves.C)
 target_link_libraries(DrawCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
-
-
-#add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
-#target_link_libraries(EXECUTABLE tidyCATS DREAM_LIB -DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
-#ROOT_GENERATE_DICTIONARY(G__TidyCATS ${HEADERS} LINKDEF ${PROJECT_SOURCE_DIR}/LinkDef.h)
-#add_library(TidyCATS SHARED ${SRCS} G__TidyCATS)
-#target_link_libraries(TidyCATS -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev -L${GSL_LIB} ${ROOT_CXX_LIB_FLAGS} libgsl.a libgsl.so)
-#
-#add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
-#target_link_libraries(EXECUTABLE -L -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev -L${GSL_LIB} ${ROOT_CXX_LIB_FLAGS} libgsl.a libgsl.so)
-#
-
