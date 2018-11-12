@@ -25,7 +25,7 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
   bool FAST_PLOT = true;
   TRandom3 rangen(0);
   const int binwidth = 20;
-  const unsigned NumMomBins_pXim = 21;
+  const unsigned NumMomBins_pXim = 30;
   double kMinXiP = 8.;
   const double kMin_pXim = kMinXiP;
   const double kMax_pXim = kMin_pXim + binwidth * NumMomBins_pXim;
@@ -41,15 +41,15 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 
   double FemtoRegion_pXim[3][2];
   FemtoRegion_pXim[0][0] = kMin_pXim;
-  FemtoRegion_pXim[0][1] = 300;
+  FemtoRegion_pXim[0][1] = 360;
   FemtoRegion_pXim[1][0] = kMin_pXim;
-  FemtoRegion_pXim[1][1] = 360;
+  FemtoRegion_pXim[1][1] = 420;
   FemtoRegion_pXim[2][0] = kMin_pXim;
-  FemtoRegion_pXim[2][1] = 420;
+  FemtoRegion_pXim[2][1] = 480;
 
   double BlRegion[2];
-  BlRegion[0] = 420;
-  BlRegion[1] = 420;
+  BlRegion[0] = 490;
+  BlRegion[1] = 490;
 
   double normvarCont[3][2];
   normvarCont[0][0] = 450;
@@ -585,7 +585,7 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               file->Close();
 
               if (FAST_PLOT) {
-                TPaveText* info4 = new TPaveText(0.2, 0.68, 0.9, 0.95, "blNDC");  //lbrt
+                TPaveText* info4 = new TPaveText(0.2, 0.5, 0.9, 0.95, "blNDC");  //lbrt
                 info4->SetName("info4");
                 info4->SetBorderSize(1);
                 info4->SetTextSize(0.04);
@@ -643,14 +643,13 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                 hAxis_pXim->GetYaxis()->SetTitleSize(0.075);
                 hAxis_pXim->GetXaxis()->SetRangeUser(0, 500);
                 hAxis_pXim->GetYaxis()->SetRangeUser(0.7, 4.5);    //pPb
-
                 TCanvas* cfast = new TCanvas(
                     TString::Format("cfast_r%.2f", GaussSourceSize),
                     TString::Format("cfast_r%.2f", GaussSourceSize), 1);
-                cfast->cd(0);
+//                TPad* padFast = (TPad*)cfast->cd(0);
                 cfast->SetCanvasSize(1920, 1280);
                 cfast->SetMargin(0.15, 0.05, 0.2, 0.05);    //lrbt
-
+                cfast->Update();
                 OliHisto_pXim->SetTitle("p#Xi^{#minus}");
                 OliHisto_pXim->SetLineWidth(2);
                 OliHisto_pXim->SetLineColor(kBlack);
@@ -666,21 +665,41 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                 FitResult_pXim_COULOMB.SetMarkerColor(kGreen);
                 FitResult_pXim_COULOMB.SetMarkerSize(1);
 
+                TF1* blPXiStrong = new TF1("blPP", "pol1", 0, 500);
+                blPXiStrong->SetParameters(p_a_strong,
+                                    p_b_strong);
+                blPXiStrong->SetLineColor(2);
+                blPXiStrong->SetLineStyle(8);
+
+                TF1* blPXiCoulomb = new TF1("blPP", "pol1", 0, 500);
+                blPXiCoulomb->SetParameters(p_a_coulomb,
+                                    p_b_coulomb);
+                blPXiCoulomb->SetLineColor(3);
+                blPXiCoulomb->SetLineStyle(4);
+
+                TH1F* hAxis_pXimILOVEROOT = (TH1F*)hAxis_pXim->Clone("ILOVEROOT");
+
                 hAxis_pXim->Draw("axis");
+                hAxis_pXimILOVEROOT->Draw("axig same");
                 OliHisto_pXim->Draw("same");
                 FitResult_pXim.Draw("CP,same");
                 FitResult_pXim_COULOMB.Draw("CP,same");
+                SideBandStrongWithLambda.SetLineColor(4);
                 SideBandStrongWithLambda.Draw("CP,SAME");
-                SideBandStrongWithOutLambda.Draw("CP,SAME");
-                SideBandCoulombWithLambda.Draw("CP,SAME");
-                SideBandCoulombWithOutLambda.Draw("CP,SAME");
+                blPXiStrong->Draw("Same");
+                blPXiCoulomb->Draw("Same");
                 info4->Draw("same");
+                cfast->SetGridx();
+                cfast->SetGridy();
+                cfast->Update();
                 cfast->SaveAs(
                     TString::Format("%s/cfast_%uNumIter_%uVar.png",
                                     OutputDir.Data(), NumIter, uIter));
                 delete info4;
                 delete hAxis_pXim;
                 delete cfast;
+                delete blPXiStrong;
+                delete blPXiCoulomb;
               }
 
               delete fitter;
