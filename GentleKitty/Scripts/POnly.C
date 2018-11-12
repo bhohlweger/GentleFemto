@@ -245,7 +245,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 
   //each JOB produces a separate output file
   TFile* OutFile = new TFile(
-      TString::Format("%sOutFile_%s_Iter%u.root", OutputDir.Data(),"CutVarAdd", NumIter),
+      TString::Format("%s/OutFile_%s_Iter%u.root", OutputDir.Data(),"CutVarAdd", NumIter),
       "recreate");
   //you save a lot of stuff in an NTuple
   TNtuple* ntResult = new TNtuple(
@@ -520,7 +520,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             fitter->GoBabyGo();
 
             TFile* GraphFile = new TFile(
-                TString::Format("%sGraphFile_%s_Iter%u_uIter%u.root",
+                TString::Format("%s/GraphFile_%s_Iter%u_uIter%u.root",
                                 OutputDir.Data(), "CutVarAdd", NumIter, uIter),
                 "recreate");
 
