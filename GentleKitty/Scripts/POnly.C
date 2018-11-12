@@ -76,11 +76,11 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
   //if you modify you may need to change the CATS ranges somewhere below
   double FemtoRegion_pp[3][2];
   FemtoRegion_pp[0][0] = kMin;
-  FemtoRegion_pp[0][1] = 300;
+  FemtoRegion_pp[0][1] = 350;
   FemtoRegion_pp[1][0] = kMin;
-  FemtoRegion_pp[1][1] = 360;
+  FemtoRegion_pp[1][1] = 375;
   FemtoRegion_pp[2][0] = kMin;
-  FemtoRegion_pp[2][1] = 420;
+  FemtoRegion_pp[2][1] = 400;
 
   //	220-320 / 260-360/ 240-340
   //!The baseline region (the same for all other systems)
