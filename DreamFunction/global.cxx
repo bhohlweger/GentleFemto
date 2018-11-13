@@ -8,5 +8,5 @@ float globalBaselinePL0 = 0.980;
 float globalBaselinePL1 = 0.000131;
 float globalBaselineLL0 = 0.943;
 float globalBaselineLL1 = 0.000099;
-float globalBaselinePXi0 = 1;
+float globalBaselinePXi0 = 1.017;
 float globalBaselinePXi1 = 0;
