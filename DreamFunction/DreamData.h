@@ -89,6 +89,7 @@ class DreamData {
   ;
   void SetStyleGraph(TGraph *histo, int marker, int color);
   void DrawInlet(TCanvas *c);
+  int GetNumberOfModels() const { return fFemtoModdeled.size(); }
   virtual ~DreamData();
   const char* fName;
   TH1F* fCorrelationFunction;
