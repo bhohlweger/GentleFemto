@@ -43,6 +43,22 @@ class DreamData {
     fYMax = yMax;
   }
   ;
+  void SetInletRangePlotting(float xRangeMin, float xRangeMax, float yRangeMin, float yRangeMax) {
+    fInlet = true;
+    fXMinZoom = xRangeMin;
+    fXMaxZoom = xRangeMax;
+    fYMinZoom = yRangeMin;
+    fYMaxZoom = yRangeMax;
+  }
+  ;
+  void SetInletCoordinates(float xMin, float yMin, float xMax, float yMax) {
+    fInlet = true;
+    fXMinInlet = xMin;
+    fXMaxInlet = xMax;
+    fYMinInlet = yMin;
+    fYMaxInlet = yMax;
+  }
+  ;
   void SetLegendCoordinates(float xMin, float yMin, float xMax, float yMax) {
     fXMinLegend = xMin;
     fXMaxLegend = xMax;
@@ -72,6 +88,7 @@ class DreamData {
   }
   ;
   void SetStyleGraph(TGraph *histo, int marker, int color);
+  void DrawInlet(TCanvas *c);
   virtual ~DreamData();
   const char* fName;
   TH1F* fCorrelationFunction;
@@ -83,6 +100,15 @@ class DreamData {
   float fXMax;
   float fYMin;
   float fYMax;
+  bool  fInlet;
+  float fXMinZoom;
+  float fXMaxZoom;
+  float fYMinZoom;
+  float fYMaxZoom;
+  float fXMinInlet;
+  float fXMaxInlet;
+  float fYMinInlet;
+  float fYMaxInlet;
   float fXMinLegend;
   float fXMaxLegend;
   float fYMinLegend;

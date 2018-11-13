@@ -19,6 +19,15 @@ DreamData::DreamData(const char* particlePair)
       fXMax(0.5),
       fYMin(0),
       fYMax(0.5),
+      fInlet(false),
+      fXMinZoom(0),
+      fXMaxZoom(0.5),
+      fYMinZoom(0),
+      fYMaxZoom(0.5),
+      fXMinInlet(0),
+      fXMaxInlet(0.5),
+      fYMinInlet(0),
+      fYMaxInlet(0.5),
       fXMinLegend(0),
       fXMaxLegend(0.5),
       fYMinLegend(0),
@@ -92,7 +101,7 @@ void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
 
       for (int i = 0; i < nBinsX; i++) {
         if (fCorrelationFunction->GetBinCenter(i + 1)
-            > 0.2 * fUnitConversionData)
+            > 0.5 * fUnitConversionData)
           continue;
         fSysError->SetPoint(i, fCorrelationFunction->GetBinCenter(i + 1),
                             fCorrelationFunction->GetBinContent(i + 1));
@@ -172,7 +181,7 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->GetYaxis()->SetTitleSize(0.05);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
-  histo->SetMarkerSize(1.4);
+  histo->SetMarkerSize(1.2);
   histo->SetLineWidth(2);
   histo->SetMarkerStyle(fMarkers[marker]);
   histo->SetMarkerColor(fColors[color]);
@@ -208,11 +217,8 @@ void DreamData::DrawCorrelationPlot(TCanvas* c) {
 //  leg->AddEntry(fBaseLine, "Baseline", "l");
   leg->Draw("same");
   for (auto &it : fFemtoModdeled) {
-    std::cout << "leg counter " << legendCounter << std::endl;
     it->Draw("L3 same");
-    std::cout << "size " << fFakeGraph.size() << std::endl;
     if (legendCounter < fFakeGraph.size()) {
-      std::cout << " leg counter 2 " << legendCounter << std::endl;
       leg->AddEntry(fFakeGraph[legendCounter], fLegendName[legendCounter],
                     fLegendOption[legendCounter]);
     }
@@ -220,8 +226,49 @@ void DreamData::DrawCorrelationPlot(TCanvas* c) {
   }
   fSysError->SetFillColorAlpha(kBlack, 0.4);
   fSysError->Draw("2 same");
-  fCorrelationFunction->Draw("pe same");
+  fCorrelationFunction->DrawCopy("pe same");
   leg->Draw("same");
+  if (fInlet) {
+    DrawInlet(c);
+  }
+}
+
+void DreamData::DrawInlet(TCanvas *c) {
+  c->cd();
+  TPad *inset_pad = new TPad("insert", "insertPad", fXMinInlet, fYMinInlet,
+                             fXMaxInlet, fYMaxInlet);
+  inset_pad->SetTopMargin(0.01);
+  inset_pad->SetRightMargin(0.01);
+  inset_pad->SetBottomMargin(0.1);
+  inset_pad->SetLeftMargin(0.1);
+  inset_pad->SetFillStyle(4000);
+  inset_pad->Draw();
+  inset_pad->cd();
+  TGraphErrors* SysErrCopy = (TGraphErrors*) fSysError->Clone(
+      Form("%s_clone", fSysError->GetName()));
+  TH1F* CFCopy = (TH1F*) fCorrelationFunction->Clone(
+      Form("%s_Cloned", fCorrelationFunction->GetName()));
+  SetStyleHisto(CFCopy, 2, 0);
+  CFCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
+  CFCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
+  SysErrCopy->GetYaxis()->SetLabelSize(0.08);
+  SysErrCopy->GetYaxis()->SetNdivisions(203);
+  SysErrCopy->GetXaxis()->SetLabelSize(0.08);
+  SysErrCopy->GetXaxis()->SetNdivisions(204);
+  SysErrCopy->SetLineColor(kWhite);
+  SysErrCopy->Draw("Ap");
+  fBaseLine->Draw("same");
+  SysErrCopy->SetTitle(" ; ; ");
+  SysErrCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
+  SysErrCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
+  for (auto &it : fFemtoModdeled) {
+    it->Draw("L3 same");
+  }
+  SysErrCopy->SetFillColorAlpha(kBlack, 0.4);
+  SysErrCopy->Draw("2 same");
+  CFCopy->SetMarkerSize(0.9);
+  CFCopy->DrawCopy("pe same");
+  return;
 }
 
 void DreamData::SetStyleGraph(TGraph *histo, int marker, int color) {
