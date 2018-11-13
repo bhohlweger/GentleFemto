@@ -295,8 +295,10 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_PP->SetTopMargin(top);
   fProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p} pairs", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
-  fProtonProton->SetRangePlotting(0, 200, 0.6, 3.);
+  fProtonProton->SetRangePlotting(0, 200, 0.7, 3.);
   fProtonProton->SetLegendCoordinates(0.5, 0.62, 0.7, 0.8);
+  fProtonProton->SetInletRangePlotting(50,350,0.94,1.06);
+  fProtonProton->SetInletCoordinates(0.5, 0.27, 0.95, 0.61);
   fProtonProton->DrawCorrelationPlot(c_PP);
   DrawSystemInfo(c_PP);
   c_PP->SaveAs("CF_pp_Gauss_prelim.pdf");
@@ -337,7 +339,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   fProtonXi->SetLegendName("Coulomb + HAL-QCD ", "fl");
   fProtonXi->SetLegendName("Coulomb", "l");
   fProtonXi->SetNDivisions(505);
-  fProtonXi->SetRangePlotting(0, 200, 0.6, 3.);
+  fProtonXi->SetRangePlotting(0, 300, 0.8, 2.5);
   fProtonXi->SetLegendCoordinates(0.5, 0.635, 0.7, 0.875);
   fProtonXi->DrawCorrelationPlot(c_pXi);
   DrawSystemInfo(c_pXi, false);
