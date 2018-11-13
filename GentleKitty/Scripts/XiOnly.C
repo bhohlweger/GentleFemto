@@ -19,7 +19,7 @@
 #include "TidyCats.h"
 #include "CATSInput.h"
 #include "SideBandFit.h"
-
+#include "TMinuit.h"
 void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                     TString OutputDir) {
   bool FAST_PLOT = true;
@@ -70,9 +70,6 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 
   double pp_f0 = 0.862814;
   double pp_f1 = 0.09603;
-  double pL_f0 = 0.521433;  //fraction of primary Lambdas
-  double pL_f1 = 0.173811;  //fraction of Sigma0
-  double pL_f2 = 0.152378;  //fractions of Xi0/m
 
   double ProtonPrim = pp_f0;
   double arrayPercLamProton[3] = { pp_f1 / (1. - pp_f0) * 0.8, pp_f1
@@ -170,7 +167,7 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
   int tOut;
   int ppRadius;
   int varSideNorm;
-  bool HaveWeABaseLine = true;
+  bool HaveWeABaseLineSlope = true;
 
   TidyCats* tidy = new TidyCats();
 
@@ -182,35 +179,49 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
   CATSinput->ObtainCFs(5, 240, 340);
   TString HistpXiName = "hCk_ReweightedpXiMeV_0";
 
+  float p_a_prefit[4];
+  float p_b_prefit[4];
   TH1F* Prefit = CATSinput->GetCF("pXi", HistpXiName.Data());
   TF1* funct_0 = new TF1("myPol0", "pol0", 250, 600);
   Prefit->Fit(funct_0, "FSNRM");
-  float p_a_pol0 = funct_0->GetParameter(0);
-  float p_a_pol0_err = funct_0->GetParError(0);
+  p_a_prefit[0] = funct_0->GetParameter(0);
+  p_b_prefit[0] = 0;
 
   TF1* funct_1 = new TF1("myPol1", "pol1", 250, 600);
   Prefit->Fit(funct_1, "FSNRM");
-  float p_a_pol1 = funct_1->GetParameter(0);
-  float p_a_pol1_err = funct_1->GetParError(0);
+//  TVirtualFitter::SetDefaultFitter("Minuit");
+  gMinuit->SetErrorDef(4); //note 4 and not 2!
 
-  float p_b_pol1 = funct_1->GetParameter(1);
-  float p_b_pol1_err = funct_1->GetParError(1);
-  std::cout << "p_a_pol0: " << p_a_pol0 << " pm " << p_a_pol0_err << std::endl;
-  std::cout << "p_a_pol1: " << p_a_pol1 << " pm " << p_a_pol1_err << std::endl;
-  std::cout << "p_b_pol1: " << p_b_pol1 << " pm " << p_b_pol1_err << std::endl;
+  p_a_prefit[1] = funct_1->GetParameter(0);
+
+  p_b_prefit[1] = funct_1->GetParameter(1);
+
+  TGraph *gr12 = (TGraph*)gMinuit->Contour(40,0,1);
+
+  p_a_prefit[2] = TMath::MinElement(gr12->GetN(),gr12->GetX());
+  p_b_prefit[2] = gr12->Eval(p_a_prefit[2]);
+
+  p_a_prefit[3] = TMath::MaxElement(gr12->GetN(),gr12->GetX());
+  p_b_prefit[3] = gr12->Eval(p_a_prefit[3]);
+
+  for (int i = 0; i<4; ++i) {
+    std::cout << i << " pa: " << p_a_prefit[i] << " pb: " << p_b_prefit[i] << std::endl;
+  }
+
   delete Prefit;
-  delete funct_0;
-  delete funct_1;
+//  delete funct_0;
+//  delete funct_1;
+//
   for (vFemReg_pXim = 0; vFemReg_pXim < 3; ++vFemReg_pXim) {
     for (vFrac_pXim_pXi1530 = 0; vFrac_pXim_pXi1530 < 3; ++vFrac_pXim_pXi1530) {
       for (tOut = 0; tOut < 3; ++tOut) {
         for (ppRadius = 0; ppRadius < 3; ++ppRadius) {
           for (varSideNorm = 0; varSideNorm < 3; ++varSideNorm) {
-            for (int BaselineSlope = 0; BaselineSlope < 2; ++BaselineSlope) {
+            for (int BaselineSlope = 0; BaselineSlope < 4; ++BaselineSlope) {
               if (BaselineSlope == 0) {
-                HaveWeABaseLine = true;  //use baseline
+                HaveWeABaseLineSlope = false;  //use baseline
               } else {
-                HaveWeABaseLine = false;  // no baseline
+                HaveWeABaseLineSlope = true;  // no baseline
               }
               if (NumIter == 0) {  //in that case run the default
                 vFemReg_pXim = 1;
@@ -218,7 +229,7 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                 tOut = 1;
                 ppRadius = 0;
                 varSideNorm = 1;
-                HaveWeABaseLine = false;
+                HaveWeABaseLineSlope = false;
               }
               side->SetNormalizationRange(normvarCont[varSideNorm][0],
                                           normvarCont[varSideNorm][1]);
@@ -323,19 +334,13 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                                 FemtoRegion_pXim[vFemReg_pXim][1], BlRegion[0],
                                 BlRegion[1]);
               fitter->SetSeparateBL(0, false);  //Simultaneous BL
-              if (HaveWeABaseLine) {
-                fitter->SetParameter("pXim", DLM_Fitter1::p_a, p_a_pol1,
-                                     p_a_pol1 - 3 * p_a_pol1_err,
-                                     p_a_pol1 + 3 * p_a_pol1_err);
-                fitter->SetParameter("pXim", DLM_Fitter1::p_b, p_b_pol1,
-                                     p_b_pol1 - 3 * p_b_pol1_err,
-                                     p_b_pol1 + 3 * p_b_pol1_err);
+              if (HaveWeABaseLineSlope) {
+                fitter->FixParameter("pXim", DLM_Fitter1::p_a, p_a_prefit[BaselineSlope]);
+                fitter->FixParameter("pXim", DLM_Fitter1::p_b, p_b_prefit[BaselineSlope]);
                 std::cout << "Fitting ranges for BL set \n";
               } else {
-                fitter->SetParameter("pXim", DLM_Fitter1::p_a, p_a_pol0,
-                                     p_a_pol0 - 3 * p_a_pol0_err,
-                                     p_a_pol0 + 3 * p_a_pol0_err);
-                fitter->FixParameter("pXim", DLM_Fitter1::p_b, 0);
+                fitter->FixParameter("pXim", DLM_Fitter1::p_a, p_a_prefit[0]);
+                fitter->FixParameter("pXim", DLM_Fitter1::p_b, p_b_prefit[0]);;
               }
               fitter->AddSameSource("pXim1530", "pXim", 1);
               fitter->AddSameSource("pXiSideBand", "pXim", 1);
@@ -564,14 +569,6 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               double nSigmaXiCoulomb_exclPeak = TMath::Sqrt(2)
                   * TMath::ErfcInverse(pvalXiCoulomb_exclPeak);
 
-//              "IterID:vFemReg_pXim:vFrac_pXim_pXi1530:"
-//                    "tOut:ppRadius:varSideNorm:BLSlope:"
-//                    "p_a:p_a_err:p_b:p_b_err:"
-//                    "Chi2NdfGlobal:Chi2NdfLocal:pval:sigma:"
-//                    "p_a_coulomb:p_a_err_coulomb:p_b_coulomb:p_b_err_coulomb"
-//                    ":Chi2NdfGlobal_coulomb:Chi2NdfLocal_coulomb:"
-//                    "pval_coulomb:sigma_coulomb");
-
               ntBuffer[0] = uIter;
               ntBuffer[1] = vFemReg_pXim;
               ntBuffer[2] = vFrac_pXim_pXi1530;
@@ -640,7 +637,7 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                     TString::Format("p_a (COU) = %.3f #pm %.5f", p_a_coulomb,
                                     p_a_coulomb_err));
 
-                if (HaveWeABaseLine) {
+                if (HaveWeABaseLineSlope) {
                   info4->AddText(
                       TString::Format(
                           "p_b (COU + STRONG) = (%.2f #pm %.2f )1e-4",
@@ -765,6 +762,10 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
   }
   outofloop: OutFile->cd();
   ntResult->Write();
+  gr12->SetName("ContourBaseline");
+  gr12->Write();
+  funct_0->Write();
+  funct_1->Write();
   OutFile->Close();
 
 //  delete ntResult;
