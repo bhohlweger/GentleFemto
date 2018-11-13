@@ -18,6 +18,7 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
   TString HistName = Form("hCk_Reweighted%sMeV_0", pair);
   TH1F* CF_Histo = CATSinput->GetCF(pair, HistName);
   CF_Histo->GetXaxis()->SetRangeUser(0, 500);
+  CF_Histo->GetYaxis()->SetRangeUser(0.8,2.6);
   CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   CF_Histo->SetStats(false);
   DreamPlot::SetStyle();
@@ -58,20 +59,23 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
           continue;
         TGraph *Graph = (TGraph*) key->ReadObj();
         TString graphName = Form("%s", Graph->GetName());
-        if (graphName.Contains(MygraphName.Data())) {
-
-          if (TString(pair) == "pXi") {
-            if (graphName.Contains("COULOMB")) {
-              Graph->SetLineColor(3);
-              outCoulomb->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
-            } else {
-              Graph->SetLineColor(2);
-              outCoulombStrong->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
-            }
-          } else {
-            Graph->SetLineColor(2);
-            outCoulombStrong->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
-          }
+//        if (graphName.Contains(MygraphName.Data())) {
+//
+//          if (TString(pair) == "pXi") {
+//            if (graphName.Contains("COULOMB")) {
+//              Graph->SetLineColor(3);
+//              outCoulomb->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
+//            } else {
+//              Graph->SetLineColor(2);
+//              outCoulombStrong->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
+//            }
+//          } else {
+//            Graph->SetLineColor(2);
+//            outCoulombStrong->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
+//          }
+//          Graph->Draw("L3same");
+        if (graphName.Contains("SideBandStrongWithLambda")) {
+          Graph->SetLineColor(6);
           Graph->Draw("L3same");
         }
       }

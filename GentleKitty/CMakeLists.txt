@@ -19,7 +19,7 @@ SET(DREAM_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/../DreamFunction")
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 set(CMAKE_MODULE_PATH $ENV{ROOTSYS}/etc/cmake)
-find_package(ROOT REQUIRED COMPONENTS MathCore RIO Hist Tree Net EG)
+find_package(ROOT REQUIRED COMPONENTS MathCore RIO Hist Tree Net EG Minuit)
 include(${ROOT_USE_FILE})
 
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${ROOT_INCLUDE_DIRS})
@@ -67,3 +67,18 @@ target_link_libraries(ppSystematics tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(DrawCurves ${PROJECT_SOURCE_DIR}/Scripts/DrawCurves.C)
 target_link_libraries(DrawCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(EvalpXiCurves ${PROJECT_SOURCE_DIR}/Scripts/EvalpXiCurves.C)
+target_link_libraries(EvalpXiCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+
+#add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
+#target_link_libraries(EXECUTABLE tidyCATS DREAM_LIB -DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
+#ROOT_GENERATE_DICTIONARY(G__TidyCATS ${HEADERS} LINKDEF ${PROJECT_SOURCE_DIR}/LinkDef.h)
+#add_library(TidyCATS SHARED ${SRCS} G__TidyCATS)
+#target_link_libraries(TidyCATS -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev -L${GSL_LIB} ${ROOT_CXX_LIB_FLAGS} libgsl.a libgsl.so)
+#
+#add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
+#target_link_libraries(EXECUTABLE -L -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev -L${GSL_LIB} ${ROOT_CXX_LIB_FLAGS} libgsl.a libgsl.so)
+#
+
