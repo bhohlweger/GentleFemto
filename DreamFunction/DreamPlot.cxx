@@ -368,7 +368,6 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius) {
   BeamText.SetNDC(kTRUE);
 //  BeamText.DrawLatex(0.5, 0.875, "ALICE");
   TString CollisionSystem = Form("%s", fCollisionSystem);
-  std::cout << CollisionSystem.Data() << std::endl;
   if (CollisionSystem.Index("Pb") > 0)
     BeamText.DrawLatex(
         0.5,
