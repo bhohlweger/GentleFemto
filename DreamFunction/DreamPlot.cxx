@@ -296,9 +296,10 @@ void DreamPlot::DrawCorrelationFunctions() {
   fProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p} pairs", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
   fProtonProton->SetRangePlotting(0, 200, 0.7, 3.);
-  fProtonProton->SetLegendCoordinates(0.5, 0.62, 0.7, 0.8);
   fProtonProton->SetInletRangePlotting(50,350,0.94,1.06);
   fProtonProton->SetInletCoordinates(0.5, 0.27, 0.95, 0.61);
+  fProtonProton->SetLegendCoordinates(
+      0.5, 0.71 - 0.09 * fProtonProton->GetNumberOfModels(), 0.7, 0.8);
   fProtonProton->DrawCorrelationPlot(c_PP);
   DrawSystemInfo(c_PP);
   c_PP->SaveAs("CF_pp_Gauss_prelim.pdf");
@@ -312,10 +313,14 @@ void DreamPlot::DrawCorrelationFunctions() {
   fProtonLambda->SetLegendName("Femtoscopic fit (#chiEFT LO)", "l");
   fProtonLambda->SetNDivisions(505);
   fProtonLambda->SetRangePlotting(0, 200, 0.8, 2);
-  fProtonLambda->SetLegendCoordinates(0.5, 0.63, 0.7, 0.875);
+  fProtonLambda->SetLegendCoordinates(
+      0.5, 0.785 - 0.09 * fProtonLambda->GetNumberOfModels(), 0.7, 0.875);
   fProtonLambda->DrawCorrelationPlot(c_PL);
-  DrawSystemInfo(c_PL);
-  ref.DrawLatex(0.562, 0.465, "Nucl. Phys. A915 (2013) 24");
+  DrawSystemInfo(c_PL, false);
+  if (fProtonLambda->GetNumberOfModels() > 0) {
+    ref.DrawLatex(0.5075, 0.765 - 0.09 * fProtonLambda->GetNumberOfModels(),
+                  "Nucl. Phys. A915 (2013) 24");
+  }
   c_PL->SaveAs("CF_pL_Gauss_prelim.pdf");
 
   TCanvas* c_LL = new TCanvas("CFLL", "CFLL", 0, 0, 650, 550);
@@ -326,9 +331,10 @@ void DreamPlot::DrawCorrelationFunctions() {
   fLambdaLambda->SetLegendName("Femtoscopic fit ", "l");
   fLambdaLambda->SetNDivisions(505);
   fLambdaLambda->SetRangePlotting(0, 200, 0.35, 2.);
-  fLambdaLambda->SetLegendCoordinates(0.5, 0.55, 0.7, 0.875);
+  fLambdaLambda->SetLegendCoordinates(
+      0.5, 0.785 - 0.09 * fLambdaLambda->GetNumberOfModels(), 0.7, 0.875);
   fLambdaLambda->DrawCorrelationPlot(c_LL);
-  DrawSystemInfo(c_LL);
+  DrawSystemInfo(c_LL, false);
   c_LL->SaveAs("CF_LL_Gauss_prelim.pdf");
 
   TCanvas* c_pXi = new TCanvas("CFpXi", "CFpXi", 0, 0, 650, 550);
@@ -340,14 +346,17 @@ void DreamPlot::DrawCorrelationFunctions() {
   fProtonXi->SetLegendName("Coulomb", "l");
   fProtonXi->SetNDivisions(505);
   fProtonXi->SetRangePlotting(0, 300, 0.8, 2.5);
-  fProtonXi->SetLegendCoordinates(0.5, 0.635, 0.7, 0.875);
+  fProtonXi->SetLegendCoordinates(0.5,
+                                  0.785 - 0.09 * fProtonXi->GetNumberOfModels(),
+                                  0.7, 0.875);
   fProtonXi->DrawCorrelationPlot(c_pXi);
   DrawSystemInfo(c_pXi, false);
-  ref.DrawLatex(
-      0.5,
-      0.575,
-      "#splitline{#splitline{K. Sasaki and T. Miyamoto}{(HAL QCD Collaboration)}}{private communication}");
-//  ref.DrawLatex(0.5, 0.57, "PoS LATTICE2016 (2017) 116");
+  if (fProtonXi->GetNumberOfModels() > 0) {
+    ref.DrawLatex(
+        0.5075,
+        0.725 - 0.09 * fProtonXi->GetNumberOfModels(),
+        "#splitline{#splitline{K. Sasaki and T. Miyamoto}{(HAL QCD Collaboration)}}{private communication}");
+  }
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
 
