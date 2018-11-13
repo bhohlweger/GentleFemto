@@ -33,7 +33,12 @@ CATSInput::CATSInput()
 }
 
 CATSInput::~CATSInput() {
-  // TODO Auto-generated destructor stub
+  if (fDreamFile) delete fDreamFile;
+  if (fCF_pp) delete fCF_pp;
+  if (fCF_pL) delete fCF_pL;
+  if (fCF_LL) delete fCF_LL;
+  if (fCF_pXi) delete fCF_pXi;
+
 }
 
 void CATSInput::ReadResFile() {
