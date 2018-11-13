@@ -23,23 +23,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  double bl_a_pp, bl_b_pp;
-  std::ifstream baseline_pp;
-  baseline_pp.open(Form("%s/baseline.dat", catsFile));
-  if (!baseline_pp.good()) {
-    std::cerr << "ERROR: Baseline file not found\n";
-  } else {
-    while (!baseline_pp.eof()) {
-      baseline_pp >> bl_a_pp >> bl_b_pp;
-    }
-  }
-
   DreamPlot* PlotMe = new DreamPlot();
-  PlotMe->SetProtonProtonBaseLine(bl_a_pp, bl_b_pp);
-  PlotMe->SetProtonLambdaBaseLine(globalBaselinePL0, globalBaselinePL1);
-  PlotMe->SetLambdaLambdaBaseLine(globalBaselineLL0, globalBaselineLL1);
-  PlotMe->SetProtonXiBaseLine(globalBaselinePXi0, globalBaselinePXi1);
-
   PlotMe->SetRadius(r, rStatErr, rSystErrUp, rSystErrLow);
   PlotMe->SetCollisionSystem(globalBeamEnergy, globalCollisionSystem,
                              globalEventGenerator);
