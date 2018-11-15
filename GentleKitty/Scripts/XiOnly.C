@@ -235,7 +235,7 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                                           normvarCont[varSideNorm][1]);
               double GaussSourceSize = ppRadii[ppRadius];
               //vary this
-              side->SideBandCFs();
+              side->SideBandCFs(false);
               TH1F* fitme = side->GetSideBands(5);
               double SideBandPars[4];
               side->FitSideBands(fitme, SideBandPars);
