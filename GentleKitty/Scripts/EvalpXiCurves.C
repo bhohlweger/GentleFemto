@@ -130,6 +130,7 @@ void EvalError(const char* cfpath, const char* varFolder) {
   TGraph grCoulombStrongUp;
   TGraph grCoulombStrongDefault;
   TGraph grCoulombStrongLow;
+
   for (int iBranches = 1; iBranches < tupleLength + 1; ++iBranches) {
     float kVal = CF_Histo->GetBinCenter(iBranches);
     float CkExp = CF_Histo->GetBinContent(iBranches);
@@ -179,8 +180,12 @@ void EvalError(const char* cfpath, const char* varFolder) {
     delete histCoulombStrong;
 
   }
-  float chisqCoulomb = 0;
-  float chisqCoulombStrong = 0;
+  float chisqCoulombDefault = 0;
+  float chisqCoulombUp = 0;
+  float chisqCoulombDown = 0;
+  float chisqCoulombStrongDefault = 0;
+  float chisqCoulombStrongUp = 0;
+  float chisqCoulombStrongDown = 0;
   int ndf = -1;
   for (int iBin = 1; iBin < CF_Histo->GetXaxis()->FindBin(200); ++iBin) {
     ndf++;
@@ -188,32 +193,75 @@ void EvalError(const char* cfpath, const char* varFolder) {
     double CkVal = CF_Histo->GetBinContent(iBin);
     double CkErrStat = CF_Histo->GetBinError(iBin);
 
-    double chiCoulomb = (CkVal - grCoulombUp.Eval(kVal)) / CkErrStat;
-    chisqCoulomb += chiCoulomb * chiCoulomb;
+    double chiCoulombDefault = (CkVal - grCoulombDefault.Eval(kVal)) / CkErrStat;
+    chisqCoulombDefault += chiCoulombDefault * chiCoulombDefault;
 
-    double chiCoulombStrong = (CkVal - grCoulombStrongLow.Eval(kVal))
+    double chiCoulombUp = (CkVal - grCoulombUp.Eval(kVal)) / CkErrStat;
+    chisqCoulombUp += chiCoulombUp * chiCoulombUp;
+
+    double chiCoulombDown = (CkVal - grCoulombLow.Eval(kVal)) / CkErrStat;
+    chisqCoulombDown += chiCoulombDown * chiCoulombDown;
+
+    double chiCoulombStrongDefault = (CkVal - grCoulombStrongDefault.Eval(kVal))
         / CkErrStat;
-    chisqCoulombStrong += chiCoulombStrong * chiCoulombStrong;
+    chisqCoulombStrongDefault += chiCoulombStrongDefault * chiCoulombStrongDefault;
+
+    double chiCoulombStrongUp = (CkVal - grCoulombStrongUp.Eval(kVal))
+        / CkErrStat;
+    chisqCoulombStrongUp += chiCoulombStrongUp * chiCoulombStrongUp;
+
+    double chiCoulombStrongDown = (CkVal - grCoulombStrongLow.Eval(kVal))
+        / CkErrStat;
+    chisqCoulombStrongDown += chiCoulombStrongDown * chiCoulombStrongDown;
   }
   std::cout << "ndf " << ndf << std::endl;
-  std::cout << "Chisq Coulomb " << chisqCoulomb << std::endl;
-  std::cout << "Chisq Coulomb + Strong " << chisqCoulombStrong << std::endl;
+  std::cout << "Chisq Coulomb Default " << chisqCoulombDefault << std::endl;
+  std::cout << "Chisq Coulomb Up " << chisqCoulombUp << std::endl;
+  std::cout << "Chisq Coulomb Down " << chisqCoulombDown << std::endl;
+  std::cout << std::endl;
+  std::cout << "Chisq Coulomb + Strong Default " << chisqCoulombStrongDefault << std::endl;
+  std::cout << "Chisq Coulomb + Strong Up " << chisqCoulombStrongUp << std::endl;
+  std::cout << "Chisq Coulomb + Strong Down " << chisqCoulombStrongDown << std::endl;
 
-  double pvalXiCoulomb = TMath::Prob(chisqCoulomb, round(ndf));
-  double nSigmaXiCoulomb = TMath::Sqrt(2) * TMath::ErfcInverse(pvalXiCoulomb);
+  double pvalXiCoulombDefault = TMath::Prob(chisqCoulombDefault, round(ndf));
+  double nSigmaXiCoulombDefault = TMath::Sqrt(2) * TMath::ErfcInverse(pvalXiCoulombDefault);
 
-  double pvalXiCoulombStrong = TMath::Prob(chisqCoulombStrong, round(ndf));
-  double nSigmaXiCoulombStrong = TMath::Sqrt(2)
-      * TMath::ErfcInverse(pvalXiCoulombStrong);
-  std::cout << "=======================================\n";
-  std::cout << "===========SIGMA VALUES BABY===========\n";
-  std::cout << "=======================================\n";
-  std::cout << "//////// nSigma Coulomb=" << nSigmaXiCoulomb << "////////"
+  double pvalXiCoulombUp = TMath::Prob(chisqCoulombUp, round(ndf));
+  double nSigmaXiCoulombUp = TMath::Sqrt(2) * TMath::ErfcInverse(pvalXiCoulombUp);
+
+  double pvalXiCoulombDown = TMath::Prob(chisqCoulombDown, round(ndf));
+  double nSigmaXiCoulombDown = TMath::Sqrt(2) * TMath::ErfcInverse(pvalXiCoulombDown);
+
+  double pvalXiCoulombStrongDefault = TMath::Prob(chisqCoulombStrongDefault, round(ndf));
+  double nSigmaXiCoulombStrongDefault = TMath::Sqrt(2)
+      * TMath::ErfcInverse(pvalXiCoulombStrongDefault);
+  double pvalXiCoulombStrongUp = TMath::Prob(chisqCoulombStrongUp, round(ndf));
+  double nSigmaXiCoulombStrongUp = TMath::Sqrt(2)
+      * TMath::ErfcInverse(pvalXiCoulombStrongUp);
+  double pvalXiCoulombStrongDown = TMath::Prob(chisqCoulombStrongDown, round(ndf));
+  double nSigmaXiCoulombStrongDown = TMath::Sqrt(2)
+      * TMath::ErfcInverse(pvalXiCoulombStrongDown);
+  std::cout << "=============================================\n";
+  std::cout << "==============SIGMA VALUES BABY==============\n";
+  std::cout << "=============================================\n";
+  std::cout << "////// nSigma Coulomb Default = " << nSigmaXiCoulombDefault << "//////"
             << std::endl;
-  std::cout << "=======================================\n";
-  std::cout << "///nSigma Coulomb + Strong = " << nSigmaXiCoulombStrong << "///"
+  std::cout << "=============================================\n";
+  std::cout << "///////// nSigma Coulomb Up= " << nSigmaXiCoulombUp << "/////////"
             << std::endl;
-  std::cout << "=======================================\n";
+  std::cout << "=============================================\n";
+  std::cout << "//////// nSigma Coulomb Down= " << nSigmaXiCoulombDown << "////////"
+            << std::endl;
+  std::cout << "=============================================\n";
+  std::cout << "//nSigma Coulomb + Strong Default = " << nSigmaXiCoulombStrongDefault << "//"
+            << std::endl;
+  std::cout << "=============================================\n";
+  std::cout << "/////nSigma Coulomb + Strong Up= " << nSigmaXiCoulombStrongUp << "/////"
+            << std::endl;
+  std::cout << "=============================================\n";
+  std::cout << "////nSigma Coulomb + Strong Down = " << nSigmaXiCoulombStrongDown << "///"
+            << std::endl;
+  std::cout << "=============================================\n";
   output->cd();
   grCoulombUp.SetName("pXimGraphUpperLim_COULOMB");
   grCoulombUp.SetLineColor(3);
@@ -234,11 +282,38 @@ void EvalError(const char* cfpath, const char* varFolder) {
   grCoulombStrongLow.SetLineColor(2);
   grCoulombStrongLow.Write();
   CF_Histo->Write();
+
+
+
   output->Close();
 
   // N sigma stuff
 
   delete CATSinput;
+}
+
+void SidebandCurves(const char* varFolder) {
+  TGraph* grSidebandUp;
+  TGraph* grSidebandDefault;
+  TGraph* grSidebandDown;
+  TFile* output = TFile::Open(Form("%s/outfile.root", varFolder), "update");
+  TFile* FileUp = TFile::Open(Form("%s/GraphFile_pXi_iter1_Var155.root", varFolder), "update");
+  TFile* FileDefault = TFile::Open(Form("%s/GraphFile_pXi_iter1_Var13.root", varFolder), "update");
+  TFile* FileDown = TFile::Open(Form("%s/GraphFile_pXi_iter1_Var17.root", varFolder), "update");
+  grSidebandUp = (TGraph*)FileUp->Get("SideBandStrongWithLambda");
+  grSidebandDefault = (TGraph*)FileDefault->Get("SideBandStrongWithLambda");
+  grSidebandDown = (TGraph*)FileDown->Get("SideBandStrongWithLambda");
+  output->cd();
+  grSidebandUp->SetName("pXimGraphSidebandUp");
+  grSidebandUp->Write();
+  grSidebandDefault->SetName("pXimGraphSidebandDefault");
+  grSidebandDefault->Write();
+  grSidebandDown->SetName("pXimGraphSidebandDown");
+  grSidebandDown->Write();
+  output->Close();
+  FileUp->Close();
+  FileDefault->Close();
+  FileDown->Close();
 }
 
 void CombineIntoOneFile(const char* PathToppFolder,
@@ -267,6 +342,7 @@ void CombineIntoOneFile(const char* PathToppFolder,
 int main(int argc, char *argv[]) {
   EvalpXiCurves(argv[1], argv[2], argv[3]);
   EvalError(argv[2], argv[3]);
+  SidebandCurves(argv[3]);
   CombineIntoOneFile(argv[4], argv[3]);
   return 0;
 }
