@@ -37,7 +37,7 @@ void SideBandFit::SetSideBandFile(const char* path, const char* suffixUp,
   fAnalysisFileDown->SetAnalysisFile(filename.Data(), "MB", suffixDown);
 }
 
-void SideBandFit::SideBandCFs() {
+void SideBandFit::SideBandCFs(bool doQA) {
   for (auto it : fSideBands) {
     delete it;
   }
@@ -78,6 +78,7 @@ void SideBandFit::SideBandCFs() {
     it->Rebin(it->GetPairFixShifted(0), fRebin);
     it->ReweightMixedEvent(it->GetPairRebinned(0), 0.2, 0.9);
   }
+
   DreamCF* unitConv = new DreamCF();
   TH1F* CF1Reweighted = fSideBands[0]->GetReweighted().at(0)->GetCF();
   TH1F* CF2Reweighted = fSideBands[1]->GetReweighted().at(0)->GetCF();
@@ -96,7 +97,6 @@ void SideBandFit::SideBandCFs() {
   fSideBandCFs.push_back(
       unitConv->ConvertToOtherUnit(SideBandSumRebinNoShift, 1000,
                                    "RebinnedNoShift_MeV"));
-
   TH1F* CF1Rebinned_Shift = fSideBands[0]->GetRebinned().at(1)->GetCF();
   TH1F* CF2Rebinned_Shift = fSideBands[1]->GetRebinned().at(1)->GetCF();
   TH1F* CF3Rebinned_Shift = fSideBands[2]->GetRebinned().at(1)->GetCF();
@@ -116,6 +116,29 @@ void SideBandFit::SideBandCFs() {
   fSideBandCFs.push_back(
       unitConv->ConvertToOtherUnit(SideBandSumReweighted, 1000,
                                    "Reweighted_MeV"));
+  if (doQA) {
+    TH1F* SidebandUpSum = unitConv->AddCF(
+        fSideBands[0]->GetRebinned().at(1)->GetCF(),
+        fSideBands[1]->GetRebinned().at(1)->GetCF(), "UpSum");
+    fSideBandCFs.push_back(
+        unitConv->ConvertToOtherUnit(SidebandUpSum, 1000, "SideBandSumUpMeV"));
+    TH1F* SidebandDownSum = unitConv->AddCF(
+        fSideBands[2]->GetRebinned().at(1)->GetCF(),
+        fSideBands[3]->GetRebinned().at(1)->GetCF(), "DownSum");
+    fSideBandCFs.push_back(
+        unitConv->ConvertToOtherUnit(SidebandDownSum, 1000,
+                                     "SideBandSumDownMeV"));
+    TH1F* SideBandRatio;
+    for (auto it : fSideBandCFs) {
+      if (it->GetName() == TString("SideBandSumUpMeV")) {
+        SideBandRatio = (TH1F*)it->Clone("RatioSideBandMeV");
+      }
+      if (it->GetName() == TString("SideBandSumDownMeV")) {
+        SideBandRatio->Divide(it);
+      }
+    }
+    fSideBandCFs.push_back(SideBandRatio);
+  }
   delete unitConv;
 }
 
@@ -188,7 +211,7 @@ void SideBandFit::WriteOutput(const char* outputPath) {
   output->cd();
 
   std::vector<const char*> sideNames = { "SideUp", "AntiSideUp", "SideDown",
-      "AntiSideDown" };
+      "AntiSideDown" , "SumSideDown" , "SumSideUp" };
   unsigned int iOut = 0;
   for (auto it : fSideBands) {
     TList *outlist = new TList();
@@ -196,6 +219,10 @@ void SideBandFit::WriteOutput(const char* outputPath) {
     outlist->SetName(sideNames.at(iOut));
     it->WriteOutput(outlist);
     outlist->Write(sideNames.at(iOut++), 1);
+  }
+  output->cd();
+  for (auto it : fSideBandCFs) {
+    it->Write();
   }
   output->Close();
   return;

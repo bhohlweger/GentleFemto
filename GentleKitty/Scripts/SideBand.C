@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
   side->SetSideBandFile("/home/hohlweger/cernbox/pPb/Sidebands", "42", "43");
 
   side->SetNormalizationRange(400, 600);
-  side->SideBandCFs();
+  side->SideBandCFs(true);
   TH1F* fitme = side->GetSideBands(5);
   double SideBandPars[4];
   side->FitSideBands(fitme, SideBandPars);
@@ -23,6 +23,7 @@ int main(int argc, char *argv[]) {
   outfile->cd();
   c1->Write();
   outfile->Close();
+  side->WriteOutput("/home/hohlweger/cernbox/pPb/Sidebands/");
 //    for (auto it = 0; it< 4; ++it) {
 //    	std::cout << "SideBand Par " << it << " value " << SideBandPars[it] << std::endl;
 //    }

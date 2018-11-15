@@ -15,7 +15,7 @@ class SideBandFit {
   virtual ~SideBandFit();
   void SetSideBandFile(const char* path, const char* suffixUp,
                        const char* suffixDown);
-  void SideBandCFs();
+  void SideBandCFs(bool doQA);
   void SetNormalizationRange(float left, float right) {
     fnormleft = left;
     fnormright = right;
