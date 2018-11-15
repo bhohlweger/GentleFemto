@@ -208,6 +208,22 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       fProtonXi->FemtoModelFitBands(grpXiDefaultCoulomb, grpXiLowerCoulomb,
                                     grpXiUpperCoulomb, 12, 1, 3, 4000);
     }
+    TGraph* grpXiDefaultSideband= (TGraph*) systFit->Get(
+        "pXimGraphSidebandDefault");
+    TGraph* grpXiLowerSideband = (TGraph*) systFit->Get(
+        "pXimGraphSidebandDown");
+    TGraph* grpXiUpperSideband = (TGraph*) systFit->Get(
+        "pXimGraphSidebandUp");
+    if (!grpXiDefaultSideband) {
+      std::cout << "no pXi Sideband Default file \n";
+    } else if (!grpXiLowerSideband) {
+      std::cout << "no pXi Sideband lower file \n";
+    } else if (!grpXiUpperSideband) {
+      std::cout << "no pXi Sideband upper file \n";
+    } else {
+      fProtonXi->FemtoModelFitBands(grpXiDefaultSideband, grpXiLowerSideband,
+                                    grpXiUpperSideband, 4, 2, 1, 3003,true);
+    }
   } else {
     std::cout << "No Cats file!  \n";
   }
@@ -298,6 +314,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   fProtonProton->SetRangePlotting(0, 200, 0.7, 3.);
   fProtonProton->SetInletRangePlotting(50,350,0.94,1.06);
   fProtonProton->SetInletCoordinates(0.5, 0.27, 0.95, 0.61);
+  fProtonProton->SetNDivisions(505);
   fProtonProton->SetLegendCoordinates(
       0.5, 0.71 - 0.09 * fProtonProton->GetNumberOfModels(), 0.7, 0.8);
   fProtonProton->DrawCorrelationPlot(c_PP);
@@ -344,6 +361,7 @@ void DreamPlot::DrawCorrelationFunctions() {
                            "fpe");
   fProtonXi->SetLegendName("Coulomb + HAL-QCD ", "fl");
   fProtonXi->SetLegendName("Coulomb", "l");
+  fProtonXi->SetLegendName("Misidentification background", "l");
   fProtonXi->SetNDivisions(505);
   fProtonXi->SetRangePlotting(0, 300, 0.8, 2.5);
   fProtonXi->SetLegendCoordinates(0.5,

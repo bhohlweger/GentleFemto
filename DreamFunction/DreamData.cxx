@@ -54,7 +54,7 @@ DreamData::DreamData(const char* particlePair)
     kRed + 1,//1
     kBlue + 2,//2
     kGreen + 3,//3
-    kMagenta + 1,//4
+    kMagenta - 8,//4
     kOrange - 7,//5
     kCyan + 2,//6
     kYellow + 2,//7
@@ -217,12 +217,16 @@ void DreamData::DrawCorrelationPlot(TCanvas* c) {
 //  leg->AddEntry(fBaseLine, "Baseline", "l");
   leg->Draw("same");
   for (auto &it : fFemtoModdeled) {
-    it->Draw("L3 same");
     if (legendCounter < fFakeGraph.size()) {
       leg->AddEntry(fFakeGraph[legendCounter], fLegendName[legendCounter],
                     fLegendOption[legendCounter]);
     }
     legendCounter++;
+  }
+  auto it = fFemtoModdeled.rbegin();
+  while (it!=fFemtoModdeled.rend())  {
+    (*it)->Draw("L3 same");
+    it++;
   }
   fSysError->SetFillColorAlpha(kBlack, 0.4);
   fSysError->Draw("2 same");
