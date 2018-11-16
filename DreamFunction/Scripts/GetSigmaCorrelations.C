@@ -10,28 +10,28 @@ void GetSigmaCorrelations(const char* filename, const char* suffix) {
   DreamFile->SetSigmaAnalysisFile(filename, suffix);
 
   DreamCF* CF_pp = new DreamCF();
-  DreamPair* pp = new DreamPair("Part", 0.2, 0.4);
-  DreamPair* ApAp = new DreamPair("AntiPart", 0.2, 0.4);
+  DreamPair* pp = new DreamPair("Part", 0.24, 0.34);
+  DreamPair* ApAp = new DreamPair("AntiPart", 0.24, 0.34);
 
   DreamCF* CF_pSigma = new DreamCF();
-  DreamPair* pSigma = new DreamPair("Part", 0.2, 0.4);
-  DreamPair* ApASigma = new DreamPair("AntiPart", 0.2, 0.4);
+  DreamPair* pSigma = new DreamPair("Part", 0.24, 0.34);
+  DreamPair* ApASigma = new DreamPair("AntiPart", 0.24, 0.34);
 
   DreamCF* CF_SidebandUp = new DreamCF();
-  DreamPair* pSiSBup = new DreamPair("Part_SB_up", 0.2, 0.4);
-  DreamPair* ApaSiSBup = new DreamPair("AntiPart_SB_up", 0.2, 0.4);
+  DreamPair* pSiSBup = new DreamPair("Part_SB_up", 0.24, 0.34);
+  DreamPair* ApaSiSBup = new DreamPair("AntiPart_SB_up", 0.24, 0.34);
 
   DreamCF* CF_SidebandLow = new DreamCF();
-  DreamPair* pSiSBlow = new DreamPair("Part_SB_low", 0.2, 0.4);
-  DreamPair* ApaSiSBlow = new DreamPair("AntiPart_SB_low", 0.2, 0.4);
+  DreamPair* pSiSBlow = new DreamPair("Part_SB_low", 0.24, 0.34);
+  DreamPair* ApaSiSBlow = new DreamPair("AntiPart_SB_low", 0.24, 0.34);
 
   DreamCF* CF_SigmaLambda = new DreamCF();
-  DreamPair* pLambdaSigma = new DreamPair("PartDaughter", 0.2, 0.4);
-  DreamPair* ApALambdaSigma = new DreamPair("AntiPartDaughter", 0.2, 0.4);
+  DreamPair* pLambdaSigma = new DreamPair("PartDaughter", 0.24, 0.34);
+  DreamPair* ApALambdaSigma = new DreamPair("AntiPartDaughter", 0.24, 0.34);
 
   DreamCF* CF_SigmaPhoton = new DreamCF();
-  DreamPair* pPhotonSigma = new DreamPair("PartDaughter", 0.2, 0.4);
-  DreamPair* ApAPhotonSigma = new DreamPair("AntiPartDaughter", 0.2, 0.4);
+  DreamPair* pPhotonSigma = new DreamPair("PartDaughter", 0.24, 0.34);
+  DreamPair* ApAPhotonSigma = new DreamPair("AntiPartDaughter", 0.24, 0.34);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
@@ -141,25 +141,23 @@ void GetSigmaCorrelations(const char* filename, const char* suffix) {
     pPhotonSigma->Rebin(pPhotonSigma->GetPairFixShifted(0), iReb);
     ApAPhotonSigma->Rebin(ApAPhotonSigma->GetPairFixShifted(0), iReb);
     std::cout << "==Weighting==" << std::endl;
-    pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(iReb - 4), 0.2, 0.4);
-    ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(iReb - 4), 0.2, 0.4);
-    pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(iReb - 4), 0.2, 0.4);
-    ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(iReb - 4), 0.2,
-                                  0.4);
-    pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(iReb - 4), 0.2, 0.4);
-    ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(iReb - 4), 0.2,
-                                   0.4);
+    pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(iReb - 4), 0.2, 0.9);
     pLambdaSigma->ReweightMixedEvent(pLambdaSigma->GetPairRebinned(iReb - 4),
-                                     0.2, 0.4);
+                                     0.2, 0.9);
     ApALambdaSigma->ReweightMixedEvent(
-        ApALambdaSigma->GetPairRebinned(iReb - 4), 0.2, 0.4);
+        ApALambdaSigma->GetPairRebinned(iReb - 4), 0.2, 0.9);
     pPhotonSigma->ReweightMixedEvent(pPhotonSigma->GetPairRebinned(iReb - 4),
-                                     0.2, 0.4);
+                                     0.2, 0.9);
     ApAPhotonSigma->ReweightMixedEvent(
-        ApAPhotonSigma->GetPairRebinned(iReb - 4), 0.2, 0.4);
+        ApAPhotonSigma->GetPairRebinned(iReb - 4), 0.2, 0.9);
   }
-  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.4);
-  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.4);
+  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
 
   pSigma->Rebin(pSigma->GetPair(), 4);
   pSigma->Rebin(pSigma->GetPair(), 5);
