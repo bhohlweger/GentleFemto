@@ -51,6 +51,11 @@ class CATSInput {
   void ObtainCFs(int rebin, float normleft, float normright);
   TH1F* GetCF(TString pair, TString hist);
   void AddSystematics(TString SysFile, TH1F* hist);
+ protected:
+  ReadDreamFile* fDreamFile;
+  float fnormalizationLeft;
+  float fnormalizationRight;
+  DreamCF* fCF_pp;
  private:
   TString fNameBasedir;
   TString fNameMomResFile;
@@ -61,13 +66,9 @@ class CATSInput {
   double fUnitConv_Sig;
   std::vector<TH2F*> fRes;
   std::vector<TH2F*> fSigma;
-  ReadDreamFile* fDreamFile;
-  DreamCF* fCF_pp;
   DreamCF* fCF_pL;
   DreamCF* fCF_LL;
   DreamCF* fCF_pXi;
-  float fnormalizationLeft;
-  float fnormalizationRight;
 };
 
 #endif /* GENTLEKITTY_CATSINPUT_H_ */
