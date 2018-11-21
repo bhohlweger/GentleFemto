@@ -204,6 +204,51 @@ TH1F* SideBandFit::AddCF(TH1F* CF1, TH1F* CF2, TH1F* CF3, TH1F* CF4,
   return hist_CF_sum;
 }
 
+TH1F* SideBandFit::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
+  TH1F* hist_CF_sum = nullptr;
+  if (CF1 && CF2) {
+    double xMinCF1 = CF1->GetXaxis()->GetXmin();
+    double xMinCF2 = CF2->GetXaxis()->GetXmin();
+
+    if (xMinCF1 == xMinCF2 && xMinCF1) {
+      //Calculate CFs with error weighting
+      hist_CF_sum = (TH1F*) CF1->Clone(name);
+
+      int NBins = hist_CF_sum->GetNbinsX();
+
+      for (int i = 0; i < NBins; i++) {
+        double CF1_val = CF1->GetBinContent(i + 1);
+        double CF1_err = CF1->GetBinError(i + 1);
+        double CF2_val = CF2->GetBinContent(i + 1);
+        double CF2_err = CF2->GetBinError(i + 1);
+        //average for bin i:
+        double CF1_err_weight =
+            CF1_val != 0. ? 1. / TMath::Power(CF1_err, 2.) : 0;
+        double CF2_err_weight =
+            CF2_val != 0. ? 1. / TMath::Power(CF2_err, 2.) : 0;
+
+        if (CF1_val != 0. || CF2_val != 0.) {
+          double CF_sum_average = (CF1_err_weight * CF1_val
+              + CF2_err_weight * CF2_val) / (CF1_err_weight + CF2_err_weight);
+          double CF_sum_err = 1. / TMath::Sqrt(CF1_err_weight + CF2_err_weight);
+
+          hist_CF_sum->SetBinContent(i + 1, CF_sum_average);
+          hist_CF_sum->SetBinError(i + 1, CF_sum_err);
+        } else {
+          hist_CF_sum->SetBinContent(i + 1, 0);
+          hist_CF_sum->SetBinError(i + 1, 0);
+        }
+      }
+    } else {
+      std::cout << "Skipping " << CF1->GetName() << " and " << CF2->GetName()
+                << " due to uneven beginning of binning ("
+                << CF1->GetXaxis()->GetXmin() << " and "
+                << CF2->GetXaxis()->GetXmin() << ") \n";
+    }
+  }
+  return hist_CF_sum;
+}
+
 void SideBandFit::WriteOutput(const char* outputPath) {
   TString name = Form("%s/SideBandCFs%2.0f_%2.0f.root", outputPath, fnormleft,
                       fnormright);
