@@ -25,7 +25,11 @@ class SideBandFit {
     fRebin = iRebin;
   }
   ;
+  void SetSidebandCF(TH1F* hCK) {
+    fSideBandCFs.push_back(hCK);
+  }
   TH1F* AddCF(TH1F* CF1, TH1F* CF2, TH1F* CF3, TH1F* CF4, const char* name);
+  TH1F* AddCF(TH1F* CF1, TH1F* CF2, const char* name);
   TH1F* GetSideBands(int iHist) {
     return (iHist < fSideBandCFs.size() ? fSideBandCFs.at(iHist) : nullptr);
   }
