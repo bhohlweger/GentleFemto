@@ -8,13 +8,18 @@ endif()
 project(GentleKitty)
 # SET PATHS #
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-SET(GSL_INCLUDE "/usr/include/gsl")#where are all GSL related .h files
-SET(GSL_LIB "/usr/lib/x86_64-linux-gnu/")#where are the GSL .a and .so files
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  SET(GSL_INCLUDE "/usr/local/Cellar/gsl/2.5/include")#where are all GSL related .h files
+  SET(GSL_LIB "/usr/local/Cellar/gsl/2.5/lib")#where are the GSL .a and .so files
+else()
+  SET(GSL_INCLUDE "/usr/include/gsl")#where are all GSL related .h files
+  SET(GSL_LIB "/usr/lib/x86_64-linux-gnu/")#where are the GSL .a and .so files
+endif()
 SET(CATS_INCLUDE "$ENV{CATS}/include")#where are all CATS related .h files
 SET(CATS_LIB "$ENV{CATS}/lib")#where are the CATS related .a files
 SET(DREAM_PATH "${CMAKE_SOURCE_DIR}/DreamFunction")#where are all CATS related .h files
 SET(DREAM_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/../DreamFunction")
-#add_executable(EXECUTABLE ForBernie.cpp)
+
 # DO NOT CHANGE THE REST #
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
@@ -76,17 +81,6 @@ add_executable(EvalpXiCurves ${PROJECT_SOURCE_DIR}/Scripts/EvalpXiCurves.C)
 target_link_libraries(EvalpXiCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(pSigma0 ${PROJECT_SOURCE_DIR}/Scripts/pSigma0.C)
-target_link_libraries(pSigma0 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
-
-
-#add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
-#target_link_libraries(EXECUTABLE tidyCATS DREAM_LIB -DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
-#ROOT_GENERATE_DICTIONARY(G__TidyCATS ${HEADERS} LINKDEF ${PROJECT_SOURCE_DIR}/LinkDef.h)
-#add_library(TidyCATS SHARED ${SRCS} G__TidyCATS)
-#target_link_libraries(TidyCATS -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev -L${GSL_LIB} ${ROOT_CXX_LIB_FLAGS} libgsl.a libgsl.so)
-#
-#add_executable(EXECUTABLE ${PROJECT_SOURCE_DIR}/Scripts/ForBernie.C)
-#target_link_libraries(EXECUTABLE -L -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev -L${GSL_LIB} ${ROOT_CXX_LIB_FLAGS} libgsl.a libgsl.so)
-#
+target_link_libraries(pSigma0 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_subdirectory(Test)
