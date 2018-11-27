@@ -67,7 +67,7 @@ void CATSLambdaParam::PrintLambdaParams() const {
   }
 
   std::cout << "\n----------------- \n";
-  std::cout << "Fake fraction: " << GetLambdaParam(Fake) << "\n";
+  std::cout << "Fake fraction: " << GetLambdaParam(Fake) *100.f << "\n";
   std::cout << "----------------- \n";
 }
 
