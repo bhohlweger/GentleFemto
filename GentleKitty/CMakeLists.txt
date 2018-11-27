@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "-std=c++1y ${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "-std=c++1y -j4  ${CMAKE_CXX_FLAGS}")
   set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS} -undefined dynamic_lookup")
 endif()
 
@@ -19,6 +19,12 @@ SET(CATS_INCLUDE "$ENV{CATS}/include")#where are all CATS related .h files
 SET(CATS_LIB "$ENV{CATS}/lib")#where are the CATS related .a files
 SET(DREAM_PATH "${CMAKE_SOURCE_DIR}/DreamFunction")#where are all CATS related .h files
 SET(DREAM_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/../DreamFunction")
+
+
+set(
+    CMAKE_RUNTIME_OUTPUT_DIRECTORY
+    ${binFolder}/GentleKitty
+    )
 
 # DO NOT CHANGE THE REST #
 
