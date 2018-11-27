@@ -6,6 +6,7 @@
 /// \author A. Mathis
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 /// \class Particle
 /// This class incorporates the single particle quantities to compute the lambda
