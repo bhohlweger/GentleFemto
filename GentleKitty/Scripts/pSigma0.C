@@ -478,12 +478,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
         delete out;
 
         if (NumIter == 0) {
-          break;
+          goto exitThroughTheGiftShop;
         }
       }
     }
   }
-  ntResult->Write();
+  exitThroughTheGiftShop: ntResult->Write();
   param->Close();
   return;
 }
