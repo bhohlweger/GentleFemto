@@ -89,6 +89,9 @@ target_link_libraries(EvalpXiCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(pSigma0 ${PROJECT_SOURCE_DIR}/Scripts/pSigma0.C)
 target_link_libraries(pSigma0 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(pSigma0exclusion ${PROJECT_SOURCE_DIR}/Scripts/pSigma0exclusion.C)
+target_link_libraries(pSigma0exclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(DrawSigma ${PROJECT_SOURCE_DIR}/Scripts/DrawSigma.C)
 target_link_libraries(DrawSigma tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
