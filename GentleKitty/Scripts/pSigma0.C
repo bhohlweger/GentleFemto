@@ -273,7 +273,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
         double Chi2_pSigma0 = 0;
         double EffNumBins_pSigma0 = 0;
-        int maxkStarBin = dataHist->FindBin(200);
+        int maxkStarBin = dataHist->FindBin(250);
         for (unsigned uBin = 1; uBin <= maxkStarBin; uBin++) {
 
           double mom = dataHist->GetBinCenter(uBin);
@@ -292,8 +292,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             std::cerr << "PROBLEM Sigma0 " << mom << '\t' << theoryX
                       << std::endl;
           }
-          dataY = dataHist->GetBinContent(uBin + 1);
-          dataErr = dataHist->GetBinError(uBin + 1);
+          dataY = dataHist->GetBinContent(uBin);
+          dataErr = dataHist->GetBinError(uBin);
           Chi2_pSigma0 += (dataY - theoryY) * (dataY - theoryY)
               / (dataErr * dataErr);
           ++EffNumBins_pSigma0;
