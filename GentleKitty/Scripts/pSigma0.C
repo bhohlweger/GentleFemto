@@ -134,7 +134,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
       { { protonLambda, (1. - protonPrimary)
           * (1. - protonLambda / (1. - protonPrimary)) } });
 
-  const Particle sigma0(0.2, sigmaPrimary, { { 0 } });
+  const Particle sigma0(sigmaPurity, sigmaPrimary, { { 0 } });
 
   const CATSLambdaParam lambdaParams(proton, sigma0);
   lambdaParams.PrintLambdaParams();
