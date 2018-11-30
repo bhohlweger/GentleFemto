@@ -66,13 +66,14 @@ set(HEADERS
   )
 
 add_library(tidyCATS STATIC ${SRCS})
+set_target_properties(tidyCATS PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 target_link_libraries(tidyCATS -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
 
 add_executable(POnly ${PROJECT_SOURCE_DIR}/Scripts/POnly.C)
-target_link_libraries(POnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
+target_link_libraries(POnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(XiOnly ${PROJECT_SOURCE_DIR}/Scripts/XiOnly.C)
-target_link_libraries(XiOnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
+target_link_libraries(XiOnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(SideBand ${PROJECT_SOURCE_DIR}/Scripts/SideBand.C)
 target_link_libraries(SideBand tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)

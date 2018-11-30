@@ -11,11 +11,7 @@ set(CMAKE_MODULE_PATH $ENV{ROOTSYS}/etc/cmake)
 find_package(ROOT REQUIRED COMPONENTS MathCore RIO Hist Tree Net EG)
 include(${ROOT_USE_FILE})
 
-set(
-    CMAKE_RUNTIME_OUTPUT_DIRECTORY
-    ${binFolder}/DreamFunctions
-    )
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${binFolder}/DreamFunctions)
 include_directories(${CMAKE_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${ROOT_INCLUDE_DIRS})
 add_definitions(${ROOT_CXX_FLAGS})
 
@@ -41,8 +37,8 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/ReadDreamFile.h
   ${PROJECT_SOURCE_DIR}/global.h
   )
-
-add_library(DreamFunctions SHARED ${SRCS})
+add_library(DreamFunctions STATIC ${SRCS})
+set_target_properties(DreamFunctions PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 target_link_libraries(DreamFunctions ${ROOT_LIBRARIES})
 
 add_executable(executeDream ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFDream.C)
