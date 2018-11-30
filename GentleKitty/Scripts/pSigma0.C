@@ -391,7 +391,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
           FitResult_pSigma0.Draw("l3same");
           grCFSigmaSideband.Draw("l3same");
 
-          auto info = new TPaveText(0.5, 0.5, 0.88, 0.85, "blNDC");
+          auto info = new TPaveText(0.5, useBaselineSlope ? 0.505 : 0.58, 0.88,
+                                    0.85, "blNDC");
           info->SetBorderSize(0);
           info->SetTextSize(0.04);
           info->SetFillColor(kWhite);
@@ -400,22 +401,23 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
           double Yoffset = 1.2;
           info->AddText(
               TString::Format(
-                  "r_{%s} = %.3f #pm %.3f fm", SOURCE_NAME.Data(),
+                  "#it{r}_{%s} = %.3f #pm %.3f fm", SOURCE_NAME.Data(),
                   fitter->GetParameter("pSigma0", DLM_Fitter1::p_sor0),
                   fitter->GetParError("pSigma0", DLM_Fitter1::p_sor0)));
-          info->AddText(TString::Format("a = %.3f #pm %.3f", bl_a, bl_a_err));
+          info->AddText(
+              TString::Format("#it{a} = %.3f #pm %.3f", bl_a, bl_a_err));
 
           if (useBaselineSlope) {
             info->AddText(
-                TString::Format("b = (%.3f #pm %.3f ) #times 10^{-4}",
+                TString::Format("#it{b} = (%.3f #pm %.3f ) #times 10^{-4}",
                                 bl_b * 1e4, bl_b_err * 1e4));
           }
           info->AddText(
-              TString::Format("Local #chi^{2}/ndf=%.1f/%.0f = %.2f", Chi2_pSigma0,
-                              EffNumBins_pSigma0,
+              TString::Format("#chi_{loc}^{2}/ndf=%.1f/%.0f = %.2f",
+                              Chi2_pSigma0, EffNumBins_pSigma0,
                               Chi2_pSigma0 / double(EffNumBins_pSigma0)));
           info->AddText(
-              TString::Format("p_{val}=%.3f, n_{#sigma}=%.3f", pvalpSigma0,
+              TString::Format("#it{p}_{val}=%.3f, n_{#sigma}=%.3f", pvalpSigma0,
                               nSigmapSigma0));
 
           info->Draw("same");
