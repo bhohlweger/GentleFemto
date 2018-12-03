@@ -12,8 +12,8 @@
 
 DreamCF::DreamCF()
     : fCF(),
-      fPartPair(nullptr),
-      fAntiPartPair(nullptr) {
+      fPairOne(nullptr),
+      fPairTwo(nullptr) {
 
 }
 
@@ -21,15 +21,15 @@ DreamCF::~DreamCF() {
   for (auto it : fCF) {
     delete it;
   }
-  delete fPartPair;
-  delete fAntiPartPair;
+  delete fPairOne;
+  delete fPairTwo;
 }
 
 void DreamCF::GetCorrelations(const char* pairName) {
-  if (fPartPair->GetPair()) {
-    if (fAntiPartPair->GetPair()) {
-      TH1F* CFSum = AddCF(fPartPair->GetPair()->GetCF(),
-                          fAntiPartPair->GetPair()->GetCF(),
+  if (fPairOne->GetPair()) {
+    if (fPairTwo->GetPair()) {
+      TH1F* CFSum = AddCF(fPairOne->GetPair()->GetCF(),
+                          fPairTwo->GetPair()->GetCF(),
                           Form("hCkTotNormWeight%s", pairName));
       if (CFSum) {
         fCF.push_back(CFSum);
@@ -40,40 +40,61 @@ void DreamCF::GetCorrelations(const char* pairName) {
         }
       }
     } else {
-      std::cout << "No Anti-Particle Pair Set! \n";
+      std::cout << "No Anti-Particle Pair Set, only setting Pair 1! \n";
+      fCF.push_back(fPairOne->GetPair()->GetCF());
     }
   } else {
-    std::cout << "No Particle Pair Set! \n";
+    std::cout << "No Particle Pair Set, only setting Pair 2 \n";
+    fCF.push_back(fPairTwo->GetPair()->GetCF());
+
   }
-  if (fPartPair->GetNDists() == fAntiPartPair->GetNDists()) {
-    LoopCorrelations(fPartPair->GetShiftedEmpty(),
-                     fAntiPartPair->GetShiftedEmpty(),
+  if (fPairOne->GetNDists() == fPairTwo->GetNDists()) {
+    LoopCorrelations(fPairOne->GetShiftedEmpty(),
+                     fPairTwo->GetShiftedEmpty(),
                      Form("hCk_Shifted%s", pairName));
-    LoopCorrelations(fPartPair->GetFixShifted(), fAntiPartPair->GetFixShifted(),
+    LoopCorrelations(fPairOne->GetFixShifted(), fPairTwo->GetFixShifted(),
                      Form("hCk_FixShifted%s", pairName));
-    LoopCorrelations(fPartPair->GetRebinned(), fAntiPartPair->GetRebinned(),
+    LoopCorrelations(fPairOne->GetRebinned(), fPairTwo->GetRebinned(),
                      Form("hCk_Rebinned%s", pairName));
-    LoopCorrelations(fPartPair->GetReweighted(), fAntiPartPair->GetReweighted(),
+    LoopCorrelations(fPairOne->GetReweighted(), fPairTwo->GetReweighted(),
+                     Form("hCk_Reweighted%s", pairName));
+  } else if (fPairOne->GetNDists() == 0) {
+    LoopCorrelations(fPairOne->GetShiftedEmpty(),
+                     Form("hCk_Shifted%s", pairName));
+    LoopCorrelations(fPairOne->GetFixShifted(),
+                     Form("hCk_FixShifted%s", pairName));
+    LoopCorrelations(fPairOne->GetRebinned(),
+                     Form("hCk_Rebinned%s", pairName));
+    LoopCorrelations(fPairOne->GetReweighted(),
+                     Form("hCk_Reweighted%s", pairName));
+  } else if (fPairTwo->GetNDists() == 0) {
+    LoopCorrelations(fPairTwo->GetShiftedEmpty(),
+                     Form("hCk_Shifted%s", pairName));
+    LoopCorrelations(fPairTwo->GetFixShifted(),
+                     Form("hCk_FixShifted%s", pairName));
+    LoopCorrelations(fPairTwo->GetRebinned(),
+                     Form("hCk_Rebinned%s", pairName));
+    LoopCorrelations(fPairTwo->GetReweighted(),
                      Form("hCk_Reweighted%s", pairName));
   } else {
-    std::cout << "Part Pair with " << fPartPair->GetNDists()
+    std::cout << "Part Pair with " << fPairOne->GetNDists()
               << " Distributions, Anti Part Pair with "
-              << fAntiPartPair->GetNDists() << std::endl;
+              << fPairTwo->GetNDists() << std::endl;
   }
   return;
 }
 
-void DreamCF::LoopCorrelations(std::vector<DreamDist*> partPair,
-                               std::vector<DreamDist*> antipartPair,
+void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
+                               std::vector<DreamDist*> PairTwo,
                                const char* name) {
-  if (partPair.size() != antipartPair.size()) {
-    std::cout << "Different size of pair(" << partPair.size()
-              << ") and antiparticle pair(" << antipartPair.size() << ") ! \n";
+  if (PairOne.size() != PairTwo.size()) {
+    std::cout << "Different size of pair(" << PairOne.size()
+              << ") and antiparticle pair(" << PairTwo.size() << ") ! \n";
   } else {
     unsigned int iIter = 0;
-    while (iIter < partPair.size()) {
-      DreamDist* PartPair = partPair.at(iIter);
-      DreamDist* AntiPartPair = antipartPair.at(iIter);
+    while (iIter < PairOne.size()) {
+      DreamDist* PartPair = PairOne.at(iIter);
+      DreamDist* AntiPartPair = PairTwo.at(iIter);
       TString CFSumName = Form("%s_%i", name, iIter);
       TH1F* CFSum = AddCF(PartPair->GetCF(), AntiPartPair->GetCF(),
                           CFSumName.Data());
@@ -98,6 +119,25 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> partPair,
   }
 }
 
+void DreamCF::LoopCorrelations(std::vector<DreamDist*> Pair,const char* name) {
+  unsigned int iIter = 0;
+  for (auto it : Pair) {
+    TString CFSumName = Form("%s_%i", name, iIter++);
+    TH1F* CFClone = (TH1F*)it->GetCF()->Clone(CFSumName.Data());
+    if (CFClone) {
+      fCF.push_back(CFClone);
+      TString CFSumMeVName = Form("%sMeV_%i", name, iIter);
+      TH1F* CFMeVSum = ConvertToOtherUnit(CFClone, 1000, CFSumMeVName.Data());
+      if (CFMeVSum) {
+        fCF.push_back(CFMeVSum);
+      }
+    } else {
+      std::cout << "For iteration " << iIter << " Particle Pair CF ("
+                         << it->GetSEDist()->GetName() << ")is missing \n";
+    }
+  }
+}
+
 void DreamCF::WriteOutput(const char* name) {
   TFile* output = TFile::Open(name, "RECREATE");
   output->cd();
@@ -108,13 +148,13 @@ void DreamCF::WriteOutput(const char* name) {
   TList *PairDist = new TList();
   PairDist->SetOwner();
   PairDist->SetName("PairDist");
-  fPartPair->WriteOutput(PairDist);
+  fPairOne->WriteOutput(PairDist);
   PairDist->Write("PairDist", 1);
 
   TList *AntiPairDist = new TList();
   AntiPairDist->SetOwner();
   AntiPairDist->SetName("AntiPairDist");
-  fAntiPartPair->WriteOutput(AntiPairDist);
+  fPairTwo->WriteOutput(AntiPairDist);
   AntiPairDist->Write("AntiPairDist", 1);
 
   output->Close();

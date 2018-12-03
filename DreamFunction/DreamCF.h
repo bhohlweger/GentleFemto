@@ -15,14 +15,15 @@ class DreamCF {
  public:
   DreamCF();
   virtual ~DreamCF();
-  void SetPairs(DreamPair* pairPart, DreamPair* pairAntiPart) {
-    fPartPair = pairPart;
-    fAntiPartPair = pairAntiPart;
+  void SetPairs(DreamPair* pairOne, DreamPair* pairTwo) {
+    fPairOne = pairOne;
+    fPairTwo = pairTwo;
   }
   ;
   void GetCorrelations(const char* pairName = "");
-  void LoopCorrelations(std::vector<DreamDist*> partPair,
-                        std::vector<DreamDist*> antipartPair, const char* name);
+  void LoopCorrelations(std::vector<DreamDist*> PairOne,
+                        std::vector<DreamDist*> PairTwo, const char* name);
+  void LoopCorrelations(std::vector<DreamDist*> Pair,const char* name);
   void WriteOutput(const char* name);
   TH1F* AddCF(TH1F* CF1, TH1F* CF2, const char* name);
   TH1F* ConvertToOtherUnit(TH1F* HistCF, int Scale, const char* name);
@@ -32,8 +33,8 @@ class DreamCF {
   ;
  private:
   std::vector<TH1F*> fCF;
-  DreamPair* fPartPair;
-  DreamPair* fAntiPartPair;
+  DreamPair* fPairOne;
+  DreamPair* fPairTwo;
 };
 
 #endif /* DREAMCF_H_ */
