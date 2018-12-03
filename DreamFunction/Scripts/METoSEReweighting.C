@@ -191,8 +191,8 @@ void ReweightingQA(TList* PairList) {
 }
 
 void METoSEReweighting(const char* foldername) {
-  const char* filenames[4] = { "pp", "pXi", "pL", "LL" };
-  for (int iFile = 0; iFile < 4; ++iFile) {
+  const char* filenames[8] = { "pp", "pXi", "pL", "LL", "pAp_App", "pAL_ApL", "LAL_ALL", "pAXi_ApXi" };
+  for (int iFile = 0; iFile < 8; ++iFile) {
     TString FileName = Form("%sCFOutput_%s.root", foldername, filenames[iFile]);
     std::cout << FileName.Data() << std::endl;
     TFile* file = TFile::Open(FileName, "update");
