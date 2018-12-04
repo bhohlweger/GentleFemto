@@ -20,7 +20,6 @@ void GetQADistributions(const char* PairName, DreamDist* PairOrg,
   TH1F* CFRew = PairRew->GetCF();
   c1->cd(1);
   TLegend leg = TLegend();
-
   TH1F* SEMultProjRaw = (TH1F*) SEMultRaw->ProjectionY("SEMultProjRaw",
                                                        SEMultRaw->FindBin(0.2),
                                                        SEMultRaw->FindBin(0.4));
@@ -107,7 +106,7 @@ void ReweightingQA(TList* PairList) {
     PairRew->SetMEMultDist((TH2F*) PairReweightedList->At(5 * iQA + 3), "_");
     PairRew->Calculate_CF(0.2, 0.4);
     //Get the corresponding unmodified pair, which was just reweighted!
-    DreamDist* Pair = new DreamDist();
+    DreamDist* Pair=nullptr;
     TString SEName = PairRew->GetSEDist()->GetName();
     TString PartName = SEName(SEName.Index("Particle"), 19);
     TString CanName = PartName;
@@ -125,6 +124,7 @@ void ReweightingQA(TList* PairList) {
       if (PairRebinnedList->FindObject(
           Form("SEDist_%s_Shifted_FixShifted_Rebinned_%s", PartName.Data(),
                RebinName.Data()))) {
+        Pair = new DreamDist();
         Pair->SetSEDist(
             (TH1F*) PairRebinnedList->FindObject(
                 Form("SEDist_%s_Shifted_FixShifted_Rebinned_%s",
@@ -158,6 +158,7 @@ void ReweightingQA(TList* PairList) {
       std::cout << Form("SEDist_%s", PartName.Data()) << std::endl;
       if (UntouchedPairList->FindObject(
           Form("SEDist_%s_Shifted_FixShifted", PartName.Data()))) {
+        Pair = new DreamDist();
         Pair->SetSEDist(
             (TH1F*) UntouchedPairList->FindObject(
                 Form("SEDist_%s_Shifted_FixShifted", PartName.Data())),
@@ -183,15 +184,20 @@ void ReweightingQA(TList* PairList) {
       }
     }
     std::cout << CanName.Data() << std::endl;
-    GetQADistributions(CanName.Data(), Pair, PairRew);
-    delete Pair;
-    delete PairRew;
+    if (Pair && PairRew) {
+      GetQADistributions(CanName.Data(), Pair, PairRew);
+    }
+    if (Pair)
+      delete Pair;
+    if (PairRew)
+      delete PairRew;
   }
   return;
 }
 
 void METoSEReweighting(const char* foldername) {
-  const char* filenames[8] = { "pp", "pXi", "pL", "LL", "pAp_App", "pAL_ApL", "LAL_ALL", "pAXi_ApXi" };
+  const char* filenames[8] = { "pp", "pXi", "pL", "LL", "pAp_App", "pAL_ApL",
+      "LAL_ALL", "pAXi_ApXi" };
   for (int iFile = 0; iFile < 8; ++iFile) {
     TString FileName = Form("%sCFOutput_%s.root", foldername, filenames[iFile]);
     std::cout << FileName.Data() << std::endl;
