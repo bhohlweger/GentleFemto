@@ -85,23 +85,21 @@ void GetCorrelationsBbarB(const char* filename, const char* prefix,
   for (int iReb = 4; iReb < 6; ++iReb) {
     std::cout << "==Rebinning==" << std::endl;
     pAL->Rebin(pAL->GetPairFixShifted(0), iReb);
-    LAL->Rebin(LAL->GetPairFixShifted(0), iReb);
     pAXi->Rebin(pAXi->GetPairFixShifted(0), iReb);
+    //for LAL there is no fix shift to be had!
+    LAL->Rebin(LAL->GetPairShiftedEmpty(0), iReb);
     std::cout << "==Weighting==" << std::endl;
     pAL->ReweightMixedEvent(pAL->GetPairRebinned(iReb - 4), 0.2, 0.9);
     LAL->ReweightMixedEvent(LAL->GetPairRebinned(iReb - 4), 0.2, 0.9);
     pAXi->ReweightMixedEvent(pAXi->GetPairRebinned(iReb - 4), 0.2, 0.9);
     std::cout << "==Rebinning==" << std::endl;
     ApL->Rebin(ApL->GetPairFixShifted(0), iReb);
-//    ALL->Rebin(ALL->GetPairFixShifted(0), iReb);
     ApXi->Rebin(ApXi->GetPairFixShifted(0), iReb);
     std::cout << "==Weighting==" << std::endl;
     ApL->ReweightMixedEvent(ApL->GetPairRebinned(iReb - 4), 0.2, 0.9);
-//    ALL->ReweightMixedEvent(ALL->GetPairRebinned(iReb - 4), 0.2, 0.9);
     ApXi->ReweightMixedEvent(ApXi->GetPairRebinned(iReb - 4), 0.2, 0.9);
   }
-  pAp->ReweightMixedEvent(pAp->GetPairFixShifted(0), 0.2, 0.9);
-//  App->ReweightMixedEvent(App->GetPairFixShifted(0), 0.2, 0.9);
+  pAp->ReweightMixedEvent(pAp->GetPairShiftedEmpty(0), 0.2, 0.9);
 
   pAL->Rebin(pAL->GetPair(), 4);
   pAL->Rebin(pAL->GetPair(), 5);
@@ -109,8 +107,6 @@ void GetCorrelationsBbarB(const char* filename, const char* prefix,
   ApL->Rebin(ApL->GetPair(), 5);
   LAL->Rebin(LAL->GetPair(), 4);
   LAL->Rebin(LAL->GetPair(), 5);
-//  ALL->Rebin(ALL->GetPair(), 4);
-//  ALL->Rebin(ALL->GetPair(), 5);
   pAXi->Rebin(pAXi->GetPair(), 4);
   pAXi->Rebin(pAXi->GetPair(), 5);
   ApXi->Rebin(ApXi->GetPair(), 4);
@@ -122,19 +118,26 @@ void GetCorrelationsBbarB(const char* filename, const char* prefix,
 
   TString foldername = filename;
   foldername.ReplaceAll("AnalysisResults.root", "");
-
+  std::cout << "$PWD " << foldername.Data() << std::endl;
+  std::cout << "pp CF \n";
+  std::cout << "Set Pair \n";
   CF_pAp_App->SetPairs(pAp, nullptr);
+  std::cout << "Get CF \n";
   CF_pAp_App->GetCorrelations();
+  std::cout << "Write Output \n";
   CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App.root", foldername.Data()));
 
+  std::cout << "pL CF \n";
   CF_pAL_ApL->SetPairs(pAL, ApL);
   CF_pAL_ApL->GetCorrelations();
   CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL.root", foldername.Data()));
 
+  std::cout << "LL CF \n";
   CF_ALL_LAL->SetPairs(LAL, nullptr);
   CF_ALL_LAL->GetCorrelations();
   CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL.root", foldername.Data()));
 
+  std::cout << "pXi CF \n";
   CF_pAXi_ApXi->SetPairs(pAXi, ApXi);
   CF_pAXi_ApXi->GetCorrelations();
   CF_pAXi_ApXi->WriteOutput(Form("%sCFOutput_pAXi_ApXi.root", foldername.Data()));

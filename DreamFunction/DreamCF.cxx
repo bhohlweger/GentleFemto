@@ -26,8 +26,8 @@ DreamCF::~DreamCF() {
 }
 
 void DreamCF::GetCorrelations(const char* pairName) {
-  if (fPairOne->GetPair()) {
-    if (fPairTwo->GetPair()) {
+  if (fPairOne && fPairOne->GetPair()) {
+    if (fPairTwo && fPairTwo->GetPair()) {
       TH1F* CFSum = AddCF(fPairOne->GetPair()->GetCF(),
                           fPairTwo->GetPair()->GetCF(),
                           Form("hCkTotNormWeight%s", pairName));
@@ -38,48 +38,53 @@ void DreamCF::GetCorrelations(const char* pairName) {
         if (CFMeVSum) {
           fCF.push_back(CFMeVSum);
         }
+      } else {
+        std::cout << "No Pair 2 Set, only setting Pair 1! \n";
+        //existence already checked
+        fCF.push_back(fPairOne->GetPair()->GetCF());
       }
-    } else {
-      std::cout << "No Anti-Particle Pair Set, only setting Pair 1! \n";
-      fCF.push_back(fPairOne->GetPair()->GetCF());
     }
   } else {
-    std::cout << "No Particle Pair Set, only setting Pair 2 \n";
-    fCF.push_back(fPairTwo->GetPair()->GetCF());
+    std::cout << "No Pair 1 Set, only setting Pair 2 \n";
+    if (fPairTwo && fPairTwo->GetPair())
+      fCF.push_back(fPairTwo->GetPair()->GetCF());
+    else
+      std::cout << "No Pair 2 set either \n";
 
   }
-  if (fPairOne->GetNDists() == fPairTwo->GetNDists()) {
-    LoopCorrelations(fPairOne->GetShiftedEmpty(),
-                     fPairTwo->GetShiftedEmpty(),
-                     Form("hCk_Shifted%s", pairName));
-    LoopCorrelations(fPairOne->GetFixShifted(), fPairTwo->GetFixShifted(),
-                     Form("hCk_FixShifted%s", pairName));
-    LoopCorrelations(fPairOne->GetRebinned(), fPairTwo->GetRebinned(),
-                     Form("hCk_Rebinned%s", pairName));
-    LoopCorrelations(fPairOne->GetReweighted(), fPairTwo->GetReweighted(),
-                     Form("hCk_Reweighted%s", pairName));
-  } else if (fPairOne->GetNDists() == 0) {
+  if (fPairOne && fPairTwo) {
+    if (fPairOne->GetNDists() == fPairTwo->GetNDists()) {
+      LoopCorrelations(fPairOne->GetShiftedEmpty(), fPairTwo->GetShiftedEmpty(),
+                       Form("hCk_Shifted%s", pairName));
+      LoopCorrelations(fPairOne->GetFixShifted(), fPairTwo->GetFixShifted(),
+                       Form("hCk_FixShifted%s", pairName));
+      LoopCorrelations(fPairOne->GetRebinned(), fPairTwo->GetRebinned(),
+                       Form("hCk_Rebinned%s", pairName));
+      LoopCorrelations(fPairOne->GetReweighted(), fPairTwo->GetReweighted(),
+                       Form("hCk_Reweighted%s", pairName));
+    } else {
+      std::cout << "Pair 1 with " << fPairOne->GetNDists()
+                << " histograms, Pair 2 with " << fPairTwo->GetNDists()
+                << " histograms \n";
+    }
+  } else if (fPairOne && !fPairTwo) {
     LoopCorrelations(fPairOne->GetShiftedEmpty(),
                      Form("hCk_Shifted%s", pairName));
     LoopCorrelations(fPairOne->GetFixShifted(),
                      Form("hCk_FixShifted%s", pairName));
-    LoopCorrelations(fPairOne->GetRebinned(),
-                     Form("hCk_Rebinned%s", pairName));
+    LoopCorrelations(fPairOne->GetRebinned(), Form("hCk_Rebinned%s", pairName));
     LoopCorrelations(fPairOne->GetReweighted(),
                      Form("hCk_Reweighted%s", pairName));
-  } else if (fPairTwo->GetNDists() == 0) {
+  } else if (fPairTwo && !fPairOne) {
     LoopCorrelations(fPairTwo->GetShiftedEmpty(),
                      Form("hCk_Shifted%s", pairName));
     LoopCorrelations(fPairTwo->GetFixShifted(),
                      Form("hCk_FixShifted%s", pairName));
-    LoopCorrelations(fPairTwo->GetRebinned(),
-                     Form("hCk_Rebinned%s", pairName));
+    LoopCorrelations(fPairTwo->GetRebinned(), Form("hCk_Rebinned%s", pairName));
     LoopCorrelations(fPairTwo->GetReweighted(),
                      Form("hCk_Reweighted%s", pairName));
   } else {
-    std::cout << "Part Pair with " << fPairOne->GetNDists()
-              << " Distributions, Anti Part Pair with "
-              << fPairTwo->GetNDists() << std::endl;
+    std::cout << "Pair 1 and Pair 2 missing \n";
   }
   return;
 }
@@ -119,11 +124,11 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
   }
 }
 
-void DreamCF::LoopCorrelations(std::vector<DreamDist*> Pair,const char* name) {
+void DreamCF::LoopCorrelations(std::vector<DreamDist*> Pair, const char* name) {
   unsigned int iIter = 0;
   for (auto it : Pair) {
     TString CFSumName = Form("%s_%i", name, iIter++);
-    TH1F* CFClone = (TH1F*)it->GetCF()->Clone(CFSumName.Data());
+    TH1F* CFClone = (TH1F*) it->GetCF()->Clone(CFSumName.Data());
     if (CFClone) {
       fCF.push_back(CFClone);
       TString CFSumMeVName = Form("%sMeV_%i", name, iIter);
@@ -133,7 +138,7 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> Pair,const char* name) {
       }
     } else {
       std::cout << "For iteration " << iIter << " Particle Pair CF ("
-                         << it->GetSEDist()->GetName() << ")is missing \n";
+                << it->GetSEDist()->GetName() << ")is missing \n";
     }
   }
 }
@@ -145,18 +150,24 @@ void DreamCF::WriteOutput(const char* name) {
     it->Write();
     delete it;
   }
-  TList *PairDist = new TList();
-  PairDist->SetOwner();
-  PairDist->SetName("PairDist");
-  fPairOne->WriteOutput(PairDist);
-  PairDist->Write("PairDist", 1);
-
-  TList *AntiPairDist = new TList();
-  AntiPairDist->SetOwner();
-  AntiPairDist->SetName("AntiPairDist");
-  fPairTwo->WriteOutput(AntiPairDist);
-  AntiPairDist->Write("AntiPairDist", 1);
-
+  if (fPairOne) {
+    TList *PairDist = new TList();
+    PairDist->SetOwner();
+    PairDist->SetName("PairDist");
+    fPairOne->WriteOutput(PairDist);
+    PairDist->Write("PairDist", 1);
+  } else {
+    std::cout << "not writing Pair 1 \n";
+  }
+  if (fPairTwo) {
+    TList *AntiPairDist = new TList();
+    AntiPairDist->SetOwner();
+    AntiPairDist->SetName("AntiPairDist");
+    fPairTwo->WriteOutput(AntiPairDist);
+    AntiPairDist->Write("AntiPairDist", 1);
+  } else {
+    std::cout << "not writing Pair 2 \n";
+  }
   output->Close();
   return;
 }
