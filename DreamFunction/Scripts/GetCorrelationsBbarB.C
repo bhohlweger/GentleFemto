@@ -59,19 +59,15 @@ void GetCorrelationsBbarB(const char* filename, const char* prefix,
   std::cout << "=========================" << std::endl;
   std::cout << "====Pair Fix Shifted=====" << std::endl;
   std::cout << "=========================" << std::endl;
-//  pAp->FixShift(pAp->GetPairShiftedEmpty(0), App->GetPairShiftedEmpty(0),
-//                App->GetFirstBin());
-//  App->FixShift(App->GetPairShiftedEmpty(0), pAp->GetPairShiftedEmpty(0),
-//                 pAp->GetFirstBin());
-
+  //Fix shift singe pair cfs anyway to ensure competability!
+  pAp->FixShift(pAp->GetPairShiftedEmpty(0), pAp->GetPairShiftedEmpty(0),
+                pAp->GetFirstBin());
   pAL->FixShift(pAL->GetPairShiftedEmpty(0), ApL->GetPairShiftedEmpty(0),
                ApL->GetFirstBin());
   ApL->FixShift(ApL->GetPairShiftedEmpty(0), pAL->GetPairShiftedEmpty(0),
                  pAL->GetFirstBin());
-//  LAL->FixShift(LAL->GetPairShiftedEmpty(0), ALL->GetPairShiftedEmpty(0),
-//               ALL->GetFirstBin());
-//  ALL->FixShift(ALL->GetPairShiftedEmpty(0), LAL->GetPairShiftedEmpty(0),
-//                 LAL->GetFirstBin());
+  LAL->FixShift(LAL->GetPairShiftedEmpty(0), LAL->GetPairShiftedEmpty(0),
+                LAL->GetFirstBin());
 
   pAXi->FixShift(pAXi->GetPairShiftedEmpty(0), ApXi->GetPairShiftedEmpty(0),
                 ApXi->GetFirstBin());
@@ -86,8 +82,7 @@ void GetCorrelationsBbarB(const char* filename, const char* prefix,
     std::cout << "==Rebinning==" << std::endl;
     pAL->Rebin(pAL->GetPairFixShifted(0), iReb);
     pAXi->Rebin(pAXi->GetPairFixShifted(0), iReb);
-    //for LAL there is no fix shift to be had!
-    LAL->Rebin(LAL->GetPairShiftedEmpty(0), iReb);
+    LAL->Rebin(LAL->GetPairFixShifted(0), iReb);
     std::cout << "==Weighting==" << std::endl;
     pAL->ReweightMixedEvent(pAL->GetPairRebinned(iReb - 4), 0.2, 0.9);
     LAL->ReweightMixedEvent(LAL->GetPairRebinned(iReb - 4), 0.2, 0.9);
