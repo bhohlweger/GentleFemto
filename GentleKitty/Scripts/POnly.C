@@ -53,7 +53,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
   } else if (system == 11) {  // pPb at the Grid
     CalibBaseDir +=
         "/home/gu74req/Analysis/CATS_Input/SystematicsAndCalib/pPbRun2_MB/";
-    system = 0;
+//    system = 0;
   }
 
   //just some temp folder for temp files. Really not important, I will try to get rid of this soon
@@ -234,14 +234,19 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
   CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
   CATSinput->ReadResFile();
+  const char *prefix;
   if (system == 0) {
     CATSinput->SetSigmaFileName("Sample3_MeV_compact.root");
+    prefix = "MB";
   } else if (system == 1) {
     CATSinput->SetSigmaFileName("Sample6_MeV_compact.root");
+    prefix = "MB";
+  } else if (system == 2) {
+    CATSinput->SetSigmaFileName("Sample6_MeV_compact.root");
+    prefix = "HM";
   }
   CATSinput->ReadSigmaFile();
-
-  CATSinput->ReadCorrelationFile(InputDir.Data());
+  CATSinput->ReadCorrelationFile(InputDir.Data(), prefix);
 
   //each JOB produces a separate output file
   TFile* OutFile = new TFile(

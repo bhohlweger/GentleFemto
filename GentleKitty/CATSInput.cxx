@@ -141,10 +141,10 @@ void CATSInput::ReadSigmaFile() {
   return;
 }
 
-void CATSInput::ReadCorrelationFile(const char* path) {
+void CATSInput::ReadCorrelationFile(const char* path, const char* prefix) {
   TString filename = Form("%s/AnalysisResults.root", path);
   fDreamFile = new ReadDreamFile(6, 6);
-  fDreamFile->SetAnalysisFile(filename.Data(), "MB", "");
+  fDreamFile->SetAnalysisFile(filename.Data(), prefix, "");
   return;
 }
 
