@@ -11,14 +11,15 @@
 #include "DreamPlot.h"
 #include <iostream>
 
-void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
+void DrawCurves(const char* pair, const char* cfpath, const char* prefix,
+                const char* varFolder) {
   CATSInput *CATSinput = new CATSInput();
-  CATSinput->ReadCorrelationFile(cfpath);
+  CATSinput->ReadCorrelationFile(cfpath, prefix);
   CATSinput->ObtainCFs(5, 240, 340);
   TString HistName = Form("hCk_Reweighted%sMeV_0", pair);
   TH1F* CF_Histo = CATSinput->GetCF(pair, HistName);
   CF_Histo->GetXaxis()->SetRangeUser(0, 500);
-  CF_Histo->GetYaxis()->SetRangeUser(0.8,2.6);
+  CF_Histo->GetYaxis()->SetRangeUser(0.8, 3.5);
   CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   CF_Histo->SetStats(false);
   DreamPlot::SetStyle();
@@ -44,8 +45,9 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
   c1->SetMargin(0.15, 0.05, 0.2, 0.05);
   c1->cd();
   CF_Histo->Draw();
-  TNtuple *outCoulomb = new TNtuple("coulomb","coulomb","delta");
-  TNtuple *outCoulombStrong = new TNtuple("coulombStrong","coulombStrong","delta");
+  TNtuple *outCoulomb = new TNtuple("coulomb", "coulomb", "delta");
+  TNtuple *outCoulombStrong = new TNtuple("coulombStrong", "coulombStrong",
+                                          "delta");
   while ((entry = (char*) gSystem->GetDirEntry(dirp))) {
     str = entry;
 //    std::cout << str << std::endl;
@@ -59,21 +61,28 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
           continue;
         TGraph *Graph = (TGraph*) key->ReadObj();
         TString graphName = Form("%s", Graph->GetName());
-//        if (graphName.Contains(MygraphName.Data())) {
-//
-//          if (TString(pair) == "pXi") {
-//            if (graphName.Contains("COULOMB")) {
-//              Graph->SetLineColor(3);
-//              outCoulomb->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
-//            } else {
-//              Graph->SetLineColor(2);
-//              outCoulombStrong->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
-//            }
-//          } else {
-//            Graph->SetLineColor(2);
-//            outCoulombStrong->Fill(CF_Histo->GetBinContent(1)-Graph->Eval(CF_Histo->GetBinCenter(1)));
-//          }
-//          Graph->Draw("L3same");
+        if (graphName.Contains(MygraphName.Data())) {
+
+          if (TString(pair) == "pXi") {
+            if (graphName.Contains("COULOMB")) {
+              Graph->SetLineColor(3);
+              outCoulomb->Fill(
+                  CF_Histo->GetBinContent(1)
+                      - Graph->Eval(CF_Histo->GetBinCenter(1)));
+            } else {
+              Graph->SetLineColor(2);
+              outCoulombStrong->Fill(
+                  CF_Histo->GetBinContent(1)
+                      - Graph->Eval(CF_Histo->GetBinCenter(1)));
+            }
+          } else {
+            Graph->SetLineColor(2);
+            outCoulombStrong->Fill(
+                CF_Histo->GetBinContent(1)
+                    - Graph->Eval(CF_Histo->GetBinCenter(1)));
+          }
+        }
+        Graph->Draw("L3same");
         if (graphName.Contains("SideBandStrongWithLambda")) {
           Graph->SetLineColor(6);
           Graph->Draw("L3same");
@@ -84,7 +93,10 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
   }
   c1->SaveAs(Form("%s/CF_%s_model.pdf", varFolder, pair));
   CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
-  c1->SaveAs(Form("%s/CF_%s_model_zoom.pdf", varFolder, pair));
+  c1->SaveAs(Form("%s/CF_%s_model_zoom1.pdf", varFolder, pair));
+  CF_Histo->GetYaxis()->SetRangeUser(0.8, 3.5);
+  CF_Histo->GetXaxis()->SetRangeUser(0,75);
+  c1->SaveAs(Form("%s/CF_%s_model_zoom2.pdf", varFolder, pair));
   TFile* output = TFile::Open(Form("%s/outfile.root", varFolder), "RECREATE");
   output->cd();
   c1->Write();
@@ -94,6 +106,6 @@ void DrawCurves(const char* pair, const char* cfpath, const char* varFolder) {
 }
 
 int main(int argc, char *argv[]) {
-  DrawCurves(argv[1], argv[2], argv[3]);
+  DrawCurves(argv[1], argv[2], argv[3], argv[4]);
   return 0;
 }
