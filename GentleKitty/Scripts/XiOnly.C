@@ -173,7 +173,7 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 
   SideBandFit* side = new SideBandFit();
   side->SetRebin(5);
-  side->SetSideBandFile("/home/hohlweger/cernbox/pPb/Sidebands", "42", "43");
+  side->SetSideBandFile("~/cernbox/pPb/Sidebands", "42", "43");
   int uIter = 1;
 
   CATSinput->ObtainCFs(5, 240, 340);

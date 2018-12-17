@@ -179,6 +179,19 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       fLambdaLambda->FemtoModelFitBands(grLLDefault, grLLLow, grLLUp, 5, 1, 3,
                                         3000);
     }
+    TGraph* grpXiI0Default = (TGraph*) systFit->Get("pXimGraphDefaultI0");
+    TGraph* grpXiI0Lower = (TGraph*) systFit->Get("pXimGraphLowerLimI0");
+    TGraph* grpXiI0Upper = (TGraph*) systFit->Get("pXimGraphUpperLimI0");
+    if (!grpXiI0Default) {
+      std::cout << "no pXi I0 Default file \n";
+    } else if (!grpXiI0Lower) {
+      std::cout << "no pXi I0 lower file \n";
+    } else if (!grpXiI0Upper) {
+      std::cout << "no pXi I0 upper file \n";
+    } else {
+      fProtonXi->FemtoModelFitBands(grpXiI0Default, grpXiI0Lower, grpXiI0Upper, 11,
+                                    10, 0, 3252);
+    }
     TGraph* grpXiDefault = (TGraph*) systFit->Get("pXimGraphDefault");
     TGraph* grpXiLower = (TGraph*) systFit->Get("pXimGraphLowerLim");
     TGraph* grpXiUpper = (TGraph*) systFit->Get("pXimGraphUpperLim");
@@ -359,7 +372,8 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_pXi->SetTopMargin(top);
   fProtonXi->SetLegendName("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+} pairs",
                            "fpe");
-  fProtonXi->SetLegendName("Coulomb + HAL-QCD ", "fl");
+  fProtonXi->SetLegendName("Coulomb + HAL-QCD I=0", "fl");
+  fProtonXi->SetLegendName("Coulomb + HAL-QCD I=1", "fl");
   fProtonXi->SetLegendName("Coulomb", "l");
   fProtonXi->SetLegendName("Misidentification background", "l");
   fProtonXi->SetNDivisions(505);

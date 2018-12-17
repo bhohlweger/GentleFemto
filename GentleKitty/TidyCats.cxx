@@ -119,10 +119,10 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, double GaussSourceSize,
   AB_pXim->SetSpin(1, 1);    //I=0; S=1
   AB_pXim->SetSpin(2, 0);    //I=1; S=0
   AB_pXim->SetSpin(3, 1);    //I=1; S=1
-  AB_pXim->SetChannelWeight(0, 1. / 8.);
-  AB_pXim->SetChannelWeight(1, 3. / 8.);
-  AB_pXim->SetChannelWeight(2, 1. / 8.);
-  AB_pXim->SetChannelWeight(3, 3. / 8.);
+  AB_pXim->SetChannelWeight(0, 0. / 4.);
+  AB_pXim->SetChannelWeight(1, 0. / 4.);
+  AB_pXim->SetChannelWeight(2, 1. / 4.);
+  AB_pXim->SetChannelWeight(3, 3. / 4.);
 
   AB_pXim->SetQ1Q2(-1);
 
