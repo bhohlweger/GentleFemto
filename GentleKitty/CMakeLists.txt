@@ -55,6 +55,7 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/CATSInputSigma0.cxx
   ${PROJECT_SOURCE_DIR}/CATSLambdaParam.cxx
   ${PROJECT_SOURCE_DIR}/SideBandFit.cxx
+  ${PROJECT_SOURCE_DIR}/SidebandSigma.cxx
   )
 
 set(HEADERS
@@ -63,6 +64,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/CATSInputSigma0.h
   ${PROJECT_SOURCE_DIR}/CATSLambdaParam.h
   ${PROJECT_SOURCE_DIR}/SideBandFit.h
+  ${PROJECT_SOURCE_DIR}/SidebandSigma.h
   )
 
 add_library(tidyCATS STATIC ${SRCS})

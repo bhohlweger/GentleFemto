@@ -39,13 +39,14 @@ class SideBandFit {
                                  const double* SourcePar, const double* PotPar);
   static double ParameterizationROOT(double* Momentum, double* PotPar);
   void FitSideBands(TH1F* cfSide, double* potPar);
- private:
-  ReadDreamFile* fAnalysisFileUp;
-  ReadDreamFile* fAnalysisFileDown;
+ protected:
   std::vector<DreamPair*> fSideBands;
   std::vector<TH1F*> fSideBandCFs;
   float fnormleft;  // in MeV
   float fnormright;  // in MeV
   int fRebin;
+ private:
+  ReadDreamFile* fAnalysisFileUp;
+  ReadDreamFile* fAnalysisFileDown;
 };
 #endif /* GENTLEKITTY_SIDEBANDFIT_H_ */
