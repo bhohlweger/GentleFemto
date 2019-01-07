@@ -76,13 +76,14 @@ void GetQADistributions(const char* PairName, DreamDist* PairOrg,
   leg3.Draw("same");
 
   c1->cd(4);
-  TH1F* Ratio = (TH1F*) CFRaw->Clone("Ratio");
+  TH1F* Ratio = (TH1F*) CFRaw->Clone(Form("SEMEReweightingRatio_%s",PairName));
   if (Ratio->Divide(CFRew)) {
     Ratio->Draw();
     Ratio->SetStats(false);
     DreamPlot::SetStyleHisto(Ratio, 20, kBlue + 2);
     Ratio->SetTitle(
         "; #it{k}* (GeV/#it{c}); C(#it{k}*)_{raw} / C(#it{k}*)_{reweighted}");
+    Ratio->Write();
   }
   c1->Write();
   delete c1;
