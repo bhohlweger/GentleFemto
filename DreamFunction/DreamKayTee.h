@@ -48,6 +48,7 @@ class DreamKayTee {
                                         "MB",
                                     const char* pair = "pp");
   void AveragekT();
+  void SetSEMEReweightingRatio(const char* pathToFile, TString pair = "pp");
  private:
   bool fIskT;
   std::vector<float> fKayTeeBins;
@@ -59,6 +60,8 @@ class DreamKayTee {
   DreamCF** fSum;
   float fNormleft;
   float fNormright;
+  TH1F* fSEMEReweighting;
+  TH1F* fSEMEReweightingMeV;
 };
 
 #endif /* DREAMFUNCTION_DREAMKAYTEE_H_ */
