@@ -17,7 +17,7 @@ TidyCats::~TidyCats() {
 
 void TidyCats::GetCatsProtonProton(CATS* AB_pp, double GaussSourceSize,
                                    double* pars, int momBins, double kMin,
-                                   double kMax) {
+                                   double kMax, bool ResonanceSource) {
   const double Weight1S0 = 3. / 12.;
   const double Weight3P0 = 1. / 12.;
   const double Weight3P1 = 3. / 12.;
@@ -32,7 +32,11 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, double GaussSourceSize,
       2 };
   const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
-  AB_pp->SetAnaSource(GaussSource, pars);
+  if (ResonanceSource) {
+    AB_pp->SetAnaSource(GaussExpTotIdenticalSimple_2body, pars);
+  } else {
+    AB_pp->SetAnaSource(GaussSource, pars);
+  }
   AB_pp->SetUseAnalyticSource(true);
   AB_pp->SetThetaDependentSource(false);
   AB_pp->SetExcludeFailedBins(false);

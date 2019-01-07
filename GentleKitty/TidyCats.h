@@ -15,7 +15,8 @@ class TidyCats {
   TidyCats();
   virtual ~TidyCats();
   void GetCatsProtonProton(CATS* AB_pp, double GaussSourceSize, double* pars,
-                           int momBins, double kMin, double kMax);
+                           int momBins, double kMin, double kMax,
+                           bool ResonanceSource = false);
   void GetCatsProtonLambda(CATS* AB_pL, double GaussSourceSize, double* pars,
                            int momBins, double kMin, double kMax);
   void GetCatsProtonXiMinus(CATS* AB_pXim, double GaussSourceSize, double* pars,
