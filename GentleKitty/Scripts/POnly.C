@@ -250,11 +250,13 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 
   //each JOB produces a separate output file
   TFile* OutFile = new TFile(
-      TString::Format("%s/OutFile_%s_Iter%u.root", OutputDir.Data(),"CutVarAdd", NumIter),
+      TString::Format("%s/OutFile_%s_Iter%u.root", OutputDir.Data(),
+                      "CutVarAdd", NumIter),
       "recreate");
   //you save a lot of stuff in an NTuple
   TNtuple* ntResult = new TNtuple(
-      "ntResult", "ntResult", "IterID:vFemReg_pp:vFrac_pp_pL:vModpL:vFrac_pL_pSigma0:"
+      "ntResult", "ntResult",
+      "IterID:vFemReg_pp:vFrac_pp_pL:vModpL:vFrac_pL_pSigma0:"
       "vFrac_pL_pXim:BLSlope:Radius_pp:RadiusErr_pp:"
       "pa_pp:paErr_pp:pb_pp:pbErr_pp:pCl_pp:pClErr_pp:"
       "Chi2NdfGlobal:pval:Chi2NdfLocal");
@@ -292,29 +294,26 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2,
                 GaussSourceSize / 1.2, 0.5 };
             CATS AB_pp;
-            tidy->GetCatsProtonProton(&AB_pp, GaussSourceSize, Pars_pp,
-                                      NumMomBins, kMin, kMax);
+            tidy->GetCatsProtonProton(&AB_pp, Pars_pp, NumMomBins, kMin, kMax);
             AB_pp.KillTheCat();
 
             double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2,
                 GaussSourceSize / 1.2, 0.5 };
             CATS AB_pL;
-            tidy->GetCatsProtonLambda(&AB_pL, GaussSourceSize, Pars_pL,
-                                      NumMomBins, kMin, kMax);
+            tidy->GetCatsProtonLambda(&AB_pL, Pars_pL, NumMomBins, kMin, kMax);
             AB_pL.KillTheCat();
             double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
                 GaussSourceSize / 1.2, 0.5 };
             CATS AB_pXim;
-            tidy->GetCatsProtonXiMinus(&AB_pXim, GaussSourceSize, Pars_pXi,
-                                       NumMomBins, kMin, kMax, true, 13);
+            tidy->GetCatsProtonXiMinus(&AB_pXim, Pars_pXi, NumMomBins, kMin,
+                                       kMax, true, 13);
             AB_pXim.KillTheCat();
 
             double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2,
                 GaussSourceSize / 1.2, 0.5 };
             CATS AB_pXim1530;
-            tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, GaussSourceSize,
-                                           Pars_pXim1530, NumMomBins, kMin,
-                                           kMax);
+            tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, Pars_pXim1530,
+                                           NumMomBins, kMin, kMax);
             AB_pXim1530.KillTheCat();
 
             std::cout << "Reading Data \n";
@@ -732,8 +731,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
       }
     }
   }
-  outofloop:
-  OutFile->cd();
+  outofloop: OutFile->cd();
   ntResult->Write();
 
   delete ntResult;

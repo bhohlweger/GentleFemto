@@ -190,22 +190,23 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
   TF1* funct_1 = new TF1("myPol1", "pol1", 250, 600);
   Prefit->Fit(funct_1, "FSNRM");
 //  TVirtualFitter::SetDefaultFitter("Minuit");
-  gMinuit->SetErrorDef(4); //note 4 and not 2!
+  gMinuit->SetErrorDef(4);  //note 4 and not 2!
 
   p_a_prefit[1] = funct_1->GetParameter(0);
 
   p_b_prefit[1] = funct_1->GetParameter(1);
 
-  TGraph *gr12 = (TGraph*)gMinuit->Contour(40,0,1);
+  TGraph *gr12 = (TGraph*) gMinuit->Contour(40, 0, 1);
 
-  p_a_prefit[2] = TMath::MinElement(gr12->GetN(),gr12->GetX());
+  p_a_prefit[2] = TMath::MinElement(gr12->GetN(), gr12->GetX());
   p_b_prefit[2] = gr12->Eval(p_a_prefit[2]);
 
-  p_a_prefit[3] = TMath::MaxElement(gr12->GetN(),gr12->GetX());
+  p_a_prefit[3] = TMath::MaxElement(gr12->GetN(), gr12->GetX());
   p_b_prefit[3] = gr12->Eval(p_a_prefit[3]);
 
-  for (int i = 0; i<4; ++i) {
-    std::cout << i << " pa: " << p_a_prefit[i] << " pb: " << p_b_prefit[i] << std::endl;
+  for (int i = 0; i < 4; ++i) {
+    std::cout << i << " pa: " << p_a_prefit[i] << " pb: " << p_b_prefit[i]
+              << std::endl;
   }
 
   delete Prefit;
@@ -242,17 +243,17 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
                   GaussSourceSize / 1.2, 0.5 };
               CATS AB_pXim;
-              tidy->GetCatsProtonXiMinus(&AB_pXim, GaussSourceSize, Pars_pXi,
-                                         NumMomBins_pXim, kMin_pXim, kMax_pXim,
-                                         true, tQCDVars[tOut]);
+              tidy->GetCatsProtonXiMinus(&AB_pXim, Pars_pXi, NumMomBins_pXim,
+                                         kMin_pXim, kMax_pXim, true,
+                                         tQCDVars[tOut]);
               AB_pXim.KillTheCat();
 
               double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2,
                   GaussSourceSize / 1.2, 0.5 };
               CATS AB_pXim1530;
-              tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, GaussSourceSize,
-                                             Pars_pXim1530, NumMomBins_pXim,
-                                             kMin_pXim, kMax_pXim);
+              tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, Pars_pXim1530,
+                                             NumMomBins_pXim, kMin_pXim,
+                                             kMax_pXim);
               AB_pXim1530.KillTheCat();
 
 //              TString HistpXiName = "hCk_ReweightedpXiMeV_0";
@@ -335,12 +336,15 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                                 BlRegion[1]);
               fitter->SetSeparateBL(0, false);  //Simultaneous BL
               if (HaveWeABaseLineSlope) {
-                fitter->FixParameter("pXim", DLM_Fitter1::p_a, p_a_prefit[BaselineSlope]);
-                fitter->FixParameter("pXim", DLM_Fitter1::p_b, p_b_prefit[BaselineSlope]);
+                fitter->FixParameter("pXim", DLM_Fitter1::p_a,
+                                     p_a_prefit[BaselineSlope]);
+                fitter->FixParameter("pXim", DLM_Fitter1::p_b,
+                                     p_b_prefit[BaselineSlope]);
                 std::cout << "Fitting ranges for BL set \n";
               } else {
                 fitter->FixParameter("pXim", DLM_Fitter1::p_a, p_a_prefit[0]);
-                fitter->FixParameter("pXim", DLM_Fitter1::p_b, p_b_prefit[0]);;
+                fitter->FixParameter("pXim", DLM_Fitter1::p_b, p_b_prefit[0]);
+                ;
               }
               fitter->AddSameSource("pXim1530", "pXim", 1);
               fitter->AddSameSource("pXiSideBand", "pXim", 1);
@@ -366,8 +370,10 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               double ChiSqStrongGlobal = fitter->GetChi2Ndf();
               double pValStrongGlobal = fitter->GetPval();
 
-              std::cout << "paStrongCoulomb = " << p_a_strong << " pm " << p_a_strong_err <<std::endl;
-              std::cout << "pbStrongCoulomb = " << p_b_strong << " pm " << p_b_strong_err <<std::endl;
+              std::cout << "paStrongCoulomb = " << p_a_strong << " pm "
+                        << p_a_strong_err << std::endl;
+              std::cout << "pbStrongCoulomb = " << p_b_strong << " pm "
+                        << p_b_strong_err << std::endl;
 
               TGraph FitResult_pXim;
 
@@ -474,8 +480,10 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                                                        DLM_Fitter1::p_c);
               double ChiSqCoulombGlobal = fitter->GetChi2Ndf();
               double pValCoulombGlobal = fitter->GetPval();
-              std::cout << "paCoulomb = " << p_a_coulomb << " pm " << p_a_coulomb_err <<std::endl;
-              std::cout << "pbCoulomb = " << p_b_coulomb << " pm " << p_b_coulomb_err <<std::endl;
+              std::cout << "paCoulomb = " << p_a_coulomb << " pm "
+                        << p_a_coulomb_err << std::endl;
+              std::cout << "pbCoulomb = " << p_b_coulomb << " pm "
+                        << p_b_coulomb_err << std::endl;
               TGraph SideBandCoulombWithLambda;
               TGraph SideBandCoulombWithOutLambda;
               CATShisto<double>* CoulombWithLambda = CkDec_pXim
