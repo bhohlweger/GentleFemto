@@ -98,4 +98,7 @@ target_link_libraries(pSigma0exclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunctio
 add_executable(DrawSigma ${PROJECT_SOURCE_DIR}/Scripts/DrawSigma_single.C)
 target_link_libraries(DrawSigma tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(POnlymT ${PROJECT_SOURCE_DIR}/Scripts/POnlymT.C)
+target_link_libraries(POnlymT tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_subdirectory(Test)
