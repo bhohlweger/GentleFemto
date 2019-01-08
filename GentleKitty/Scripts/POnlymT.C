@@ -29,12 +29,13 @@ int main(int argc, char *argv[]) {
 }
 
 void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
-//  TRandom3 rangen(1 + JobID);
+  //  TRandom3 rangen(1 + JobID);
   TString HistppName = "hCkTotNormWeightMeV_mTBin_";
 
   //!SETTING THAT YOU MIGHT NEED
   //What source to use: 0 = Gauss; 1=Cauchy; 2=DoubleGauss
-  TFile* inFile = TFile::Open(Form("%s/CFOutputALL_mT_pp_HM.root",InputDir.Data()));
+  TFile* inFile = TFile::Open(
+      Form("%s/CFOutputALL_mT_pp_HM.root", InputDir.Data()));
   const bool FAST_PLOT = true;
   const bool FULL_PLOT = false;
   TString CalibBaseDir = "";
@@ -48,7 +49,7 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
   } else if (system == 11) {  // pPb at the Grid
     CalibBaseDir +=
         "/home/gu74req/Analysis/CATS_Input/SystematicsAndCalib/pPbRun2_MB/";
-//    system = 0;
+    //    system = 0;
   }
 
   //perform the systematics by using the different cut variations as further permutations, do NOT add the systematic errors in quadrature
@@ -203,7 +204,7 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
     prefix = "HM";
   }
   CATSinput->ReadSigmaFile();
-//  CATSinput->ReadCorrelationFile(InputDir.Data(), prefix);
+  //  CATSinput->ReadCorrelationFile(InputDir.Data(), prefix);
 
   //each JOB produces a separate output file
   TFile* OutFile = new TFile(
@@ -214,39 +215,37 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
 
   //you save a lot of stuff in an NTuple
   TNtuple* ntResult = new TNtuple(
-      "ntResult", "ntResult",
-      "IterID:vFemReg_pp:vFrac_pp_pL:vModpL:vFrac_pL_pSigma0:"
-      "vFrac_pL_pXim:BLSlope:Radius_pp:RadiusErr_pp:"
+      "ntResult", "ntResult", "ikT:Radius_pp:RadiusErr_pp:"
       "pa_pp:paErr_pp:pb_pp:pbErr_pp:pCl_pp:pClErr_pp:"
       "Chi2NdfGlobal:pval:Chi2NdfLocal");
-  Float_t ntBuffer[18];
   for (int ikT = 0; ikT < numkTBins; ++ikT) {
+    Float_t ntBuffer[12];
 
     TidyCats* tidy = new TidyCats();
-//    double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-//                  GaussSourceSize / 1.2, 0.5 };
+    //    double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2,
+    //                  GaussSourceSize / 1.2, 0.5 };
     double massProton = 938.272;
-    double massPion =   139.570;
-    double Pars_pp[9] =
-        { 0, 0, 0, GaussSourceSize_pp * 1.2, 1.65, 0.3578, 1361.52, massProton, massPion };
+    double massPion = 139.570;
+    double massLambda = 1115.683;
+    double Pars_pp[9] = { 0, 0, 0, GaussSourceSize_pp * 1.2, 1.65, 0.3578,
+        1361.52, massProton, massPion };
     CATS AB_pp;
-    tidy->GetCatsProtonProton(&AB_pp, Pars_pp, NumMomBins,
-                              kMin, kMax, true);
+    tidy->GetCatsProtonProton(&AB_pp, Pars_pp, NumMomBins, kMin, kMax, true);
     AB_pp.KillTheCat();
 
-    double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize / 1.2,
-        0.5 };
+    double Pars_pL[14] = { 0, 0, 0, GaussSourceSize * 1.2, 1.65, 0.3578,
+        1361.52, massProton, massPion, 4.69, 0.3562, 1462.93, massLambda,
+        massPion };
     CATS AB_pL;
-    tidy->GetCatsProtonLambda(&AB_pL, Pars_pL, NumMomBins,
-                              kMin, kMax);
+    tidy->GetCatsProtonLambda(&AB_pL, Pars_pL, NumMomBins, kMin, kMax, true);
     AB_pL.KillTheCat();
 
     std::cout << "Reading Data \n";
 
-//    CATSinput->ObtainCFs(5, 240, 340);
-    TString HistNamemT=HistppName;
-    HistNamemT+=ikT;
-    TH1F* OliHisto_pp = (TH1F*)inFile->Get(HistNamemT.Data());
+    //    CATSinput->ObtainCFs(5, 240, 340);
+    TString HistNamemT = HistppName;
+    HistNamemT += ikT;
+    TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistNamemT.Data());
     if (!OliHisto_pp)
       std::cout << HistNamemT.Data() << " Missing" << std::endl;
     CATSinput->AddSystematics("C2totalsysPP.root", OliHisto_pp);
@@ -260,8 +259,7 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
     //needed inputs: num source/pot pars, CATS obj
     DLM_Ck* Ck_pp = new DLM_Ck(NumSourcePars, 0, AB_pp);
     //    DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
-    DLM_Ck* Ck_pL = new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
-                               Lednicky_SingletTriplet);
+    DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
 
     Ck_pp->Update();
     Ck_pL->Update();
@@ -275,7 +273,7 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
     }
 
     DLM_CkDecomposition CkDec_pp("pp", 3, *Ck_pp, CATSinput->GetSigmaFile(0));
-    DLM_CkDecomposition CkDec_pL("pLambda", 4, *Ck_pL,
+    DLM_CkDecomposition CkDec_pL("pLambda", 2, *Ck_pL,
                                  CATSinput->GetSigmaFile(1));
 
     double lam_pp = Purities_p[1][0] * Fraction_p[1][0] * Purities_p[1][0]
@@ -294,14 +292,12 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
       std::cout << "No Calib 0 \n";
       return;
     }
-    CkDec_pp.AddContribution(0, lam_pp_pL,
-                             DLM_CkDecomposition::cFeedDown, &CkDec_pL,
-                             CATSinput->GetResFile(0));
+    CkDec_pp.AddContribution(0, lam_pp_pL, DLM_CkDecomposition::cFeedDown,
+                             &CkDec_pL, CATSinput->GetResFile(0));
     CkDec_pp.AddContribution(1, 1. - lam_pp - lam_pp_pL - lam_pp_fake,
                              DLM_CkDecomposition::cFeedDown);
-    CkDec_pp.AddContribution(2, lam_pp_fake,
-                             DLM_CkDecomposition::cFake);  //0.02
-//    CkDec_pp.AddContribution(1, lam_pp_fake+1-lam_pp, DLM_CkDecomposition::cFake);  //0.02
+    CkDec_pp.AddContribution(2, lam_pp_fake, DLM_CkDecomposition::cFake);  //0.02
+    //    CkDec_pp.AddContribution(1, lam_pp_fake+1-lam_pp, DLM_CkDecomposition::cFake);  //0.02
 
     double lam_pL = Purities_p[1][0] * Fraction_p[1][0] * Purities_L[1][1][0]
         * Fraction_L[1][1][0];
@@ -327,14 +323,9 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
       return;
     }
 
-    CkDec_pL.AddContribution(0, lam_pL_pS0, DLM_CkDecomposition::cFeedDown,
-                             &CkDec_pSigma0, CATSinput->GetResFile(1));
-    CkDec_pL.AddContribution(1, lam_pL_pXm, DLM_CkDecomposition::cFeedDown,
-                             &CkDec_pXim, CATSinput->GetResFile(2));
-    CkDec_pL.AddContribution(
-        2, 1. - lam_pL - lam_pL_pS0 - lam_pL_pXm - lam_pL_fake,
-        DLM_CkDecomposition::cFeedDown);
-    CkDec_pL.AddContribution(3, lam_pL_fake, DLM_CkDecomposition::cFake);  //0.03
+    CkDec_pL.AddContribution(0, 1. - lam_pL - lam_pL_fake,
+                             DLM_CkDecomposition::cFeedDown);
+    CkDec_pL.AddContribution(1, lam_pL_fake, DLM_CkDecomposition::cFake);  //0.03
 
     DLM_Fitter1* fitter = new DLM_Fitter1(1);
     fitter->SetOutputDir(OutputDir.Data());
@@ -346,10 +337,10 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
     fitter->SetParameter("pp", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
     fitter->FixParameter("pp", DLM_Fitter1::p_b, 0);
 
-//    fitter->FixParameter("pLambda", DLM_Fitter1::p_sor0, 1.2);
-//    fitter->FixParameter("pSigma0", DLM_Fitter1::p_sor0, 1.2);
-//    fitter->FixParameter("pXim",    DLM_Fitter1::p_sor0, 1.2);
-//    fitter->FixParameter("pXim1530",DLM_Fitter1::p_sor0, 1.2);
+    //    fitter->FixParameter("pLambda", DLM_Fitter1::p_sor0, 1.2);
+    //    fitter->FixParameter("pSigma0", DLM_Fitter1::p_sor0, 1.2);
+    //    fitter->FixParameter("pXim",    DLM_Fitter1::p_sor0, 1.2);
+    //    fitter->FixParameter("pXim1530",DLM_Fitter1::p_sor0, 1.2);
 
     fitter->AddSameSource("pLambda", "pp", 1);
 
@@ -364,9 +355,8 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
     CkDec_pL.Update();
     fitter->GoBabyGo();
 
-
     TGraph FitResult_pp;
-    FitResult_pp.SetName(TString::Format("FitResult_pp_%u",ikT));
+    FitResult_pp.SetName(TString::Format("FitResult_pp_%u", ikT));
     fitter->GetFitGraph(0, FitResult_pp);
 
     double Chi2 = fitter->GetChi2();
@@ -401,24 +391,30 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
       Chi2_pp += (dataY - theoryY) * (dataY - theoryY) / (dataErr * dataErr);
       EffNumBins_pp++;
     }
-    ntBuffer[0] = ikT;
-    ntBuffer[1] = 1;
-    ntBuffer[2] = 1;
-    ntBuffer[3] = 1;
-    ntBuffer[4] = 1;
-    ntBuffer[5] = 1;
-    ntBuffer[6] = (int) false;
-    ntBuffer[7] = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
-    ntBuffer[8] = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
-    ntBuffer[9] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
-    ntBuffer[10] = fitter->GetParError("pp", DLM_Fitter1::p_a);
-    ntBuffer[11] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
-    ntBuffer[12] = fitter->GetParError("pp", DLM_Fitter1::p_b);
-    ntBuffer[13] = fitter->GetParameter("pp", DLM_Fitter1::p_Cl);
-    ntBuffer[14] = fitter->GetParError("pp", DLM_Fitter1::p_Cl);
-    ntBuffer[15] = fitter->GetChi2Ndf();
-    ntBuffer[16] = fitter->GetPval();
-    ntBuffer[17] = Chi2_pp / double(EffNumBins_pp);
+    std::cout << ikT<< std::endl;
+    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_sor0)<< std::endl;
+    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_sor0)<< std::endl;
+    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_a)<< std::endl;
+    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_a)<< std::endl;
+    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_b)<< std::endl;
+    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_b)<< std::endl;
+    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_Cl)<< std::endl;
+    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_Cl)<< std::endl;
+    std::cout << fitter->GetChi2Ndf()<< std::endl;
+    std::cout << fitter->GetPval()<< std::endl;
+    std::cout << Chi2_pp / double(EffNumBins_pp)<< std::endl;
+//    ntBuffer[0] = ikT;
+//    ntBuffer[1] = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
+//    ntBuffer[2] = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
+//    ntBuffer[3] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
+//    ntBuffer[4] = fitter->GetParError("pp", DLM_Fitter1::p_a);
+//    ntBuffer[5] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
+//    ntBuffer[6] = fitter->GetParError("pp", DLM_Fitter1::p_b);
+//    ntBuffer[7] = fitter->GetParameter("pp", DLM_Fitter1::p_Cl);
+//    ntBuffer[8] = fitter->GetParError("pp", DLM_Fitter1::p_Cl);
+//    ntBuffer[9] = fitter->GetChi2Ndf();
+//    ntBuffer[10] = fitter->GetPval();
+//    ntBuffer[11] = Chi2_pp / double(EffNumBins_pp);
 
     //    ntBuffer[23] = (int) FIX_CL;
     ntResult->Fill(ntBuffer);
@@ -447,10 +443,10 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
     GraphFile->cd();
     FitResult_pp.Write();
 
-    TH1F* copyOliHist = (TH1F*)OliHisto_pp->Clone(Form("CFkT_%u",ikT));
+    TH1F* copyOliHist = (TH1F*) OliHisto_pp->Clone(Form("CFkT_%u", ikT));
     copyOliHist->Write(copyOliHist->GetName());
 
-    fitter->GetFit()->SetName(TString::Format("GlobalFit"));
+    fitter->GetFit()->SetName(TString::Format("GlobalFit_%u", ikT));
     fitter->GetFit()->Write();
 
     if (FAST_PLOT) {
@@ -528,7 +524,8 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
       info1->Draw("same");
       OutFile->cd();
       cfast->Write();
-      cfast->SaveAs(TString::Format("%s/FitppmT_%u.png", OutputDir.Data(),ikT));
+      cfast->SaveAs(
+          TString::Format("%s/FitppmT_%u.png", OutputDir.Data(), ikT));
       delete hAxis_pp;
       delete info1;
       delete cfast;
@@ -545,9 +542,9 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
   ntResult->Write();
   OutFile->Close();
   GraphFile->Close();
-//  delete ntResult;
-//  delete OutFile;
-//  delete GraphFile;
+  //  delete ntResult;
+  delete OutFile;
+  delete GraphFile;
   for (unsigned uVar = 0; uVar < 3; uVar++) {
     delete[] Purities_p[uVar];
     delete[] Fraction_p[uVar];
@@ -559,4 +556,25 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
   delete[] Purities_L;
   delete[] Fraction_L;
 
+}
+
+void DrawEmptyBins(TString InputDir, TString OutputDir) {
+  TFile *File1 = TFile::Open(
+      Form("%s/CFOutputALL_mT_pp_HM.root", InputDir.Data()), "read");
+  TFile *File2 = TFile::Open(Form("%s/GraphFile.root", OutputDir.Data()),
+                             "read");
+  TFile *File3 = TFile::Open(Form("%s/OutFile.root", OutputDir.Data()), "read");
+  TGraphErrors* averagemT = (TGraphErrors*) File1->Get("AveragemT");
+  if (!averagemT) {
+    std::cout << "No average mT histo \n";
+  }
+  TNtuple* ntResult = (TNtuple*) File3->Get("ntResult");
+  if (!ntResult) {
+    std::cout << "No Tuple \n";
+  }
+  int nmTBins = ntResult->GetEntries();
+
+  for (int imT = 0; imT<nmTBins; ++imT) {
+
+  }
 }
