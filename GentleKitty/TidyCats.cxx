@@ -65,14 +65,18 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, double* pars, int momBins,
 }
 
 void TidyCats::GetCatsProtonLambda(CATS* AB_pL, double* pars, int momBins,
-                                   double kMin, double kMax) {
+                                   double kMin, double kMax,
+                                   bool ResonanceSource) {
 
   const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
   const double Mass_L = TDatabasePDG::Instance()->GetParticle(3122)->Mass()
       * 1000;
-
-  AB_pL->SetAnaSource(GaussSource, pars);
+  if (ResonanceSource) {
+    AB_pL->SetAnaSource(GaussExpTotSimple_2body, pars);
+  } else {
+    AB_pL->SetAnaSource(GaussSource, pars);
+  }
   AB_pL->SetUseAnalyticSource(true);
   AB_pL->SetThetaDependentSource(false);
   AB_pL->SetMomBins(momBins, kMin, kMax);
@@ -121,8 +125,8 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, double* pars, int momBins,
   AB_pXim->SetSpin(1, 1);    //I=0; S=1
   AB_pXim->SetSpin(2, 0);    //I=1; S=0
   AB_pXim->SetSpin(3, 1);    //I=1; S=1
-  AB_pXim->SetChannelWeight(0, 0. / 4.);
-  AB_pXim->SetChannelWeight(1, 0. / 4.);
+  AB_pXim->SetChannelWeight(0, 1. / 4.);
+  AB_pXim->SetChannelWeight(1, 3. / 4.);
   AB_pXim->SetChannelWeight(2, 1. / 4.);
   AB_pXim->SetChannelWeight(3, 3. / 4.);
 

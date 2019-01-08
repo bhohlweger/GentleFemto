@@ -17,7 +17,7 @@ class TidyCats {
   void GetCatsProtonProton(CATS* AB_pp, double* pars, int momBins, double kMin,
                            double kMax, bool ResonanceSource = false);
   void GetCatsProtonLambda(CATS* AB_pL, double* pars, int momBins, double kMin,
-                           double kMax);
+                           double kMax, bool ResonanceSource = false);
   void GetCatsProtonXiMinus(CATS* AB_pXim, double* pars, int momBins,
                             double kMin, double kMax, bool StrongOn,
                             double QCDTime);
