@@ -418,27 +418,27 @@ void RUN2_main(const unsigned& NumIter, const unsigned& NumJobs,
     double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize / 1.2,
         0.5 };
     CATS AB_pp;
-    tidy->GetCatsProtonProton(&AB_pp, GaussSourceSize, Pars_pp, NumMomBins_pp,
+    tidy->GetCatsProtonProton(&AB_pp, Pars_pp, NumMomBins_pp,
                               kMin_pp, kMax_pp);
     AB_pp.KillTheCat();
 
     double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize / 1.2,
         0.5 };
     CATS AB_pL;
-    tidy->GetCatsProtonLambda(&AB_pL, GaussSourceSize, Pars_pL, NumMomBins_pL,
+    tidy->GetCatsProtonLambda(&AB_pL, Pars_pL, NumMomBins_pL,
                               kMin_pL, kMax_pL);
     AB_pL.KillTheCat();
     double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
         / 1.2, 0.5 };
     CATS AB_pXim;
-    tidy->GetCatsProtonXiMinus(&AB_pXim, GaussSourceSize, Pars_pXi,
+    tidy->GetCatsProtonXiMinus(&AB_pXim, Pars_pXi,
                                NumMomBins_pXim, kMin_pXim, kMax_pXim, true, 13);
     AB_pXim.KillTheCat();
 
     double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
         / 1.2, 0.5 };
     CATS AB_pXim1530;
-    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, GaussSourceSize, Pars_pXim1530,
+    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, Pars_pXim1530,
                                    NumMomBins_pXim, kMin_pXim, kMax_pXim);
     AB_pXim1530.KillTheCat();
 

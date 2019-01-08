@@ -230,14 +230,14 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
     double Pars_pp[9] =
         { 0, 0, 0, GaussSourceSize_pp * 1.2, 1.65, 0.3578, 1361.52, massProton, massPion };
     CATS AB_pp;
-    tidy->GetCatsProtonProton(&AB_pp, GaussSourceSize_pp, Pars_pp, NumMomBins,
+    tidy->GetCatsProtonProton(&AB_pp, Pars_pp, NumMomBins,
                               kMin, kMax, true);
     AB_pp.KillTheCat();
 
     double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize / 1.2,
         0.5 };
     CATS AB_pL;
-    tidy->GetCatsProtonLambda(&AB_pL, GaussSourceSize, Pars_pL, NumMomBins,
+    tidy->GetCatsProtonLambda(&AB_pL, Pars_pL, NumMomBins,
                               kMin, kMax);
     AB_pL.KillTheCat();
 
@@ -273,14 +273,7 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
       std::cout << "No Sigma file 1 \n";
       return;
     }
-    if (!CATSinput->GetSigmaFile(2)) {
-      std::cout << "No Sigma file 2 \n";
-      return;
-    }
-    if (!CATSinput->GetSigmaFile(3)) {
-      std::cout << "No Sigma file 3 \n";
-      return;
-    }
+
     DLM_CkDecomposition CkDec_pp("pp", 3, *Ck_pp, CATSinput->GetSigmaFile(0));
     DLM_CkDecomposition CkDec_pL("pLambda", 4, *Ck_pL,
                                  CATSinput->GetSigmaFile(1));
