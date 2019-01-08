@@ -15,9 +15,9 @@ TidyCats::~TidyCats() {
   // TODO Auto-generated destructor stub
 }
 
-void TidyCats::GetCatsProtonProton(CATS* AB_pp, double GaussSourceSize,
-                                   double* pars, int momBins, double kMin,
-                                   double kMax, bool ResonanceSource) {
+void TidyCats::GetCatsProtonProton(CATS* AB_pp, double* pars, int momBins,
+                                   double kMin, double kMax,
+                                   bool ResonanceSource) {
   const double Weight1S0 = 3. / 12.;
   const double Weight3P0 = 1. / 12.;
   const double Weight3P1 = 3. / 12.;
@@ -64,9 +64,8 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, double GaussSourceSize,
   return;
 }
 
-void TidyCats::GetCatsProtonLambda(CATS* AB_pL, double GaussSourceSize,
-                                   double* pars, int momBins, double kMin,
-                                   double kMax) {
+void TidyCats::GetCatsProtonLambda(CATS* AB_pL, double* pars, int momBins,
+                                   double kMin, double kMax) {
 
   const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
@@ -97,9 +96,8 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, double GaussSourceSize,
   return;
 }
 
-void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, double GaussSourceSize,
-                                    double* pars, int momBins, double kMin,
-                                    double kMax, bool StrongOn,
+void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, double* pars, int momBins,
+                                    double kMin, double kMax, bool StrongOn,
                                     double QCDTime) {
 
   const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
@@ -154,8 +152,7 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, double GaussSourceSize,
   return;
 }
 
-void TidyCats::GetCatsProtonXiMinus1530(CATS* AB_pXim1530,
-                                        double GaussSourceSize, double* pars,
+void TidyCats::GetCatsProtonXiMinus1530(CATS* AB_pXim1530, double* pars,
                                         int momBins, double kMin, double kMax) {
   const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
