@@ -16,6 +16,7 @@
 #include "TLegend.h"
 #include <iostream>
 
+bool batchmode = true;
 const int tupleLength = 14;
 
 void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
@@ -151,9 +152,13 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
     }
   }
 
-  c1->SaveAs(Form("%s/CF_pSigma_model.pdf", varFolder.Data()));
+  if (!batchmode) {
+    c1->SaveAs(Form("%s/CF_pSigma_model.pdf", varFolder.Data()));
+  }
   CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
-  c1->SaveAs(Form("%s/CF_pSigma_model_zoom.pdf", varFolder.Data()));
+  if (!batchmode) {
+    c1->SaveAs(Form("%s/CF_pSigma_model_zoom.pdf", varFolder.Data()));
+  }
 
   file->cd();
   c1->Write();
@@ -225,7 +230,9 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   leg->AddEntry(grSidebands, "Background", "f");
   leg->Draw("same");
 
-  c->SaveAs(Form("%s/CF_pSigma_fit.pdf", varFolder.Data()));
+  if (!batchmode) {
+    c->SaveAs(Form("%s/CF_pSigma_fit.pdf", varFolder.Data()));
+  }
   c->Write();
   grCF->Write();
   grSidebands->Write();
