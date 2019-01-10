@@ -44,7 +44,8 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 
 /// =====================================================================================
 void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
-               TString ppFile, TString OutputDir) {
+               TString ppFile, TString OutputDir, const bool& isExclusion,
+               const float d0 = 35, const float f0inv = 35) {
   DreamPlot::SetStyle();
   bool fastPlot = (NumIter == 0) ? true : false;
   TRandom3 rangen(0);
@@ -107,7 +108,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
   // pp radius systematic variations
   const double ppRadius = 1.36;
-  const std::vector<double> sourceSize = { { ppRadius, ppRadius * 0.8, ppRadius * 1.2 } };
+  const std::vector<double> sourceSize = { { ppRadius, ppRadius * 0.8, ppRadius
+      * 1.2 } };
 
   // femto fit region systematic variations
   const std::vector<double> femtoFitRegionUp = { { 550, 500, 600 } };
@@ -197,8 +199,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
   }
 
   // Set up the model, fitter, etc.
-  DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma,
-                                  kMax_pSigma, Lednicky_gauss_Sigma0);
+  DLM_Ck* Ck_pSigma0;
+
+  if (isExclusion) {
+    Ck_pSigma0 = new DLM_Ck(1, 2, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
+                            Lednicky_Singlet_InvScatLen);
+  } else {
+    Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
+                            Lednicky_gauss_Sigma0);
+  }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// "Systematic" variations
@@ -290,6 +299,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             fitter->FixParameter("pSigma0", DLM_Fitter1::p_Cl, -1.);
             fitter->FixParameter("pSigma0", DLM_Fitter1::p_sor0,
                                  sourceSize[sizeIter]);
+
+            if (isExclusion) {
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, f0inv);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, d0);
+            }
 
             fitter->GoBabyGo();
 
@@ -555,6 +569,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
 /// =====================================================================================
 int main(int argc, char *argv[]) {
-  FitSigma0(atoi(argv[1]), argv[2], argv[3], argv[4], argv[5]);
+  FitSigma0(atoi(argv[1]), argv[2], argv[3], argv[4], argv[5], atoi(argv[6]),
+            atof(argv[7]), atof(argv[8]));
   return 0;
 }
