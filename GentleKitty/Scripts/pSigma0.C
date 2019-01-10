@@ -64,8 +64,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
   int iterID = 0;
   bool useBaseline = true;
 
-  TString graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
-                                          OutputDir.Data(), NumIter);
+  TString graphfilename;
+  if (isExclusion) {
+    graphfilename = TString::Format("%s/Param_pSigma0_%i_%f_%f.root",
+                                    OutputDir.Data(), NumIter, d0, f0inv);
+  } else {
+    graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
+                                    OutputDir.Data(), NumIter);
+
+  }
   auto param = new TFile(graphfilename, "RECREATE");
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
