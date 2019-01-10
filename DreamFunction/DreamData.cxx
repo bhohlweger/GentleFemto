@@ -126,7 +126,7 @@ void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
 
 void DreamData::FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower,
                                    TGraph *grUpper, int color, int lineStyle,
-                                   int lineWidth, int fillStyle,
+                                   double lineWidth, int fillStyle,
                                    bool addtoLegend) {
   if (fSystematics) {
     TGraphErrors *grFemtoModel = new TGraphErrors();
@@ -243,8 +243,8 @@ void DreamData::DrawInlet(TCanvas *c) {
                              fXMaxInlet, fYMaxInlet);
   inset_pad->SetTopMargin(0.01);
   inset_pad->SetRightMargin(0.01);
-  inset_pad->SetBottomMargin(0.1);
-  inset_pad->SetLeftMargin(0.1);
+  inset_pad->SetBottomMargin(0.28);
+  inset_pad->SetLeftMargin(0.28);
   inset_pad->SetFillStyle(4000);
   inset_pad->Draw();
   inset_pad->cd();
@@ -259,10 +259,15 @@ void DreamData::DrawInlet(TCanvas *c) {
   SysErrCopy->GetYaxis()->SetNdivisions(203);
   SysErrCopy->GetXaxis()->SetLabelSize(0.08);
   SysErrCopy->GetXaxis()->SetNdivisions(204);
+  SysErrCopy->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  SysErrCopy->GetXaxis()->SetTitleSize(0.08);
+  SysErrCopy->GetXaxis()->SetTitleOffset(0.88);
+  SysErrCopy->GetYaxis()->SetTitleSize(0.08);
+  SysErrCopy->GetYaxis()->SetTitleOffset(0.88);
   SysErrCopy->SetLineColor(kWhite);
   SysErrCopy->Draw("Ap");
   fBaseLine->Draw("same");
-  SysErrCopy->SetTitle(" ; ; ");
+//  SysErrCopy->SetTitle(" ; ; ");
   SysErrCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
   SysErrCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
   for (auto &it : fFemtoModdeled) {

@@ -32,7 +32,7 @@ class DreamData {
   }
   ;
   void FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower, TGraph *grUpper,
-                          int color, int lineStyle, int lineWidth,
+                          int color, int lineStyle, double lineWidth,
                           int fillStyle, bool addtoLegend = true);
   void SetStyleHisto(TH1 *histo, int marker, int color);
   void DrawCorrelationPlot(TCanvas* c);
