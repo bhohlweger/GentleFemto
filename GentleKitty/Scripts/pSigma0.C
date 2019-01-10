@@ -44,8 +44,8 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 
 /// =====================================================================================
 void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
-               TString ppFile, TString OutputDir, const bool& isExclusion,
-               const float d0 = 35, const float f0inv = 35) {
+               TString OutputDir, const bool& isExclusion, const float d0,
+               const float f0inv) {
   DreamPlot::SetStyle();
   bool fastPlot = (NumIter == 0) ? true : false;
   TRandom3 rangen(0);
@@ -58,7 +58,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
           "IterID:femtoFitIter:BLSlope:ppRadius:bl_a:bl_a_err:bl_b:bl_b_err:"
           "sb_p0:sb_p0_err:sb_p1:sb_p1_err:sb_p2:sb_p2_err:sb_p3:sb_p3_err:sb_p4:sb_p4_err:sb_p5:sb_p5_err:"
           "primaryContrib:fakeContrib:SBnormDown:SBnormUp:"
-          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma");
+          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma:CFneg");
 
   Float_t ntBuffer[32];
   int iterID = 0;
@@ -138,7 +138,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             - protonPrimary) * (1 - protonSecondary[lambdaIter]) } });
 
     lambdaParams.push_back( { proton, sigma0 });
-    lambdaParams[lambdaIter].PrintLambdaParams();
   }
 
   // sideband fit normalization range systematic variation
@@ -204,9 +203,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
   if (isExclusion) {
     Ck_pSigma0 = new DLM_Ck(1, 2, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             Lednicky_Singlet_InvScatLen);
+    std::cout << "Running with scattering parameters - d0 = " << d0
+              << " fm - f0^-1 = " << f0inv << " fm^-1 \n";
   } else {
     Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             Lednicky_gauss_Sigma0);
+    std::cout << "Running with modelled potential \n";
   }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -320,6 +322,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             const double Cl = fitter->GetParameter("pSigma0", DLM_Fitter1::p_c);
             const double chi2 = fitter->GetChi2Ndf();
             const double pval = fitter->GetPval();
+            const bool isCFneg = fitter->CheckNegativeCk();
 
             TGraph FitResult_pSigma0;
             FitResult_pSigma0.SetName(TString::Format("pSigma0Graph"));
@@ -369,6 +372,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             std::cout << "p-val\n";
             std::cout << " glob " << pval << "\n";
             std::cout << " loc  " << pvalpSigma0 << "\n";
+            std::cout << "Neg?  " << isCFneg << "\n";
             std::cout << "=============\n";
 
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -542,6 +546,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             ntBuffer[28] = Chi2_pSigma0 / double(EffNumBins_pSigma0);
             ntBuffer[29] = pvalpSigma0;
             ntBuffer[30] = nSigmapSigma0;
+            ntBuffer[31] = (float) isCFneg;
 
             ntResult->Fill(ntBuffer);
             ++iterID;
@@ -569,7 +574,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
 /// =====================================================================================
 int main(int argc, char *argv[]) {
-  FitSigma0(atoi(argv[1]), argv[2], argv[3], argv[4], argv[5], atoi(argv[6]),
-            atof(argv[7]), atof(argv[8]));
+  FitSigma0(atoi(argv[1]), argv[2], argv[3], argv[4], atoi(argv[5]),
+            atof(argv[6]), atof(argv[7]));
   return 0;
 }
