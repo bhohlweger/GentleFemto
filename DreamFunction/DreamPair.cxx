@@ -285,8 +285,8 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
           / MultProjME->GetBinContent(iMult);
     } else {
       weight = 0;
-      std::cout << "Weight = 0 for Mult Bin iMult = " << iMult
-                << " in the case of " << SE->GetName() << std::endl;
+//      std::cout << "Weight = 0 for Mult Bin iMult = " << iMult
+//                << " in the case of " << SE->GetName() << std::endl;
     }
     //    MultProjMEReweighted->SetBinContent(iMult,weight*MultProjME->GetBinContent(iMult));
     TString MultBinName = Form("MEBin%i", iMult);
