@@ -55,12 +55,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
       new TNtuple(
           "fitResult",
           "fitResult",
-          "IterID:femtoFitIter:BLSlope:ppRadius:bl_a:bl_a_err:bl_b:bl_b_err:"
+          "IterID:femtoFitRange:BLSlope:ppRadius:bl_a:bl_a_err:bl_b:bl_b_err:"
           "sb_p0:sb_p0_err:sb_p1:sb_p1_err:sb_p2:sb_p2_err:sb_p3:sb_p3_err:sb_p4:sb_p4_err:sb_p5:sb_p5_err:"
           "primaryContrib:fakeContrib:SBnormDown:SBnormUp:"
-          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma:CFneg");
+          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma:CFneg:d0:f0inv");
 
-  Float_t ntBuffer[32];
+  Float_t ntBuffer[34];
   int iterID = 0;
   bool useBaseline = true;
 
@@ -237,13 +237,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
         side->SideBandCFs();
         auto SBmerge = side->GetSideBands(5);
-        const int firstBin = SBmerge->GetBinCenter(1);
-        auto sideband = new TF1("sideband", sidebandFit, firstBin, 650,
-                                nSidebandPars);
+        auto sideband = new TF1(Form("sideband_%i", iterID), sidebandFit, 0,
+                                650, nSidebandPars);
         sideband->SetParameter(0, -1.5);
         sideband->SetParameter(1, 0.);
         sideband->SetParameter(2, 0);
-        sideband->SetParameter(3, 0);
+        sideband->SetParameter(3, 0.1);
         sideband->SetParameter(4, 1);
         sideband->SetParameter(5, 0);
         SBmerge->Fit(sideband, "FSNRMQ");
@@ -265,8 +264,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
           for (size_t lambdaIter = 0; lambdaIter < lambdaParams.size();
               ++lambdaIter) {
 
-            std::cout << "\n\n_________________________\n";
-            std::cout << "Processing iteration " << iterID << "\n\n";
+            std::cout << "Processing iteration " << iterID << "\n";
 
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             /// Correlation function
@@ -326,7 +324,10 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             const bool isCFneg = fitter->CheckNegativeCk();
 
             TGraph FitResult_pSigma0;
-            FitResult_pSigma0.SetName(TString::Format("pSigma0Graph"));
+            FitResult_pSigma0.SetName(
+                TString::Format("pSigma0Graph_%i", iterID));
+            FitResult_pSigma0.SetTitle(
+                TString::Format("pSigma0Graph_%i", iterID));
             fitter->GetFitGraph(0, FitResult_pSigma0);
 
             double Chi2_pSigma0 = 0;
@@ -361,32 +362,34 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             double nSigmapSigma0 = TMath::Sqrt(2)
                 * TMath::ErfcInverse(pvalpSigma0);
 
-            std::cout << "=============\n";
-            std::cout << "Fitter output\n";
-            std::cout << "BL a  " << bl_a << " " << bl_a_err << "\n";
-            std::cout << "BL b  " << bl_b << " " << bl_b_err << "\n";
-            std::cout << "Cl    " << Cl << "\n";
-            std::cout << "Chi2\n";
-            std::cout << " glob " << chi2 << "\n";
-            std::cout << " loc  " << Chi2_pSigma0 / round(EffNumBins_pSigma0)
-                      << "\n";
-            std::cout << "p-val\n";
-            std::cout << " glob " << pval << "\n";
-            std::cout << " loc  " << pvalpSigma0 << "\n";
-            std::cout << "Neg?  " << isCFneg << "\n";
-            std::cout << "=============\n";
+            if (iterID == 0) {
+              std::cout << "=============\n";
+              std::cout << "Fitter output\n";
+              std::cout << "BL a  " << bl_a << " " << bl_a_err << "\n";
+              std::cout << "BL b  " << bl_b << " " << bl_b_err << "\n";
+              std::cout << "Cl    " << Cl << "\n";
+              std::cout << "Chi2\n";
+              std::cout << " glob " << chi2 << "\n";
+              std::cout << " loc  " << Chi2_pSigma0 / round(EffNumBins_pSigma0)
+                        << "\n";
+              std::cout << "p-val\n";
+              std::cout << " glob " << pval << "\n";
+              std::cout << " loc  " << pvalpSigma0 << "\n";
+              std::cout << "Neg?  " << isCFneg << "\n";
+              std::cout << "=============\n";
+            }
 
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             /// Write out all the stuff
 
             TGraph grCFSigmaRaw;
-            grCFSigmaRaw.SetName("Sigma0Raw");
+            grCFSigmaRaw.SetName(Form("Sigma0Raw_%i", iterID));
             TGraph grCFSigmaMain;
-            grCFSigmaMain.SetName("Sigma0Main");
+            grCFSigmaMain.SetName(Form("Sigma0Main_%i", iterID));
             TGraph grCFSigmaFeed;
-            grCFSigmaFeed.SetName("Sigma0Feed");
+            grCFSigmaFeed.SetName(Form("Sigma0Feed_%i", iterID));
             TGraph grCFSigmaSideband;
-            grCFSigmaSideband.SetName("Sigma0Sideband");
+            grCFSigmaSideband.SetName(Form("Sigma0Sideband_%i", iterID));
 
             for (unsigned int i = 0; i < Ck_pSigma0->GetNbins(); ++i) {
               grCFSigmaRaw.SetPoint(
@@ -409,10 +412,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
                           CATSLambdaParam::Fake)) + 1);
             }
 
-            TString outfilename = TString::Format("%s/Graph_pSigma0_%i_%i.root",
-                                                  OutputDir.Data(), NumIter,
-                                                  iterID);
-            auto out = new TFile(outfilename, "RECREATE");
+            param->cd();
+            param->mkdir(TString::Format("Graph_%i", iterID));
+            param->cd(TString::Format("Graph_%i", iterID));
 
             /// beautification
             DreamPlot::SetStyleHisto(dataHist, 24, kBlack);
@@ -439,15 +441,16 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             grCFSigmaMain.Write();
             grCFSigmaFeed.Write();
             grCFSigmaSideband.Write();
-            sidebandHistLow->Write("SidebandLow");
-            sidebandHistUp->Write("SidebandUp");
-            sideband->Write("SidebandFitNotScaled");
-            SBmerge->Write("SidebandMerged");
-            dataHist->Write("CF");
-            FitResult_pSigma0.Write("Fit");
+            sideband->Write(Form("SidebandFitNotScaled_%i", iterID));
+            SBmerge->Write(Form("SidebandMerged_%i", iterID));
+            FitResult_pSigma0.Write(Form("Fit_%i", iterID));
 
             if (fastPlot || iterID == 0) {
-              auto c = new TCanvas();
+              dataHist->Write("CF");
+              sidebandHistLow->Write("SidebandLow");
+              sidebandHistUp->Write("SidebandUp");
+
+              auto c = new TCanvas("DefaultFit", "DefaultFit");
               dataHist->GetXaxis()->SetRangeUser(0., 600);
               dataHist->GetYaxis()->SetRangeUser(0.8, 1.6);
               dataHist->Draw();
@@ -487,7 +490,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
               c->Write("CFplot");
               c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
 
-              auto d = new TCanvas();
+              auto d = new TCanvas("SidebandFit", "SidebandFit");
               SBmerge->GetXaxis()->SetRangeUser(0., 600);
               SBmerge->GetYaxis()->SetRangeUser(0.8, 1.6);
               SBmerge->Draw();
@@ -495,7 +498,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
               d->Write("CFsideband");
               d->Print(Form("%s/CF_pSideband.pdf", OutputDir.Data()));
 
-              auto e = new TCanvas();
+              auto e = new TCanvas("Sidebands", "Sidebands");
               SBmerge->Draw();
               sideband->Draw("l3same");
               sidebandHistLow->Draw("same");
@@ -511,7 +514,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
               e->Write("CFsideband");
               e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
             }
-            out->Close();
 
             param->cd();
             ntBuffer[0] = iterID;
@@ -548,11 +550,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             ntBuffer[29] = pvalpSigma0;
             ntBuffer[30] = nSigmapSigma0;
             ntBuffer[31] = (float) isCFneg;
+            ntBuffer[32] = d0;
+            ntBuffer[33] = f0inv;
 
             ntResult->Fill(ntBuffer);
             ++iterID;
 
-            delete out;
             delete fitter;
 
             if (NumIter == 0) {
