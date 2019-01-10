@@ -75,22 +75,22 @@ void PlotPotentials() {
       COLORMEBLIND -= 99;
     }
 //    int COLORMEBLIND = 1 + iCutOff;
-//    double pXimPotParsI0S0[10] = { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0,
-//        0 };
-//    double pXimPotParsI0S1[10] = { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0,
-//        1 };
-//    double pXimPotParsI1S0[10] =
-//        { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0 };
-//    double pXimPotParsI1S1[10] =
-//        { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1 };
-    static double pXimPotParsI0S0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 0, 0,
+    double pXimPotParsI0S0[10] = { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0,
         0 };
-    static double pXimPotParsI0S1[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
-        0 };
-    static double pXimPotParsI1S0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
+    double pXimPotParsI0S1[10] = { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0,
         1 };
-    static double pXimPotParsI1S1[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
-        2 };
+    double pXimPotParsI1S0[10] =
+        { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0 };
+    double pXimPotParsI1S1[10] =
+        { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1 };
+//    static double pXimPotParsI0S0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 0, 0,
+//        0 };
+//    static double pXimPotParsI0S1[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
+//        0 };
+//    static double pXimPotParsI1S0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
+//        1 };
+//    static double pXimPotParsI1S1[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
+//        2 };
 
     TString I0S0HistName = Form("hI0S0_%.2f", it);
     TString I0S0HistTitle = Form("I0S0");
