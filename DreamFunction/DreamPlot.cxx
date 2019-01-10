@@ -179,19 +179,19 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       fLambdaLambda->FemtoModelFitBands(grLLDefault, grLLLow, grLLUp, 5, 1, 3,
                                         3000);
     }
-    TGraph* grpXiI0Default = (TGraph*) systFit->Get("pXimGraphDefaultI0");
-    TGraph* grpXiI0Lower = (TGraph*) systFit->Get("pXimGraphLowerLimI0");
-    TGraph* grpXiI0Upper = (TGraph*) systFit->Get("pXimGraphUpperLimI0");
-    if (!grpXiI0Default) {
-      std::cout << "no pXi I0 Default file \n";
-    } else if (!grpXiI0Lower) {
-      std::cout << "no pXi I0 lower file \n";
-    } else if (!grpXiI0Upper) {
-      std::cout << "no pXi I0 upper file \n";
-    } else {
-      fProtonXi->FemtoModelFitBands(grpXiI0Default, grpXiI0Lower, grpXiI0Upper, 11,
-                                    10, 0, 3252);
-    }
+//    TGraph* grpXiI0Default = (TGraph*) systFit->Get("pXimGraphDefaultI0");
+//    TGraph* grpXiI0Lower = (TGraph*) systFit->Get("pXimGraphLowerLimI0");
+//    TGraph* grpXiI0Upper = (TGraph*) systFit->Get("pXimGraphUpperLimI0");
+//    if (!grpXiI0Default) {
+//      std::cout << "no pXi I0 Default file \n";
+//    } else if (!grpXiI0Lower) {
+//      std::cout << "no pXi I0 lower file \n";
+//    } else if (!grpXiI0Upper) {
+//      std::cout << "no pXi I0 upper file \n";
+//    } else {
+//      fProtonXi->FemtoModelFitBands(grpXiI0Default, grpXiI0Lower, grpXiI0Upper, 11,
+//                                    10, 0, 3252);
+//    }
     TGraph* grpXiDefault = (TGraph*) systFit->Get("pXimGraphDefault");
     TGraph* grpXiLower = (TGraph*) systFit->Get("pXimGraphLowerLim");
     TGraph* grpXiUpper = (TGraph*) systFit->Get("pXimGraphUpperLim");
@@ -235,7 +235,7 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       std::cout << "no pXi Sideband upper file \n";
     } else {
       fProtonXi->FemtoModelFitBands(grpXiDefaultSideband, grpXiLowerSideband,
-                                    grpXiUpperSideband, 4, 2, 1, 3003,true);
+                                    grpXiUpperSideband, 4, 2, 3, 3003,true);
     }
   } else {
     std::cout << "No Cats file!  \n";
@@ -372,10 +372,10 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_pXi->SetTopMargin(top);
   fProtonXi->SetLegendName("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+} pairs",
                            "fpe");
-  fProtonXi->SetLegendName("Coulomb + HAL-QCD I=0", "fl");
-  fProtonXi->SetLegendName("Coulomb + HAL-QCD I=1", "fl");
+//  fProtonXi->SetLegendName("Coulomb + HAL-QCD I=0", "fl");
+  fProtonXi->SetLegendName("Coulomb + HAL-QCD", "fl");
   fProtonXi->SetLegendName("Coulomb", "l");
-  fProtonXi->SetLegendName("Misidentification background", "l");
+  fProtonXi->SetLegendName("p-#Xi^{-} sideband background", "l");
   fProtonXi->SetNDivisions(505);
   fProtonXi->SetRangePlotting(0, 300, 0.8, 2.5);
   fProtonXi->SetLegendCoordinates(0.5,
@@ -383,12 +383,12 @@ void DreamPlot::DrawCorrelationFunctions() {
                                   0.7, 0.875);
   fProtonXi->DrawCorrelationPlot(c_pXi);
   DrawSystemInfo(c_pXi, false);
-  if (fProtonXi->GetNumberOfModels() > 0) {
-    ref.DrawLatex(
-        0.5075,
-        0.725 - 0.09 * fProtonXi->GetNumberOfModels(),
-        "#splitline{#splitline{K. Sasaki and T. Miyamoto}{(HAL QCD Collaboration)}}{private communication}");
-  }
+//  if (fProtonXi->GetNumberOfModels() > 0) {
+//    ref.DrawLatex(
+//        0.5075,
+//        0.725 - 0.09 * fProtonXi->GetNumberOfModels(),
+//        "#splitline{#splitline{K. Sasaki and T. Miyamoto}{(HAL QCD Collaboration)}}{private communication}");
+//  }
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
 
