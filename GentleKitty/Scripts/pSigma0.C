@@ -22,6 +22,8 @@
 #include "DreamPlot.h"
 #include "TNtuple.h"
 
+bool batchmode = true;
+
 /// Number of parameters for the sideband fit
 const int nSidebandPars = 6;
 
@@ -495,7 +497,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
               info->Draw("same");
               c->Write("CFplot");
-              c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
+              if (!batchmode) {
+                c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
+              }
 
               auto d = new TCanvas("SidebandFit", "SidebandFit");
               SBmerge->GetXaxis()->SetRangeUser(0., 600);
@@ -503,7 +507,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
               SBmerge->Draw();
               sideband->Draw("l3same");
               d->Write("CFsideband");
-              d->Print(Form("%s/CF_pSideband.pdf", OutputDir.Data()));
+              if (!batchmode) {
+                d->Print(Form("%s/CF_pSideband.pdf", OutputDir.Data()));
+              }
 
               auto e = new TCanvas("Sidebands", "Sidebands");
               SBmerge->Draw();
@@ -519,7 +525,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
               leg->AddEntry(sideband, "Fit", "l");
               leg->Draw("same");
               e->Write("CFsideband");
-              e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
+              if (!batchmode) {
+                e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
+              }
             }
 
             param->cd();
