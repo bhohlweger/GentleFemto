@@ -68,7 +68,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
   TString graphfilename;
   if (isExclusion) {
-    graphfilename = TString::Format("%s/Param_pSigma0_%i_%f_%f.root",
+    graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f.root",
                                     OutputDir.Data(), NumIter, d0, f0inv);
   } else {
     graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
@@ -488,7 +488,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
                                     bl_b * 1e4, bl_b_err * 1e4));
               }
               info->AddText(
-                  TString::Format("#chi_{loc}^{2}/ndf=%.1f/%.0f = %.2f",
+                  TString::Format("#chi_{loc}^{2}/ndf=%.1f/%.0f = %.3f",
                                   Chi2_pSigma0, EffNumBins_pSigma0,
                                   Chi2_pSigma0 / double(EffNumBins_pSigma0)));
               info->AddText(
@@ -498,7 +498,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
               info->Draw("same");
               c->Write("CFplot");
               if (!batchmode) {
-                c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
+                if (isExclusion) {
+                  c->Print(
+                      Form("%s/CF_pSigma0_%.3f_%.3f.pdf", OutputDir.Data(), d0,
+                           f0inv));
+                } else {
+                  c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
+                }
               }
 
               auto d = new TCanvas("SidebandFit", "SidebandFit");

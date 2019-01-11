@@ -91,7 +91,7 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
 
   TString graphfilename;
   if (isExclusion) {
-    graphfilename = TString::Format("%s/Param_pSigma0_%i_%f_%f.root",
+    graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f.root",
                                     varFolder.Data(), NumIter, d0, f0inv);
   } else {
     graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
@@ -153,11 +153,22 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   }
 
   if (!batchmode) {
-    c1->SaveAs(Form("%s/CF_pSigma_model.pdf", varFolder.Data()));
+    if (isExclusion) {
+      c1->Print(
+          Form("%s/CF_pSigma_model_%.3f_%.3f.pdf", varFolder.Data(), d0, f0inv));
+    } else {
+      c1->Print(Form("%s/CF_pSigma_model.pdf", varFolder.Data()));
+    }
   }
   CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
   if (!batchmode) {
-    c1->SaveAs(Form("%s/CF_pSigma_model_zoom.pdf", varFolder.Data()));
+    if (isExclusion) {
+      c1->Print(
+          Form("%s/CF_pSigma_model_zoom_%.3f_%.3f.pdf", varFolder.Data(), d0,
+               f0inv));
+    } else {
+      c1->Print(Form("%s/CF_pSigma_model_zoom.pdf", varFolder.Data()));
+    }
   }
 
   file->cd();
@@ -179,7 +190,7 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   if (isExclusion) {
     auto fitTuple = (TNtuple*) file->Get("fitResult");
 
-    TString resultfilename = TString::Format("%s/Result_%f_%f.root",
+    TString resultfilename = TString::Format("%s/Result_%.3f_%.3f.root",
                                              varFolder.Data(), d0, f0inv);
     auto resultFile = TFile::Open(resultfilename.Data(), "recreate");
     TNtuple* ntResult = new TNtuple(
@@ -231,7 +242,11 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   leg->Draw("same");
 
   if (!batchmode) {
-    c->SaveAs(Form("%s/CF_pSigma_fit.pdf", varFolder.Data()));
+    if (isExclusion) {
+      c->Print(Form("%s/CF_pSigma_fit_%.3f_%.3f.pdf", varFolder.Data(), d0, f0inv));
+    } else {
+      c->Print(Form("%s/CF_pSigma_fit.pdf", varFolder.Data()));
+    }
   }
   c->Write();
   grCF->Write();
