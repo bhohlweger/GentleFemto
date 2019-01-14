@@ -4,7 +4,6 @@
  *  Created on: Aug 21, 2018
  *      Author: hohlweger
  */
-
 #include "ReadDreamFile.h"
 #include <iostream>
 ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
@@ -18,10 +17,31 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fMEMult(nullptr),
       fMEkT(nullptr),
       fMEmT(nullptr) {
+  TH1::AddDirectory(kFALSE);
+  TH2::AddDirectory(kFALSE);
 }
 
 ReadDreamFile::~ReadDreamFile() {
-  // TODO Auto-generated destructor stub
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+      if (fSE && fSE[iPart1][iPart2])
+        delete fSE[iPart1][iPart2];
+      if (fSEMult && fSEMult[iPart1][iPart2])
+        delete fSEMult[iPart1][iPart2];
+      if (fSEkT && fSEkT[iPart1][iPart2])
+        delete fSEkT[iPart1][iPart2];
+      if (fSEmT && fSEmT[iPart1][iPart2])
+        delete fSEmT[iPart1][iPart2];
+      if (fME && fME[iPart1][iPart2])
+        delete fME[iPart1][iPart2];
+      if (fMEMult && fMEMult[iPart1][iPart2])
+        delete fMEMult[iPart1][iPart2];
+      if (fMEkT && fMEkT[iPart1][iPart2])
+        delete fMEkT[iPart1][iPart2];
+      if (fMEmT && fMEmT[iPart1][iPart2])
+        delete fMEmT[iPart1][iPart2];
+    }
+  }
 }
 
 void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
@@ -38,7 +58,7 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
 
 void ReadDreamFile::SetSigmaAnalysisFile(const char* PathAnalysisFile,
                                          const char* suffix) {
-  auto file = TFile::Open(PathAnalysisFile, "READ");
+  auto file = TFile::Open(PathAnalysisFile);
   TString name = "Sigma0_Femto_";
   name += suffix;
   TDirectory *dir = file->GetDirectory(name);
@@ -47,6 +67,18 @@ void ReadDreamFile::SetSigmaAnalysisFile(const char* PathAnalysisFile,
   auto histoList = (TList *) dir->Get(name);
   auto Results = (TList*) histoList->FindObject("Results");
   ExtractResults(Results);
+  TIter next(Results);
+  TObject *obj = nullptr;
+  while (obj = next()) {
+    TList *list = dynamic_cast<TList*>(obj);
+    if (list)
+      list->Delete();
+  }
+  Results->Delete();
+  histoList->Delete();
+  dir->Close();
+  file->Close();
+  delete file;
 }
 
 void ReadDreamFile::ExtractResults(const TList *Results) {
@@ -67,8 +99,10 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
       PartList = (TList*) Results->FindObject(FolderName.Data());
       fSE[iPart1][iPart2] = nullptr;
-      fSE[iPart1][iPart2] = (TH1F*) PartList->FindObject(
+      auto hist1D = (TH1F*) PartList->FindObject(
           Form("SEDist_%s", FolderName.Data()));
+      fSE[iPart1][iPart2] = (TH1F*) hist1D->Clone(
+          Form("%s_clone", hist1D->GetName()));
       if (!fSE[iPart1][iPart2]) {
         std::cout << "SE Histogramm missing from " << FolderName.Data()
                   << std::endl;
@@ -76,8 +110,10 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       fSE[iPart1][iPart2]->Sumw2();
 
       fSEMult[iPart1][iPart2] = nullptr;
-      fSEMult[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+      auto hist2D = (TH2F*) PartList->FindObject(
           Form("SEMultDist_%s", FolderName.Data()));
+      fSEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
+          Form("%s_clone", hist2D->GetName()));
       if (!fSEMult[iPart1][iPart2]) {
         std::cout << "SEMult Histogramm missing from " << FolderName.Data()
                   << std::endl;
@@ -90,8 +126,10 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
             fSEMult[iPart1][iPart2]->GetYaxis()->FindBin(12.1), 0);
       }
       fME[iPart1][iPart2] = nullptr;
-      fME[iPart1][iPart2] = (TH1F*) PartList->FindObject(
+      hist1D = (TH1F*) PartList->FindObject(
           Form("MEDist_%s", FolderName.Data()));
+      fME[iPart1][iPart2] = (TH1F*) hist1D->Clone(
+          Form("%s_clone", hist1D->GetName()));
       if (!fME[iPart1][iPart2]) {
         std::cout << "ME Histogramm missing from " << FolderName.Data()
                   << std::endl;
@@ -99,8 +137,10 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       fME[iPart1][iPart2]->Sumw2();
 
       fMEMult[iPart1][iPart2] = nullptr;
-      fMEMult[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+      hist2D = (TH2F*) PartList->FindObject(
           Form("MEMultDist_%s", FolderName.Data()));
+      fMEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
+          Form("%s_clone", hist2D->GetName()));
       if (!fMEMult[iPart1][iPart2]) {
         std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
                   << std::endl;

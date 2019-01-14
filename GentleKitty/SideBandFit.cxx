@@ -23,7 +23,12 @@ SideBandFit::SideBandFit()
 }
 
 SideBandFit::~SideBandFit() {
-  // TODO Auto-generated destructor stub
+  for (auto it : fSideBandCFs) {
+//    delete it;
+  }
+
+  if (fAnalysisFileUp) delete fAnalysisFileUp;
+  if (fAnalysisFileDown) delete fAnalysisFileDown;
 }
 
 void SideBandFit::SetSideBandFile(const char* path, const char* suffixUp,

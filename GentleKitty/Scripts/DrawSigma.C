@@ -80,15 +80,8 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   bool batchmode = true;
 
   DreamPlot::SetStyle();
-  CATSInputSigma0 *CATSinput = new CATSInputSigma0();
-  CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), appendix.Data());
-  CATSinput->ObtainCFs(10, 340, 440);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
-  auto CF_Histo = CATSinput->GetCF("pSigma0", dataHistName.Data());
-  CF_Histo->GetXaxis()->SetRangeUser(0, 600);
-  CF_Histo->GetYaxis()->SetRangeUser(0.8, 1.6);
-  CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  DreamPlot::SetStyleHisto(CF_Histo, 24, kBlack);
+  TH1F* CF_Histo;
 
   TString graphfilename;
   if (isExclusion) {
@@ -100,6 +93,7 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
 
   }
 
+  auto file = TFile::Open(graphfilename.Data(), "update");
   float tupler[tupleLength];
   auto fit = new TNtuple("fit", "fit",
                          "delta1:delta2:delta3:delta4:delta5:delta6:"
@@ -109,10 +103,8 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
                               "delta1:delta2:delta3:delta4:delta5:delta6:"
                               "delta7:delta8:delta9:delta10:delta11:"
                               "delta12:delta13:delta14");
-  std::vector<TGraph*> Graph;
-  auto file = TFile::Open(graphfilename.Data(), "update");
+
   auto c1 = new TCanvas("CF_var", "CF_var");
-  CF_Histo->Draw();
   TIter next(file->GetListOfKeys());
   TKey *key;
   while ((key = (TKey*) next())) {
@@ -124,6 +116,22 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
     TIter nextnext(dirFile->GetListOfKeys());
     TKey *nextkey;
     while ((nextkey = (TKey*) nextnext())) {
+
+      auto hist = (TH1F*) nextkey->ReadObj();
+      TString histName = Form("%s", hist->GetName());
+      if (histName.Contains(dataHistName)) {
+        CF_Histo = hist;
+        c1->cd();
+        CF_Histo->GetXaxis()->SetRangeUser(0, 600);
+        CF_Histo->GetYaxis()->SetRangeUser(0.8, 1.6);
+        CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+        DreamPlot::SetStyleHisto(hist, 24, kBlack);
+        CF_Histo->Draw();
+      }
+    }
+
+    TIter nextnext2(dirFile->GetListOfKeys());
+    while ((nextkey = (TKey*) nextnext2())) {
 
       auto Graph = (TGraph*) nextkey->ReadObj();
       TString graphName = Form("%s", Graph->GetName());
@@ -261,5 +269,5 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   delete c1;
   delete sideband;
   delete fit;
-  delete CATSinput;
+  file->Close();
 }
