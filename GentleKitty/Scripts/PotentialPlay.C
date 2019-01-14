@@ -73,11 +73,16 @@ void SetStyleGraph(TGraph *histo) {
 
 
 void PlotPotentials() {
+//  TFile *CFs = TFile::Open("InletGoodCFs.root", "read");
   TFile *CFs = TFile::Open("InletCFs.root", "read");
   TH1F* CF_I0S0 = (TH1F*) CFs->Get("I0S0");
+  CF_I0S0->SetLineStyle(7);
   TH1F* CF_I0S1 = (TH1F*) CFs->Get("I0S1");
+  CF_I0S1->SetLineStyle(3);
   TH1F* CF_I1S0 = (TH1F*) CFs->Get("I1S0");
+  CF_I1S0->SetLineStyle(1);
   TH1F* CF_I1S1 = (TH1F*) CFs->Get("I1S1");
+  CF_I1S1->SetLineStyle(4);
 
   TFile *OutFile = TFile::Open("PotentialXi.root", "RECREATE");
   TH1F* I0S0[3];
