@@ -38,12 +38,13 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   if (!sysVarTree) {
     std::cout << "no Tree loaded\n";
   }
-  const float histRangeLow = (system == 0) ? 1.2 : 1.1;
-  const float histRangeUp = (system == 0) ? 1.6 : 1.3;
-  const int nBins = (system == 0) ? 1000 : 500;
+  const float histRangeLow = (system == 0) ? 1.34 : 1.1;
+  const float histRangeUp = (system == 0) ? 1.51 : 1.3;
+//  const int nBins = (system == 0) ? 1000 : 500;
+  const int nBins = 250;
   auto histRad = new TH1D("hRad", "hRad", nBins, histRangeLow, histRangeUp);
   auto histRadIter = new TH2D("hRadIter", "hRadIter", nBins, histRangeLow,
-                              histRangeUp, 2000, 0, 2000);
+                              histRangeUp, 120, 0, 120);
   sysVarTree->Draw("Radius_pp>>hRad", "Chi2NdfLocal<6");
   auto mean = histRad->GetMean();
 
