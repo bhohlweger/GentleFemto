@@ -21,6 +21,9 @@ class TidyCats {
   void GetCatsProtonXiMinus(CATS* AB_pXim, double* pars, int momBins,
                             double kMin, double kMax, bool StrongOn,
                             double QCDTime);
+  void GetCatsProtonXiMinusCutOff(CATS* AB_pXim, double* pars, int momBins,
+                            double kMin, double kMax, bool StrongOn,
+                            double QCDTime, double cutOff);
   void GetCatsProtonXiMinus1530(CATS* AB_pXim1530, double* pars, int momBins,
                                 double kMin, double kMax);
  private:
