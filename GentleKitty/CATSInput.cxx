@@ -29,7 +29,8 @@ CATSInput::CATSInput()
       fnormalizationLeft(-100),
       fnormalizationRight(-100) {
   // TODO Auto-generated constructor stub
-
+  TH1::AddDirectory(kFALSE);
+  TH2::AddDirectory(kFALSE);
 }
 
 CATSInput::~CATSInput() {
@@ -38,6 +39,13 @@ CATSInput::~CATSInput() {
   if (fCF_pL) delete fCF_pL;
   if (fCF_LL) delete fCF_LL;
   if (fCF_pXi) delete fCF_pXi;
+
+  for (auto it : fRes) {
+    if(it) delete it;
+  }
+  for (auto it : fSigma) {
+    if(it) delete it;
+  }
 
 }
 
@@ -55,8 +63,10 @@ void CATSInput::ReadResFile() {
     std::vector<const char*> FileNames = { "hRes_pp_pL", "hRes_pL_pSigma0",
         "hRes_pL_pXim", "hRes_pXim_pXim1530" };
     for (auto it : FileNames) {
-      if (FileRes->Get(it)) {
-        inputHist.push_back((TH2F*) FileRes->Get(it));
+      auto hist = (TH2F*)FileRes->Get(it);
+      if (hist) {
+        inputHist.push_back((TH2F*) hist->Clone(Form("%s_clone", hist->GetName())));
+        delete hist;
       } else {
         std::cout << it << " histogram not found \n";
       }
@@ -86,8 +96,11 @@ void CATSInput::ReadResFile() {
         }
       }
       fRes.push_back(tmpResMeV);
+      delete it;
     }
   }
+  FileRes->Close();
+  delete FileRes;
   return;
 }
 
@@ -105,8 +118,10 @@ void CATSInput::ReadSigmaFile() {
         "hSigmaMeV_Proton_Lambda", "hSigmaMeV_Lambda_Lambda",
         "hSigmaMeV_Proton_Xim" };
     for (auto it : FileNames) {
-      if (FileSigma->Get(it)) {
-        inputHist.push_back((TH2F*) FileSigma->Get(it));
+      auto hist = (TH2F*)FileSigma->Get(it);
+      if (hist) {
+        inputHist.push_back((TH2F*) hist->Clone(Form("%s_clone", hist->GetName())));
+        delete hist;
       } else {
         std::cout << it << " histogram not found \n";
       }
@@ -136,8 +151,11 @@ void CATSInput::ReadSigmaFile() {
         }
       }
       fSigma.push_back(tmpSigmaMeV);
+      delete it;
     }
   }
+  FileSigma->Close();
+  delete FileSigma;
   return;
 }
 

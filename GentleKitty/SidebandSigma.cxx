@@ -9,6 +9,10 @@ SidebandSigma::SidebandSigma()
     : fAnalysisFile() {
 }
 
+SidebandSigma::~SidebandSigma() {
+    delete fAnalysisFile;
+}
+
 void SidebandSigma::SetSideBandFile(const char* path, const char* suffix) {
   TString filename = Form("%s/AnalysisResults.root", path);
   fAnalysisFile = new ReadDreamFile(12, 12);

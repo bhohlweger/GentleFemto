@@ -8,6 +8,9 @@ CATSInputSigma0::CATSInputSigma0()
 }
 
 CATSInputSigma0::~CATSInputSigma0() {
+  delete fCF_pSigma;
+  delete fCF_SidebandUp;
+  delete fCF_SidebandLow;
 }
 
 void CATSInputSigma0::ReadSigma0CorrelationFile(const char* path,
