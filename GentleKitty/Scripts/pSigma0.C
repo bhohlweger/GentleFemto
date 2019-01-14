@@ -259,9 +259,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
         DLM_Ck* Ck_SideBand = new DLM_Ck(0, nSidebandPars, NumMomBins_pSigma,
                                          kMin_pSigma, kMax_pSigma,
                                          sidebandFitCATS);
-        std::cout << "Result of the sideband fit\n";
+
         for (unsigned i = 0; i < sideband->GetNumberFreeParameters(); ++i) {
-          std::cout << i << " " << sideband->GetParameter(i) << std::endl;
+          if (!batchmode) {
+            std::cout << i << " " << sideband->GetParameter(i) << std::endl;
+          }
           Ck_SideBand->SetPotPar(i, sideband->GetParameter(i));
         }
         Ck_SideBand->Update();
@@ -273,7 +275,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
           for (size_t lambdaIter = 0; lambdaIter < lambdaParams.size();
               ++lambdaIter) {
 
-            std::cout << "Processing iteration " << iterID << "\n";
+            if (!batchmode) {
+              std::cout << "Processing iteration " << iterID << "\n";
+            }
 
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             /// Correlation function
@@ -534,6 +538,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
               if (!batchmode) {
                 e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
               }
+
+              delete c;
+              delete info;
+              delete d;
+              delete e;
             }
 
             param->cd();
@@ -594,5 +603,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
   ntResult->Write();
   param->Close();
+
+  delete side;
+  delete CATSinput;
+  delete ntResult;
+  delete param;
+  delete tidy;
   return;
 }
