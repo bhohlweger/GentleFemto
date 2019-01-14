@@ -25,11 +25,9 @@
 #include <vector>
 
 void PlotPotentials() {
-  TidyCats* tidy = new TidyCats();
-  CATSInput *CATSinput = new CATSInput();
 //  std::vector<float> cutOffValues = { 0. };
-  std::vector<float> cutOffValues = { 0., 0.1, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.8, 0.9, 1.0,
-      1.1, 1.3, 1.5, 2.0};
+  std::vector<float> cutOffValues = { 0., 0.1, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7,
+      0.8, 0.9, 1.0, 1.1, 1.3, 1.5, 2.0 };
 //  std::vector<float> cutOffValues = { 0.3, 0.7, 1.0, 1.02, 1.06, 1.1, 1.3, 5.0 };
   const int nCutOffs = cutOffValues.size();
   TH1F* CF_I0S0[nCutOffs];
@@ -52,7 +50,7 @@ void PlotPotentials() {
   int RadBins = 1000;
   float rMin = 0.;
   float rMax = 10.;
-  float dRad = (rMax - rMin)/(float)RadBins;
+  float dRad = (rMax - rMin) / (float) RadBins;
   int momBins = 80;
   float kMin = 0.;
   float kMax = 400;
@@ -80,27 +78,15 @@ void PlotPotentials() {
   ListI1S1->SetName("I1S1");
 
   for (auto it : cutOffValues) {
-    int COLORMEBLIND = 2 + 10 * iCutOff;
-    if (COLORMEBLIND > 100) {
-      COLORMEBLIND -= 99;
-    }
-//    int COLORMEBLIND = 1 + iCutOff;
+    int COLORMEBLIND = 51 + 3 * iCutOff;
     double pXimPotParsI0S0[11] = { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0,
         0, it };
     double pXimPotParsI0S1[11] = { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0,
         1, it };
-    double pXimPotParsI1S0[11] =
-        { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0, it };
-    double pXimPotParsI1S1[11] =
-        { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1, it };
-//    static double pXimPotParsI0S0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 0, 0,
-//        0 };
-//    static double pXimPotParsI0S1[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
-//        0 };
-//    static double pXimPotParsI1S0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
-//        1 };
-//    static double pXimPotParsI1S1[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
-//        2 };
+    double pXimPotParsI1S0[11] = { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0,
+        0, it };
+    double pXimPotParsI1S1[11] = { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0,
+        1, it };
 
     TString I0S0HistName = Form("hI0S0_%.2f", it);
     TString I0S0HistTitle = Form("I0S0");
@@ -217,28 +203,10 @@ void PlotPotentials() {
     AB_pXim_I1S1.KillTheCat();
 
     for (int ikS = 0; ikS < momBins; ++ikS) {
-//      std::cout << "=======" << ikS << "======= \n";
-//      std::cout << "GetCorrFunction: " << AB_pXim_I0S0.GetCorrFun(ikS + 1)
-//                << std::endl;
-//      std::cout
-//          << "EvalBinnedFun: "
-//          << AB_pXim_I0S0.EvalCorrFun(CF_I0S0[iCutOff]->GetBinCenter(ikS + 1))
-//          << std::endl;
       CF_I0S0[iCutOff]->SetBinContent(ikS + 1, AB_pXim_I0S0.GetCorrFun(ikS));
       CF_I0S1[iCutOff]->SetBinContent(ikS + 1, AB_pXim_I0S1.GetCorrFun(ikS));
       CF_I1S0[iCutOff]->SetBinContent(ikS + 1, AB_pXim_I1S0.GetCorrFun(ikS));
       CF_I1S1[iCutOff]->SetBinContent(ikS + 1, AB_pXim_I1S1.GetCorrFun(ikS));
-
-//      for (int iRad = 0; iRad < RadBins; ++iRad) {
-//        complex<double> I0S0WF = AB_pXim_I0S0.EvalRadialWaveFunction(ikS,0,0,dRad*iRad,false);
-//        CF_I0S0WaveFunction[iCutOff]->SetBinContent(ikS+1,iRad+1,norm(I0S0WF));
-//        complex<double> I0S1WF = AB_pXim_I0S1.EvalRadialWaveFunction(ikS,0,0,dRad*iRad,false);
-//        CF_I0S1WaveFunction[iCutOff]->SetBinContent(ikS+1,iRad+1,norm(I0S1WF));
-//        complex<double> I1S0WF = AB_pXim_I1S0.EvalRadialWaveFunction(ikS,0,0,dRad*iRad,false);
-//        CF_I1S0WaveFunction[iCutOff]->SetBinContent(ikS+1,iRad+1,norm(I1S0WF));
-//        complex<double> I1S1WF = AB_pXim_I1S1.EvalRadialWaveFunction(ikS,0,0,dRad*iRad,false);
-//        CF_I1S1WaveFunction[iCutOff]->SetBinContent(ikS+1,iRad+1,norm(I1S1WF));
-//      }
     }
     c1->cd();
 //    CF_I0S0[iCutOff]->GetYaxis()->SetRangeUser(0.8, 3.5);
@@ -257,7 +225,6 @@ void PlotPotentials() {
     }
     outfile->cd();
     ListI0S0->Add(CF_I0S0[iCutOff]);
-//    ListI0S0->Add(CF_I0S0WaveFunction[iCutOff]);
 
     c2->cd();
     CF_I0S1[iCutOff]->GetYaxis()->SetRangeUser(0.95, 1.8);
@@ -277,7 +244,6 @@ void PlotPotentials() {
 
     outfile->cd();
     ListI0S1->Add(CF_I0S1[iCutOff]);
-//    ListI0S1->Add(CF_I0S1WaveFunction[iCutOff]);
 
     c3->cd();
     CF_I1S0[iCutOff]->GetYaxis()->SetRangeUser(0.95, 1.4);
@@ -296,7 +262,6 @@ void PlotPotentials() {
     }
     outfile->cd();
     ListI1S0->Add(CF_I1S0[iCutOff]);
-//    ListI1S0->Add(CF_I1S0WaveFunction[iCutOff]);
 
     c4->cd();
     CF_I1S1[iCutOff]->GetYaxis()->SetRangeUser(0.95, 1.5);
@@ -315,10 +280,8 @@ void PlotPotentials() {
     }
     outfile->cd();
     ListI1S1->Add(CF_I1S1[iCutOff]);
-//    ListI1S1->Add(CF_I1S1WaveFunction[iCutOff]);
 
-    leg.AddEntry(CF_I0S1[iCutOff], TString::Format("Cut off %.2f", it),
-                 "lp");
+    leg.AddEntry(CF_I0S1[iCutOff], TString::Format("Cut off %.2f", it), "lp");
 
     iCutOff++;
   }
@@ -348,8 +311,276 @@ void PlotPotentials() {
   return;
 }
 
-int main(int argc, char *argv[]) {
+void PlotPotentialSum() {
+//  std::vector<float> cutOffValues = { 0. };
+  std::vector<float> cutOffValues = { 0., 0.1, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7,
+      0.8, 0.9, 1.0, 1.1, 1.3, 1.5, 2.0 };
+//  std::vector<float> cutOffValues = { 0.3, 0.7, 1.0, 1.02, 1.06, 1.1, 1.3, 5.0 };
+  const int nCutOffs = cutOffValues.size();
+  TH1F* CF_Sum[nCutOffs];
+  TH1F* CF_SumLambda[nCutOffs];
+  TH1F* CF_Strong[nCutOffs];
+  TH1F* CF_StrongLambda[nCutOffs];
+  TLine one = TLine(0., 1., 400., 1.);
+  double QCDTime = 11;
+//4th argument is the t parameter and can be:
+// 9, 10, 11, 12
 
+  const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
+      * 1000;
+  const double Mass_Xim = TDatabasePDG::Instance()->GetParticle(3312)->Mass()
+      * 1000;
+  int RadBins = 1000;
+  float rMin = 0.;
+  float rMax = 10.;
+  float dRad = (rMax - rMin) / (float) RadBins;
+  int momBins = 80;
+  float kMin = 0.;
+  float kMax = 400;
+  int iCutOff = 0;
+  TFile* outfile = TFile::Open("output.root", "update");
+  auto c1 = new TCanvas("cSum", "cSum");
+  auto c11 = new TCanvas("cSumLambda", "cSumLambda");
+  auto c2 = new TCanvas("cStrong", "cStrong");
+  auto c22 = new TCanvas("cStrongLambda", "cStrongLambda");
+
+  TList *ListSum = new TList();
+  ListSum->SetOwner();
+  ListSum->SetName("Sum");
+
+  TList *ListStrong = new TList();
+  ListStrong->SetOwner();
+  ListStrong->SetName("Strong");
+
+  TLegend leg(0.7, 0.5, 0.9, 0.9);
+
+  for (auto it : cutOffValues) {
+    int COLORMEBLIND = 51 + 3*iCutOff;
+    double pXimPotParsI0S0[11] = { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0,
+        0, it };
+    double pXimPotParsI0S1[11] = { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0,
+        1, it };
+    double pXimPotParsI1S0[11] = { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0,
+        0, it };
+    double pXimPotParsI1S1[11] = { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0,
+        1, it };
+
+    TString SumHistName = Form("Sum_%.2f", it);
+    TString SumHistTitle = Form("Sum");
+    CF_Sum[iCutOff] = new TH1F(SumHistName.Data(), SumHistTitle.Data(), momBins,
+                               kMin, kMax);
+    SumHistName += "Lambda";
+    SumHistTitle += "Lambda";
+    CF_SumLambda[iCutOff] = new TH1F(SumHistName.Data(), SumHistTitle.Data(),
+                                     momBins, kMin, kMax);
+
+    TString StrongHistName = Form("Strong_%.2f", it);
+    TString StrongHistTitle = Form("Strong");
+    CF_Strong[iCutOff] = new TH1F(StrongHistName.Data(), StrongHistTitle.Data(),
+                                  momBins, kMin, kMax);
+    StrongHistName += "Lambda";
+    StrongHistTitle += "Lambda";
+    CF_StrongLambda[iCutOff] = new TH1F(StrongHistName.Data(),
+                                        StrongHistTitle.Data(), momBins, kMin,
+                                        kMax);
+
+    double GaussSourceSize = 1.4;
+
+    CATS AB_pXimSum;
+    double Pars_pXiSum[4] = { 0, 0, 0, GaussSourceSize };
+    AB_pXimSum.SetAnaSource(GaussSource, Pars_pXiSum);
+    AB_pXimSum.SetUseAnalyticSource(true);
+    AB_pXimSum.SetThetaDependentSource(false);
+    AB_pXimSum.SetExcludeFailedBins(false);
+    AB_pXimSum.SetMomBins(momBins, kMin, kMax);
+
+    AB_pXimSum.SetNumChannels(1);
+    AB_pXimSum.SetNumPW(0, 1);
+    AB_pXimSum.SetSpin(0, 0);    //I=0; S=0
+    AB_pXimSum.SetChannelWeight(0, 1);
+
+    AB_pXimSum.SetNumChannels(4);
+    AB_pXimSum.SetNumPW(0, 1);
+    AB_pXimSum.SetNumPW(1, 1);
+    AB_pXimSum.SetNumPW(2, 1);
+    AB_pXimSum.SetNumPW(3, 1);
+    AB_pXimSum.SetSpin(0, 0);    //I=0; S=0
+    AB_pXimSum.SetSpin(1, 1);    //I=0; S=1
+    AB_pXimSum.SetSpin(2, 0);    //I=1; S=0
+    AB_pXimSum.SetSpin(3, 1);    //I=1; S=1
+    AB_pXimSum.SetChannelWeight(0, 1. / 8.);
+    AB_pXimSum.SetChannelWeight(1, 3. / 8.);
+    AB_pXimSum.SetChannelWeight(2, 1. / 8.);
+    AB_pXimSum.SetChannelWeight(3, 3. / 8.);
+
+    AB_pXimSum.SetQ1Q2(-1);
+    AB_pXimSum.SetPdgId(2212, 3122);
+    AB_pXimSum.SetRedMass((Mass_p * Mass_Xim) / (Mass_p + Mass_Xim));
+    AB_pXimSum.SetMaxRad(64);
+    AB_pXimSum.SetMaxRho(32);
+    AB_pXimSum.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI0S0);
+    AB_pXimSum.SetShortRangePotential(1, 0, fDlmPot, pXimPotParsI0S1);
+    AB_pXimSum.SetShortRangePotential(2, 0, fDlmPot, pXimPotParsI1S0);
+    AB_pXimSum.SetShortRangePotential(3, 0, fDlmPot, pXimPotParsI1S1);
+
+    AB_pXimSum.KillTheCat();
+
+    CATS AB_pXimStrong;
+    double Pars_pXiStrong[4] = { 0, 0, 0, GaussSourceSize };
+    AB_pXimStrong.SetAnaSource(GaussSource, Pars_pXiStrong);
+    AB_pXimStrong.SetUseAnalyticSource(true);
+    AB_pXimStrong.SetThetaDependentSource(false);
+    AB_pXimStrong.SetExcludeFailedBins(false);
+    AB_pXimStrong.SetMomBins(momBins, kMin, kMax);
+
+    AB_pXimStrong.SetNumChannels(1);
+    AB_pXimStrong.SetNumPW(0, 1);
+    AB_pXimStrong.SetSpin(0, 0);    //I=0; S=0
+    AB_pXimStrong.SetChannelWeight(0, 1);
+
+    AB_pXimStrong.SetNumChannels(4);
+    AB_pXimStrong.SetNumPW(0, 1);
+    AB_pXimStrong.SetNumPW(1, 1);
+    AB_pXimStrong.SetNumPW(2, 1);
+    AB_pXimStrong.SetNumPW(3, 1);
+    AB_pXimStrong.SetSpin(0, 0);    //I=0; S=0
+    AB_pXimStrong.SetSpin(1, 1);    //I=0; S=1
+    AB_pXimStrong.SetSpin(2, 0);    //I=1; S=0
+    AB_pXimStrong.SetSpin(3, 1);    //I=1; S=1
+    AB_pXimStrong.SetChannelWeight(0, 1. / 8.);
+    AB_pXimStrong.SetChannelWeight(1, 3. / 8.);
+    AB_pXimStrong.SetChannelWeight(2, 1. / 8.);
+    AB_pXimStrong.SetChannelWeight(3, 3. / 8.);
+
+    AB_pXimStrong.SetQ1Q2(0);
+    AB_pXimStrong.SetPdgId(2212, 3122);
+    AB_pXimStrong.SetRedMass((Mass_p * Mass_Xim) / (Mass_p + Mass_Xim));
+    AB_pXimStrong.SetMaxRad(64);
+    AB_pXimStrong.SetMaxRho(32);
+    AB_pXimStrong.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI0S0);
+    AB_pXimStrong.SetShortRangePotential(1, 0, fDlmPot, pXimPotParsI0S1);
+    AB_pXimStrong.SetShortRangePotential(2, 0, fDlmPot, pXimPotParsI1S0);
+    AB_pXimStrong.SetShortRangePotential(3, 0, fDlmPot, pXimPotParsI1S1);
+
+    AB_pXimStrong.KillTheCat();
+
+    double lampXi = 0.513;
+    for (int ikS = 0; ikS < momBins; ++ikS) {
+      CF_Sum[iCutOff]->SetBinContent(ikS + 1, AB_pXimSum.GetCorrFun(ikS));
+      CF_SumLambda[iCutOff]->SetBinContent(
+          ikS + 1, lampXi * (AB_pXimSum.GetCorrFun(ikS) - 1) + 1);
+      CF_Strong[iCutOff]->SetBinContent(ikS + 1, AB_pXimStrong.GetCorrFun(ikS));
+      CF_StrongLambda[iCutOff]->SetBinContent(
+          ikS + 1, lampXi * (AB_pXimStrong.GetCorrFun(ikS) - 1) + 1);
+    }
+    c1->cd();
+    CF_Sum[iCutOff]->GetYaxis()->SetRangeUser(
+        0.8, CF_Sum[iCutOff]->GetMaximum() * 1.5);
+    CF_Sum[iCutOff]->GetXaxis()->SetRangeUser(0., 400.);
+    CF_Sum[iCutOff]->SetStats(0);
+    CF_Sum[iCutOff]->SetLineWidth(1);
+    CF_Sum[iCutOff]->SetLineColor(COLORMEBLIND);
+    CF_Sum[iCutOff]->SetMarkerStyle(24);
+    CF_Sum[iCutOff]->SetMarkerColor(COLORMEBLIND);
+    CF_Sum[iCutOff]->SetMarkerSize(1);
+    if (iCutOff == 0) {
+      CF_Sum[iCutOff]->Draw("L");
+      one.Draw("SAME");
+    } else {
+      CF_Sum[iCutOff]->Draw("LSAME");
+    }
+    outfile->cd();
+    ListSum->Add(CF_Sum[iCutOff]);
+
+    c2->cd();
+    CF_Strong[iCutOff]->GetYaxis()->SetRangeUser(
+        0.8, CF_Strong[iCutOff]->GetMaximum() * 1.5);
+    CF_Strong[iCutOff]->GetXaxis()->SetRangeUser(0., 400.);
+    CF_Strong[iCutOff]->SetStats(0);
+    CF_Strong[iCutOff]->SetLineWidth(1);
+    CF_Strong[iCutOff]->SetLineColor(COLORMEBLIND);
+    CF_Strong[iCutOff]->SetMarkerStyle(24);
+    CF_Strong[iCutOff]->SetMarkerColor(COLORMEBLIND);
+    CF_Strong[iCutOff]->SetMarkerSize(1);
+    if (iCutOff == 0) {
+      CF_Strong[iCutOff]->Draw("L");
+      one.Draw("SAME");
+    } else {
+      CF_Strong[iCutOff]->Draw("LSAME");
+    }
+    outfile->cd();
+    ListStrong->Add(CF_Strong[iCutOff]);
+
+    c11->cd();
+    CF_SumLambda[iCutOff]->GetYaxis()->SetRangeUser(
+        0.8, CF_SumLambda[iCutOff]->GetMaximum() * 1.5);
+    CF_SumLambda[iCutOff]->GetXaxis()->SetRangeUser(0., 400.);
+    CF_SumLambda[iCutOff]->SetStats(0);
+    CF_SumLambda[iCutOff]->SetLineWidth(1);
+    CF_SumLambda[iCutOff]->SetLineColor(COLORMEBLIND);
+    CF_SumLambda[iCutOff]->SetMarkerStyle(24);
+    CF_SumLambda[iCutOff]->SetMarkerColor(COLORMEBLIND);
+    CF_SumLambda[iCutOff]->SetMarkerSize(1);
+    if (iCutOff == 0) {
+      CF_SumLambda[iCutOff]->Draw("L");
+      one.Draw("SAME");
+    } else {
+      CF_SumLambda[iCutOff]->Draw("LSAME");
+    }
+    outfile->cd();
+    ListSum->Add(CF_SumLambda[iCutOff]);
+
+    c22->cd();
+    CF_StrongLambda[iCutOff]->GetYaxis()->SetRangeUser(
+        0.8, CF_StrongLambda[iCutOff]->GetMaximum() * 1.5);
+    CF_StrongLambda[iCutOff]->GetXaxis()->SetRangeUser(0., 400.);
+    CF_StrongLambda[iCutOff]->SetStats(0);
+    CF_StrongLambda[iCutOff]->SetLineWidth(1);
+    CF_StrongLambda[iCutOff]->SetLineColor(COLORMEBLIND);
+    CF_StrongLambda[iCutOff]->SetMarkerStyle(24);
+    CF_StrongLambda[iCutOff]->SetMarkerColor(COLORMEBLIND);
+    CF_StrongLambda[iCutOff]->SetMarkerSize(1);
+    if (iCutOff == 0) {
+      CF_StrongLambda[iCutOff]->Draw("L");
+      one.Draw("SAME");
+    } else {
+      CF_StrongLambda[iCutOff]->Draw("LSAME");
+    }
+    outfile->cd();
+    ListStrong->Add(CF_StrongLambda[iCutOff]);
+
+    leg.AddEntry(CF_Sum[iCutOff], TString::Format("Cut off %.2f", it), "lp");
+
+    iCutOff++;
+  }
+  outfile->cd();
+  c1->cd();
+  leg.Draw("same");
+  c1->Write();
+  c1->SaveAs("CkSum.pdf");
+  c2->cd();
+  leg.Draw("same");
+  c2->Write();
+  c2->SaveAs("CkStrong.pdf");
+
+  c11->cd();
+  leg.Draw("same");
+  c11->Write();
+  c1->SaveAs("CkSumLambda.pdf");
+  c22->cd();
+  leg.Draw("same");
+  c22->Write();
+  c22->SaveAs("CkStrongLambda.pdf");
+
+  outfile->cd();
+  ListSum->Write("SumWithCoulomb", 1);
+  ListStrong->Write("SumWithoutCoulomb", 1);
+  outfile->Close();
+  return;
+}
+
+int main(int argc, char *argv[]) {
   PlotPotentials();
+  PlotPotentialSum();
   return 0;
 }
