@@ -16,7 +16,6 @@
 #include "TLegend.h"
 #include <iostream>
 
-bool batchmode = true;
 const int tupleLength = 14;
 
 void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
@@ -78,6 +77,8 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
 void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
                TString varFolder, const bool& isExclusion, const float d0,
                const float f0inv) {
+  bool batchmode = true;
+
   DreamPlot::SetStyle();
   CATSInputSigma0 *CATSinput = new CATSInputSigma0();
   CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), appendix.Data());
@@ -155,13 +156,12 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   if (!batchmode) {
     if (isExclusion) {
       c1->Print(
-          Form("%s/CF_pSigma_model_%.3f_%.3f.pdf", varFolder.Data(), d0, f0inv));
+          Form("%s/CF_pSigma_model_%.3f_%.3f.pdf", varFolder.Data(), d0,
+               f0inv));
     } else {
       c1->Print(Form("%s/CF_pSigma_model.pdf", varFolder.Data()));
     }
-  }
-  CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
-  if (!batchmode) {
+    CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
     if (isExclusion) {
       c1->Print(
           Form("%s/CF_pSigma_model_zoom_%.3f_%.3f.pdf", varFolder.Data(), d0,
@@ -243,7 +243,8 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
 
   if (!batchmode) {
     if (isExclusion) {
-      c->Print(Form("%s/CF_pSigma_fit_%.3f_%.3f.pdf", varFolder.Data(), d0, f0inv));
+      c->Print(
+          Form("%s/CF_pSigma_fit_%.3f_%.3f.pdf", varFolder.Data(), d0, f0inv));
     } else {
       c->Print(Form("%s/CF_pSigma_fit.pdf", varFolder.Data()));
     }
@@ -251,13 +252,4 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   c->Write();
   grCF->Write();
   grSidebands->Write();
-
-}
-
-// =========================================
-// main
-int main(int argc, char *argv[]) {
-  DrawSigma(atoi(argv[1]), argv[2], argv[3], argv[4], atoi(argv[5]),
-            atof(argv[6]), atof(argv[7]));
-  return 0;
 }
