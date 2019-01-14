@@ -252,4 +252,14 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   c->Write();
   grCF->Write();
   grSidebands->Write();
+
+  delete leg;
+  delete histDummy;
+  delete c;
+  delete grSidebands;
+  delete grCF;
+  delete c1;
+  delete sideband;
+  delete fit;
+  delete CATSinput;
 }
