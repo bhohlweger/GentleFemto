@@ -22,8 +22,6 @@
 #include "DreamPlot.h"
 #include "TNtuple.h"
 
-bool batchmode = true;
-
 /// Number of parameters for the sideband fit
 const int nSidebandPars = 6;
 
@@ -48,6 +46,8 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
                TString OutputDir, const bool& isExclusion, const float d0,
                const float f0inv) {
+  bool batchmode = true;
+
   DreamPlot::SetStyle();
   bool fastPlot = (NumIter == 0) ? true : false;
   TRandom3 rangen(0);
@@ -595,11 +595,4 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
   ntResult->Write();
   param->Close();
   return;
-}
-
-/// =====================================================================================
-int main(int argc, char *argv[]) {
-  FitSigma0(atoi(argv[1]), argv[2], argv[3], argv[4], atoi(argv[5]),
-            atof(argv[6]), atof(argv[7]));
-  return 0;
 }
