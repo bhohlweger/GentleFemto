@@ -54,6 +54,7 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/CATSInput.cxx
   ${PROJECT_SOURCE_DIR}/CATSInputSigma0.cxx
   ${PROJECT_SOURCE_DIR}/CATSLambdaParam.cxx
+  ${PROJECT_SOURCE_DIR}/PlayWithCats.cxx
   ${PROJECT_SOURCE_DIR}/SideBandFit.cxx
   ${PROJECT_SOURCE_DIR}/SidebandSigma.cxx
   )
@@ -63,6 +64,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/CATSInput.h
   ${PROJECT_SOURCE_DIR}/CATSInputSigma0.h
   ${PROJECT_SOURCE_DIR}/CATSLambdaParam.h
+  ${PROJECT_SOURCE_DIR}/PlayWithCats.h
   ${PROJECT_SOURCE_DIR}/SideBandFit.h
   ${PROJECT_SOURCE_DIR}/SidebandSigma.h
   )
