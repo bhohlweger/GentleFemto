@@ -15,7 +15,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${binFolder}/DreamFunctions)
 include_directories(${CMAKE_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${ROOT_INCLUDE_DIRS})
 add_definitions(${ROOT_CXX_FLAGS})
 
-
 set(SRCS
   ${PROJECT_SOURCE_DIR}/DreamCF.cxx
   ${PROJECT_SOURCE_DIR}/DreamData.cxx
@@ -23,6 +22,7 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/DreamKayTee.cxx
   ${PROJECT_SOURCE_DIR}/DreamPair.cxx
   ${PROJECT_SOURCE_DIR}/DreamPlot.cxx
+  ${PROJECT_SOURCE_DIR}/DreamSystematics.cxx
   ${PROJECT_SOURCE_DIR}/ReadDreamFile.cxx
   ${PROJECT_SOURCE_DIR}/global.cxx
   )
@@ -34,6 +34,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/DreamKayTee.h
   ${PROJECT_SOURCE_DIR}/DreamPair.h
   ${PROJECT_SOURCE_DIR}/DreamPlot.h
+  ${PROJECT_SOURCE_DIR}/DreamSystematics.h
   ${PROJECT_SOURCE_DIR}/ReadDreamFile.h
   ${PROJECT_SOURCE_DIR}/global.h
   )
