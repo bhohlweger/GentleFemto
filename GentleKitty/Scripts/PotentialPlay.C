@@ -1,4 +1,5 @@
 #include "DLM_Source.h"
+#include "TLatex.h"
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
 #include "CATS.h"
@@ -373,7 +374,10 @@ void PlotPotentials() {
   CF_I0S1->Draw("lsame");
   CF_I1S0->Draw("lsame");
   CF_I1S1->Draw("lsame");
-
+  TLatex Numbering;
+  Numbering.SetTextSize(gStyle->GetTextSize() * 2.0);
+  Numbering.SetNDC(kTRUE);
+  Numbering.DrawLatex( 0.5 , 0.7, "#it{r}_{Gauss} = 1.4 fm");
   leg2.AddEntry(CF_I0S0," ", "l");
   leg2.AddEntry(CF_I0S1," ", "l");
   leg2.AddEntry(CF_I1S0," ", "l");
