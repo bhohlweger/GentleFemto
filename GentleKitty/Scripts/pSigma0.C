@@ -294,7 +294,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
                                                *Ck_SideBand, nullptr);
             CkDec_pSigma0.AddContribution(
                 0,
-                lambdaParams[lambdaIter].GetLambdaParam(CATSLambdaParam::Fake),
+                lambdaParams[lambdaIter].GetLambdaParam(
+                    CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0),
                 DLM_CkDecomposition::cFake, &CkDec_SideBand);
             CkDec_pSigma0.Update();
 
@@ -422,7 +423,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
                   Ck_pSigma0->GetBinCenter(i),
                   ((Ck_SideBand->Eval(Ck_pSigma0->GetBinCenter(i)) - 1.)
                       * lambdaParams[lambdaIter].GetLambdaParam(
-                          CATSLambdaParam::Fake)) + 1);
+                          CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0))
+                      + 1);
             }
 
             param->cd();
@@ -569,7 +571,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             ntBuffer[20] = lambdaParams[lambdaIter].GetLambdaParam(
                 CATSLambdaParam::Primary);
             ntBuffer[21] = lambdaParams[lambdaIter].GetLambdaParam(
-                CATSLambdaParam::Fake);
+                CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
             ntBuffer[22] = sidebandNormDown[sbNormIter];
             ntBuffer[23] = sidebandNormUp[sbNormIter];
             ntBuffer[24] = chi2;
