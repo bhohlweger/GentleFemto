@@ -9,7 +9,7 @@ class CATSInputSigma0 : public CATSInput{
   virtual ~CATSInputSigma0();
 
   void ReadSigma0CorrelationFile(const char* path, const char* appendix = "0");
-  void ObtainCFs(int rebin, float normleft, float normright);
+  void ObtainCFs(int rebin, float normleft, float normright, int rebinSyst = 1);
   TH1F* GetCF(TString pair, TString hist);
  private:
   DreamCF* fCF_pSigma;

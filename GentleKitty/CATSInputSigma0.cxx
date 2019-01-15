@@ -21,7 +21,8 @@ void CATSInputSigma0::ReadSigma0CorrelationFile(const char* path,
   return;
 }
 
-void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright) {
+void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
+                                int rebinSyst) {
 //normleft & right in MeV!
   normleft /= 1000.;
   normright /= 1000.;
@@ -52,7 +53,6 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright) {
   DreamPair* pSiSBlow = new DreamPair("Part_SB_low", normleft, normright);
   DreamPair* ApaSiSBlow = new DreamPair("AntiPart_SB_low", normleft, normright);
 
-  std::cout << "Set pair\n";
   pp->SetPair(fDreamFile->GetPairDistributions(0, 0, ""));
   ApAp->SetPair(fDreamFile->GetPairDistributions(1, 1, ""));
 
@@ -105,17 +105,27 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright) {
                        ApASigma->GetPairShiftedEmpty(0), pSigma->GetFirstBin(),
                        ApASigma->GetFirstBin());
 
-  pSigma->Rebin(pSigma->GetPairFixShifted(0), rebin);
-  ApASigma->Rebin(ApASigma->GetPairFixShifted(0), rebin);
+  if (rebinSyst != 1) {
+    pp->Rebin(pp->GetPairFixShifted(0), rebinSyst);
+    ApAp->Rebin(ApAp->GetPairFixShifted(0), rebinSyst);
+  }
 
-  pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), rebin);
-  ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), rebin);
+  pSigma->Rebin(pSigma->GetPairFixShifted(0), rebin * rebinSyst);
+  ApASigma->Rebin(ApASigma->GetPairFixShifted(0), rebin * rebinSyst);
 
-  pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), rebin);
-  ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), rebin);
+  pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), rebin * rebinSyst);
+  ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), rebin * rebinSyst);
 
-  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
-  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+  pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), rebin * rebinSyst);
+  ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), rebin * rebinSyst);
+
+  if (rebinSyst != 1) {
+    pp->ReweightMixedEvent(pp->GetPairRebinned(0), 0.2, 0.9);
+    ApAp->ReweightMixedEvent(ApAp->GetPairRebinned(0), 0.2, 0.9);
+  } else {
+    pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+    ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+  }
 
   pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(0), 0.2, 0.9);
   ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(0), 0.2, 0.9);
@@ -147,7 +157,6 @@ TH1F* CATSInputSigma0::GetCF(TString pair, TString hist) {
     for (const auto &it : fCF_pp->GetCorrelationFunctions()) {
       TString itName = it->GetName();
       if (hist == itName) {
-        std::cout << it->GetName() << std::endl;
         output = it;
       }
     }
@@ -155,7 +164,6 @@ TH1F* CATSInputSigma0::GetCF(TString pair, TString hist) {
     for (const auto &it : fCF_pSigma->GetCorrelationFunctions()) {
       TString itName = it->GetName();
       if (hist == itName) {
-        std::cout << it->GetName() << std::endl;
         output = it;
       }
     }
@@ -163,7 +171,6 @@ TH1F* CATSInputSigma0::GetCF(TString pair, TString hist) {
     for (const auto &it : fCF_SidebandUp->GetCorrelationFunctions()) {
       TString itName = it->GetName();
       if (hist == itName) {
-        std::cout << it->GetName() << std::endl;
         output = it;
       }
     }
@@ -171,7 +178,6 @@ TH1F* CATSInputSigma0::GetCF(TString pair, TString hist) {
     for (const auto &it : fCF_SidebandLow->GetCorrelationFunctions()) {
       TString itName = it->GetName();
       if (hist == itName) {
-        std::cout << it->GetName() << std::endl;
         output = it;
       }
     }
