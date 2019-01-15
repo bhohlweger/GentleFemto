@@ -242,7 +242,7 @@ void DreamData::DrawInlet(TCanvas *c) {
   TPad *inset_pad = new TPad("insert", "insertPad", fXMinInlet, fYMinInlet,
                              fXMaxInlet, fYMaxInlet);
   inset_pad->SetTopMargin(0.01);
-  inset_pad->SetRightMargin(0.01);
+  inset_pad->SetRightMargin(0.05);
   inset_pad->SetBottomMargin(0.28);
   inset_pad->SetLeftMargin(0.28);
   inset_pad->SetFillStyle(4000);

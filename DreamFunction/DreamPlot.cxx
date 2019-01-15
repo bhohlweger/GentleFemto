@@ -319,19 +319,25 @@ void DreamPlot::DrawCorrelationFunctions() {
   TLatex ref;
   ref.SetTextSize(gStyle->GetTextSize() * 0.4);
   ref.SetNDC(kTRUE);
+//  TLatex Numbering;
+//  Numbering.SetTextSize(gStyle->GetTextSize() * 1.3);
+//  Numbering.SetNDC(kTRUE);
   TCanvas* c_PP = new TCanvas("CFpp", "CFpp", 0, 0, 650, 550);
   c_PP->SetRightMargin(right);
   c_PP->SetTopMargin(top);
   fProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p} pairs", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
   fProtonProton->SetRangePlotting(0, 200, 0.7, 3.);
-  fProtonProton->SetInletRangePlotting(50,350,0.94,1.06);
-  fProtonProton->SetInletCoordinates(0.5, 0.27, 0.95, 0.61);
+  fProtonProton->SetInletRangePlotting(50,200,0.94,1.06);
+  fProtonProton->SetInletCoordinates(0.35, 0.27, 0.95, 0.61);
   fProtonProton->SetNDivisions(505);
   fProtonProton->SetLegendCoordinates(
       0.5, 0.71 - 0.09 * fProtonProton->GetNumberOfModels(), 0.7, 0.8);
   fProtonProton->DrawCorrelationPlot(c_PP);
   DrawSystemInfo(c_PP);
+  c_PP->cd();
+//  Numbering.DrawLatex( 0.35,
+//                       0.9,"#bf{a)}");
   c_PP->SaveAs("CF_pp_Gauss_prelim.pdf");
 
   TCanvas* c_PL = new TCanvas("CFpL", "CFpL", 0, 0, 650, 550);
@@ -372,7 +378,6 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_pXi->SetTopMargin(top);
   fProtonXi->SetLegendName("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+} pairs",
                            "fpe");
-//  fProtonXi->SetLegendName("Coulomb + HAL-QCD I=0", "fl");
   fProtonXi->SetLegendName("Coulomb + HAL-QCD", "fl");
   fProtonXi->SetLegendName("Coulomb", "l");
   fProtonXi->SetLegendName("p-#Xi^{-} sideband background", "l");
@@ -383,12 +388,8 @@ void DreamPlot::DrawCorrelationFunctions() {
                                   0.7, 0.875);
   fProtonXi->DrawCorrelationPlot(c_pXi);
   DrawSystemInfo(c_pXi, false);
-//  if (fProtonXi->GetNumberOfModels() > 0) {
-//    ref.DrawLatex(
-//        0.5075,
-//        0.725 - 0.09 * fProtonXi->GetNumberOfModels(),
-//        "#splitline{#splitline{K. Sasaki and T. Miyamoto}{(HAL QCD Collaboration)}}{private communication}");
-//  }
+//  Numbering.DrawLatex( 0.35,
+//                       0.9,"#bf{b)}");
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
 
@@ -415,10 +416,11 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius) {
   text.SetTextSize(gStyle->GetTextSize() * 0.9);
   text.SetNDC();
   text.SetTextColor(1);
-  if (plotRadius)
+  if (plotRadius) {
     text.DrawLatex(
         0.5,
         0.825,
         Form("#it{r}_{p-p} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", fRadius,
              fRadiusStat, fRadiusSysUp, fRadiusSysLow));
+  }
 }
