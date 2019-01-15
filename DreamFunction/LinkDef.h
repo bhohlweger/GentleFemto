@@ -5,5 +5,6 @@
 #pragma link C++ class DreamPair;
 #pragma link C++ class DreamPlot;
 #pragma link C++ class DreamData;
+#pragma link C++ class DreamSystematics;
 #pragma link C++ class ReadDreamFile;
 #endif
