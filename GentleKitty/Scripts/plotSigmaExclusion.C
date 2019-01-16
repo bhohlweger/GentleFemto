@@ -5,6 +5,7 @@
 #include "DreamPlot.h"
 #include "TH2F.h"
 #include "TGraphAsymmErrors.h"
+#include "TDatabasePDG.h"
 
 void PlotSigmaExclusion(TString inputDir) {
   DreamPlot::SetStyle();
@@ -25,6 +26,8 @@ void PlotSigmaExclusion(TString inputDir) {
   contours[0] = 2.3;
   contours[1] = 6.18;
   contours[2] = 11.83;
+
+  const float massSigma = TDatabasePDG::Instance()->GetParticle(3212)->Mass();
 
   auto file = TFile::Open(TString::Format("%s/Result.root", inputDir.Data()));
   auto tuple = (TNtuple*) file->Get("exclusion");
@@ -83,18 +86,31 @@ void PlotSigmaExclusion(TString inputDir) {
   auto mapCFneg = new TH2F("mapCFneg",
                            ";1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm); CFneg",
                            200, -5, 5, 200, 0, 10);
+  auto mapBinding = new TH2F(
+      "mapBinding", ";B_{p#Sigma^{0}} (MeV); #it{d}_{0} (fm); #Delta#chi^{2}",
+      200, -5, 5, 100, 0, 5);
   const float delta = 1E-6;
 
   // Iterate over the data to obtain the results
   for (int i = 0; i < tuple->GetEntriesFast(); ++i) {
     tuple->GetEntry(i);
-    if(CFneg > 0) mapCFneg->Fill(f0inv + delta, d0 + delta, 1);
+    if (CFneg > 0)
+      mapCFneg->Fill(f0inv + delta, d0 + delta, 1);
     mapWorstChi2->Fill(f0inv + delta, d0 + delta, worstChi2);
     mapRelWorst->Fill(f0inv + delta, d0 + delta, worstChi2 - bestworstChi2);
     mapDefChi2->Fill(f0inv + delta, d0 + delta, defaultChi2);
     mapRelDef->Fill(f0inv + delta, d0 + delta, defaultChi2 - bestDefChi2);
     mapBestChi2->Fill(f0inv + delta, d0 + delta, bestChi2);
     mapRelBest->Fill(f0inv + delta, d0 + delta, bestChi2 - bestbestChi2);
+
+    // compute binding energy
+    if (f0inv > -1.5 && f0inv < 0 && d0 < 5) {
+      float binding = 1.f / massSigma * 1.f / (d0 * d0)
+          * (1.f - std::sqrt(1.f + 2.f * d0 * f0inv));
+      if (defaultChi2 - bestDefChi2 < contours[0]) {
+        mapBinding->Fill(binding, d0 + delta, 1);
+      }
+    }
   }
 
   // Get the lednicky sucks contour
@@ -130,7 +146,8 @@ void PlotSigmaExclusion(TString inputDir) {
   lednickyReallySucks->SetFillColor(kBlack);
   lednickyReallySucks->SetLineColorAlpha(kBlack, 0.7);
 
-  auto fileOut = new TFile(Form("%s/exclusionOutput.root", inputDir.Data()), "RECREATE");
+  auto fileOut = new TFile(Form("%s/exclusionOutput.root", inputDir.Data()),
+                           "RECREATE");
   fileOut->cd();
 
   auto cBestChi2 = new TCanvas();
@@ -211,7 +228,6 @@ void PlotSigmaExclusion(TString inputDir) {
   mapRelBest->Write("ExclusionBest");
   dBest->Write("ExclusionBestPlot");
 
-
   auto lednicky = new TCanvas();
   dBest->SetRightMargin(0.16);
   mapCFneg->Draw("colz");
@@ -225,6 +241,16 @@ void PlotSigmaExclusion(TString inputDir) {
   lednickyCont->Print(Form("%s/LednickyFailsCountour.pdf", inputDir.Data()));
   lednickyCont->Print(Form("%s/LednickyFailsCountour.png", inputDir.Data()));
   lednickyReallySucks->Write("LednickyFailsCountour");
+
+  auto dBinding = new TCanvas();
+  dBinding->SetRightMargin(0.16);
+  mapBinding->SetMaximum(25);
+  mapBinding->SetContour(3, contours);
+  mapBinding->Draw("colz");
+  dBinding->Print(Form("%s/Binding.pdf", inputDir.Data()));
+  dBinding->Print(Form("%s/Binding.png", inputDir.Data()));
+  mapBinding->Write("Binding");
+  dBinding->Write("BindingPlot");
 
   fileOut->Close();
   file->Close();
