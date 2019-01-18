@@ -123,27 +123,27 @@ void ReweightingQA(TList* PairList) {
       CanName += "_Rebinned_";
       CanName += RebinName;
       if (PairRebinnedList->FindObject(
-          Form("SEDist_%s_Shifted_FixShifted_Rebinned_%s", PartName.Data(),
+          Form("SEDist_%s_clone_Shifted_FixShifted_Rebinned_%s", PartName.Data(),
                RebinName.Data()))) {
         Pair = new DreamDist();
         Pair->SetSEDist(
             (TH1F*) PairRebinnedList->FindObject(
-                Form("SEDist_%s_Shifted_FixShifted_Rebinned_%s",
+                Form("SEDist_%s_clone_Shifted_FixShifted_Rebinned_%s",
                      PartName.Data(), RebinName.Data())),
             "_");
         Pair->SetSEMultDist(
             (TH2F*) PairRebinnedList->FindObject(
-                Form("SEMultDist_%s_Shifted_FixShifted_Rebinned_%s",
+                Form("SEMultDist_%s_clone_Shifted_FixShifted_Rebinned_%s",
                      PartName.Data(), RebinName.Data())),
             "_");
         Pair->SetMEDist(
             (TH1F*) PairRebinnedList->FindObject(
-                Form("MEDist_%s_Shifted_FixShifted_Rebinned_%s",
+                Form("MEDist_%s_clone_Shifted_FixShifted_Rebinned_%s",
                      PartName.Data(), RebinName.Data())),
             "_");
         Pair->SetMEMultDist(
             (TH2F*) PairRebinnedList->FindObject(
-                Form("MEMultDist_%s_Shifted_FixShifted_Rebinned_%s",
+                Form("MEMultDist_%s_clone_Shifted_FixShifted_Rebinned_%s",
                      PartName.Data(), RebinName.Data())),
             "_");
         Pair->Calculate_CF(0.2, 0.4);
@@ -151,36 +151,36 @@ void ReweightingQA(TList* PairList) {
         std::cout
             << "===========" << '\n' << "==Missing==" << '\n' << "==========="
             << '\n'
-            << Form("SEDist_%s_Rebinned_%s", PartName.Data(), RebinName.Data())
+            << Form("SEDist_%s_clone_Rebinned_%s", PartName.Data(), RebinName.Data())
             << std::endl;
       }
     } else {
       //else we don't rebinn, e.g. pp case, then take the original CF
       std::cout << Form("SEDist_%s", PartName.Data()) << std::endl;
       if (UntouchedPairList->FindObject(
-          Form("SEDist_%s_Shifted_FixShifted", PartName.Data()))) {
+          Form("SEDist_%s_clone_Shifted_FixShifted", PartName.Data()))) {
         Pair = new DreamDist();
         Pair->SetSEDist(
             (TH1F*) UntouchedPairList->FindObject(
-                Form("SEDist_%s_Shifted_FixShifted", PartName.Data())),
+                Form("SEDist_%s_clone_Shifted_FixShifted", PartName.Data())),
             "_");
         Pair->SetSEMultDist(
             (TH2F*) UntouchedPairList->FindObject(
-                Form("SEMultDist_%s_Shifted_FixShifted", PartName.Data())),
+                Form("SEMultDist_%s_clone_Shifted_FixShifted", PartName.Data())),
             "_");
         Pair->SetMEDist(
             (TH1F*) UntouchedPairList->FindObject(
-                Form("MEDist_%s_Shifted_FixShifted", PartName.Data())),
+                Form("MEDist_%s_clone_Shifted_FixShifted", PartName.Data())),
             "_");
         Pair->SetMEMultDist(
             (TH2F*) UntouchedPairList->FindObject(
-                Form("MEMultDist_%s_Shifted_FixShifted", PartName.Data())),
+                Form("MEMultDist_%s_clone_Shifted_FixShifted", PartName.Data())),
             "_");
         Pair->Calculate_CF(0.2, 0.4);
       } else {
         std::cout << "===========" << '\n' << "==Missing==" << '\n'
                   << "===========" << '\n'
-                  << Form("SEDist_%s_Shifted_FixShifted", PartName.Data())
+                  << Form("SEDist_%s_clone_Shifted_FixShifted", PartName.Data())
                   << std::endl;
       }
     }

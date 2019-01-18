@@ -101,23 +101,24 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       fSE[iPart1][iPart2] = nullptr;
       auto hist1D = (TH1F*) PartList->FindObject(
           Form("SEDist_%s", FolderName.Data()));
-      fSE[iPart1][iPart2] = (TH1F*) hist1D->Clone(
-          Form("%s_clone", hist1D->GetName()));
-      if (!fSE[iPart1][iPart2]) {
+      if (!hist1D) {
         std::cout << "SE Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
+      fSE[iPart1][iPart2] = (TH1F*) hist1D->Clone(
+          Form("%s_clone", hist1D->GetName()));
       fSE[iPart1][iPart2]->Sumw2();
 
       fSEMult[iPart1][iPart2] = nullptr;
       auto hist2D = (TH2F*) PartList->FindObject(
           Form("SEMultDist_%s", FolderName.Data()));
-      fSEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
-          Form("%s_clone", hist2D->GetName()));
-      if (!fSEMult[iPart1][iPart2]) {
+      if (!hist2D) {
         std::cout << "SEMult Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
+      fSEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
+          Form("%s_clone", hist2D->GetName()));
+
       fSEMult[iPart1][iPart2]->Sumw2();
       if (iPart1 == 1 && iPart2 == 5) {
         fSE[iPart1][iPart2]->SetBinContent(1, 0);
@@ -128,23 +129,25 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       fME[iPart1][iPart2] = nullptr;
       hist1D = (TH1F*) PartList->FindObject(
           Form("MEDist_%s", FolderName.Data()));
-      fME[iPart1][iPart2] = (TH1F*) hist1D->Clone(
-          Form("%s_clone", hist1D->GetName()));
-      if (!fME[iPart1][iPart2]) {
+      if (!hist1D) {
         std::cout << "ME Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
+      fME[iPart1][iPart2] = (TH1F*) hist1D->Clone(
+          Form("%s_clone", hist1D->GetName()));
+
       fME[iPart1][iPart2]->Sumw2();
 
       fMEMult[iPart1][iPart2] = nullptr;
       hist2D = (TH2F*) PartList->FindObject(
           Form("MEMultDist_%s", FolderName.Data()));
-      fMEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
-          Form("%s_clone", hist2D->GetName()));
-      if (!fMEMult[iPart1][iPart2]) {
+      if (!hist2D) {
         std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
+      fMEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
+          Form("%s_clone", hist2D->GetName()));
+
       fMEMult[iPart1][iPart2]->Sumw2();
     }
   }
