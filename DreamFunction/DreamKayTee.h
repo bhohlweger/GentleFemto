@@ -47,7 +47,7 @@ class DreamKayTee {
   void ObtainTheCorrelationFunction(const char* outFolder, const char* prefix =
                                         "MB",
                                     const char* pair = "pp");
-  void AveragekT();
+  void AveragekT(const char *pair);
   void SetSEMEReweightingRatio(const char* pathToFile, TString pair = "pp");
  private:
   bool fIskT;
