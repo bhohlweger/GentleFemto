@@ -54,7 +54,7 @@ PlayWithCats::~PlayWithCats() {
 
 void PlayWithCats::PlotPotentials() {
   std::vector<float> cutOffValues = { 0., 0.1, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7,
-      0.8, 0.9, 1.0, 1.1, 1.3, 1.5, 2.0 };
+      0.8, 0.9, 1.0, 1.1, 1.3, 1.5, 2.0, 5.0, 100. };
   const int nCutOffs = cutOffValues.size();
   TH1F* CF_I0S0[nCutOffs];
   TH1F* CF_I0S1[nCutOffs];

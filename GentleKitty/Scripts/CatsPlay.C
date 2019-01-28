@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
   catsPlay->GenerateDefault();
 //  catsPlay->ShiftBinning();
   catsPlay->GenerateCoulombOnly();
-//  catsPlay->PlotPotentials();
+  catsPlay->PlotPotentials();
   catsPlay->PlotPotentialSum();
 
   catsPlay->CloseFile();

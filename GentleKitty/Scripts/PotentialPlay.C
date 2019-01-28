@@ -119,7 +119,6 @@ void PlotPotentials() {
   int nRadBins = 600;
   double dRad = 0.005;
   double radMax = dRad * nRadBins;
-
   for (int iTime = 0; iTime < 3; ++iTime) {
     double QCDTime = 11 + iTime;
 
@@ -382,7 +381,6 @@ void PlotPotentials() {
   leg2.AddEntry(CF_I0S1," ", "l");
   leg2.AddEntry(CF_I1S0," ", "l");
   leg2.AddEntry(CF_I1S1," ", "l");
-
 
   c2->cd();
   leg2.Draw("SAME");
