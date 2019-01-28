@@ -212,15 +212,24 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
 
   TFile* GraphFile = new TFile(
       TString::Format("%s/GraphFile.root", OutputDir.Data()), "recreate");
+  TGraphErrors *AveragemT = (TGraphErrors*) inFile->Get("AveragemT");
+  if (!AveragemT) {
+    std::cout << "no average mT \n";
+    return;
+  }
+  const int nBinskT = numkTBins;
+  TGraphErrors* mTRadius = new TGraphErrors();
+  double testkT = 0;
+  double testkTErr = 0;
+  double valAvgmT = 0;
+  double valAvgmTErr = 0;
 
-  //you save a lot of stuff in an NTuple
-  TNtuple* ntResult = new TNtuple(
-      "ntResult", "ntResult", "ikT:Radius_pp:RadiusErr_pp:"
-      "pa_pp:paErr_pp:pb_pp:pbErr_pp:pCl_pp:pClErr_pp:"
-      "Chi2NdfGlobal:pval:Chi2NdfLocal");
   for (int ikT = 0; ikT < numkTBins; ++ikT) {
-    Float_t ntBuffer[12];
 
+    AveragemT->GetPoint(ikT, testkT, valAvgmT);
+    valAvgmTErr = AveragemT->GetErrorY(ikT);
+    std::cout << "ikT: " << ikT << " testmT: " << testkT << " valAvgmT: "
+              << valAvgmT << " Err: " << valAvgmTErr << std::endl;
     TidyCats* tidy = new TidyCats();
     //    double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2,
     //                  GaussSourceSize / 1.2, 0.5 };
@@ -391,33 +400,22 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
       Chi2_pp += (dataY - theoryY) * (dataY - theoryY) / (dataErr * dataErr);
       EffNumBins_pp++;
     }
-    std::cout << ikT<< std::endl;
-    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_sor0)<< std::endl;
-    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_sor0)<< std::endl;
-    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_a)<< std::endl;
-    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_a)<< std::endl;
-    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_b)<< std::endl;
-    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_b)<< std::endl;
-    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_Cl)<< std::endl;
-    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_Cl)<< std::endl;
-    std::cout << fitter->GetChi2Ndf()<< std::endl;
-    std::cout << fitter->GetPval()<< std::endl;
-    std::cout << Chi2_pp / double(EffNumBins_pp)<< std::endl;
-//    ntBuffer[0] = ikT;
-//    ntBuffer[1] = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
-//    ntBuffer[2] = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
-//    ntBuffer[3] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
-//    ntBuffer[4] = fitter->GetParError("pp", DLM_Fitter1::p_a);
-//    ntBuffer[5] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
-//    ntBuffer[6] = fitter->GetParError("pp", DLM_Fitter1::p_b);
-//    ntBuffer[7] = fitter->GetParameter("pp", DLM_Fitter1::p_Cl);
-//    ntBuffer[8] = fitter->GetParError("pp", DLM_Fitter1::p_Cl);
-//    ntBuffer[9] = fitter->GetChi2Ndf();
-//    ntBuffer[10] = fitter->GetPval();
-//    ntBuffer[11] = Chi2_pp / double(EffNumBins_pp);
+    std::cout << ikT << std::endl;
+    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_sor0) << std::endl;
+    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_sor0) << std::endl;
+    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_a) << std::endl;
+    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_a) << std::endl;
+    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_b) << std::endl;
+    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_b) << std::endl;
+    std::cout << fitter->GetParameter("pp", DLM_Fitter1::p_Cl) << std::endl;
+    std::cout << fitter->GetParError("pp", DLM_Fitter1::p_Cl) << std::endl;
+    std::cout << fitter->GetChi2Ndf() << std::endl;
+    std::cout << fitter->GetPval() << std::endl;
+    std::cout << Chi2_pp / double(EffNumBins_pp) << std::endl;
 
-    //    ntBuffer[23] = (int) FIX_CL;
-    ntResult->Fill(ntBuffer);
+    mTRadius->SetPoint(ikT,valAvgmT,fitter->GetParameter("pp", DLM_Fitter1::p_sor0));
+    mTRadius->SetPointError(ikT,valAvgmTErr,fitter->GetParError("pp", DLM_Fitter1::p_sor0));
+
     printf("Chi2_pp/bins = %.2f/%u = %.2f\n", Chi2_pp, EffNumBins_pp,
            Chi2_pp / double(EffNumBins_pp));
 
@@ -489,7 +487,7 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
       hAxis_pp->GetYaxis()->CenterTitle();
       hAxis_pp->GetYaxis()->SetTitleOffset(Yoffset);
       hAxis_pp->GetYaxis()->SetTitleSize(0.075);
-      hAxis_pp->GetXaxis()->SetRangeUser(0, 600);
+      hAxis_pp->GetXaxis()->SetRangeUser(0, 150);
       hAxis_pp->GetYaxis()->SetRangeUser(0.5, 4.5);
       TF1* blPP = new TF1("blPP", "pol1", 0, 500);
       blPP->SetParameters(fitter->GetParameter("pp", DLM_Fitter1::p_a),
@@ -539,7 +537,8 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
 
   }
   OutFile->cd();
-  ntResult->Write();
+  mTRadius->SetName("mTRadius");
+  mTRadius->Write();
   OutFile->Close();
   GraphFile->Close();
   //  delete ntResult;
@@ -574,7 +573,7 @@ void DrawEmptyBins(TString InputDir, TString OutputDir) {
   }
   int nmTBins = ntResult->GetEntries();
 
-  for (int imT = 0; imT<nmTBins; ++imT) {
+  for (int imT = 0; imT < nmTBins; ++imT) {
 
   }
 }
