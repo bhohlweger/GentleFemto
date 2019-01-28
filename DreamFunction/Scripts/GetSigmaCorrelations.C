@@ -4,10 +4,14 @@
 #include "TLegend.h"
 #include "TROOT.h"
 
-void GetSigmaCorrelations(const char* filename, const char* suffix) {
-  // gStyle->SetOptStat(0);
-  ReadDreamFile* DreamFile = new ReadDreamFile(12, 12);
-  DreamFile->SetSigmaAnalysisFile(filename, suffix);
+void GetSigmaCorrelations(const char* filename, const char* trigger,
+                          const char* suffixChar) {
+  TString appendix = TString::Format("%s_%s", trigger, suffixChar);
+  TString suffix = TString::Format("%s", suffixChar);
+  std::cout << appendix.Data() << "\n";
+  const int nPairs = (suffix == "0") ? 12 : 8;
+  ReadDreamFile* DreamFile = new ReadDreamFile(nPairs, nPairs);
+  DreamFile->SetSigmaAnalysisFile(filename, appendix.Data());
 
   DreamCF* CF_pp = new DreamCF();
   DreamPair* pp = new DreamPair("Part", 0.24, 0.34);
@@ -48,11 +52,13 @@ void GetSigmaCorrelations(const char* filename, const char* suffix) {
   pSiSBlow->SetPair(DreamFile->GetPairDistributions(0, 6, ""));
   ApaSiSBlow->SetPair(DreamFile->GetPairDistributions(1, 7, ""));
 
-  pLambdaSigma->SetPair(DreamFile->GetPairDistributions(0, 8, ""));
-  ApALambdaSigma->SetPair(DreamFile->GetPairDistributions(1, 10, ""));
+  if (suffix == "0") {
+    pLambdaSigma->SetPair(DreamFile->GetPairDistributions(0, 8, ""));
+    ApALambdaSigma->SetPair(DreamFile->GetPairDistributions(1, 10, ""));
 
-  pPhotonSigma->SetPair(DreamFile->GetPairDistributions(0, 9, ""));
-  ApAPhotonSigma->SetPair(DreamFile->GetPairDistributions(1, 11, ""));
+    pPhotonSigma->SetPair(DreamFile->GetPairDistributions(0, 9, ""));
+    ApAPhotonSigma->SetPair(DreamFile->GetPairDistributions(1, 11, ""));
+  }
 
   std::cout << "=========================" << std::endl;
   std::cout << "======Pair Shifted=======" << std::endl;
@@ -69,11 +75,13 @@ void GetSigmaCorrelations(const char* filename, const char* suffix) {
   pSiSBlow->ShiftForEmpty(pSiSBlow->GetPair());
   ApaSiSBlow->ShiftForEmpty(ApaSiSBlow->GetPair());
 
-  pLambdaSigma->ShiftForEmpty(pLambdaSigma->GetPair());
-  ApALambdaSigma->ShiftForEmpty(ApALambdaSigma->GetPair());
+  if (suffix == "0") {
+    pLambdaSigma->ShiftForEmpty(pLambdaSigma->GetPair());
+    ApALambdaSigma->ShiftForEmpty(ApALambdaSigma->GetPair());
 
-  pPhotonSigma->ShiftForEmpty(pPhotonSigma->GetPair());
-  ApAPhotonSigma->ShiftForEmpty(ApAPhotonSigma->GetPair());
+    pPhotonSigma->ShiftForEmpty(pPhotonSigma->GetPair());
+    ApAPhotonSigma->ShiftForEmpty(ApAPhotonSigma->GetPair());
+  }
 
   std::cout << "=========================" << std::endl;
   std::cout << "====Pair Fix Shifted=====" << std::endl;
@@ -106,55 +114,62 @@ void GetSigmaCorrelations(const char* filename, const char* suffix) {
                        ApASigma->GetPairShiftedEmpty(0), pSigma->GetFirstBin(),
                        ApASigma->GetFirstBin());
 
-  pLambdaSigma->FixShift(pLambdaSigma->GetPairShiftedEmpty(0),
-                         pSigma->GetPairShiftedEmpty(0),
-                         ApASigma->GetPairShiftedEmpty(0),
-                         pSigma->GetFirstBin(), ApASigma->GetFirstBin());
-  ApALambdaSigma->FixShift(ApALambdaSigma->GetPairShiftedEmpty(0),
+  if (suffix == "0") {
+    pLambdaSigma->FixShift(pLambdaSigma->GetPairShiftedEmpty(0),
                            pSigma->GetPairShiftedEmpty(0),
                            ApASigma->GetPairShiftedEmpty(0),
                            pSigma->GetFirstBin(), ApASigma->GetFirstBin());
+    ApALambdaSigma->FixShift(ApALambdaSigma->GetPairShiftedEmpty(0),
+                             pSigma->GetPairShiftedEmpty(0),
+                             ApASigma->GetPairShiftedEmpty(0),
+                             pSigma->GetFirstBin(), ApASigma->GetFirstBin());
 
-  pPhotonSigma->FixShift(pPhotonSigma->GetPairShiftedEmpty(0),
-                         pSigma->GetPairShiftedEmpty(0),
-                         ApASigma->GetPairShiftedEmpty(0),
-                         pSigma->GetFirstBin(), ApASigma->GetFirstBin());
-  ApAPhotonSigma->FixShift(ApAPhotonSigma->GetPairShiftedEmpty(0),
+    pPhotonSigma->FixShift(pPhotonSigma->GetPairShiftedEmpty(0),
                            pSigma->GetPairShiftedEmpty(0),
                            ApASigma->GetPairShiftedEmpty(0),
                            pSigma->GetFirstBin(), ApASigma->GetFirstBin());
-
+    ApAPhotonSigma->FixShift(ApAPhotonSigma->GetPairShiftedEmpty(0),
+                             pSigma->GetPairShiftedEmpty(0),
+                             ApASigma->GetPairShiftedEmpty(0),
+                             pSigma->GetFirstBin(), ApASigma->GetFirstBin());
+  }
   std::cout << "=========================" << std::endl;
   std::cout << "==Rebinning & Weighting==" << std::endl;
   std::cout << "=========================" << std::endl;
 
-  for (int iReb = 4; iReb < 6; ++iReb) {
+  std::vector<int> rebin = { { 4, 5, 10 } };
+
+  for (size_t iReb = 0; iReb < rebin.size(); ++iReb) {
     std::cout << "==Rebinning==" << std::endl;
-    pSigma->Rebin(pSigma->GetPairFixShifted(0), iReb);
-    ApASigma->Rebin(ApASigma->GetPairFixShifted(0), iReb);
-    pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), iReb);
-    ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), iReb);
-    pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), iReb);
-    ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), iReb);
-    pLambdaSigma->Rebin(pLambdaSigma->GetPairFixShifted(0), iReb);
-    ApALambdaSigma->Rebin(ApALambdaSigma->GetPairFixShifted(0), iReb);
-    pPhotonSigma->Rebin(pPhotonSigma->GetPairFixShifted(0), iReb);
-    ApAPhotonSigma->Rebin(ApAPhotonSigma->GetPairFixShifted(0), iReb);
+    pSigma->Rebin(pSigma->GetPairFixShifted(0), rebin[iReb]);
+    ApASigma->Rebin(ApASigma->GetPairFixShifted(0), rebin[iReb]);
+    pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), rebin[iReb]);
+    ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), rebin[iReb]);
+    pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), rebin[iReb]);
+    ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), rebin[iReb]);
+    if (suffix == "0") {
+      pLambdaSigma->Rebin(pLambdaSigma->GetPairFixShifted(0), rebin[iReb]);
+      ApALambdaSigma->Rebin(ApALambdaSigma->GetPairFixShifted(0), rebin[iReb]);
+      pPhotonSigma->Rebin(pPhotonSigma->GetPairFixShifted(0), rebin[iReb]);
+      ApAPhotonSigma->Rebin(ApAPhotonSigma->GetPairFixShifted(0), rebin[iReb]);
+    }
     std::cout << "==Weighting==" << std::endl;
-    pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    pLambdaSigma->ReweightMixedEvent(pLambdaSigma->GetPairRebinned(iReb - 4),
-                                     0.2, 0.9);
-    ApALambdaSigma->ReweightMixedEvent(
-        ApALambdaSigma->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    pPhotonSigma->ReweightMixedEvent(pPhotonSigma->GetPairRebinned(iReb - 4),
-                                     0.2, 0.9);
-    ApAPhotonSigma->ReweightMixedEvent(
-        ApAPhotonSigma->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(iReb), 0.2, 0.9);
+    ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(iReb), 0.2, 0.9);
+    pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(iReb), 0.2, 0.9);
+    ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(iReb), 0.2, 0.9);
+    pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(iReb), 0.2, 0.9);
+    ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(iReb), 0.2, 0.9);
+    if (suffix == "0") {
+      pLambdaSigma->ReweightMixedEvent(pLambdaSigma->GetPairRebinned(iReb), 0.2,
+                                       0.9);
+      ApALambdaSigma->ReweightMixedEvent(ApALambdaSigma->GetPairRebinned(iReb),
+                                         0.2, 0.9);
+      pPhotonSigma->ReweightMixedEvent(pPhotonSigma->GetPairRebinned(iReb), 0.2,
+                                       0.9);
+      ApAPhotonSigma->ReweightMixedEvent(ApAPhotonSigma->GetPairRebinned(iReb),
+                                         0.2, 0.9);
+    }
   }
   pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
   ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
@@ -171,14 +186,16 @@ void GetSigmaCorrelations(const char* filename, const char* suffix) {
   pSiSBlow->Rebin(pSiSBlow->GetPair(), 5);
   ApaSiSBlow->Rebin(ApaSiSBlow->GetPair(), 4);
   ApaSiSBlow->Rebin(ApaSiSBlow->GetPair(), 5);
-  pLambdaSigma->Rebin(pLambdaSigma->GetPair(), 4);
-  pLambdaSigma->Rebin(pLambdaSigma->GetPair(), 5);
-  ApALambdaSigma->Rebin(ApALambdaSigma->GetPair(), 4);
-  ApALambdaSigma->Rebin(ApALambdaSigma->GetPair(), 5);
-  pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 4);
-  pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 5);
-  ApAPhotonSigma->Rebin(ApAPhotonSigma->GetPair(), 4);
-  ApAPhotonSigma->Rebin(ApAPhotonSigma->GetPair(), 5);
+  if (suffix == "0") {
+    pLambdaSigma->Rebin(pLambdaSigma->GetPair(), 4);
+    pLambdaSigma->Rebin(pLambdaSigma->GetPair(), 5);
+    ApALambdaSigma->Rebin(ApALambdaSigma->GetPair(), 4);
+    ApALambdaSigma->Rebin(ApALambdaSigma->GetPair(), 5);
+    pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 4);
+    pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 5);
+    ApAPhotonSigma->Rebin(ApAPhotonSigma->GetPair(), 4);
+    ApAPhotonSigma->Rebin(ApAPhotonSigma->GetPair(), 5);
+  }
 
   std::cout << "=========================" << std::endl;
   std::cout << "=========CFs=============" << std::endl;
@@ -187,30 +204,40 @@ void GetSigmaCorrelations(const char* filename, const char* suffix) {
   TString foldername = filename;
   foldername.ReplaceAll("AnalysisResults.root", "");
 
+  TString fileAppendix =
+      (suffix == "0") ? "" : TString::Format("_%s", suffix.Data());
+
   CF_pp->SetPairs(pp, ApAp);
   CF_pp->GetCorrelations();
-  CF_pp->WriteOutput(Form("%s/CFOutput_pp.root", foldername.Data()));
+  CF_pp->WriteOutput(
+      Form("%s/CFOutput_pp%s.root", foldername.Data(), fileAppendix.Data()));
 
   CF_pSigma->SetPairs(pSigma, ApASigma);
   CF_pSigma->GetCorrelations();
-  CF_pSigma->WriteOutput(Form("%s/CFOutput_pSigma.root", foldername.Data()));
+  CF_pSigma->WriteOutput(
+      Form("%s/CFOutput_pSigma%s.root", foldername.Data(),
+           fileAppendix.Data()));
 
   CF_SidebandUp->SetPairs(pSiSBup, ApaSiSBup);
   CF_SidebandUp->GetCorrelations();
-  CF_SidebandUp->WriteOutput(Form("%s/CFOutput_SB_up.root", foldername.Data()));
+  CF_SidebandUp->WriteOutput(
+      Form("%s/CFOutput_SB_up%s.root", foldername.Data(), fileAppendix.Data()));
 
   CF_SidebandLow->SetPairs(pSiSBlow, ApaSiSBlow);
   CF_SidebandLow->GetCorrelations();
   CF_SidebandLow->WriteOutput(
-      Form("%s/CFOutput_SB_low.root", foldername.Data()));
+      Form("%s/CFOutput_SB_low%s.root", foldername.Data(),
+           fileAppendix.Data()));
 
-  CF_SigmaLambda->SetPairs(pLambdaSigma, ApALambdaSigma);
-  CF_SigmaLambda->GetCorrelations();
-  CF_SigmaLambda->WriteOutput(
-      Form("%s/CFOutput_pLambda.root", foldername.Data()));
+  if (suffix == "0") {
+    CF_SigmaLambda->SetPairs(pLambdaSigma, ApALambdaSigma);
+    CF_SigmaLambda->GetCorrelations();
+    CF_SigmaLambda->WriteOutput(
+        Form("%s/CFOutput_pLambda.root", foldername.Data()));
 
-  CF_SigmaPhoton->SetPairs(pPhotonSigma, ApAPhotonSigma);
-  CF_SigmaPhoton->GetCorrelations();
-  CF_SigmaPhoton->WriteOutput(
-      Form("%s/CFOutput_pPhoton.root", foldername.Data()));
+    CF_SigmaPhoton->SetPairs(pPhotonSigma, ApAPhotonSigma);
+    CF_SigmaPhoton->GetCorrelations();
+    CF_SigmaPhoton->WriteOutput(
+        Form("%s/CFOutput_pPhoton.root", foldername.Data()));
+  }
 }

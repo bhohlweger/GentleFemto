@@ -245,8 +245,8 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   leg->SetTextFont(42);
   leg->SetTextSize(gStyle->GetTextSize());
   leg->AddEntry(CF_Histo, "p#Sigma^{0} #oplus #bar{p}#bar{#Sigma}^{0}", "pe");
-  leg->AddEntry(grCF, "Femtoscopic fit", "f");
   leg->AddEntry(grSidebands, "Background", "f");
+  leg->AddEntry(grCF, "Femtoscopic fit", "f");
   leg->Draw("same");
 
   if (!batchmode) {
