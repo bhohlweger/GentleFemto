@@ -20,6 +20,7 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/DreamData.cxx
   ${PROJECT_SOURCE_DIR}/DreamDist.cxx
   ${PROJECT_SOURCE_DIR}/DreamKayTee.cxx
+  ${PROJECT_SOURCE_DIR}/DreamdEtadPhi.cxx
   ${PROJECT_SOURCE_DIR}/DreamPair.cxx
   ${PROJECT_SOURCE_DIR}/DreamPlot.cxx
   ${PROJECT_SOURCE_DIR}/DreamSystematics.cxx
@@ -32,6 +33,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/DreamData.h
   ${PROJECT_SOURCE_DIR}/DreamDist.h
   ${PROJECT_SOURCE_DIR}/DreamKayTee.h
+  ${PROJECT_SOURCE_DIR}/DreamdEtadPhi.h
   ${PROJECT_SOURCE_DIR}/DreamPair.h
   ${PROJECT_SOURCE_DIR}/DreamPlot.h
   ${PROJECT_SOURCE_DIR}/DreamSystematics.h
@@ -56,3 +58,6 @@ target_link_libraries(executePlot DreamFunctions)
 
 add_executable(executeSigma ${PROJECT_SOURCE_DIR}/Scripts/ExecuteSigma.C)
 target_link_libraries(executeSigma DreamFunctions)
+
+add_executable(executeDPhiDEta ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEta.C)
+target_link_libraries(executeDPhiDEta DreamFunctions)
