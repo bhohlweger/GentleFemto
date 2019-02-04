@@ -319,9 +319,9 @@ void DreamPlot::DrawCorrelationFunctions() {
   TLatex ref;
   ref.SetTextSize(gStyle->GetTextSize() * 0.4);
   ref.SetNDC(kTRUE);
-//  TLatex Numbering;
-//  Numbering.SetTextSize(gStyle->GetTextSize() * 1.3);
-//  Numbering.SetNDC(kTRUE);
+  TLatex Numbering;
+  Numbering.SetTextSize(gStyle->GetTextSize() * 1.3);
+  Numbering.SetNDC(kTRUE);
   TCanvas* c_PP = new TCanvas("CFpp", "CFpp", 0, 0, 650, 550);
   c_PP->SetRightMargin(right);
   c_PP->SetTopMargin(top);
@@ -332,12 +332,12 @@ void DreamPlot::DrawCorrelationFunctions() {
   fProtonProton->SetInletCoordinates(0.35, 0.27, 0.95, 0.61);
   fProtonProton->SetNDivisions(505);
   fProtonProton->SetLegendCoordinates(
-      0.5, 0.71 - 0.09 * fProtonProton->GetNumberOfModels(), 0.7, 0.8);
+      0.45, 0.71 - 0.09 * fProtonProton->GetNumberOfModels(), 0.7, 0.8);
   fProtonProton->DrawCorrelationPlot(c_PP);
   DrawSystemInfo(c_PP);
   c_PP->cd();
-//  Numbering.DrawLatex( 0.35,
-//                       0.9,"#bf{a)}");
+  Numbering.DrawLatex( 0.3,
+                       0.9,"#bf{a)}");
   c_PP->SaveAs("CF_pp_Gauss_prelim.pdf");
 
   TCanvas* c_PL = new TCanvas("CFpL", "CFpL", 0, 0, 650, 550);
@@ -387,13 +387,13 @@ void DreamPlot::DrawCorrelationFunctions() {
                                   0.785 - 0.09 * fProtonXi->GetNumberOfModels(),
                                   0.7, 0.875);
   fProtonXi->DrawCorrelationPlot(c_pXi);
-  DrawSystemInfo(c_pXi, false);
-//  Numbering.DrawLatex( 0.35,
-//                       0.9,"#bf{b)}");
+  DrawSystemInfo(c_pXi, false, 0.5);
+  Numbering.DrawLatex( 0.3,
+                       0.9,"#bf{b)}");
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
 
-void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius) {
+void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin) {
   c->cd();
   TLatex BeamText;
   TLatex text;
@@ -403,13 +403,13 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius) {
   TString CollisionSystem = Form("%s", fCollisionSystem);
   if (CollisionSystem.Index("Pb") > 0)
     BeamText.DrawLatex(
-        0.5,
+        xMin,
         0.9,
         Form("ALICE %s #sqrt{#it{s}_{NN}} = %.2f TeV", fCollisionSystem,
              fEnergy));
   else
     BeamText.DrawLatex(
-        0.5,
+        xMin,
         0.9,
         Form("ALICE %s #sqrt{#it{s}} = %i TeV", fCollisionSystem,
              (int) fEnergy));
@@ -417,10 +417,11 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius) {
   text.SetNDC();
   text.SetTextColor(1);
   if (plotRadius) {
+    text.SetTextSize(gStyle->GetTextSize() * 0.75);
     text.DrawLatex(
-        0.5,
+        xMin,
         0.825,
-        Form("#it{r}_{p-p} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", fRadius,
+        Form("#it{r}_{0} = %.3f #pm %.3f (syst.) ^{+%.3f}_{-%.3f} (stat.) fm", fRadius,
              fRadiusStat, fRadiusSysUp, fRadiusSysLow));
   }
 }
