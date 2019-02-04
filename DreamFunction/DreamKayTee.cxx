@@ -116,8 +116,10 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
               it->SetBinContent(iBin, binCont / corrFactor);
               it->SetBinError(iBin, binErr);
             } else {
+              //dont worry if iBin seems to change, its due to the rebinning!
               std::cout << "======================================\n";
-              std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+              std::cout << it->GetName() << std::endl;
+              std::cout << "!for ikT = " << ikT << " and iBin = " << iBin << "!\n";
               std::cout << "Correction factor 0, CFs meaningless!!! \n";
               std::cout << "======================================\n";
               std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
