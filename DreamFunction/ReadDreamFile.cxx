@@ -13,10 +13,14 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fSEMult(nullptr),
       fSEkT(nullptr),
       fSEmT(nullptr),
+      fSEdEtadPhimT(nullptr),
+      fSEdEtadPhi(nullptr),
       fME(nullptr),
       fMEMult(nullptr),
       fMEkT(nullptr),
-      fMEmT(nullptr) {
+      fMEmT(nullptr),
+      fMEdEtadPhimT(nullptr),
+      fMEdEtadPhi(nullptr) {
   TH1::AddDirectory(kFALSE);
   TH2::AddDirectory(kFALSE);
 }
@@ -32,6 +36,8 @@ ReadDreamFile::~ReadDreamFile() {
         delete fSEkT[iPart1][iPart2];
       if (fSEmT && fSEmT[iPart1][iPart2])
         delete fSEmT[iPart1][iPart2];
+      if (fSEdEtadPhi && fSEdEtadPhi[iPart1][iPart2])
+        delete fSEdEtadPhi[iPart1][iPart2];
       if (fME && fME[iPart1][iPart2])
         delete fME[iPart1][iPart2];
       if (fMEMult && fMEMult[iPart1][iPart2])
@@ -40,6 +46,8 @@ ReadDreamFile::~ReadDreamFile() {
         delete fMEkT[iPart1][iPart2];
       if (fMEmT && fMEmT[iPart1][iPart2])
         delete fMEmT[iPart1][iPart2];
+      if (fMEdEtadPhi && fMEdEtadPhi[iPart1][iPart2])
+        delete fMEdEtadPhi[iPart1][iPart2];
     }
   }
 }
@@ -231,9 +239,101 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
   return;
 }
 
+void ReadDreamFile::ReaddEtadPhiAtRadHists(const char* AnalysisFile,
+                                           const char* prefix,
+                                           const char* Addon) {
+  return;
+}
+
+void ReadDreamFile::ReaddEtadPhiHists(const unsigned int NBinsmT,
+                                      const char* AnalysisFile,
+                                      const char* prefix, const char* Addon) {
+  fSEdEtadPhi = new TH2F**[fNPart1];
+  fMEdEtadPhi = new TH2F**[fNPart1];
+  if (NBinsmT > 0) {
+    fSEdEtadPhimT = new TH2F***[fNPart1];
+    fMEdEtadPhimT = new TH2F***[fNPart1];
+  }
+  TFile* _file0 = TFile::Open(AnalysisFile, "READ");
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults%s", prefix, Addon)));
+  TList *Results;
+  dirResults->GetObject(Form("%sResults%s", prefix, Addon), Results);
+  TList *PartList;
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+    fSEdEtadPhi[iPart1] = new TH2F*[fNPart2];
+    fMEdEtadPhi[iPart1] = new TH2F*[fNPart2];
+    if (NBinsmT > 0) {
+      fSEdEtadPhimT[iPart1] = new TH2F**[fNPart2];
+      fMEdEtadPhimT[iPart1] = new TH2F**[fNPart2];
+    }
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+      TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
+      PartList = (TList*) Results->FindObject(FolderName.Data());
+      if (NBinsmT > 0) {
+        fSEdEtadPhimT[iPart1][iPart2] = new TH2F*[NBinsmT];
+        fMEdEtadPhimT[iPart1][iPart2] = new TH2F*[NBinsmT];
+      }
+      int iSEmTCounter = 0;
+      int iMEmTCounter = 0;
+      TIter next(PartList);
+      TObject *obj = nullptr;
+      while (obj = next()) {
+        TString objName = obj->GetName();
+        if (NBinsmT > 0 && objName.Contains("imT")) {
+          if (objName.Contains("SE")) {
+            fSEdEtadPhimT[iPart1][iPart2][iSEmTCounter] = (TH2F*) obj;
+//            std::cout << "SE: " << objName.Data() << std::endl;
+            if (!fSEdEtadPhimT[iPart1][iPart2][iSEmTCounter]) {
+              std::cout << objName.Data() << " failed to deliver an object \n";
+            }
+            iSEmTCounter++;
+          } else if (objName.Contains("ME")) {
+            fMEdEtadPhimT[iPart1][iPart2][iMEmTCounter] = (TH2F*) obj;
+//            std::cout << "ME: " << objName.Data() << std::endl;
+            if (!fMEdEtadPhimT[iPart1][iPart2][iMEmTCounter]) {
+              std::cout << objName.Data() << " failed to deliver an object \n";
+            }
+            iMEmTCounter++;
+          } else {
+            std::cout << objName.Data()
+                      << " contains imT but neither SE nor ME \n";
+          }
+        } else if (NBinsmT == 0 && objName.Contains("dPhidEtaDist")) {
+          if (objName.Contains("SE")) {
+            fSEdEtadPhi[iPart1][iPart2] = (TH2F*) obj;
+          } else if (objName.Contains("ME")) {
+            fMEdEtadPhi[iPart1][iPart2] = (TH2F*) obj;
+          }
+        }
+      }
+      if (NBinsmT > 0) {
+        if (iSEmTCounter > 0 && iMEmTCounter) {
+          std::cout << "Pair " << iPart1 << " & " << iPart2
+                    << " Manually creating the summed SE and ME Hist ... \n";
+          fSEdEtadPhi[iPart1][iPart2] = (TH2F*) fSEdEtadPhimT[iPart1][iPart2][0]
+              ->Clone(
+              Form("SEdPhidEtaDist_Particle%d_Particle%d", iPart1, iPart2));
+          fMEdEtadPhi[iPart1][iPart2] = (TH2F*) fMEdEtadPhimT[iPart1][iPart2][0]
+              ->Clone(
+              Form("MEdPhidEtaDist_Particle%d_Particle%d", iPart1, iPart2));
+          for (int imT = 1; imT < iSEmTCounter; ++imT) {
+            fSEdEtadPhi[iPart1][iPart2]->Add(
+                fSEdEtadPhimT[iPart1][iPart2][imT]);
+            fMEdEtadPhi[iPart1][iPart2]->Add(
+                fMEdEtadPhimT[iPart1][iPart2][imT]);
+          }
+        } else {
+          std::cout << "Pair " << iPart1 << " & " << iPart2 << " not summed \n";
+        }
+      }
+    }
+  }
+}
+
 DreamDist* ReadDreamFile::GetPairDistributions(int iPart1, int iPart2,
                                                const char* name) {
-  //user needs to ensure deletion
+//user needs to ensure deletion
   if (iPart2 < iPart1) {
     std::cout << "Particle Combination does not exist \n";
     return nullptr;
@@ -248,7 +348,7 @@ DreamDist* ReadDreamFile::GetPairDistributions(int iPart1, int iPart2,
 
 DreamKayTee* ReadDreamFile::GetkTPairDistributions(int iPart1, int iPart2,
                                                    int iAPart1, int iAPart2) {
-  //user needs to ensure deletion
+//user needs to ensure deletion
   if (iPart2 < iPart1) {
     std::cout << "Particle Combination does not exist \n";
     return nullptr;
@@ -265,7 +365,7 @@ DreamKayTee* ReadDreamFile::GetkTPairDistributions(int iPart1, int iPart2,
 
 DreamKayTee* ReadDreamFile::GetmTPairDistributions(int iPart1, int iPart2,
                                                    int iAPart1, int iAPart2) {
-  //user needs to ensure deletion
+//user needs to ensure deletion
   if (iPart2 < iPart1) {
     std::cout << "Particle Combination does not exist \n";
     return nullptr;

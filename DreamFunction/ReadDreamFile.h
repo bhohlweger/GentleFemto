@@ -25,6 +25,10 @@ class ReadDreamFile {
                     const char* addon = "");
   void ReadmTHistos(const char* AnalysisFile, const char* prefix,
                     const char* addon = "");
+  void ReaddEtadPhiAtRadHists(const char* AnalysisFile, const char* prefix,
+                              const char* Addon = "");
+  void ReaddEtadPhiHists(const unsigned int NBinsmT, const char* AnalysisFile,
+                         const char* prefix, const char* Addon = "");
   DreamDist* GetPairDistributions(int iPart1, int iPart2, const char* name);
   DreamKayTee* GetkTPairDistributions(int iPart1, int iPart2, int iAPart1,
                                       int iAPart2);
@@ -37,10 +41,14 @@ class ReadDreamFile {
   TH2F*** fSEMult;
   TH2F*** fSEkT;
   TH2F*** fSEmT;
+  TH2F**** fSEdEtadPhimT;
+  TH2F*** fSEdEtadPhi;
   TH1F*** fME;
   TH2F*** fMEMult;
   TH2F*** fMEkT;
   TH2F*** fMEmT;
+  TH2F**** fMEdEtadPhimT;
+  TH2F*** fMEdEtadPhi;
 };
 
 #endif /* DREAMFUNCTION_READDREAMFILE_H_ */
