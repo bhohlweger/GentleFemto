@@ -234,10 +234,10 @@ void PlotPotentials() {
 
   }
   grI0S0->SetName("grI0S0");
-  grI0S0->GetXaxis()->SetTitle("r (fm)");
+  grI0S0->GetXaxis()->SetTitle("#it{r} (fm)");
   grI0S0->GetYaxis()->SetRangeUser(-70, 50);
   grI0S0->GetXaxis()->SetRangeUser(0, 3);
-  grI0S0->GetYaxis()->SetTitle("V(r) (MeV)");
+  grI0S0->GetYaxis()->SetTitle("#it{V(r)} (MeV)");
 
   grI0S0->SetFillColor(fColors[1]);
   grI0S0->SetLineColor(fColors[1]);
@@ -376,7 +376,7 @@ void PlotPotentials() {
   TLatex Numbering;
   Numbering.SetTextSize(gStyle->GetTextSize() * 2.0);
   Numbering.SetNDC(kTRUE);
-  Numbering.DrawLatex( 0.5 , 0.7, "#it{r}_{Gauss} = 1.4 fm");
+  Numbering.DrawLatex( 0.5 , 0.7, "#it{r}_{0} = 1.4 fm");
   leg2.AddEntry(CF_I0S0," ", "l");
   leg2.AddEntry(CF_I0S1," ", "l");
   leg2.AddEntry(CF_I1S0," ", "l");
