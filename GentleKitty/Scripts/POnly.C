@@ -545,7 +545,8 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 
             double Chi2_pp = 0;
             unsigned EffNumBins_pp = 0;
-            for (unsigned uBin = 0; uBin < NumMomBins; uBin++) {
+
+            for (unsigned uBin = 0; uBin < 50; uBin++) {
 
               double mom = AB_pp.GetMomentum(uBin);
               double dataY;
@@ -563,7 +564,10 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
               }
               dataY = OliHisto_pp->GetBinContent(uBin + 1);
               dataErr = OliHisto_pp->GetBinError(uBin + 1);
-
+              if (dataErr < 1e-5) {
+                std::cout << dataErr << '\t' << "WARNING POINT NOT CONSIDERED \n";
+                continue;
+              }
               Chi2_pp += (dataY - theoryY) * (dataY - theoryY)
                   / (dataErr * dataErr);
               EffNumBins_pp++;
@@ -669,7 +673,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
               hAxis_pp->GetYaxis()->SetTitleOffset(Yoffset);
               hAxis_pp->GetYaxis()->SetTitleSize(0.075);
               hAxis_pp->GetXaxis()->SetRangeUser(0, 600);
-              hAxis_pp->GetYaxis()->SetRangeUser(0.5, 3);
+              hAxis_pp->GetYaxis()->SetRangeUser(0.5, 4.5);
               TF1* blPP = new TF1("blPP", "pol1", 0, 500);
               blPP->SetParameters(fitter->GetParameter("pp", DLM_Fitter1::p_a),
                                   fitter->GetParameter("pp", DLM_Fitter1::p_b));
