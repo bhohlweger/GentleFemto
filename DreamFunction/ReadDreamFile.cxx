@@ -379,3 +379,25 @@ DreamKayTee* ReadDreamFile::GetmTPairDistributions(int iPart1, int iPart2,
 
   return pair;
 }
+
+DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistribution(int iPart1, int iPart2,
+                                                      int iAPart1, int iAPart2,
+                                                      int imT) {
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamdEtadPhi* outDist = new DreamdEtadPhi();
+  if (imT < 0) {
+    outDist->SetSEDistribution(fSEdEtadPhi[iPart1][iPart2], "");
+    outDist->AddSEDistribution(fSEdEtadPhi[iAPart1][iAPart2]);
+    outDist->SetMEDistribution(fMEdEtadPhi[iPart1][iPart2], "");
+    outDist->AddMEDistribution(fMEdEtadPhi[iAPart1][iAPart2]);
+  } else {
+    outDist->SetSEDistribution(fSEdEtadPhimT[iPart1][iPart2][imT], "");
+    outDist->AddSEDistribution(fSEdEtadPhimT[iAPart1][iAPart2][imT]);
+    outDist->SetMEDistribution(fMEdEtadPhimT[iPart1][iPart2][imT], "");
+    outDist->AddMEDistribution(fMEdEtadPhimT[iAPart1][iAPart2][imT]);
+  }
+  return outDist;
+}

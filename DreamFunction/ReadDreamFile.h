@@ -13,6 +13,8 @@
 
 #include "DreamKayTee.h"
 #include "DreamDist.h"
+#include "DreamdEtadPhi.h"
+
 class ReadDreamFile {
  public:
   ReadDreamFile(int nPart1, int nPart2);
@@ -34,6 +36,8 @@ class ReadDreamFile {
                                       int iAPart2);
   DreamKayTee* GetmTPairDistributions(int iPart1, int iPart2, int iAPart1,
                                       int iAPart2);
+  DreamdEtadPhi* GetdEtadPhiDistribution(int iPart1, int iPart2, int iAPart1,
+                                         int iAPart2, int imT = 0);
   const int fNPart1;
   const int fNPart2;
  private:
