@@ -45,7 +45,7 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 /// =====================================================================================
 void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
                TString OutputDir, const bool& isExclusion, const float d0,
-               const float f0inv) {
+               const float REf0inv, const float IMf0inv) {
   bool batchmode = true;
 
   DreamPlot::SetStyle();
@@ -60,7 +60,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
           "IterID:femtoFitRange:BLSlope:ppRadius:bl_a:bl_a_err:bl_b:bl_b_err:"
           "sb_p0:sb_p0_err:sb_p1:sb_p1_err:sb_p2:sb_p2_err:sb_p3:sb_p3_err:sb_p4:sb_p4_err:sb_p5:sb_p5_err:"
           "primaryContrib:fakeContrib:SBnormDown:SBnormUp:"
-          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma:CFneg:d0:f0inv");
+          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma:CFneg:d0:REf0inv:IMf0inv");
 
   Float_t ntBuffer[34];
   int iterID = 0;
@@ -68,8 +68,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
   TString graphfilename;
   if (isExclusion) {
-    graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f.root",
-                                    OutputDir.Data(), NumIter, d0, f0inv);
+    graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
+                                    OutputDir.Data(), NumIter, d0, REf0inv,
+                                    IMf0inv);
   } else {
     graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
                                     OutputDir.Data(), NumIter);
@@ -211,10 +212,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
   DLM_Ck* Ck_pSigma0;
 
   if (isExclusion) {
-    Ck_pSigma0 = new DLM_Ck(1, 2, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
-                            Lednicky_Singlet_InvScatLen);
+    Ck_pSigma0 = new DLM_Ck(1, 3, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
+                            ComplexLednicky_Singlet_InvScatLen);
     std::cout << "Running with scattering parameters - d0 = " << d0
-              << " fm - f0^-1 = " << f0inv << " fm^-1 \n";
+              << " fm - Re(f0^-1) = " << REf0inv << " fm^-1 - Im(f0^-1) = "
+              << IMf0inv << "\n";
   } else {
     Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             Lednicky_gauss_Sigma0);
@@ -316,8 +318,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
                                  sourceSize[sizeIter]);
 
             if (isExclusion) {
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, f0inv);
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, d0);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, REf0inv);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, IMf0inv);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, d0);
             }
 
             fitter->GoBabyGo();
@@ -506,8 +509,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
               if (!batchmode) {
                 if (isExclusion) {
                   c->Print(
-                      Form("%s/CF_pSigma0_%.3f_%.3f.pdf", OutputDir.Data(), d0,
-                           f0inv));
+                      Form("%s/CF_pSigma0_%.3f_%.3f_%.3f.pdf", OutputDir.Data(),
+                           d0, REf0inv, IMf0inv));
                 } else {
                   c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
                 }
@@ -583,7 +586,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
             ntBuffer[30] = nSigmapSigma0;
             ntBuffer[31] = (float) isCFneg;
             ntBuffer[32] = d0;
-            ntBuffer[33] = f0inv;
+            ntBuffer[33] = REf0inv;
+            ntBuffer[34] = IMf0inv;
 
             ntResult->Fill(ntBuffer);
             ++iterID;

@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
   const float f0invdef = atof(argv[5]);
   const int nSteps = atoi(argv[6]);
   const float stepSize = atof(argv[7]);
+  const float IMf0inv = atof(argv[8]);
 
   float d0current, f0invcurrent;
   // loop over d0
@@ -28,9 +29,9 @@ int main(int argc, char *argv[]) {
       f0invcurrent = f0invdef + f0inviter * stepSize;
 
       FitSigma0(allSyst, argv[1], argv[2], argv[3], scattPar, d0current,
-                f0invcurrent);
+                f0invcurrent, IMf0inv);
       DrawSigma(allSyst, argv[1], argv[2], argv[3], scattPar, d0current,
-                f0invcurrent);
+                f0invcurrent, IMf0inv);
     }
   }
   return 0;

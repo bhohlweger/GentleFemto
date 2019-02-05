@@ -76,7 +76,7 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
 // Draw all systematic variations available
 void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
                TString varFolder, const bool& isExclusion, const float d0,
-               const float f0inv) {
+               const float REf0inv, const float IMf0inv) {
   bool batchmode = true;
 
   DreamPlot::SetStyle();
@@ -85,8 +85,9 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
 
   TString graphfilename;
   if (isExclusion) {
-    graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f.root",
-                                    varFolder.Data(), NumIter, d0, f0inv);
+    graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
+                                    varFolder.Data(), NumIter, d0, REf0inv,
+                                    IMf0inv);
   } else {
     graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
                                     varFolder.Data(), NumIter);
@@ -164,16 +165,16 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   if (!batchmode) {
     if (isExclusion) {
       c1->Print(
-          Form("%s/CF_pSigma_model_%.3f_%.3f.pdf", varFolder.Data(), d0,
-               f0inv));
+          Form("%s/CF_pSigma_model_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
+               REf0inv, IMf0inv));
     } else {
       c1->Print(Form("%s/CF_pSigma_model.pdf", varFolder.Data()));
     }
     CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
     if (isExclusion) {
       c1->Print(
-          Form("%s/CF_pSigma_model_zoom_%.3f_%.3f.pdf", varFolder.Data(), d0,
-               f0inv));
+          Form("%s/CF_pSigma_model_zoom_%.3f_%.3f_%.3f.pdf", varFolder.Data(),
+               d0, REf0inv, IMf0inv));
     } else {
       c1->Print(Form("%s/CF_pSigma_model_zoom.pdf", varFolder.Data()));
     }
@@ -195,26 +196,29 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   }
 
   // in case we're running the exclusion task, we're interested in the best/worst chi2 for a given set of scattering parameters
+  double bestChi2, defaultChi2, worstChi2;
   if (isExclusion) {
     auto fitTuple = (TNtuple*) file->Get("fitResult");
 
-    TString resultfilename = TString::Format("%s/Result_%.3f_%.3f.root",
-                                             varFolder.Data(), d0, f0inv);
+    TString resultfilename = TString::Format("%s/Result_%.3f_%.3f_%.3f.root",
+                                             varFolder.Data(), d0, REf0inv,
+                                             IMf0inv);
     auto resultFile = TFile::Open(resultfilename.Data(), "recreate");
     TNtuple* ntResult = new TNtuple(
-        "exclusion", "exclusion", "CFneg:d0:f0inv:bestChi2:defChi2:worstChi2");
-    double bestChi2, defaultChi2, worstChi2;
+        "exclusion", "exclusion",
+        "CFneg:d0:REf0inv:IMf0inv:bestChi2:defChi2:worstChi2");
     ComputeChi2(CF_Histo, grCF, bestChi2, defaultChi2, worstChi2);
 
-    Float_t ntBuffer[6];
+    Float_t ntBuffer[7];
     fitTuple->Draw("CFneg >> h");
     TH1F* hist = (TH1F*) gROOT->FindObject("h");
     ntBuffer[0] = hist->GetMean();
     ntBuffer[1] = d0;
-    ntBuffer[2] = f0inv;
-    ntBuffer[3] = bestChi2;
-    ntBuffer[4] = defaultChi2;
-    ntBuffer[5] = worstChi2;
+    ntBuffer[2] = REf0inv;
+    ntBuffer[3] = IMf0inv;
+    ntBuffer[4] = bestChi2;
+    ntBuffer[5] = defaultChi2;
+    ntBuffer[6] = worstChi2;
 
     ntResult->Fill(ntBuffer);
     ntResult->Write();
@@ -236,23 +240,41 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   grSidebands->SetFillColorAlpha(kBlack, 0.5);
   grSidebands->SetLineColorAlpha(kBlack, 0.0);
   TLatex BeamText;
-  BeamText.SetTextSize(gStyle->GetTextSize());
   BeamText.SetNDC(kTRUE);
-  BeamText.DrawLatex(0.525, 0.8, "ALICE ");
-  BeamText.DrawLatex(0.525, 0.75, "pp #sqrt{s} = 13 TeV HM");
-  auto leg = new TLegend(0.51, 0.53, 0.85, 0.73);
-  leg->SetBorderSize(0);
-  leg->SetTextFont(42);
-  leg->SetTextSize(gStyle->GetTextSize());
-  leg->AddEntry(CF_Histo, "p#Sigma^{0} #oplus #bar{p}#bar{#Sigma}^{0}", "pe");
-  leg->AddEntry(grSidebands, "Background", "f");
-  leg->AddEntry(grCF, "Femtoscopic fit", "f");
-  leg->Draw("same");
+  if (isExclusion) {
+    BeamText.SetTextSize(0.8 * gStyle->GetTextSize());
+    BeamText.DrawLatex(0.45, 0.8, TString::Format("d_{0} = %.3f fm", d0));
+    BeamText.DrawLatex(
+        0.45, 0.73,
+        TString::Format("#Rgothic(f_{0}^{-1}) = %.3f fm^{-1}", REf0inv));
+    BeamText.DrawLatex(
+        0.45, 0.66,
+        TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}", IMf0inv));
+    BeamText.DrawLatex(0.7, 0.8,
+                       TString::Format("#chi^{2}_{best} = %.3f", bestChi2));
+    BeamText.DrawLatex(0.7, 0.73,
+                       TString::Format("#chi^{2}_{def} = %.3f", defaultChi2));
+    BeamText.DrawLatex(0.7, 0.66,
+                       TString::Format("#chi^{2}_{worst} = %.3f", worstChi2));
+  } else {
+    BeamText.SetTextSize(gStyle->GetTextSize());
+    BeamText.DrawLatex(0.525, 0.8, "ALICE ");
+    BeamText.DrawLatex(0.525, 0.75, "pp #sqrt{s} = 13 TeV HM");
+    auto leg = new TLegend(0.51, 0.53, 0.85, 0.73);
+    leg->SetBorderSize(0);
+    leg->SetTextFont(42);
+    leg->SetTextSize(gStyle->GetTextSize());
+    leg->AddEntry(CF_Histo, "p#Sigma^{0} #oplus #bar{p}#bar{#Sigma}^{0}", "pe");
+    leg->AddEntry(grSidebands, "Background", "f");
+    leg->AddEntry(grCF, "Femtoscopic fit", "f");
+    leg->Draw("same");
+  }
 
   if (!batchmode) {
     if (isExclusion) {
       c->Print(
-          Form("%s/CF_pSigma_fit_%.3f_%.3f.pdf", varFolder.Data(), d0, f0inv));
+          Form("%s/CF_pSigma_fit_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
+               REf0inv, IMf0inv));
     } else {
       c->Print(Form("%s/CF_pSigma_fit.pdf", varFolder.Data()));
     }
@@ -261,7 +283,6 @@ void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
   grCF->Write();
   grSidebands->Write();
 
-  delete leg;
   delete histDummy;
   delete c;
   delete grSidebands;
