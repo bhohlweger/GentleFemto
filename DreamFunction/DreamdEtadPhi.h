@@ -11,6 +11,7 @@
 #include "TH1F.h"
 #include "TH1D.h"
 #include "TList.h"
+#include "TPad.h"
 
 class DreamdEtadPhi {
  public:
@@ -31,6 +32,8 @@ class DreamdEtadPhi {
   void ShiftAbovePhi();
   void DivideSEandME();
   void ProjectionY();
+  void Draw2D(TPad *p, float Rad);
+  void DrawProjectionY(TPad *p, float Rad);
   void WriteOutput(TList* output, const char *outname) {
     TList *outList = new TList();
     outList->SetName(Form("%s",outname));
