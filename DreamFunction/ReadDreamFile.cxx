@@ -6,6 +6,9 @@
  */
 #include "ReadDreamFile.h"
 #include <iostream>
+#include <iostream>
+#include "stdlib.h"
+
 ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
     : fNPart1(nPart1),
       fNPart2(nPart2),
@@ -242,37 +245,64 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
   return;
 }
 
-void ReadDreamFile::ReaddEtadPhiAtRadHists(const char* AnalysisFile,
+void ReadDreamFile::ReaddEtadPhiAtRadHists(const unsigned int nMaxMix,
+                                           const char* AnalysisFile,
                                            const char* prefix,
                                            const char* Addon) {
-  fSEdEtadPhiAtRad = new TH2F***[fNPart1];
-  fSEdEtadPhiAtRadSmallkStar = new TH2F***[fNPart1];
-  fMEdEtadPhiAtRad = new TH2F***[fNPart1];
-  fMEdEtadPhiAtRadSmallkStar = new TH2F***[fNPart1];
+  fSEdEtadPhiAtRad = new TH2F****[fNPart1];
+  fSEdEtadPhiAtRadSmallkStar = new TH2F****[fNPart1];
+  fMEdEtadPhiAtRad = new TH2F****[fNPart1];
+  fMEdEtadPhiAtRadSmallkStar = new TH2F****[fNPart1];
   TFile* _file0 = TFile::Open(AnalysisFile, "READ");
   TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
-      Form("%sResults%s", prefix, Addon)));
+      Form("%sResultQA%s", prefix, Addon)));
   TList *ResultsQA;
-  dirResults->GetObject(Form("%sResults%s", prefix, Addon), ResultsQA);
+  dirResults->GetObject(Form("%sResultQA%s", prefix, Addon), ResultsQA);
   TList *PartList;
   for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
-    fSEdEtadPhiAtRad[iPart1] = new TH2F**[fNPart2];
-    fSEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F**[fNPart2];
-    fMEdEtadPhiAtRad[iPart1] = new TH2F**[fNPart2];
-    fMEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F**[fNPart2];
+    fSEdEtadPhiAtRad[iPart1] = new TH2F***[fNPart2];
+    fSEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F***[fNPart2];
+    fMEdEtadPhiAtRad[iPart1] = new TH2F***[fNPart2];
+    fMEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F***[fNPart2];
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
       TString FolderName = Form("QA_Particle%i_Particle%i", iPart1, iPart2);
       PartList = (TList*) ResultsQA->FindObject(FolderName.Data());
-      fSEdEtadPhiAtRad[iPart1][iPart2] = new TH2F*[9];
-      fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2] = new TH2F*[9];
-      fMEdEtadPhiAtRad[iPart1][iPart2] = new TH2F*[9];
-      fMEdEtadPhiAtRadSmallkStar[iPart1][iPart2] = new TH2F*[9];
+      fSEdEtadPhiAtRad[iPart1][iPart2] = new TH2F**[9];
+      fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2] = new TH2F**[9];
+      fMEdEtadPhiAtRad[iPart1][iPart2] = new TH2F**[9];
+      fMEdEtadPhiAtRadSmallkStar[iPart1][iPart2] = new TH2F**[9];
+      for (int iRad = 0; iRad < 9; ++iRad) {
+        fSEdEtadPhiAtRad[iPart1][iPart2][iRad] = new TH2F*[nMaxMix];
+        fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad] = new TH2F*[nMaxMix];
+        fMEdEtadPhiAtRad[iPart1][iPart2][iRad] = new TH2F*[nMaxMix];
+        fMEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad] = new TH2F*[nMaxMix];
+      }
       TIter next(PartList);
       TObject *obj = nullptr;
       while (obj = next()) {
-
+        TString objName = obj->GetName();
+        if (objName.Contains("Rad")) {
+          TString beAChar = objName[objName.First('_') + 1];
+          int iRad = atoi(beAChar.Data());
+          TString beAnotherChar = objName[objName.First("x") + 1];
+          int iMix = atoi(beAnotherChar.Data());
+          if (objName.Contains("SE")) {
+            if (objName.Contains("smallK")) {
+              fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad][iMix] =
+                  (TH2F*) obj;
+            } else {
+              fSEdEtadPhiAtRad[iPart1][iPart2][iRad][iMix] = (TH2F*) obj;
+            }
+          } else if (objName.Contains("ME")) {
+            if (objName.Contains("smallK")) {
+              fMEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad][iMix] =
+                  (TH2F*) obj;
+            } else {
+              fMEdEtadPhiAtRad[iPart1][iPart2][iRad][iMix] = (TH2F*) obj;
+            }
+          }
+        }
       }
-
     }
   }
   return;
@@ -432,5 +462,34 @@ DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistribution(int iPart1, int iPart2,
     outDist->SetMEDistribution(fMEdEtadPhimT[iPart1][iPart2][imT], "");
     outDist->AddMEDistribution(fMEdEtadPhimT[iAPart1][iAPart2][imT]);
   }
+  return outDist;
+}
+
+DreamdEtadPhi* ReadDreamFile::GetdEtadPhiAtRadDistribution(int iPart1,
+                                                           int iPart2,
+                                                           int iAPart1,
+                                                           int iAPart2,
+                                                           int iRad, int iMix,
+                                                           bool smallkStar) {
+  DreamdEtadPhi* outDist = new DreamdEtadPhi();
+  outDist->SetSEDistribution(
+      smallkStar ?
+          fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad][iMix] :
+          fSEdEtadPhiAtRad[iPart1][iPart2][iRad][iMix],
+      "");
+  outDist->AddSEDistribution(
+      smallkStar ?
+          fSEdEtadPhiAtRadSmallkStar[iAPart1][iAPart2][iRad][iMix] :
+          fSEdEtadPhiAtRad[iAPart1][iAPart2][iRad][iMix]);
+
+  outDist->SetMEDistribution(
+      smallkStar ?
+          fMEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad][iMix] :
+          fMEdEtadPhiAtRad[iPart1][iPart2][iRad][iMix],
+      "");
+  outDist->AddMEDistribution(
+      smallkStar ?
+          fMEdEtadPhiAtRadSmallkStar[iAPart1][iAPart2][iRad][iMix] :
+          fMEdEtadPhiAtRad[iAPart1][iAPart2][iRad][iMix]);
   return outDist;
 }
