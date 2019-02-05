@@ -85,7 +85,61 @@ void DreamdEtadPhi::ProjectionY() {
   fProjectionY = fSEdEtadPhi->ProjectionY(HistName.Data());
   fProjectionY->Scale(1. / fProjectionY->Integral());
   TH1D* tmpME = fMEdEtadPhi->ProjectionY("TmpME");
-  tmpME->Scale(1./tmpME->Integral());
+  tmpME->Scale(1. / tmpME->Integral());
   fProjectionY->Divide(tmpME);
   delete tmpME;
+}
+
+void DreamdEtadPhi::Draw2D(TPad* p, float Rad) {
+  if (fdEtadPhi) {
+    p->cd();
+    p->SetTopMargin(0.08);
+    p->SetBottomMargin(0.1);
+    p->SetLeftMargin(0.1);
+    p->SetRightMargin(0.01);
+    fdEtadPhi->SetStats(0);
+    if (Rad != 0) {
+      fdEtadPhi->SetTitle(Form("TPC Radius %2.0f cm", Rad));
+      fdEtadPhi->SetTitleSize(0.1);
+    }
+    fdEtadPhi->GetXaxis()->SetTitle("#Delta#eta");
+    fdEtadPhi->GetXaxis()->SetTitleSize(0.06);
+    fdEtadPhi->GetXaxis()->SetLabelSize(0.06);
+    fdEtadPhi->GetXaxis()->SetTitleOffset(0.89);
+//    fdEtadPhi->GetXaxis()->SetLabelOffset(0.00);
+    fdEtadPhi->GetYaxis()->SetTitle("#Delta#varphi");
+    fdEtadPhi->GetYaxis()->SetTitleSize(0.06);
+    fdEtadPhi->GetYaxis()->SetLabelSize(0.06);
+    fdEtadPhi->GetYaxis()->SetTitleOffset(0.89);
+//    fdEtadPhi->GetYaxis()->SetLabelOffset(0.9);
+    fdEtadPhi->Draw("COLZ");
+  } else {
+    std::cout << "No fdEtadPhi for " << Rad << std::endl;
+  }
+}
+
+void DreamdEtadPhi::DrawProjectionY(TPad* p, float Rad) {
+  if (fProjectionY) {
+    p->cd();
+    p->SetTopMargin(0.08);
+    p->SetBottomMargin(0.1);
+    p->SetLeftMargin(0.1);
+    p->SetRightMargin(0.01);
+    fProjectionY->SetStats(0);
+    if (Rad != 0) {
+      fProjectionY->SetTitle(Form("TPC Radius %2.0f cm", Rad));
+      fProjectionY->SetTitleSize(0.1);
+    }
+    fProjectionY->GetXaxis()->SetTitle("#Delta#varphi");
+    fProjectionY->GetXaxis()->SetTitleSize(0.06);
+    fProjectionY->GetXaxis()->SetLabelSize(0.06);
+    fProjectionY->GetXaxis()->SetTitleOffset(0.89);
+    fProjectionY->GetYaxis()->SetTitle("C(#Delta#varphi)");
+    fProjectionY->GetYaxis()->SetTitleSize(0.06);
+    fProjectionY->GetYaxis()->SetLabelSize(0.06);
+    fProjectionY->GetYaxis()->SetTitleOffset(0.89);
+    fProjectionY->Draw();
+  } else {
+    std::cout << "No Projection Y for " << Rad << std::endl;
+  }
 }
