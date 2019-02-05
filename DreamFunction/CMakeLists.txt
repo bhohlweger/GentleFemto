@@ -61,3 +61,6 @@ target_link_libraries(executeSigma DreamFunctions)
 
 add_executable(executeDPhiDEta ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEta.C)
 target_link_libraries(executeDPhiDEta DreamFunctions)
+
+add_executable(executeDPhiDEtaAtRad ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEtaAtRad.C)
+target_link_libraries(executeDPhiDEtaAtRad DreamFunctions)
