@@ -72,8 +72,6 @@ void DreamdEtadPhi::ShiftAbovePhi() {
 void DreamdEtadPhi::DivideSEandME() {
   fdEtadPhi = (TH2F*) fSEdEtadPhi->Clone(
       Form("%sDividedME", fSEdEtadPhi->GetName()));
-  std::cout << "GetIntegral SE 2D: " << fdEtadPhi->GetIntegral() << std::endl;
-  std::cout << "Integral SE 2D: " << fdEtadPhi->Integral() << std::endl;
   fdEtadPhi->Scale(1. / fdEtadPhi->Integral());
   TH2F* tmpME = (TH2F*) fMEdEtadPhi->Clone("tmp");
   tmpME->Scale(1. / tmpME->Integral());
