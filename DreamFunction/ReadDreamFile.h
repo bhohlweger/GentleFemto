@@ -46,6 +46,8 @@ class ReadDreamFile {
   TH2F*** fSEkT;
   TH2F*** fSEmT;
   TH2F**** fSEdEtadPhimT;
+  TH2F**** fSEdEtadPhiAtRad;
+  TH2F**** fSEdEtadPhiAtRadSmallkStar;
   TH2F*** fSEdEtadPhi;
   TH1F*** fME;
   TH2F*** fMEMult;
@@ -53,6 +55,8 @@ class ReadDreamFile {
   TH2F*** fMEmT;
   TH2F**** fMEdEtadPhimT;
   TH2F*** fMEdEtadPhi;
+  TH2F**** fMEdEtadPhiAtRad;
+  TH2F**** fMEdEtadPhiAtRadSmallkStar;
 };
 
 #endif /* DREAMFUNCTION_READDREAMFILE_H_ */

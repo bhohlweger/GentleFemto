@@ -41,5 +41,39 @@ int main(int argc, char* argv[]) {
   dEtadPhiProtonProtonmT3->WriteOutput(ppList,"ppmT3");
   dEtadPhiProtonProtonmT4->WriteOutput(ppList,"ppmT4");
   ppList->Write("ProtonProton",1);
+
+  DreamdEtadPhi* dEtadPhiProtonLambda= DreamFile->GetdEtadPhiDistribution(0,2,1,3,-1);
+  DreamdEtadPhi* dEtadPhiProtonLambdamT1 = DreamFile->GetdEtadPhiDistribution(0,2,1,3,0);
+  DreamdEtadPhi* dEtadPhiProtonLambdamT2 = DreamFile->GetdEtadPhiDistribution(0,2,1,3,1);
+  DreamdEtadPhi* dEtadPhiProtonLambdamT3 = DreamFile->GetdEtadPhiDistribution(0,2,1,3,2);
+  DreamdEtadPhi* dEtadPhiProtonLambdamT4 = DreamFile->GetdEtadPhiDistribution(0,2,1,3,3);
+
+  dEtadPhiProtonLambda->ShiftAbovePhi();
+  dEtadPhiProtonLambda->DivideSEandME();
+  dEtadPhiProtonLambda->ProjectionY();
+  dEtadPhiProtonLambdamT1->ShiftAbovePhi();
+  dEtadPhiProtonLambdamT1->DivideSEandME();
+  dEtadPhiProtonLambdamT1->ProjectionY();
+  dEtadPhiProtonLambdamT2->ShiftAbovePhi();
+  dEtadPhiProtonLambdamT2->DivideSEandME();
+  dEtadPhiProtonLambdamT2->ProjectionY();
+  dEtadPhiProtonLambdamT3->ShiftAbovePhi();
+  dEtadPhiProtonLambdamT3->DivideSEandME();
+  dEtadPhiProtonLambdamT3->ProjectionY();
+  dEtadPhiProtonLambdamT4->ShiftAbovePhi();
+  dEtadPhiProtonLambdamT4->DivideSEandME();
+  dEtadPhiProtonLambdamT4->ProjectionY();
+
+  output->cd();
+  TList* pLList = new TList();
+  pLList->SetName("ProtonLambda");
+  pLList->SetOwner();
+  dEtadPhiProtonLambda->WriteOutput(pLList,"pLIntegrated");
+  dEtadPhiProtonLambdamT1->WriteOutput(pLList,"pLmT1");
+  dEtadPhiProtonLambdamT2->WriteOutput(pLList,"pLmT2");
+  dEtadPhiProtonLambdamT3->WriteOutput(pLList,"pLmT3");
+  dEtadPhiProtonLambdamT4->WriteOutput(pLList,"pLmT4");
+  pLList->Write("ProtonLambda",1);
+
   return 1;
 }

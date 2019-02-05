@@ -15,12 +15,16 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fSEmT(nullptr),
       fSEdEtadPhimT(nullptr),
       fSEdEtadPhi(nullptr),
+      fSEdEtadPhiAtRad(nullptr),
+      fSEdEtadPhiAtRadSmallkStar(nullptr),
       fME(nullptr),
       fMEMult(nullptr),
       fMEkT(nullptr),
       fMEmT(nullptr),
       fMEdEtadPhimT(nullptr),
-      fMEdEtadPhi(nullptr) {
+      fMEdEtadPhi(nullptr),
+      fMEdEtadPhiAtRad(nullptr),
+      fMEdEtadPhiAtRadSmallkStar(nullptr) {
   TH1::AddDirectory(kFALSE);
   TH2::AddDirectory(kFALSE);
 }
@@ -226,7 +230,6 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
         std::cout << "SEmT Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
-
       fMEmT[iPart1][iPart2] = nullptr;
       fMEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
           Form("MEmTDist_%s", FolderName.Data()));
@@ -242,6 +245,36 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
 void ReadDreamFile::ReaddEtadPhiAtRadHists(const char* AnalysisFile,
                                            const char* prefix,
                                            const char* Addon) {
+  fSEdEtadPhiAtRad = new TH2F***[fNPart1];
+  fSEdEtadPhiAtRadSmallkStar = new TH2F***[fNPart1];
+  fMEdEtadPhiAtRad = new TH2F***[fNPart1];
+  fMEdEtadPhiAtRadSmallkStar = new TH2F***[fNPart1];
+  TFile* _file0 = TFile::Open(AnalysisFile, "READ");
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults%s", prefix, Addon)));
+  TList *ResultsQA;
+  dirResults->GetObject(Form("%sResults%s", prefix, Addon), ResultsQA);
+  TList *PartList;
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+    fSEdEtadPhiAtRad[iPart1] = new TH2F**[fNPart2];
+    fSEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F**[fNPart2];
+    fMEdEtadPhiAtRad[iPart1] = new TH2F**[fNPart2];
+    fMEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F**[fNPart2];
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+      TString FolderName = Form("QA_Particle%i_Particle%i", iPart1, iPart2);
+      PartList = (TList*) ResultsQA->FindObject(FolderName.Data());
+      fSEdEtadPhiAtRad[iPart1][iPart2] = new TH2F*[9];
+      fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2] = new TH2F*[9];
+      fMEdEtadPhiAtRad[iPart1][iPart2] = new TH2F*[9];
+      fMEdEtadPhiAtRadSmallkStar[iPart1][iPart2] = new TH2F*[9];
+      TIter next(PartList);
+      TObject *obj = nullptr;
+      while (obj = next()) {
+
+      }
+
+    }
+  }
   return;
 }
 
