@@ -27,7 +27,8 @@ class ReadDreamFile {
                     const char* addon = "");
   void ReadmTHistos(const char* AnalysisFile, const char* prefix,
                     const char* addon = "");
-  void ReaddEtadPhiAtRadHists(const char* AnalysisFile, const char* prefix,
+  void ReaddEtadPhiAtRadHists(const unsigned int nMaxMix,
+                              const char* AnalysisFile, const char* prefix,
                               const char* Addon = "");
   void ReaddEtadPhiHists(const unsigned int NBinsmT, const char* AnalysisFile,
                          const char* prefix, const char* Addon = "");
@@ -38,6 +39,8 @@ class ReadDreamFile {
                                       int iAPart2);
   DreamdEtadPhi* GetdEtadPhiDistribution(int iPart1, int iPart2, int iAPart1,
                                          int iAPart2, int imT = 0);
+  DreamdEtadPhi* GetdEtadPhiAtRadDistribution(int iPart1, int iPart2, int iAPart1,
+                                         int iAPart2, int iRad, int iMix, bool smallkStar);
   const int fNPart1;
   const int fNPart2;
  private:
@@ -46,8 +49,8 @@ class ReadDreamFile {
   TH2F*** fSEkT;
   TH2F*** fSEmT;
   TH2F**** fSEdEtadPhimT;
-  TH2F**** fSEdEtadPhiAtRad;
-  TH2F**** fSEdEtadPhiAtRadSmallkStar;
+  TH2F***** fSEdEtadPhiAtRad;
+  TH2F***** fSEdEtadPhiAtRadSmallkStar;
   TH2F*** fSEdEtadPhi;
   TH1F*** fME;
   TH2F*** fMEMult;
@@ -55,8 +58,8 @@ class ReadDreamFile {
   TH2F*** fMEmT;
   TH2F**** fMEdEtadPhimT;
   TH2F*** fMEdEtadPhi;
-  TH2F**** fMEdEtadPhiAtRad;
-  TH2F**** fMEdEtadPhiAtRadSmallkStar;
+  TH2F***** fMEdEtadPhiAtRad;
+  TH2F***** fMEdEtadPhiAtRadSmallkStar;
 };
 
 #endif /* DREAMFUNCTION_READDREAMFILE_H_ */
