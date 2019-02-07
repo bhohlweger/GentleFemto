@@ -78,6 +78,8 @@ void DreamdEtadPhi::DivideSEandME() {
   tmpME->Rebin2D(2,2);
   tmpME->Scale(1. / tmpME->Integral());
   fdEtadPhi->Divide(tmpME);
+  fdEtadPhi->SetStats(0);
+
   delete tmpME;
   return;
 }
