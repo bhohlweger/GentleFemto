@@ -91,49 +91,49 @@ void PlotSigmaExclusion(TString inputDir) {
         new TH2F(
             Form("mapRelWorst_%.1f", IMf0invCont[i]),
             Form(
-                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm); #Delta#chi^{2}",
+                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#Rgothic(#it{f}_{0}) (fm^{-1}); #it{d}_{0} (fm); #Delta#chi^{2}",
                 IMf0invCont[i]),
             nBinsX, -5, 5, nBinsY, -10, 10);
     mapWorstChi2[i] =
         new TH2F(
             Form("mapWorstChi2_%.1f", IMf0invCont[i]),
             Form(
-                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm); #chi^{2}",
+                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#Rgothic(#it{f}_{0}) (fm^{-1}); #it{d}_{0} (fm); #chi^{2}",
                 IMf0invCont[i]),
             nBinsX, -5, 5, nBinsY, -10, 10);
     mapRelDef[i] =
         new TH2F(
             Form("mapRelDef_%.1f", IMf0invCont[i]),
             Form(
-                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm); #Delta#chi^{2}",
+                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#Rgothic(#it{f}_{0}) (fm^{-1}); #it{d}_{0} (fm); #Delta#chi^{2}",
                 IMf0invCont[i]),
             nBinsX, -5, 5, nBinsY, -10, 10);
     mapDefChi2[i] =
         new TH2F(
             Form("mapDefChi2_%.1f", IMf0invCont[i]),
             Form(
-                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm); #chi^{2}",
+                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#Rgothic(#it{f}_{0}) (fm^{-1}); #it{d}_{0} (fm); #chi^{2}",
                 IMf0invCont[i]),
             nBinsX, -5, 5, nBinsY, -10, 10);
     mapRelBest[i] =
         new TH2F(
             Form("mapRelBest_%.1f", IMf0invCont[i]),
             Form(
-                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm); #Delta#chi^{2}",
+                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#Rgothic(#it{f}_{0}) (fm^{-1}); #it{d}_{0} (fm); #Delta#chi^{2}",
                 IMf0invCont[i]),
             nBinsX, -5, 5, nBinsY, -10, 10);
     mapBestChi2[i] =
         new TH2F(
             Form("mapBestChi2_%.1f", IMf0invCont[i]),
             Form(
-                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm); #chi^{2}",
+                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#Rgothic(#it{f}_{0}) (fm^{-1}); #it{d}_{0} (fm); #chi^{2}",
                 IMf0invCont[i]),
             nBinsX, -5, 5, nBinsY, -10, 10);
     mapCFneg[i] =
         new TH2F(
             Form("mapCFneg_%.1f", IMf0invCont[i]),
             Form(
-                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm); CFneg",
+                "#Jgothic(f_{0}^{-1}) = %.1f fm^{-1} ;1/#Rgothic(#it{f}_{0}) (fm^{-1}); #it{d}_{0} (fm); CFneg",
                 IMf0invCont[i]),
             nBinsX, -5, 5, nBinsY, -10, 10);
     mapBinding[i] =
@@ -309,10 +309,10 @@ void PlotSigmaExclusion(TString inputDir) {
     mapRelDef[imf0]->SetContour(3, contours);
     mapRelDef[imf0]->Draw("colz");
     lednickyReallySucks[imf0]->Draw("3 SAME");
-    dDef->Print(Form("%s/ExclusionDef_%.1f.pdf", inputDir.Data(), IMf0invCont));
-    dDef->Print(Form("%s/ExclusionDef_%.1f.png", inputDir.Data(), IMf0invCont));
-    mapRelDef[imf0]->Write(Form("ExclusionDef_%.1f", IMf0invCont));
-    dDef->Write(Form("ExclusionDefPlot_%.1f", IMf0invCont));
+    dDef->Print(Form("%s/ExclusionDef_%.1f.pdf", inputDir.Data(), IMf0invCont[imf0]));
+    dDef->Print(Form("%s/ExclusionDef_%.1f.png", inputDir.Data(), IMf0invCont[imf0]));
+    mapRelDef[imf0]->Write(Form("ExclusionDef_%.1f", IMf0invCont[imf0]));
+    dDef->Write(Form("ExclusionDefPlot_%.1f", IMf0invCont[imf0]));
 
     BeamText.DrawLatex(
         0.35,
