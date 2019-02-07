@@ -69,13 +69,13 @@ void DreamdEtadPhi::ShiftAbovePhi() {
   return;
 }
 
-void DreamdEtadPhi::DivideSEandME() {
+void DreamdEtadPhi::DivideSEandME(int rebin) {
   fdEtadPhi = (TH2F*) fSEdEtadPhi->Clone(
       Form("%sDividedME", fSEdEtadPhi->GetName()));
-  fdEtadPhi->Rebin2D(2,2);
+  fdEtadPhi->Rebin2D(rebin,rebin);
   fdEtadPhi->Scale(1. / fdEtadPhi->Integral());
   TH2F* tmpME = (TH2F*) fMEdEtadPhi->Clone("tmp");
-  tmpME->Rebin2D(2,2);
+  tmpME->Rebin2D(rebin,rebin);
   tmpME->Scale(1. / tmpME->Integral());
   fdEtadPhi->Divide(tmpME);
   fdEtadPhi->SetStats(0);
