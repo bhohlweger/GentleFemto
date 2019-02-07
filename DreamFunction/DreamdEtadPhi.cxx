@@ -72,8 +72,10 @@ void DreamdEtadPhi::ShiftAbovePhi() {
 void DreamdEtadPhi::DivideSEandME() {
   fdEtadPhi = (TH2F*) fSEdEtadPhi->Clone(
       Form("%sDividedME", fSEdEtadPhi->GetName()));
+  fdEtadPhi->Rebin2D(2,2);
   fdEtadPhi->Scale(1. / fdEtadPhi->Integral());
   TH2F* tmpME = (TH2F*) fMEdEtadPhi->Clone("tmp");
+  tmpME->Rebin2D(2,2);
   tmpME->Scale(1. / tmpME->Integral());
   fdEtadPhi->Divide(tmpME);
   delete tmpME;
@@ -96,7 +98,7 @@ void DreamdEtadPhi::Draw2D(TPad* p, float Rad) {
     p->SetTopMargin(0.08);
     p->SetBottomMargin(0.1);
     p->SetLeftMargin(0.1);
-    p->SetRightMargin(0.01);
+    p->SetRightMargin(0.1);
     fdEtadPhi->SetStats(0);
     if (Rad != 0) {
       fdEtadPhi->SetTitle(Form("TPC Radius %2.0f cm", Rad));
@@ -112,6 +114,7 @@ void DreamdEtadPhi::Draw2D(TPad* p, float Rad) {
     fdEtadPhi->GetYaxis()->SetLabelSize(0.06);
     fdEtadPhi->GetYaxis()->SetTitleOffset(0.89);
 //    fdEtadPhi->GetYaxis()->SetLabelOffset(0.9);
+//    fdEtadPhi->GetZaxis()->SetRangeUser(0.5,1.5);
     fdEtadPhi->Draw("COLZ");
   } else {
     std::cout << "No fdEtadPhi for " << Rad << std::endl;
