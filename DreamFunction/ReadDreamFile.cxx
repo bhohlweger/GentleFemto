@@ -466,30 +466,30 @@ DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistribution(int iPart1, int iPart2,
 }
 
 DreamdEtadPhi* ReadDreamFile::GetdEtadPhiAtRadDistribution(int iPart1,
-                                                           int iPart2,
+                                                           int iPart2,int iMix1,
                                                            int iAPart1,
-                                                           int iAPart2,
-                                                           int iRad, int iMix,
+                                                           int iAPart2,int iMix2,
+                                                           int iRad,
                                                            bool smallkStar) {
   DreamdEtadPhi* outDist = new DreamdEtadPhi();
   outDist->SetSEDistribution(
       smallkStar ?
-          fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad][iMix] :
-          fSEdEtadPhiAtRad[iPart1][iPart2][iRad][iMix],
+          fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad][iMix1] :
+          fSEdEtadPhiAtRad[iPart1][iPart2][iRad][iMix1],
       "");
   outDist->AddSEDistribution(
       smallkStar ?
-          fSEdEtadPhiAtRadSmallkStar[iAPart1][iAPart2][iRad][iMix] :
-          fSEdEtadPhiAtRad[iAPart1][iAPart2][iRad][iMix]);
+          fSEdEtadPhiAtRadSmallkStar[iAPart1][iAPart2][iRad][iMix2] :
+          fSEdEtadPhiAtRad[iAPart1][iAPart2][iRad][iMix2]);
 
   outDist->SetMEDistribution(
       smallkStar ?
-          fMEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad][iMix] :
-          fMEdEtadPhiAtRad[iPart1][iPart2][iRad][iMix],
+          fMEdEtadPhiAtRadSmallkStar[iPart1][iPart2][iRad][iMix1] :
+          fMEdEtadPhiAtRad[iPart1][iPart2][iRad][iMix2],
       "");
   outDist->AddMEDistribution(
       smallkStar ?
-          fMEdEtadPhiAtRadSmallkStar[iAPart1][iAPart2][iRad][iMix] :
-          fMEdEtadPhiAtRad[iAPart1][iAPart2][iRad][iMix]);
+          fMEdEtadPhiAtRadSmallkStar[iAPart1][iAPart2][iRad][iMix1] :
+          fMEdEtadPhiAtRad[iAPart1][iAPart2][iRad][iMix2]);
   return outDist;
 }

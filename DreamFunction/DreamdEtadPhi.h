@@ -30,7 +30,7 @@ class DreamdEtadPhi {
     fMEdEtadPhi->Add(MEAdd);
   }
   void ShiftAbovePhi();
-  void DivideSEandME();
+  void DivideSEandME(int rebin = 2);
   void ProjectionY();
   void Draw2D(TPad *p, float Rad);
   void DrawProjectionY(TPad *p, float Rad);
