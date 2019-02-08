@@ -16,7 +16,8 @@ std::vector<int> fMarkers = { kFullCircle, kFullSquare, kOpenCircle,
     kOpenSquare, kOpenDiamond, kOpenCross, kFullCross, kFullDiamond, kFullStar,
     kOpenStar };
 
-MakeHistosGreat::MakeHistosGreat() {
+MakeHistosGreat::MakeHistosGreat()
+    : fTightMargin(false) {
   // TODO Auto-generated constructor stub
 
 }
@@ -47,6 +48,10 @@ void MakeHistosGreat::FormatHistogram(TH1* hist, unsigned int marker,
 void MakeHistosGreat::DrawAndStore(TH1* hist, const char* outname,
                                    const char* drawOption) {
   auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
+  if (fTightMargin) {
+    c1->SetTopMargin(0.01);
+    c1->SetRightMargin(0.01);
+  }
   c1->cd();
   hist->Draw(drawOption);
   c1->SaveAs(Form("%s.pdf", outname));
@@ -55,8 +60,12 @@ void MakeHistosGreat::DrawAndStore(TH1* hist, const char* outname,
 }
 
 void MakeHistosGreat::DrawLogYAndStore(TH1* hist, const char* outname,
-                                   const char* drawOption) {
+                                       const char* drawOption) {
   auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
+  if (fTightMargin) {
+    c1->SetTopMargin(0.01);
+    c1->SetRightMargin(0.01);
+  }
   c1->cd();
   c1->SetLogy();
   hist->Draw(drawOption);
@@ -68,6 +77,10 @@ void MakeHistosGreat::DrawLogYAndStore(TH1* hist, const char* outname,
 void MakeHistosGreat::DrawAndStore(TH2* hist, const char* outname,
                                    const char* drawOption) {
   auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
+  if (fTightMargin) {
+    c1->SetTopMargin(0.01);
+    c1->SetRightMargin(0.01);
+  }
   c1->cd();
   hist->Draw(drawOption);
   c1->SaveAs(Form("%s.pdf", outname));
