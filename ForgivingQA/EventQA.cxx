@@ -13,7 +13,8 @@ EventQA::EventQA()
     : fReader(),
       fQA(nullptr),
       fEventCuts(nullptr),
-      fHairyPlotter(new MakeHistosGreat()) {
+      fHairyPlotter(new MakeHistosGreat()),
+      fNEvts(0) {
   // TODO Auto-generated constructor stub
 }
 
@@ -37,20 +38,65 @@ void EventQA::PlotCutCounter() {
 }
 
 void EventQA::PlotEventProperties(unsigned int multMax) {
+  //Method also Sets the Number of Events!
+
   auto* multiplicity = (TH2F*) fReader->Get1DHistInList(
-      fReader->GetListInList(fEventCuts, { {"after"} }),
+      fReader->GetListInList(fEventCuts, { { "after" } }),
       "MultiplicityRef08_after");
+  if (!multiplicity) {
+    std::cerr << "PlotEventProperties: Missing Multiplicity Histogram! \n";
+  }
   multiplicity->GetXaxis()->SetRangeUser(0, multMax);
   fHairyPlotter->FormatHistogram(multiplicity, 0, 1);
   fHairyPlotter->DrawLogYAndStore(multiplicity, "EvtProp_eventMult");
 
   auto* zVtx = (TH2F*) fReader->Get1DHistInList(
-      fReader->GetListInList(fEventCuts, { {"after"} }),
-      "VtxZ_after");
+      fReader->GetListInList(fEventCuts, { { "after" } }), "VtxZ_after");
+  if (!zVtx) {
+    std::cerr << "PlotEventProperties: Missing zVtx Histogram! \n";
+  }
+  fNEvts = zVtx->GetEntries();
   zVtx->GetXaxis()->SetTitle("v_{z} (cm)");
   zVtx->GetXaxis()->SetRangeUser(-11, 11);
   fHairyPlotter->FormatHistogram(zVtx, 0, 1);
   fHairyPlotter->DrawAndStore(zVtx, "EvtProp_zVtx");
-
 }
 
+void EventQA::PlotStatsTrackCleaner(std::vector<const char*> TrackDecay,
+                                    std::vector<const char*> DecayDecay,
+                                    unsigned int xMax) {
+  int itrDec = 0;
+  for (auto it : TrackDecay) {
+    auto* trackDecay = (TH1F*) fReader->Get1DHistInList(
+        fReader->GetListInList(fQA, { { "PairCleaner" } }),
+        Form("DaugthersSharedTracks_%u", itrDec));
+    if (!trackDecay) {
+      std::cerr << "PlotStatsTracksCleaner: "
+                << Form("DaugthersSharedTracks_%u", itrDec) << " missing \n";
+    }
+    TString nameAxis = Form("# %s pairs with shared tracks/event", it);
+    trackDecay->GetXaxis()->SetTitle(nameAxis.Data());
+    trackDecay->GetXaxis()->SetRangeUser(0,xMax);
+    fHairyPlotter->FormatHistogram(trackDecay, 0, 1);
+    fHairyPlotter->DrawLogYAndStore(trackDecay, Form("DecTrack_%u",itrDec));
+
+    ++itrDec;
+  }
+  int iDecDec = 0;
+  for (auto it : DecayDecay) {
+    auto* DecayDecay = (TH1F*) fReader->Get1DHistInList(
+        fReader->GetListInList(fQA, { { "PairCleaner" } }),
+        Form("DaugthersSharedDaughters_%u", iDecDec));
+    if (!DecayDecay) {
+      std::cerr << "PlotStatsTracksCleaner: "
+                << Form("DaugthersSharedDaughters_%u", iDecDec) << " missing \n";
+    }
+    TString nameAxis = Form("# %s pairs with shared tracks/event", it);
+    DecayDecay->GetXaxis()->SetTitle(nameAxis.Data());
+    DecayDecay->GetXaxis()->SetRangeUser(0,xMax);
+    fHairyPlotter->FormatHistogram(DecayDecay, 0, 1);
+    fHairyPlotter->DrawLogYAndStore(DecayDecay, Form("Decdec_%u",iDecDec));
+
+    ++iDecDec;
+  }
+}
