@@ -44,19 +44,32 @@ void MakeHistosGreat::FormatHistogram(TH1* hist, unsigned int marker,
   hist->SetLineWidth(2);
 }
 
-void MakeHistosGreat::DrawAndStore(TH1* hist, const char* outname) {
+void MakeHistosGreat::DrawAndStore(TH1* hist, const char* outname,
+                                   const char* drawOption) {
   auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
   c1->cd();
-  hist->Draw();
+  hist->Draw(drawOption);
   c1->SaveAs(Form("%s.pdf", outname));
   delete c1;
   return;
 }
 
-void MakeHistosGreat::DrawAndStore(TH2* hist, const char* outname) {
+void MakeHistosGreat::DrawLogYAndStore(TH1* hist, const char* outname,
+                                   const char* drawOption) {
   auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
   c1->cd();
-  hist->Draw();
+  c1->SetLogy();
+  hist->Draw(drawOption);
+  c1->SaveAs(Form("%s.pdf", outname));
+  delete c1;
+  return;
+}
+
+void MakeHistosGreat::DrawAndStore(TH2* hist, const char* outname,
+                                   const char* drawOption) {
+  auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
+  c1->cd();
+  hist->Draw(drawOption);
   c1->SaveAs(Form("%s.pdf", outname));
   delete c1;
   return;
