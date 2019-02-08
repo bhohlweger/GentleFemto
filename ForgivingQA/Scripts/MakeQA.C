@@ -6,13 +6,20 @@ int main(int argc, char* argv[]) {
   const char* filename = argv[1];
   const char* prefix = argv[2];
   const char* addon = (argv[3]) ? argv[3] : "";
-  MakeHistosGreat::SetStyle(false,false);
-  ForgivingReader* reader = new ForgivingReader(filename,prefix,addon);
+  MakeHistosGreat::SetStyle(false, false);
+  ForgivingReader* reader = new ForgivingReader(filename, prefix, addon);
   EventQA* evtQA = new EventQA();
+  evtQA->SetLooseMargin();
   evtQA->SetQAList(reader->GetQA());
   evtQA->SetEventCuts(reader->GetEventCuts());
   evtQA->PlotCutCounter();
   evtQA->PlotEventProperties(200);
+  evtQA->SetTightMargin();
+  evtQA->PlotStatsTrackCleaner( { "p-#Lambda", "#bar{p}-#bar{#Lambda}", "p-#Xi",
+                                   "#bar{p}-#bar{#Xi}" },
+                               { "#Lambda-#Lambda",
+                                   "#bar{#Lambda}-#bar{#Lambda}", "#Xi-#Xi",
+                                   "#bar{#Xi}-#bar{#Xi}" }, 6);
   return 0;
 }
 
