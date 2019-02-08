@@ -25,11 +25,12 @@ class EventQA {
   ;
   void MakeEventQA();
   void PlotCutCounter();
+  void PlotEventProperties(unsigned int multMax);
  private:
   ForgivingReader* fReader;
   TList* fQA;
   TList* fEventCuts;
-  MakeHistosGreat* fPainter;
+  MakeHistosGreat* fHairyPlotter;
 };
 
 #endif /* FORGIVINGQA_EVENTQA_H_ */

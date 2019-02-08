@@ -11,7 +11,8 @@ int main(int argc, char* argv[]) {
   EventQA* evtQA = new EventQA();
   evtQA->SetQAList(reader->GetQA());
   evtQA->SetEventCuts(reader->GetEventCuts());
-  evtQA->MakeEventQA();
+  evtQA->PlotCutCounter();
+  evtQA->PlotEventProperties(200);
   return 0;
 }
 
