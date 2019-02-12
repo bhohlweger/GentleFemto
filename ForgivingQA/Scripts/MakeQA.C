@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
   const char* filename = argv[1];
   const char* prefix = argv[2];
   const char* addon = (argv[3]) ? argv[3] : "";
-  MakeHistosGreat::SetStyle(false, false);
+  MakeHistosGreat::SetStyle(false);
   ForgivingReader* reader = new ForgivingReader(filename, prefix, addon);
   EventQA* evtQA = new EventQA();
   evtQA->SetLooseMargin();
@@ -25,6 +25,7 @@ int main(int argc, char* argv[]) {
   trkQA->SetTrackCuts(reader->GetTrackCuts());
   trkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
   trkQA->PlotKinematic();
+  trkQA->PlotPID();
   return 0;
 }
 
