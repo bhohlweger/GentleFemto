@@ -239,14 +239,14 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
     double Pars_pp[9] = { 0, 0, 0, GaussSourceSize_pp * 1.2, 1.65, 0.3578,
         1361.52, massProton, massPion };
     CATS AB_pp;
-    tidy->GetCatsProtonProton(&AB_pp, Pars_pp, NumMomBins, kMin, kMax, true);
+    tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, true);
     AB_pp.KillTheCat();
 
     double Pars_pL[14] = { 0, 0, 0, GaussSourceSize * 1.2, 1.65, 0.3578,
         1361.52, massProton, massPion, 4.69, 0.3562, 1462.93, massLambda,
         massPion };
     CATS AB_pL;
-    tidy->GetCatsProtonLambda(&AB_pL, Pars_pL, NumMomBins, kMin, kMax, true);
+    tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, true);
     AB_pL.KillTheCat();
 
     std::cout << "Reading Data \n";

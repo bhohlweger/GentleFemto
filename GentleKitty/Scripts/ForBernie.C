@@ -415,31 +415,29 @@ void RUN2_main(const unsigned& NumIter, const unsigned& NumJobs,
     //if true renormalization is NOT allowed
     bool FIX_CL = false;
 
-    double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize / 1.2,
-        0.5 };
+//    double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize / 1.2,
+//        0.5 };
     CATS AB_pp;
-    tidy->GetCatsProtonProton(&AB_pp, Pars_pp, NumMomBins_pp,
-                              kMin_pp, kMax_pp);
+    tidy->GetCatsProtonProton(&AB_pp, NumMomBins_pp, kMin_pp, kMax_pp);
     AB_pp.KillTheCat();
 
-    double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize / 1.2,
-        0.5 };
+//    double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize / 1.2,
+//        0.5 };
     CATS AB_pL;
-    tidy->GetCatsProtonLambda(&AB_pL, Pars_pL, NumMomBins_pL,
-                              kMin_pL, kMax_pL);
+    tidy->GetCatsProtonLambda(&AB_pL, NumMomBins_pL, kMin_pL, kMax_pL);
     AB_pL.KillTheCat();
-    double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
-        / 1.2, 0.5 };
+//    double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
+//        / 1.2, 0.5 };
     CATS AB_pXim;
-    tidy->GetCatsProtonXiMinus(&AB_pXim, Pars_pXi,
-                               NumMomBins_pXim, kMin_pXim, kMax_pXim, true, 13);
+    tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin_pXim, kMax_pXim,
+                               true, 13);
     AB_pXim.KillTheCat();
 
-    double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
-        / 1.2, 0.5 };
+//    double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2, GaussSourceSize
+//        / 1.2, 0.5 };
     CATS AB_pXim1530;
-    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, Pars_pXim1530,
-                                   NumMomBins_pXim, kMin_pXim, kMax_pXim);
+    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim, kMin_pXim,
+                                   kMax_pXim);
     AB_pXim1530.KillTheCat();
 
     //***
@@ -1784,15 +1782,26 @@ void RUN2_main(const unsigned& NumIter, const unsigned& NumJobs,
 
       cfast->Write();
       cfast->SaveAs(TString::Format("%scfast.png", OutputDir.Data()));
-      double pXimPotParsI0S0[10] = { 0, 0, pXim_HALQCD1, 13, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
-      double pXimPotParsI0S1[10] = { 0, 0, pXim_HALQCD1, 13, 0, -1, 1, 1, 0, 1 };  // 9, 10, 11, 12
-      double pXimPotParsI1S0[10] = { 0, 0, pXim_HALQCD1, 13, 1, 1, 1, 0, 0, 0 };  //This is shit. Corresponds to 9-14 t
-      double pXimPotParsI1S1[10] = { 0, 0, pXim_HALQCD1, 13, 1, 1, 1, 1, 0, 1 };  // this value 1-6
+      int QCDTime = 13;
+      double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
+      double pXimPotParsI0S1[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1 };  // 9, 10, 11, 12
+      double pXimPotParsI1S0[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0 };  //This is shit. Corresponds to 9-14 t
+      double pXimPotParsI1S1[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1 };  // this value 1-6
+      CATSparameters cPotParsI0S0(CATSparameters::tPotential, 8, true);
+      cPotParsI0S0.SetParameters(pXimPotParsI0S0);
 
-      AB_pXim.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI0S0);
-      AB_pXim.SetShortRangePotential(1, 0, fDlmPot, pXimPotParsI0S1);
-      AB_pXim.SetShortRangePotential(2, 0, fDlmPot, pXimPotParsI1S0);
-      AB_pXim.SetShortRangePotential(3, 0, fDlmPot, pXimPotParsI1S1);
+      CATSparameters cPotParsI0S1(CATSparameters::tPotential, 8, true);
+      cPotParsI0S1.SetParameters(pXimPotParsI0S1);
+
+      CATSparameters cPotParsI1S0(CATSparameters::tPotential, 8, true);
+      cPotParsI1S0.SetParameters(pXimPotParsI1S0);
+
+      CATSparameters cPotParsI1S1(CATSparameters::tPotential, 8, true);
+      cPotParsI1S1.SetParameters(pXimPotParsI1S1);
+      AB_pXim.SetShortRangePotential(0, 0, fDlmPot, cPotParsI0S0);
+      AB_pXim.SetShortRangePotential(1, 0, fDlmPot, cPotParsI0S1);
+      AB_pXim.SetShortRangePotential(2, 0, fDlmPot, cPotParsI1S0);
+      AB_pXim.SetShortRangePotential(3, 0, fDlmPot, cPotParsI1S1);
       AB_pXim.KillTheCat(CATS::kPotentialChanged);
 
       if (FULL_PLOT) {
