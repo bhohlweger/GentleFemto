@@ -9,18 +9,20 @@
 #define FORGIVINGQA_MAKEHISTOSGREAT_H_
 #include "TH1.h"
 #include "TH2.h"
+#include <vector>
 class MakeHistosGreat {
  public:
   MakeHistosGreat();
   virtual ~MakeHistosGreat();
   void FormatHistogram(TH1* hist, unsigned int marker, unsigned int color);
-  void DrawAndStore(TH1* hist, const char* outname,
+  void FormatHistogram(TH2 *histo);
+  void DrawAndStore(std::vector<TH1*> hist, const char* outname,
                     const char* drawOption = "");
-  void DrawLogYAndStore(TH1* hist, const char* outname, const char* drawOption =
-                            "");
-  void DrawAndStore(TH2* hist, const char* outname,
+  void DrawLogYAndStore(std::vector<TH1*> hist, const char* outname,
+                        const char* drawOption = "");
+  void DrawAndStore(std::vector<TH2*> hist, const char* outname,
                     const char* drawOption = "");
-  static void SetStyle(bool graypalette = false, bool title = true);
+  static void SetStyle(bool title = true);
   void SetTightMargin(bool set = false) {
     fTightMargin = set;
   }

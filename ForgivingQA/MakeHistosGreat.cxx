@@ -45,60 +45,97 @@ void MakeHistosGreat::FormatHistogram(TH1* hist, unsigned int marker,
   hist->SetLineWidth(2);
 }
 
-void MakeHistosGreat::DrawAndStore(TH1* hist, const char* outname,
+void MakeHistosGreat::FormatHistogram(TH2 *histo) {
+  histo->GetXaxis()->SetLabelSize(0.045);
+  histo->GetXaxis()->SetLabelOffset(0.01);
+  histo->GetYaxis()->SetLabelSize(0.045);
+  histo->GetYaxis()->SetLabelOffset(0.01);
+
+  histo->GetXaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetTitleOffset(1.2);
+  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetYaxis()->SetTitleOffset(1.25);
+
+//  histo->SetMarkerStyle(fMarkers[marker]);
+//  histo->SetMarkerColor(fColors[color]);
+//  histo->SetLineColor(fColors[color]);
+}
+
+void MakeHistosGreat::DrawAndStore(std::vector<TH1*> hist, const char* outname,
                                    const char* drawOption) {
   auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
   if (fTightMargin) {
-    c1->SetTopMargin(0.01);
+    c1->SetTopMargin(0.02);
     c1->SetRightMargin(0.01);
   }
   c1->cd();
-  hist->Draw(drawOption);
+  TString DrawOpt = Form("%s", drawOption);
+  bool oneTime = false;
+  for (auto it : hist) {
+    it->Draw(DrawOpt.Data());
+    if (!oneTime) {
+      oneTime = true;
+      DrawOpt += "same";
+    }
+  }
   c1->SaveAs(Form("%s.pdf", outname));
   delete c1;
   return;
 }
 
-void MakeHistosGreat::DrawLogYAndStore(TH1* hist, const char* outname,
+void MakeHistosGreat::DrawLogYAndStore(std::vector<TH1*> hist,
+                                       const char* outname,
                                        const char* drawOption) {
   auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
   if (fTightMargin) {
-    c1->SetTopMargin(0.01);
+    c1->SetTopMargin(0.02);
     c1->SetRightMargin(0.01);
   }
   c1->cd();
   c1->SetLogy();
-  hist->Draw(drawOption);
+  TString DrawOpt = Form("%s", drawOption);
+  bool oneTime = false;
+  for (auto it : hist) {
+    it->Draw(DrawOpt.Data());
+    if (!oneTime) {
+      oneTime = true;
+      DrawOpt += "same";
+    }
+  }
   c1->SaveAs(Form("%s.pdf", outname));
   delete c1;
   return;
 }
 
-void MakeHistosGreat::DrawAndStore(TH2* hist, const char* outname,
+void MakeHistosGreat::DrawAndStore(std::vector<TH2*> hist, const char* outname,
                                    const char* drawOption) {
   auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
   if (fTightMargin) {
-    c1->SetTopMargin(0.01);
+    c1->SetTopMargin(0.02);
     c1->SetRightMargin(0.01);
   }
   c1->cd();
-  hist->Draw(drawOption);
+  TString DrawOpt = Form("%s", drawOption);
+  bool oneTime = false;
+  for (auto it : hist) {
+    it->Draw(DrawOpt.Data());
+    if (!oneTime) {
+      oneTime = true;
+      DrawOpt += "same";
+    }
+  }
   c1->SaveAs(Form("%s.pdf", outname));
   delete c1;
   return;
 }
 
-void MakeHistosGreat::SetStyle(bool graypalette, bool title) {
+void MakeHistosGreat::SetStyle(bool title) {
   const int NCont = 255;
   gStyle->Reset("Plain");
   gStyle->SetNumberContours(NCont);
   gStyle->SetOptTitle(title);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetOptStat(0);
-  if (graypalette)
-    gStyle->SetPalette(8, 0);
-  else
-    gStyle->SetPalette(1);
   gStyle->SetCanvasColor(10);
   gStyle->SetCanvasBorderMode(0);
   gStyle->SetFrameLineWidth(1);
@@ -127,4 +164,5 @@ void MakeHistosGreat::SetStyle(bool graypalette, bool title) {
   gStyle->SetLegendFillColor(kWhite);
   gStyle->SetLegendFont(42);
   gStyle->SetLegendBorderSize(0);
+  gStyle->SetPalette(kBird);
 }
