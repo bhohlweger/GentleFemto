@@ -291,29 +291,29 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
               vMod_pL = 1;
               HaveWeABaseLine = false;  // no base line in default
             }
-            double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-                GaussSourceSize / 1.2, 0.5 };
+//            double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2,
+//                GaussSourceSize / 1.2, 0.5 };
             CATS AB_pp;
-            tidy->GetCatsProtonProton(&AB_pp, Pars_pp, NumMomBins, kMin, kMax);
+            tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax);
             AB_pp.KillTheCat();
 
-            double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-                GaussSourceSize / 1.2, 0.5 };
+//            double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2,
+//                GaussSourceSize / 1.2, 0.5 };
             CATS AB_pL;
-            tidy->GetCatsProtonLambda(&AB_pL, Pars_pL, NumMomBins, kMin, kMax);
+            tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax);
             AB_pL.KillTheCat();
-            double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-                GaussSourceSize / 1.2, 0.5 };
+//            double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
+//                GaussSourceSize / 1.2, 0.5 };
             CATS AB_pXim;
-            tidy->GetCatsProtonXiMinus(&AB_pXim, Pars_pXi, NumMomBins, kMin,
-                                       kMax, true, 13);
+            tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, true,
+                                       13);
             AB_pXim.KillTheCat();
 
-            double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-                GaussSourceSize / 1.2, 0.5 };
+//            double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2,
+//                GaussSourceSize / 1.2, 0.5 };
             CATS AB_pXim1530;
-            tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, Pars_pXim1530,
-                                           NumMomBins, kMin, kMax);
+            tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin,
+                                           kMax);
             AB_pXim1530.KillTheCat();
 
             std::cout << "Reading Data \n";
@@ -565,7 +565,8 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
               dataY = OliHisto_pp->GetBinContent(uBin + 1);
               dataErr = OliHisto_pp->GetBinError(uBin + 1);
               if (dataErr < 1e-5) {
-                std::cout << dataErr << '\t' << "WARNING POINT NOT CONSIDERED \n";
+                std::cout << dataErr << '\t'
+                          << "WARNING POINT NOT CONSIDERED \n";
                 continue;
               }
               Chi2_pp += (dataY - theoryY) * (dataY - theoryY)
