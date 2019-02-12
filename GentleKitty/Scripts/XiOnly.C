@@ -240,18 +240,18 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               TH1F* fitme = side->GetSideBands(5);
               double SideBandPars[4];
               side->FitSideBands(fitme, SideBandPars);
-              double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-                  GaussSourceSize / 1.2, 0.5 };
+//              double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
+//                  GaussSourceSize / 1.2, 0.5 };
               CATS AB_pXim;
-              tidy->GetCatsProtonXiMinus(&AB_pXim, Pars_pXi, NumMomBins_pXim,
+              tidy->GetCatsProtonXiMinus(&AB_pXim,  NumMomBins_pXim,
                                          kMin_pXim, kMax_pXim, true,
                                          tQCDVars[tOut]);
               AB_pXim.KillTheCat();
 
-              double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-                  GaussSourceSize / 1.2, 0.5 };
+//              double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2,
+//                  GaussSourceSize / 1.2, 0.5 };
               CATS AB_pXim1530;
-              tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, Pars_pXim1530,
+              tidy->GetCatsProtonXiMinus1530(&AB_pXim1530,
                                              NumMomBins_pXim, kMin_pXim,
                                              kMax_pXim);
               AB_pXim1530.KillTheCat();
@@ -382,9 +382,9 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 
               TGraph SideBandStrongWithLambda;
               TGraph SideBandStrongWithOutLambda;
-              CATShisto<double>* StrongWithLambda = CkDec_pXim
+              DLM_Histo1D<double>* StrongWithLambda = CkDec_pXim
                   .GetChildContribution("pXiSideBand", true);
-              CATShisto<double>* StrongWithOutLambda = CkDec_pXim
+              DLM_Histo1D<double>* StrongWithOutLambda = CkDec_pXim
                   .GetChildContribution("pXiSideBand", false);
               for (int iBin = 0; iBin < StrongWithLambda->GetNbins(); ++iBin) {
                 SideBandStrongWithLambda.SetPoint(
@@ -486,9 +486,9 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                         << p_b_coulomb_err << std::endl;
               TGraph SideBandCoulombWithLambda;
               TGraph SideBandCoulombWithOutLambda;
-              CATShisto<double>* CoulombWithLambda = CkDec_pXim
+              DLM_Histo1D<double>* CoulombWithLambda = CkDec_pXim
                   .GetChildContribution("pXiSideBand", true);
-              CATShisto<double>* CoulombWithOutLambda = CkDec_pXim
+              DLM_Histo1D<double>* CoulombWithOutLambda = CkDec_pXim
                   .GetChildContribution("pXiSideBand", false);
               for (int iBin = 0; iBin < CoulombWithLambda->GetNbins(); ++iBin) {
                 SideBandCoulombWithLambda.SetPoint(

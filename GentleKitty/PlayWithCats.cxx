@@ -92,14 +92,19 @@ void PlayWithCats::PlotPotentials() {
 
   for (auto it : cutOffValues) {
     int COLORMEBLIND = 51 + 3 * iCutOff;
-    double pXimPotParsI0S0[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 0, -1, 1, 0, 0,
-        0, it };
-    double pXimPotParsI0S1[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 0, -1, 1, 1, 0,
-        1, it };
-    double pXimPotParsI1S0[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 1, 1, 1, 0, 0,
-        0, it };
-    double pXimPotParsI1S1[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 1, 1, 1, 1, 0,
-        1, it };
+    double PotParsI0S0[9] = { pXim_HALQCD1, fQCDTime, 0, -1, 1, 0, 0, 0, it };
+    double PotParsI0S1[9] = { pXim_HALQCD1, fQCDTime, 0, -1, 1, 1, 0, 1, it };
+    double PotParsI1S0[9] = { pXim_HALQCD1, fQCDTime, 1, 1, 1, 0, 0, 0, it };
+    double PotParsI1S1[9] = { pXim_HALQCD1, fQCDTime, 1, 1, 1, 1, 0, 1, it };
+
+    CATSparameters pXimPotParsI0S0(CATSparameters::tPotential, 9, true);
+    pXimPotParsI0S0.SetParameters(PotParsI0S0);
+    CATSparameters pXimPotParsI0S1(CATSparameters::tPotential, 9, true);
+    pXimPotParsI0S1.SetParameters(PotParsI0S1);
+    CATSparameters pXimPotParsI1S0(CATSparameters::tPotential, 9, true);
+    pXimPotParsI1S0.SetParameters(PotParsI1S0);
+    CATSparameters pXimPotParsI1S1(CATSparameters::tPotential, 9, true);
+    pXimPotParsI1S1.SetParameters(PotParsI1S1);
 
     TString I0S0HistName = Form("hI0S0_%.2f", it);
     TString I0S0HistTitle = Form("I0S0");
@@ -122,8 +127,9 @@ void PlayWithCats::PlotPotentials() {
                                 fMomBins, fkMin, fkMax);
 
     CATS AB_pXim_I0S0;
-    double Pars_pXiI0S0[4] = { 0, 0, 0, fRadius };
-    AB_pXim_I0S0.SetAnaSource(GaussSource, Pars_pXiI0S0);
+    CATSparameters cParsI0S0(CATSparameters::tSource, 1, true);
+    cParsI0S0.SetParameter(0, fRadius);
+    AB_pXim_I0S0.SetAnaSource(GaussSource, cParsI0S0);
     AB_pXim_I0S0.SetUseAnalyticSource(true);
     AB_pXim_I0S0.SetThetaDependentSource(false);
     AB_pXim_I0S0.SetExcludeFailedBins(false);
@@ -142,8 +148,9 @@ void PlayWithCats::PlotPotentials() {
     AB_pXim_I0S0.KillTheCat();
 
     CATS AB_pXim_I0S1;
-    double Pars_pXiI0S1[4] = { 0, 0, 0, fRadius };
-    AB_pXim_I0S1.SetAnaSource(GaussSource, Pars_pXiI0S1);
+    CATSparameters cParsI0S1(CATSparameters::tSource, 1, true);
+    cParsI0S1.SetParameter(0, fRadius);
+    AB_pXim_I0S1.SetAnaSource(GaussSource, cParsI0S1);
     AB_pXim_I0S1.SetUseAnalyticSource(true);
     AB_pXim_I0S1.SetThetaDependentSource(false);
     AB_pXim_I0S1.SetExcludeFailedBins(false);
@@ -162,8 +169,9 @@ void PlayWithCats::PlotPotentials() {
     AB_pXim_I0S1.KillTheCat();
 
     CATS AB_pXim_I1S0;
-    double Pars_pXiI1S0[4] = { 0, 0, 0, fRadius };
-    AB_pXim_I1S0.SetAnaSource(GaussSource, Pars_pXiI1S0);
+    CATSparameters cParsI1S0(CATSparameters::tSource, 1, true);
+    cParsI1S0.SetParameter(0, fRadius);
+    AB_pXim_I1S0.SetAnaSource(GaussSource, cParsI1S0);
     AB_pXim_I1S0.SetUseAnalyticSource(true);
     AB_pXim_I1S0.SetThetaDependentSource(false);
     AB_pXim_I1S0.SetExcludeFailedBins(false);
@@ -182,8 +190,9 @@ void PlayWithCats::PlotPotentials() {
     AB_pXim_I1S0.KillTheCat();
 
     CATS AB_pXim_I1S1;
-    double Pars_pXiI1S1[4] = { 0, 0, 0, fRadius };
-    AB_pXim_I1S1.SetAnaSource(GaussSource, Pars_pXiI1S1);
+    CATSparameters cParsI1S1(CATSparameters::tSource, 1, true);
+    cParsI1S1.SetParameter(0, fRadius);
+    AB_pXim_I1S1.SetAnaSource(GaussSource, cParsI1S1);
     AB_pXim_I1S1.SetUseAnalyticSource(true);
     AB_pXim_I1S1.SetThetaDependentSource(false);
     AB_pXim_I1S1.SetExcludeFailedBins(false);
@@ -342,14 +351,24 @@ void PlayWithCats::PlotPotentialSum() {
 
   for (auto it : cutOffValues) {
     int COLORMEBLIND = 51 + 3 * iCutOff;
-    double pXimPotParsI0S0[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 0, -1, 1, 0, 0,
-        0, it };
-    double pXimPotParsI0S1[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 0, -1, 1, 1, 0,
-        1, it };
-    double pXimPotParsI1S0[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 1, 1, 1, 0, 0,
-        0, it };
-    double pXimPotParsI1S1[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 1, 1, 1, 1, 0,
-        1, it };
+    double pXimPotParsI0S0[9] =
+        { pXim_HALQCD1, fQCDTime, 0, -1, 1, 0, 0, 0, it };
+    double pXimPotParsI0S1[9] =
+        { pXim_HALQCD1, fQCDTime, 0, -1, 1, 1, 0, 1, it };
+    double pXimPotParsI1S0[9] = { pXim_HALQCD1, fQCDTime, 1, 1, 1, 0, 0, 0, it };
+    double pXimPotParsI1S1[9] = { pXim_HALQCD1, fQCDTime, 1, 1, 1, 1, 0, 1, it };
+
+    CATSparameters cPotParsI0S0(CATSparameters::tPotential, 9, true);
+    cPotParsI0S0.SetParameters(pXimPotParsI0S0);
+
+    CATSparameters cPotParsI0S1(CATSparameters::tPotential, 9, true);
+    cPotParsI0S1.SetParameters(pXimPotParsI0S1);
+
+    CATSparameters cPotParsI1S0(CATSparameters::tPotential, 9, true);
+    cPotParsI1S0.SetParameters(pXimPotParsI1S0);
+
+    CATSparameters cPotParsI1S1(CATSparameters::tPotential, 9, true);
+    cPotParsI1S1.SetParameters(pXimPotParsI1S1);
 
     TString SumHistName = Form("Sum_%.2f", it);
     TString SumHistTitle = Form("Sum");
@@ -357,8 +376,9 @@ void PlayWithCats::PlotPotentialSum() {
                                fMomBins, fkMin, fkMax);
 
     CATS AB_pXimSum;
-    double Pars_pXiSum[4] = { 0, 0, 0, fRadius };
-    AB_pXimSum.SetAnaSource(GaussSource, Pars_pXiSum);
+    CATSparameters cPars(CATSparameters::tSource, 1, true);
+    cPars.SetParameter(0, fRadius);
+    AB_pXimSum.SetAnaSource(GaussSource, cPars);
     AB_pXimSum.SetUseAnalyticSource(true);
     AB_pXimSum.SetThetaDependentSource(false);
     AB_pXimSum.SetExcludeFailedBins(false);
@@ -383,10 +403,10 @@ void PlayWithCats::PlotPotentialSum() {
     AB_pXimSum.SetRedMass((fMass_p * fMass_Xim) / (fMass_p + fMass_Xim));
     AB_pXimSum.SetMaxRad(64);
     AB_pXimSum.SetMaxRho(32);
-    AB_pXimSum.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI0S0);
-    AB_pXimSum.SetShortRangePotential(1, 0, fDlmPot, pXimPotParsI0S1);
-    AB_pXimSum.SetShortRangePotential(2, 0, fDlmPot, pXimPotParsI1S0);
-    AB_pXimSum.SetShortRangePotential(3, 0, fDlmPot, pXimPotParsI1S1);
+    AB_pXimSum.SetShortRangePotential(0, 0, fDlmPot, cPotParsI0S0);
+    AB_pXimSum.SetShortRangePotential(1, 0, fDlmPot, cPotParsI0S1);
+    AB_pXimSum.SetShortRangePotential(2, 0, fDlmPot, cPotParsI1S0);
+    AB_pXimSum.SetShortRangePotential(3, 0, fDlmPot, cPotParsI1S1);
 
     AB_pXimSum.KillTheCat();
 
@@ -421,7 +441,7 @@ void PlayWithCats::PlotPotentialSum() {
       theoryY = CF_Sum[iCutOff]->GetBinContent(uBin + 1);
 
       double CkData = fCFHistDefaultData->GetBinContent(uBin + 1);
-      double dataErr = fCFHistDefaultData->GetBinError(uBin + 1 );
+      double dataErr = fCFHistDefaultData->GetBinError(uBin + 1);
       Chi2_pXimDataErr += (CkData - theoryY) * (CkData - theoryY)
           / (dataErr * dataErr);
 
@@ -499,14 +519,10 @@ void PlayWithCats::ExtractUncertaintyFit(const char* inFit) {
 }
 
 void PlayWithCats::GenerateDefault() {
-  double pXimPotParsI0S0[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 0, -1, 1, 0, 0,
-      0, 0. };
-  double pXimPotParsI0S1[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 0, -1, 1, 1, 0,
-      1, 0. };
-  double pXimPotParsI1S0[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 1, 1, 1, 0, 0, 0,
-      0. };
-  double pXimPotParsI1S1[11] = { 0, 0, pXim_HALQCD1, fQCDTime, 1, 1, 1, 1, 0, 1,
-      0. };
+  double pXimPotParsI0S0[9] = { pXim_HALQCD1, fQCDTime, 0, -1, 1, 0, 0, 0, 0. };
+  double pXimPotParsI0S1[9] = { pXim_HALQCD1, fQCDTime, 0, -1, 1, 1, 0, 1, 0. };
+  double pXimPotParsI1S0[9] = { pXim_HALQCD1, fQCDTime, 1, 1, 1, 0, 0, 0, 0. };
+  double pXimPotParsI1S1[9] = { pXim_HALQCD1, fQCDTime, 1, 1, 1, 1, 0, 1, 0. };
 
   TString DataHistName = Form("DefaultErrData");
   TString DataHistTitle = Form("DefaultErrData");
@@ -519,8 +535,10 @@ void PlayWithCats::GenerateDefault() {
                                fMomBins, fkMin, fkMax);
 
   CATS AB_pXimSum;
-  double Pars_pXiSum[4] = { 0, 0, 0, fRadius };
-  AB_pXimSum.SetAnaSource(GaussSource, Pars_pXiSum);
+  CATSparameters cPars(CATSparameters::tSource, 1, true);
+  cPars.SetParameter(0, fRadius);
+
+  AB_pXimSum.SetAnaSource(GaussSource, cPars);
   AB_pXimSum.SetUseAnalyticSource(true);
   AB_pXimSum.SetThetaDependentSource(false);
   AB_pXimSum.SetExcludeFailedBins(false);
@@ -545,10 +563,23 @@ void PlayWithCats::GenerateDefault() {
   AB_pXimSum.SetRedMass((fMass_p * fMass_Xim) / (fMass_p + fMass_Xim));
   AB_pXimSum.SetMaxRad(64);
   AB_pXimSum.SetMaxRho(32);
-  AB_pXimSum.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI0S0);
-  AB_pXimSum.SetShortRangePotential(1, 0, fDlmPot, pXimPotParsI0S1);
-  AB_pXimSum.SetShortRangePotential(2, 0, fDlmPot, pXimPotParsI1S0);
-  AB_pXimSum.SetShortRangePotential(3, 0, fDlmPot, pXimPotParsI1S1);
+
+  CATSparameters cPotParsI0S0(CATSparameters::tPotential, 9, true);
+  cPotParsI0S0.SetParameters(pXimPotParsI0S0);
+
+  CATSparameters cPotParsI0S1(CATSparameters::tPotential, 9, true);
+  cPotParsI0S1.SetParameters(pXimPotParsI0S1);
+
+  CATSparameters cPotParsI1S0(CATSparameters::tPotential, 9, true);
+  cPotParsI1S0.SetParameters(pXimPotParsI1S0);
+
+  CATSparameters cPotParsI1S1(CATSparameters::tPotential, 9, true);
+  cPotParsI1S1.SetParameters(pXimPotParsI1S1);
+
+  AB_pXimSum.SetShortRangePotential(0, 0, fDlmPot, cPotParsI0S0);
+  AB_pXimSum.SetShortRangePotential(1, 0, fDlmPot, cPotParsI0S1);
+  AB_pXimSum.SetShortRangePotential(2, 0, fDlmPot, cPotParsI1S0);
+  AB_pXimSum.SetShortRangePotential(3, 0, fDlmPot, cPotParsI1S1);
 
   AB_pXimSum.KillTheCat();
 
@@ -575,7 +606,7 @@ void PlayWithCats::GenerateDefault() {
 
   fCFHistDefaultFit->GetYaxis()->SetRangeUser(
       0.8, fCFHistDefaultFit->GetMaximum() * 1.5);
-  fCFHistDefaultFit->GetXaxis()->SetRangeUser(fkMin,fkMax);
+  fCFHistDefaultFit->GetXaxis()->SetRangeUser(fkMin, fkMax);
   fCFHistDefaultFit->SetStats(0);
   fCFHistDefaultFit->SetLineWidth(1);
   fCFHistDefaultFit->SetLineColor(1);
@@ -591,7 +622,9 @@ void PlayWithCats::GenerateDefault() {
 void PlayWithCats::GenerateCoulombOnly() {
   CATS AB_pXimCoulomb;
   double Pars_pXiSum[4] = { 0, 0, 0, fRadius };
-  AB_pXimCoulomb.SetAnaSource(GaussSource, Pars_pXiSum);
+  CATSparameters cPars(CATSparameters::tSource, 1, true);
+  cPars.SetParameter(0, fRadius);
+  AB_pXimCoulomb.SetAnaSource(GaussSource, cPars);
   AB_pXimCoulomb.SetUseAnalyticSource(true);
   AB_pXimCoulomb.SetThetaDependentSource(false);
   AB_pXimCoulomb.SetExcludeFailedBins(false);

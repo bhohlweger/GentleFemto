@@ -84,7 +84,7 @@ void testCats() {
       1 };
   double PotPars3P2[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1,
       2 };
-  AB_pp.SetAnaSource(GaussSource, pars);
+//  AB_pp.SetAnaSource(GaussSource, pars);
   AB_pp.SetUseAnalyticSource(true);
   AB_pp.SetThetaDependentSource(false);
   AB_pp.SetExcludeFailedBins(false);
@@ -105,10 +105,10 @@ void testCats() {
   AB_pp.SetChannelWeight(1, Weight3P0);
   AB_pp.SetChannelWeight(2, Weight3P1);
   AB_pp.SetChannelWeight(3, Weight3P2);
-  AB_pp.SetShortRangePotential(0, 0, fDlmPot, PotPars1S0);
-  AB_pp.SetShortRangePotential(1, 1, fDlmPot, PotPars3P0);
-  AB_pp.SetShortRangePotential(2, 1, fDlmPot, PotPars3P1);
-  AB_pp.SetShortRangePotential(3, 1, fDlmPot, PotPars3P2);
+//  AB_pp.SetShortRangePotential(0, 0, fDlmPot, PotPars1S0);
+//  AB_pp.SetShortRangePotential(1, 1, fDlmPot, PotPars3P0);
+//  AB_pp.SetShortRangePotential(2, 1, fDlmPot, PotPars3P1);
+//  AB_pp.SetShortRangePotential(3, 1, fDlmPot, PotPars3P2);
   AB_pp.KillTheCat();
   return;
 }

@@ -14,18 +14,17 @@ class TidyCats {
  public:
   TidyCats();
   virtual ~TidyCats();
-  void GetCatsProtonProton(CATS* AB_pp, double* pars, int momBins, double kMin,
-                           double kMax, bool ResonanceSource = false);
-  void GetCatsProtonLambda(CATS* AB_pL, double* pars, int momBins, double kMin,
-                           double kMax, bool ResonanceSource = false);
-  void GetCatsProtonXiMinus(CATS* AB_pXim, double* pars, int momBins,
-                            double kMin, double kMax, bool StrongOn,
-                            double QCDTime);
-  void GetCatsProtonXiMinusCutOff(CATS* AB_pXim, double* pars, int momBins,
-                            double kMin, double kMax, bool StrongOn,
-                            double QCDTime, double cutOff);
-  void GetCatsProtonXiMinus1530(CATS* AB_pXim1530, double* pars, int momBins,
-                                double kMin, double kMax);
+  void GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin, double kMax,
+                           bool ResonanceSource = false);
+  void GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin, double kMax,
+                           bool ResonanceSource = false);
+  void GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
+                            double kMax, bool StrongOn, double QCDTime);
+  void GetCatsProtonXiMinusCutOff(CATS* AB_pXim, int momBins, double kMin,
+                                  double kMax, bool StrongOn, double QCDTime,
+                                  double cutOff);
+  void GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins, double kMin,
+                                double kMax);
  private:
 };
 
