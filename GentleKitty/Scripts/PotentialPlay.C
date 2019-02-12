@@ -45,7 +45,6 @@ static std::vector<int> fMarkers = { kFullCircle, kFullSquare, kOpenCircle,
     kOpenSquare, kOpenDiamond, kOpenCross, kFullCross, kFullDiamond, kFullStar,
     kOpenStar };
 
-
 void SetStyleHisto(TH1 *histo) {
   histo->GetXaxis()->SetLabelSize(0.07);
   histo->GetXaxis()->SetTitleSize(0.07);
@@ -71,7 +70,6 @@ void SetStyleGraph(TGraph *histo) {
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.0);
 }
-
 
 void PlotPotentials() {
 //  TFile *CFs = TFile::Open("InletGoodCFs.root", "read");
@@ -349,11 +347,10 @@ void PlotPotentials() {
   grI1S1Min->Draw("lsame");
   grI1S1Max->Draw("lsame");
 
-
-  TLine lineOne = TLine(0,0,3.,0);
+  TLine lineOne = TLine(0, 0, 3., 0);
   lineOne.Draw("SAME");
 
-  TLine lineTwo = TLine(0,1.,200,1.);
+  TLine lineTwo = TLine(0, 1., 200, 1.);
   lineOne.Draw("SAME");
   TPad *inset_pad = new TPad("inset", "inset", 0.47, 0.13, 0.97, 0.59);
   inset_pad->SetRightMargin(0.05);
@@ -366,7 +363,7 @@ void PlotPotentials() {
   SetStyleHisto(CF_I1S0);
   SetStyleHisto(CF_I1S1);
   CF_I0S0->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  CF_I0S0->GetYaxis()->SetRangeUser(0.8,3.5);
+  CF_I0S0->GetYaxis()->SetRangeUser(0.8, 3.5);
   CF_I0S0->SetNdivisions(505);
   CF_I0S0->Draw("l");
   lineTwo.Draw("same");
@@ -376,11 +373,11 @@ void PlotPotentials() {
   TLatex Numbering;
   Numbering.SetTextSize(gStyle->GetTextSize() * 2.0);
   Numbering.SetNDC(kTRUE);
-  Numbering.DrawLatex( 0.5 , 0.7, "#it{r}_{0} = 1.4 fm");
-  leg2.AddEntry(CF_I0S0," ", "l");
-  leg2.AddEntry(CF_I0S1," ", "l");
-  leg2.AddEntry(CF_I1S0," ", "l");
-  leg2.AddEntry(CF_I1S1," ", "l");
+  Numbering.DrawLatex(0.5, 0.7, "#it{r}_{0} = 1.4 fm");
+  leg2.AddEntry(CF_I0S0, " ", "l");
+  leg2.AddEntry(CF_I0S1, " ", "l");
+  leg2.AddEntry(CF_I1S0, " ", "l");
+  leg2.AddEntry(CF_I1S1, " ", "l");
 
   c2->cd();
   leg2.Draw("SAME");
@@ -396,13 +393,25 @@ void PlotCF(double GaussSourceSize = 1.4) {
   double QCDTime = 11;
   //4th argument is the t parameter and can be:
   // 9, 10, 11, 12
-  double pXimPotParsI0S0[11] =
-      { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0, radCutoff };
-  double pXimPotParsI0S1[11] =
-      { 0, 0, pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1, radCutoff };
-  double pXimPotParsI1S0[11] = { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0, radCutoff };
-  double pXimPotParsI1S1[11] = { 0, 0, pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1, radCutoff };
+  double pXimPotParsI0S0[9] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0,
+      radCutoff };
+  double pXimPotParsI0S1[9] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1,
+      radCutoff };
+  double pXimPotParsI1S0[9] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0,
+      radCutoff };
+  double pXimPotParsI1S1[9] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1,
+      radCutoff };
+  CATSparameters cPotParsI0S0(CATSparameters::tPotential, 9, true);
+  cPotParsI0S0.SetParameters(pXimPotParsI0S0);
 
+  CATSparameters cPotParsI0S1(CATSparameters::tPotential, 9, true);
+  cPotParsI0S1.SetParameters(pXimPotParsI0S1);
+
+  CATSparameters cPotParsI1S0(CATSparameters::tPotential, 9, true);
+  cPotParsI1S0.SetParameters(pXimPotParsI1S0);
+
+  CATSparameters cPotParsI1S1(CATSparameters::tPotential, 9, true);
+  cPotParsI1S1.SetParameters(pXimPotParsI1S1);
   const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
   const double Mass_Xim = TDatabasePDG::Instance()->GetParticle(3312)->Mass()
@@ -428,9 +437,9 @@ void PlotCF(double GaussSourceSize = 1.4) {
                            kMin, kMax);
 
   CATS AB_pXim_I0S0;
-  double Pars_pXiI0S0[4] =
-      { 0, 0, 0, GaussSourceSize};
-  AB_pXim_I0S0.SetAnaSource(GaussSource, Pars_pXiI0S0);
+  CATSparameters cParsI0S0(CATSparameters::tSource, 1, true);
+  cParsI0S0.SetParameter(0, 1.2);
+  AB_pXim_I0S0.SetAnaSource(GaussSource, cParsI0S0);
   AB_pXim_I0S0.SetUseAnalyticSource(true);
   AB_pXim_I0S0.SetThetaDependentSource(false);
   AB_pXim_I0S0.SetExcludeFailedBins(false);
@@ -446,14 +455,15 @@ void PlotCF(double GaussSourceSize = 1.4) {
   AB_pXim_I0S0.SetMaxRho(32);
 //  AB_pXim_I0S0.SetEpsilonConv(1e-8);
 //  AB_pXim_I0S0.SetEpsilonProp(1e-8);
-  AB_pXim_I0S0.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI0S0);
+
+  AB_pXim_I0S0.SetShortRangePotential(0, 0, fDlmPot, cPotParsI0S0);
 
   AB_pXim_I0S0.KillTheCat();
 
   CATS AB_pXim_I0S1;
-  double Pars_pXiI0S1[6] =
-      { 0, 0, 0, GaussSourceSize, GaussSourceSize * 2, 0.5 };
-  AB_pXim_I0S1.SetAnaSource(GaussSource, Pars_pXiI0S1);
+  CATSparameters cParsI0S1(CATSparameters::tSource, 1, true);
+  cParsI0S1.SetParameter(0, 1.2);
+  AB_pXim_I0S1.SetAnaSource(GaussSource, cParsI0S1);
   AB_pXim_I0S1.SetUseAnalyticSource(true);
   AB_pXim_I0S1.SetThetaDependentSource(false);
   AB_pXim_I0S1.SetExcludeFailedBins(false);
@@ -469,14 +479,14 @@ void PlotCF(double GaussSourceSize = 1.4) {
   AB_pXim_I0S1.SetMaxRho(32);
 //  AB_pXim_I0S1.SetEpsilonConv(1e-8);
 //  AB_pXim_I0S1.SetEpsilonProp(1e-8);
-  AB_pXim_I0S1.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI0S1);
+  AB_pXim_I0S1.SetShortRangePotential(0, 0, fDlmPot, cPotParsI0S1);
 
   AB_pXim_I0S1.KillTheCat();
 
   CATS AB_pXim_I1S0;
-  double Pars_pXiI1S0[6] =
-      { 0, 0, 0, GaussSourceSize, GaussSourceSize * 2, 0.5 };
-  AB_pXim_I1S0.SetAnaSource(GaussSource, Pars_pXiI1S0);
+  CATSparameters cParsI1S0(CATSparameters::tSource, 1, true);
+  cParsI1S0.SetParameter(0, 1.2);
+  AB_pXim_I1S0.SetAnaSource(GaussSource, cParsI1S0);
   AB_pXim_I1S0.SetUseAnalyticSource(true);
   AB_pXim_I1S0.SetThetaDependentSource(false);
   AB_pXim_I1S0.SetExcludeFailedBins(false);
@@ -492,14 +502,14 @@ void PlotCF(double GaussSourceSize = 1.4) {
   AB_pXim_I1S0.SetMaxRho(32);
 //  AB_pXim_I1S0.SetEpsilonConv(1e-8);
 //  AB_pXim_I1S0.SetEpsilonProp(1e-8);
-  AB_pXim_I1S0.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI1S0);
+  AB_pXim_I1S0.SetShortRangePotential(0, 0, fDlmPot, cPotParsI1S0);
 
   AB_pXim_I1S0.KillTheCat();
 
   CATS AB_pXim_I1S1;
-  double Pars_pXiI1S1[6] =
-      { 0, 0, 0, GaussSourceSize, GaussSourceSize * 2, 0.5 };
-  AB_pXim_I1S1.SetAnaSource(GaussSource, Pars_pXiI1S1);
+  CATSparameters cParsI1S1(CATSparameters::tSource, 1, true);
+  cParsI1S1.SetParameter(0, 1.2);
+  AB_pXim_I1S1.SetAnaSource(GaussSource, cParsI1S1);
   AB_pXim_I1S1.SetUseAnalyticSource(true);
   AB_pXim_I1S1.SetThetaDependentSource(false);
   AB_pXim_I1S1.SetExcludeFailedBins(false);
@@ -515,7 +525,7 @@ void PlotCF(double GaussSourceSize = 1.4) {
   AB_pXim_I1S1.SetMaxRho(32);
 //  AB_pXim_I1S1.SetEpsilonConv(1e-8);
 //  AB_pXim_I1S1.SetEpsilonProp(1e-8);
-  AB_pXim_I1S1.SetShortRangePotential(0, 0, fDlmPot, pXimPotParsI1S1);
+  AB_pXim_I1S1.SetShortRangePotential(0, 0, fDlmPot, cPotParsI1S1);
 
   AB_pXim_I1S1.KillTheCat();
 
@@ -629,7 +639,7 @@ void SetStyle(bool graypalette, bool title) {
 
 int main(int argc, char *argv[]) {
   SetStyle(false, false);
-  radCutoff =  0.;
+  radCutoff = 0.;
   PlotCF();
   PlotPotentials();
   return 0;
