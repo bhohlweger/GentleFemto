@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
   DecayQA* v0QA = new DecayQA();
   v0QA->SetDecayCuts(reader->Getv0Cuts());
   v0QA->SetAntiDecayCuts(reader->GetAntiv0Cuts());
-  v0QA->SetRangesFitting();
+  v0QA->SetRangesFitting(1.1075,1.1235,1.09,1.15);
   v0QA->InvariantMassLambda(1.111,1.119);
   return 0;
 }

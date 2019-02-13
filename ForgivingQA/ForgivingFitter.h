@@ -37,10 +37,10 @@ class ForgivingFitter {
   TF1* fDoubleGaussian;
   TF1* fFullFitFnct;
   bool fRangesSet;
-  int fBkgRangeMin;
-  int fBkgRangeMax;
-  int fSigRangeMin;
-  int fSigRangeMax;
+  float fBkgRangeMin;
+  float fBkgRangeMax;
+  float fSigRangeMin;
+  float fSigRangeMax;
   int fSignalCounts;
   int fBackgroundCounts;
 };
