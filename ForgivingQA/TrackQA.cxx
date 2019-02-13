@@ -61,7 +61,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
       Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(etaDist, 0, 1);
   fHairyPlotter->DrawAndStore( { etaDist }, Form("%s_eta", outname), "hist");
-  //Todo: Add the right DCA Before histos
+
   auto* dcaXY2DDistBef = (TH2F*) fReader->Get2DHistInList(cuts,
                                                           "DCAXYPtBinningTot");
   TH1F* dcaXYDistBef = nullptr;
@@ -74,7 +74,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
     fHairyPlotter->FormatHistogram(dcaXYDistBef, 0, 2);
   }
   auto* dcaXY2DDistAfter = (TH2F*) fReader->Get2DHistInList(
-      fReader->GetListInList(cuts, { "after" }), "DCAXY_after");
+      fReader->GetListInList(cuts, { "after" }), "DCAXYProp_after");
   if (!dcaXY2DDistAfter) {
     std::cerr << "DCAXY After Distribution missing for " << outname
               << std::endl;
@@ -84,6 +84,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
 
   dcaXYDistAfter->GetXaxis()->SetTitle("DCA_{XY} (cm)");
   dcaXYDistAfter->GetXaxis()->SetRangeUser(-4., 4.);
+  dcaXYDistAfter->GetYaxis()->SetRangeUser(1.e3, 1.e8);
   dcaXYDistAfter->GetYaxis()->SetTitle(
       Form("Entries/ %.2f cm ", dcaXYDistAfter->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(dcaXYDistAfter, 0, 1);
