@@ -20,6 +20,7 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/EventQA.cxx
   ${PROJECT_SOURCE_DIR}/TrackQA.cxx
   ${PROJECT_SOURCE_DIR}/DecayQA.cxx
+  ${PROJECT_SOURCE_DIR}/ForgivingFitter.cxx
   ${PROJECT_SOURCE_DIR}/MakeHistosGreat.cxx
  )
 
@@ -28,6 +29,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/EventQA.h
   ${PROJECT_SOURCE_DIR}/TrackQA.h
   ${PROJECT_SOURCE_DIR}/DecayQA.h
+  ${PROJECT_SOURCE_DIR}/ForgivingFitter.h
   ${PROJECT_SOURCE_DIR}/MakeHistosGreat.h
   )
 add_library(ForgivingFnct STATIC ${SRCS})
