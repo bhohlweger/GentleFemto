@@ -2,6 +2,7 @@
 #include "MakeHistosGreat.h"
 #include "EventQA.h"
 #include "TrackQA.h"
+#include "DecayQA.h"
 
 int main(int argc, char* argv[]) {
   const char* filename = argv[1];
@@ -13,6 +14,7 @@ int main(int argc, char* argv[]) {
   evtQA->SetLooseMargin();
   evtQA->SetQAList(reader->GetQA());
   evtQA->SetEventCuts(reader->GetEventCuts());
+
   evtQA->PlotCutCounter();
   evtQA->PlotEventProperties(200);
   evtQA->SetTightMargin();
@@ -21,11 +23,18 @@ int main(int argc, char* argv[]) {
                                { "#Lambda-#Lambda",
                                    "#bar{#Lambda}-#bar{#Lambda}", "#Xi-#Xi",
                                    "#bar{#Xi}-#bar{#Xi}" }, 6);
+
   TrackQA* trkQA = new TrackQA();
   trkQA->SetTrackCuts(reader->GetTrackCuts());
   trkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
+
   trkQA->PlotKinematic();
   trkQA->PlotPID();
+
+  DecayQA* v0QA = new DecayQA();
+  v0QA->SetDecayCuts(reader->Getv0Cuts());
+  v0QA->SetAntiDecayCuts(reader->GetAntiv0Cuts());
+
   return 0;
 }
 
