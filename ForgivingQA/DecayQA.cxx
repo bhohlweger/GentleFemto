@@ -36,7 +36,7 @@ void DecayQA::InvariantMassLambda(float CutMin, float CutMax) {
 void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                                const char* outname) {
   //First project the whole thing into one bin
-  auto* invMass = (TH1F*) invMasspT->ProjectionY(Form("InvMass%s", outname));
+  auto* invMass = (TH1F*) invMasspT->ProjectionY(Form("InvMass%s", outname), 0, -1, "e");
   invMass->GetXaxis()->SetRangeUser(1.107, 1.16);
   fFitter->FitInvariantMass(invMass, CutMin, CutMax);
   fHairyPlotter->FormatHistogram(invMass, 1, 1);
@@ -52,7 +52,7 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   for (int ipT = 1; ipT < invMasspT->GetXaxis()->GetNbins(); ++ipT) {
     TPad* CurrentPad = (TPad*) cMassBins->cd(ipT);
     auto invMasspTBin = (TH1F*) invMasspT->ProjectionY(
-        Form("%sInvMasspT%u", outname, ipT), ipT, ipT);
+        Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
     fFitter->FitInvariantMass(invMasspTBin, CutMin, CutMax);
     fHairyPlotter->FormatHistogram(invMasspTBin, 1, 1);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad);
