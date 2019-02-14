@@ -22,21 +22,32 @@ int main(int argc, char* argv[]) {
                                    "#bar{p}-#bar{#Xi}" },
                                { "#Lambda-#Lambda",
                                    "#bar{#Lambda}-#bar{#Lambda}", "#Xi-#Xi",
-                                   "#bar{#Xi}-#bar{#Xi}" }, 6);
+                                   "#bar{#Xi}-#bar{#Xi}" },
+                               6);
 
   TrackQA* trkQA = new TrackQA();
   trkQA->SetTrackCuts(reader->GetTrackCuts());
   trkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
-
-  trkQA->PlotKinematic();
+//  trkQA->PlotKinematic();
   trkQA->PlotPID();
 
-  DecayQA* v0QA = new DecayQA("#Lambda");
-  v0QA->SetCanvasDivisions(4,2);
+  DecayQA* v0QA = new DecayQA("#Lambda","p#pi");
+  v0QA->SetCanvasDivisions(4, 2);
   v0QA->SetDecayCuts(reader->Getv0Cuts());
+  v0QA->SetIMHistoScale(1.75,0.8,0.35);
   v0QA->SetAntiDecayCuts(reader->GetAntiv0Cuts());
-  v0QA->SetRangesFitting(1.1075,1.1235,1.09,1.15);
-  v0QA->InvariantMassLambda(1.112,1.120);
+  v0QA->SetRangesFitting(1.1075, 1.1235, 1.09, 1.15);
+  v0QA->InvariantMassLambda(1.112, 1.120);
+  v0QA->PlotQATopologyLambda();
+
+  DecayQA* cascQA = new DecayQA("#Xi^{-}","#pi#Lambda");
+  cascQA->SetCanvasDivisions(4, 3);
+  cascQA->SetInvMasspTStartBin(2);
+  cascQA->SetIMHistoScale(2.5,0.8,0.45);
+  cascQA->SetDecayCuts(reader->GetCascadeCuts());
+  cascQA->SetAntiDecayCuts(reader->GetAntiCascadeCuts());
+  cascQA->SetRangesFitting(1.31, 1.33, 1.3, 1.35);
+  cascQA->InvariantMassXi(1.317, 1.327);
   return 0;
 }
 
