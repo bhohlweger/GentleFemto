@@ -8,6 +8,8 @@
 #include "MakeHistosGreat.h"
 #include "TCanvas.h"
 #include "TStyle.h"
+#include "TGaxis.h"
+#include "TLatex.h"
 std::vector<int> fFillColors = { kGray + 1, kRed - 10, kBlue - 9, kGreen - 8,
     kMagenta - 9, kOrange - 9, kCyan - 8, kYellow - 7 };
 std::vector<int> fColors = { kBlack, kRed + 1, kBlue + 2, kGreen + 3, kMagenta
@@ -37,6 +39,25 @@ void MakeHistosGreat::FormatHistogram(TH1* hist, unsigned int marker,
   hist->GetXaxis()->SetTitleOffset(1.2);
   hist->GetYaxis()->SetTitleSize(0.05);
   hist->GetYaxis()->SetTitleOffset(1.25);
+
+  hist->SetMarkerStyle(fMarkers[marker]);
+  hist->SetMarkerColor(fColors[color]);
+  hist->SetMarkerSize(size);
+  hist->SetLineColor(fColors[color]);
+  hist->SetLineWidth(2);
+}
+
+void MakeHistosGreat::FormatSmallHistogram(TH1* hist, unsigned int marker,
+                                           unsigned int color, float size) {
+  hist->GetXaxis()->SetLabelSize(0.08);
+  hist->GetXaxis()->SetLabelOffset(0.01);
+  hist->GetYaxis()->SetLabelSize(0.08);
+  hist->GetYaxis()->SetLabelOffset(0.01);
+
+  hist->GetXaxis()->SetTitleSize(0.08);
+  hist->GetXaxis()->SetTitleOffset(0.9);
+  hist->GetYaxis()->SetTitleSize(0.08);
+  hist->GetYaxis()->SetTitleOffset(1.0);
 
   hist->SetMarkerStyle(fMarkers[marker]);
   hist->SetMarkerColor(fColors[color]);
@@ -180,4 +201,38 @@ void MakeHistosGreat::SetStyle(bool title) {
   gStyle->SetLegendFont(42);
   gStyle->SetLegendBorderSize(0);
   gStyle->SetPalette(kBird);
+//  TGaxis::SetMaxDigits(8);
+}
+
+void MakeHistosGreat::DrawLatexLabel(float pTMin, float pTMax,
+                                     ForgivingFitter* fit, TPad* pad,
+                                     const char* part, float xPos, float yPos) {
+  float signal = (float) fit->GetSignalCounts();
+  float background = (float) fit->GetBackgroundCounts();
+  float meanMass = fit->GetMeanMass();
+  float meanWidthActual = fit->GetMeanWidth();
+  pad->cd();
+  TLatex Label;
+  Label.SetNDC(kTRUE);
+  Label.SetTextSize(gStyle->GetTextSize() * 1.25);
+  Label.DrawLatex(
+      gPad->GetUxmax() - xPos,
+      gPad->GetUymax() - yPos,
+      Form("#splitline{#splitline{#splitline{#splitline"
+           "{%.2f < p_{T} < %.2f}"
+           "{%s^{-}: %.0f}}"
+           "{< #it{M} > = %.1f #times 10^{-3} GeV/#it{c}^{2}}}"
+           "{#sigma= %.1f #times 10^{-3} GeV/#it{c}^{2}}}"
+           "{Purity = %.1f %%}",
+           pTMin, pTMax, part, signal, meanMass * 1000.f,
+           meanWidthActual * 1000.f, signal / (signal + background) * 100.f));
+}
+
+void MakeHistosGreat::DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax) {
+  TLine one;
+  one.SetLineColor(fColors[5]);
+  one.SetLineWidth(2);
+  one.SetLineStyle(3);
+  pad->cd();
+  one.DrawLine(xMin,yMin,xMax,yMax);
 }
