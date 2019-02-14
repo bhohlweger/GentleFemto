@@ -15,7 +15,7 @@
 
 class DecayQA {
  public:
-  DecayQA();
+  DecayQA(const char* partLatex);
   virtual ~DecayQA();
   void SetDecayCuts(TList* trkCuts) {
     fDecayCuts = trkCuts;
@@ -25,15 +25,15 @@ class DecayQA {
     fAntiDecayCuts = trkCuts;
   }
   ;
-  void SetRangesFitting(float signalMin, float signalMax, float bkgMin,
-                        float bkgMax);
   void InvariantMassLambda(float CutMin, float CutMax);
-  void KaonRejectionWindow(TH1F* invMassKaon);
+  void PlotKaonRejection(TH1F* invMassKaon, const char* outname);
   void SetCanvasDivisions(unsigned int divX, unsigned int divY) {
     fDivCanX = divX;
     fDivCanY = divY;
   }
   ;
+  void SetRangesFitting(float signalMin, float signalMax, float bkgMin,
+                        float bkgMax);
  private:
   void FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                         const char* outname);
@@ -44,6 +44,7 @@ class DecayQA {
   TList *fAntiDecayCuts;
   unsigned int fDivCanX;
   unsigned int fDivCanY;
+  const char* fPartLatex;
 };
 
 #endif /* FORGIVINGQA_DECAYQA_H_ */
