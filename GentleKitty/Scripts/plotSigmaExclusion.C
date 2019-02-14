@@ -276,18 +276,17 @@ void PlotSigmaExclusion(TString inputDir) {
     mapRelWorst[imf0]->SetContour(3, contours);
     mapRelWorst[imf0]->Draw("colz");
     lednickyReallySucks[imf0]->Draw("3 SAME");
+    BeamText.DrawLatex(
+        0.35,
+        0.925,
+        TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}",
+                        IMf0invCont[imf0]));
     dWorst->Print(
         Form("%s/ExclusionWorst_%.1f.pdf", inputDir.Data(), IMf0invCont[imf0]));
     dWorst->Print(
         Form("%s/ExclusionWorst_%.1f.png", inputDir.Data(), IMf0invCont[imf0]));
     mapRelWorst[imf0]->Write(Form("ExclusionWorst_%.1f", IMf0invCont[imf0]));
     dWorst->Write(Form("ExclusionWorstPlot_%.1f", IMf0invCont[imf0]));
-
-    BeamText.DrawLatex(
-        0.35,
-        0.925,
-        TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}",
-                        IMf0invCont[imf0]));
     dWorst->Print(Form("%s/ExclusionWorst.gif+", inputDir.Data()));
     dWorst->Print(Form("%s/ExclusionWorst.gif+", inputDir.Data()));
     dWorst->Print(Form("%s/ExclusionWorst.gif+", inputDir.Data()));
@@ -309,16 +308,15 @@ void PlotSigmaExclusion(TString inputDir) {
     mapRelDef[imf0]->SetContour(3, contours);
     mapRelDef[imf0]->Draw("colz");
     lednickyReallySucks[imf0]->Draw("3 SAME");
-    dDef->Print(Form("%s/ExclusionDef_%.1f.pdf", inputDir.Data(), IMf0invCont[imf0]));
-    dDef->Print(Form("%s/ExclusionDef_%.1f.png", inputDir.Data(), IMf0invCont[imf0]));
-    mapRelDef[imf0]->Write(Form("ExclusionDef_%.1f", IMf0invCont[imf0]));
-    dDef->Write(Form("ExclusionDefPlot_%.1f", IMf0invCont[imf0]));
-
     BeamText.DrawLatex(
         0.35,
         0.925,
         TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}",
                         IMf0invCont[imf0]));
+    dDef->Print(Form("%s/ExclusionDef_%.1f.pdf", inputDir.Data(), IMf0invCont[imf0]));
+    dDef->Print(Form("%s/ExclusionDef_%.1f.png", inputDir.Data(), IMf0invCont[imf0]));
+    mapRelDef[imf0]->Write(Form("ExclusionDef_%.1f", IMf0invCont[imf0]));
+    dDef->Write(Form("ExclusionDefPlot_%.1f", IMf0invCont[imf0]));
     dDef->Print(Form("%s/ExclusionDefault.gif+", inputDir.Data()));
     dDef->Print(Form("%s/ExclusionDefault.gif+", inputDir.Data()));
     dDef->Print(Form("%s/ExclusionDefault.gif+", inputDir.Data()));
@@ -340,18 +338,17 @@ void PlotSigmaExclusion(TString inputDir) {
     mapRelBest[imf0]->SetContour(3, contours);
     mapRelBest[imf0]->Draw("colz");
     lednickyReallySucks[imf0]->Draw("3 SAME");
+    BeamText.DrawLatex(
+        0.35,
+        0.925,
+        TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}",
+                        IMf0invCont[imf0]));
     dBest->Print(
         Form("%s/ExclusionBest_%.1f.pdf", inputDir.Data(), IMf0invCont[imf0]));
     dBest->Print(
         Form("%s/ExclusionBest_%.1f.png", inputDir.Data(), IMf0invCont[imf0]));
     mapRelBest[imf0]->Write(Form("ExclusionBest_%.1f", IMf0invCont[imf0]));
     dBest->Write(Form("ExclusionBestPlot_%.1f", IMf0invCont[imf0]));
-
-    BeamText.DrawLatex(
-        0.35,
-        0.925,
-        TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}",
-                        IMf0invCont[imf0]));
     dDef->Print(Form("%s/ExclusionBest.gif+", inputDir.Data()));
     dDef->Print(Form("%s/ExclusionBest.gif+", inputDir.Data()));
     dDef->Print(Form("%s/ExclusionBest.gif+", inputDir.Data()));
