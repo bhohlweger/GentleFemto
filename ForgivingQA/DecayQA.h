@@ -28,15 +28,22 @@ class DecayQA {
   void SetRangesFitting(float signalMin, float signalMax, float bkgMin,
                         float bkgMax);
   void InvariantMassLambda(float CutMin, float CutMax);
-  void FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax, const char* outname);
   void KaonRejectionWindow(TH1F* invMassKaon);
-
+  void SetCanvasDivisions(unsigned int divX, unsigned int divY) {
+    fDivCanX = divX;
+    fDivCanY = divY;
+  }
+  ;
  private:
+  void FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
+                        const char* outname);
   ForgivingReader* fReader;
   MakeHistosGreat* fHairyPlotter;
   ForgivingFitter* fFitter;
   TList *fDecayCuts;
   TList *fAntiDecayCuts;
+  unsigned int fDivCanX;
+  unsigned int fDivCanY;
 };
 
 #endif /* FORGIVINGQA_DECAYQA_H_ */

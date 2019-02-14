@@ -67,12 +67,12 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   signalOnly->Fit(fSingleGaussian, "S R Q 0", "", fSigRangeMin * 1.01,
                   fSigRangeMax * 0.99);
   SetStartParsDoubleGaussian(histo);
-  signalOnly->Fit(fDoubleGaussian, "S R ", "", fSigRangeMin * 1.01,
+  signalOnly->Fit(fDoubleGaussian, "S R Q", "", fSigRangeMin * 1.01,
                   fSigRangeMax * 0.99);
   fSignalCounts = fDoubleGaussian->Integral(massCutMin, massCutMax)
       / double(histo->GetBinWidth(1));
   CreateFullFitFunction(histo);
-  histo->Fit("fLambda", "S R", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
+  histo->Fit("fLambda", "S R Q", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
   CalculateBackgorund(histo, massCutMin, massCutMax);
 }
 

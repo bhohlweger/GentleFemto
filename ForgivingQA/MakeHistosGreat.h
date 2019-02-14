@@ -9,6 +9,7 @@
 #define FORGIVINGQA_MAKEHISTOSGREAT_H_
 #include "TH1.h"
 #include "TH2.h"
+#include "TPad.h"
 #include <vector>
 class MakeHistosGreat {
  public:
@@ -18,6 +19,8 @@ class MakeHistosGreat {
   void FormatHistogram(TH2 *histo);
   void DrawAndStore(std::vector<TH1*> hist, const char* outname,
                     const char* drawOption = "");
+  void DrawOnPad(std::vector<TH1*> hist, TPad* TPain, const char* drawOption =
+                     "");
   void DrawLogYAndStore(std::vector<TH1*> hist, const char* outname,
                         const char* drawOption = "");
   void DrawAndStore(std::vector<TH2*> hist, const char* outname,

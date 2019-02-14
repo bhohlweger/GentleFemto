@@ -24,14 +24,15 @@ int main(int argc, char* argv[]) {
                                    "#bar{#Lambda}-#bar{#Lambda}", "#Xi-#Xi",
                                    "#bar{#Xi}-#bar{#Xi}" }, 6);
 
-  TrackQA* trkQA = new TrackQA();
-  trkQA->SetTrackCuts(reader->GetTrackCuts());
-  trkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
-
-  trkQA->PlotKinematic();
-  trkQA->PlotPID();
+//  TrackQA* trkQA = new TrackQA();
+//  trkQA->SetTrackCuts(reader->GetTrackCuts());
+//  trkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
+//
+//  trkQA->PlotKinematic();
+//  trkQA->PlotPID();
 
   DecayQA* v0QA = new DecayQA();
+  v0QA->SetCanvasDivisions(4,2);
   v0QA->SetDecayCuts(reader->Getv0Cuts());
   v0QA->SetAntiDecayCuts(reader->GetAntiv0Cuts());
   v0QA->SetRangesFitting(1.1075,1.1235,1.09,1.15);

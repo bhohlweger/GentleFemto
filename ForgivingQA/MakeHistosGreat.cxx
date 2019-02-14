@@ -83,6 +83,21 @@ void MakeHistosGreat::DrawAndStore(std::vector<TH1*> hist, const char* outname,
   return;
 }
 
+void MakeHistosGreat::DrawOnPad(std::vector<TH1*> hist, TPad* TPain,
+                                const char* drawOption) {
+  TPain->cd();
+  TString DrawOpt = Form("%s", drawOption);
+  bool oneTime = false;
+  for (auto it : hist) {
+    it->Draw(DrawOpt.Data());
+    if (!oneTime) {
+      oneTime = true;
+      DrawOpt += "same";
+    }
+  }
+  return;
+}
+
 void MakeHistosGreat::DrawLogYAndStore(std::vector<TH1*> hist,
                                        const char* outname,
                                        const char* drawOption) {
