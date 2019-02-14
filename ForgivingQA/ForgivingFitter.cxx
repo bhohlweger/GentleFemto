@@ -56,23 +56,23 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
         << "no BackGround Function defined via SetBackGroundRange! Exiting \n";
     return;
   }
-  histo->Fit(fBackGround, "S R Q 0", "", fBkgRangeMin * 1.005,
-             fBkgRangeMax * 0.995);
+  histo->Fit(fBackGround, "R Q N", "", fBkgRangeMin * 1.005, fBkgRangeMax * 0.995);
   histo->GetXaxis()->SetRangeUser(1.07, 1.18);
   CreateContinousBackgroundFunction();
-
   TH1F *signalOnly = getSignalHisto(fContinousBackGround, histo,
                                     fSigRangeMin * 0.98, fSigRangeMax * 1.02,
                                     Form("%s_signal_only", histo->GetName()));
-  signalOnly->Fit(fSingleGaussian, "S R Q 0", "", fSigRangeMin * 1.01,
+  signalOnly->Fit(fSingleGaussian, "R Q N", "", fSigRangeMin * 1.01,
                   fSigRangeMax * 0.99);
   SetStartParsDoubleGaussian(histo);
-  signalOnly->Fit(fDoubleGaussian, "S R Q", "", fSigRangeMin * 1.01,
+  signalOnly->Fit(fDoubleGaussian, "R Q N", "", fSigRangeMin * 1.01,
                   fSigRangeMax * 0.99);
   fSignalCounts = fDoubleGaussian->Integral(massCutMin, massCutMax)
       / double(histo->GetBinWidth(1));
   CreateFullFitFunction(histo);
-  histo->Fit("fLambda", "S R Q", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
+  histo->Fit(fFullFitFnct, "R Q", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
+  histo->GetListOfFunctions()->Add(
+      fFullFitFnct->Clone(Form("fnc%s", histo->GetName())));
   CalculateBackgorund(histo, massCutMin, massCutMax);
 }
 
@@ -148,12 +148,32 @@ void ForgivingFitter::CreateFullFitFunction(TH1F* targetHisto) {
   fFullFitFnct = new TF1("fLambda", "fBackground2 + fSignalDoubleGauss",
                          fBkgRangeMin, fBkgRangeMax);
   fFullFitFnct->SetNpx(1000);
+  //Background model 0 - 2
+  fFullFitFnct->SetParameter(0, fBackGround->GetParameter(0));
+  fFullFitFnct->SetParameter(1, fBackGround->GetParameter(1));
+  fFullFitFnct->SetParameter(2, fBackGround->GetParameter(2));
+  //Amplitude 1
   fFullFitFnct->SetParameter(3, 0.75 * targetHisto->GetMaximum());
+  //Mean 1
   fFullFitFnct->SetParameter(4, fDoubleGaussian->GetParameter((1)));
+  fFullFitFnct->SetParLimits(
+      4, fDoubleGaussian->GetParameter(1) - fDoubleGaussian->GetParameter(2),
+      fDoubleGaussian->GetParameter(1) + fDoubleGaussian->GetParameter(2));
+  //Width 1
   fFullFitFnct->SetParameter(5, fDoubleGaussian->GetParameter((2)));
+  fFullFitFnct->SetParLimits(5, 0.5 * fDoubleGaussian->GetParameter(2),
+                                 1e2 * fDoubleGaussian->GetParameter(2));
+  //Amplitude 2
   fFullFitFnct->SetParameter(6, 0.2 * targetHisto->GetMaximum());
+  //Mean 2
   fFullFitFnct->SetParameter(7, fDoubleGaussian->GetParameter((4)));
+  fFullFitFnct->SetParLimits(
+      7, fDoubleGaussian->GetParameter(4) - fDoubleGaussian->GetParameter(5),
+      fDoubleGaussian->GetParameter(4) + fDoubleGaussian->GetParameter(5));
+  //Width 2
   fFullFitFnct->SetParameter(8, fDoubleGaussian->GetParameter((5)));
+  fFullFitFnct->SetParLimits(8, 0.5 * fDoubleGaussian->GetParameter(5),
+                                  1e2 * fDoubleGaussian->GetParameter(5));
   fFullFitFnct->SetLineColor(kBlue);
 }
 void ForgivingFitter::CalculateBackgorund(TH1F* targetHisto, float massCutMin,
