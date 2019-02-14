@@ -37,11 +37,10 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                                const char* outname) {
   //First project the whole thing into one bin
   auto* invMass = (TH1F*) invMasspT->ProjectionY(Form("InvMass%s", outname), 0, -1, "e");
-  invMass->GetXaxis()->SetRangeUser(1.107, 1.16);
   fFitter->FitInvariantMass(invMass, CutMin, CutMax);
-  fHairyPlotter->FormatHistogram(invMass, 1, 1);
-  fHairyPlotter->DrawAndStore( { invMass }, outname);
-
+  invMass->GetXaxis()->SetRangeUser(1.1, 1.13)  ;
+  fHairyPlotter->FormatHistogram(invMass, 0, 0, 0.8);
+  fHairyPlotter->DrawAndStore( { invMass }, outname, "P");
   auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname));
   cMassBins->Divide(fDivCanX, fDivCanY);
   if (invMasspT->GetXaxis()->GetNbins() > fDivCanX * fDivCanY) {
@@ -51,11 +50,14 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   }
   for (int ipT = 1; ipT < invMasspT->GetXaxis()->GetNbins(); ++ipT) {
     TPad* CurrentPad = (TPad*) cMassBins->cd(ipT);
+    CurrentPad->SetTopMargin(0.02);
+    CurrentPad->SetRightMargin(0.01);
     auto invMasspTBin = (TH1F*) invMasspT->ProjectionY(
         Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
     fFitter->FitInvariantMass(invMasspTBin, CutMin, CutMax);
-    fHairyPlotter->FormatHistogram(invMasspTBin, 1, 1);
-    fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad);
+    invMasspTBin->GetXaxis()->SetRangeUser(1.1, 1.13)  ;
+    fHairyPlotter->FormatHistogram(invMasspTBin, 0, 0, 0.7);
+    fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad, "");
   }
   cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
 }

@@ -175,6 +175,7 @@ void ForgivingFitter::CreateFullFitFunction(TH1F* targetHisto) {
   fFullFitFnct->SetParLimits(8, 0.5 * fDoubleGaussian->GetParameter(5),
                                   1e2 * fDoubleGaussian->GetParameter(5));
   fFullFitFnct->SetLineColor(kBlue);
+  fFullFitFnct->SetLineWidth(2);
 }
 void ForgivingFitter::CalculateBackgorund(TH1F* targetHisto, float massCutMin,
                                           float massCutMax) {
