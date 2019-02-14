@@ -27,6 +27,26 @@ ForgivingFitter::~ForgivingFitter() {
   // TODO Auto-generated destructor stub
 }
 
+float ForgivingFitter::weightedMean(float weightA, float A, float weightB,
+                                    float B) {
+  return (weightA * A + weightB * B) / (weightA + weightB);
+}
+
+float ForgivingFitter::weightedMeanError(float weightA, float A, float weightB,
+                                         float B, float weightAErr, float AErr,
+                                         float weightBErr, float BErr) {
+  return std::sqrt(
+      weightAErr * weightAErr
+          * std::pow(
+              ((weightB * (A - B)) / ((weightA + weightB) * (weightA + weightB))),
+              2) + AErr * AErr * std::pow(weightA / (weightA + weightB), 2)
+          + weightBErr * weightBErr
+              * std::pow(
+                  (weightA * (-A + B))
+                      / ((weightA + weightB) * (weightA + weightB)),
+                  2) + BErr * BErr * std::pow(weightB / (weightA + weightB), 2));
+}
+
 TH1F* ForgivingFitter::getSignalHisto(TF1 *function, TH1F *histo,
                                       float rangeLow, float rangeHigh,
                                       const char *name) {
@@ -56,7 +76,8 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
         << "no BackGround Function defined via SetBackGroundRange! Exiting \n";
     return;
   }
-  histo->Fit(fBackGround, "R Q N", "", fBkgRangeMin * 1.005, fBkgRangeMax * 0.995);
+  histo->Fit(fBackGround, "R Q N", "", fBkgRangeMin * 1.005,
+             fBkgRangeMax * 0.995);
   histo->GetXaxis()->SetRangeUser(1.07, 1.18);
   CreateContinousBackgroundFunction();
   TH1F *signalOnly = getSignalHisto(fContinousBackGround, histo,
@@ -70,7 +91,8 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   fSignalCounts = fDoubleGaussian->Integral(massCutMin, massCutMax)
       / double(histo->GetBinWidth(1));
   CreateFullFitFunction(histo);
-  histo->Fit(fFullFitFnct, "R Q 0", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
+  histo->Fit(fFullFitFnct, "R Q 0", "", fBkgRangeMin * 1.01,
+             fBkgRangeMax * 0.99);
   histo->GetListOfFunctions()->Add(
       fFullFitFnct->Clone(Form("fnc%s", histo->GetName())));
   CalculateBackgorund(histo, massCutMin, massCutMax);
@@ -162,7 +184,7 @@ void ForgivingFitter::CreateFullFitFunction(TH1F* targetHisto) {
   //Width 1
   fFullFitFnct->SetParameter(5, fDoubleGaussian->GetParameter((2)));
   fFullFitFnct->SetParLimits(5, 0.5 * fDoubleGaussian->GetParameter(2),
-                                 1e2 * fDoubleGaussian->GetParameter(2));
+                             1e2 * fDoubleGaussian->GetParameter(2));
   //Amplitude 2
   fFullFitFnct->SetParameter(6, 0.2 * targetHisto->GetMaximum());
   //Mean 2
@@ -173,7 +195,7 @@ void ForgivingFitter::CreateFullFitFunction(TH1F* targetHisto) {
   //Width 2
   fFullFitFnct->SetParameter(8, fDoubleGaussian->GetParameter((5)));
   fFullFitFnct->SetParLimits(8, 0.5 * fDoubleGaussian->GetParameter(5),
-                                  1e2 * fDoubleGaussian->GetParameter(5));
+                             1e2 * fDoubleGaussian->GetParameter(5));
   fFullFitFnct->SetLineColor(kBlue);
   fFullFitFnct->SetLineWidth(2);
 }

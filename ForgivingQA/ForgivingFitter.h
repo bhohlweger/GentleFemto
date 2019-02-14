@@ -21,16 +21,41 @@ class ForgivingFitter {
 //                    float upperBound, TCanvas *c1);
   void FitInvariantMass(TH1F* histo, float massCutMin, float massCutMax);
   void SetRanges(float SigMin, float SigMax, float BkgRangeMin,
-                          float BkgRangeMax);
+                 float BkgRangeMax);
+  int GetSignalCounts() {
+    return fSignalCounts;
+  }
+  ;
+  int GetBackgroundCounts() {
+    return fBackgroundCounts;
+  }
+  ;
+  float GetMeanMass() {
+    return weightedMean(fFullFitFnct->GetParameter(3),
+                        fFullFitFnct->GetParameter(4),
+                        fFullFitFnct->GetParameter(6),
+                        fFullFitFnct->GetParameter(7));
+  }
+  float GetMeanWidth() {
+    return weightedMean(fFullFitFnct->GetParameter(3),
+                        fFullFitFnct->GetParameter(5),
+                        fFullFitFnct->GetParameter(6),
+                        fFullFitFnct->GetParameter(8));
+  }
  private:
   void CreateBackgroundFunction();
   void CreateContinousBackgroundFunction();
   void CreateSignalFunctions();
   void CreateFullFitFunction(TH1F* targetHisto);
   void SetStartParsDoubleGaussian(TH1F* targetHisto);
+  float weightedMeanError(float weightA, float A, float weightB, float B,
+                          float weightAErr, float AErr, float weightBErr,
+                          float BErr);
+  float weightedMean(float weightA, float A, float weightB, float B);
   TH1F *getSignalHisto(TF1 *function, TH1F *histo, float rangeLow,
                        float rangeHigh, const char *name);
-  void CalculateBackgorund(TH1F* targetHisto, float massCutMin, float massCutMax);
+  void CalculateBackgorund(TH1F* targetHisto, float massCutMin,
+                           float massCutMax);
   TF1* fBackGround;
   TF1* fContinousBackGround;
   TF1* fSingleGaussian;
