@@ -27,7 +27,7 @@ MakeHistosGreat::~MakeHistosGreat() {
 }
 
 void MakeHistosGreat::FormatHistogram(TH1* hist, unsigned int marker,
-                                      unsigned int color) {
+                                      unsigned int color, float size) {
   hist->GetXaxis()->SetLabelSize(0.045);
   hist->GetXaxis()->SetLabelOffset(0.01);
   hist->GetYaxis()->SetLabelSize(0.045);
@@ -40,8 +40,8 @@ void MakeHistosGreat::FormatHistogram(TH1* hist, unsigned int marker,
 
   hist->SetMarkerStyle(fMarkers[marker]);
   hist->SetMarkerColor(fColors[color]);
+  hist->SetMarkerSize(size);
   hist->SetLineColor(fColors[color]);
-
   hist->SetLineWidth(2);
 }
 

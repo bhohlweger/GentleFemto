@@ -15,7 +15,7 @@ class MakeHistosGreat {
  public:
   MakeHistosGreat();
   virtual ~MakeHistosGreat();
-  void FormatHistogram(TH1* hist, unsigned int marker, unsigned int color);
+  void FormatHistogram(TH1* hist, unsigned int marker, unsigned int color, float size = 1);
   void FormatHistogram(TH2 *histo);
   void DrawAndStore(std::vector<TH1*> hist, const char* outname,
                     const char* drawOption = "");
