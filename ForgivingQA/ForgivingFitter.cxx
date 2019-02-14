@@ -70,7 +70,7 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   fSignalCounts = fDoubleGaussian->Integral(massCutMin, massCutMax)
       / double(histo->GetBinWidth(1));
   CreateFullFitFunction(histo);
-  histo->Fit(fFullFitFnct, "R Q", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
+  histo->Fit(fFullFitFnct, "R Q 0", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
   histo->GetListOfFunctions()->Add(
       fFullFitFnct->Clone(Form("fnc%s", histo->GetName())));
   CalculateBackgorund(histo, massCutMin, massCutMax);
