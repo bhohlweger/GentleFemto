@@ -135,12 +135,12 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
           Form("%s_clone", hist2D->GetName()));
 
       fSEMult[iPart1][iPart2]->Sumw2();
-      if (iPart1 == 1 && iPart2 == 5) {
-        fSE[iPart1][iPart2]->SetBinContent(1, 0);
-        fSEMult[iPart1][iPart2]->SetBinContent(
-            fSEMult[iPart1][iPart2]->GetXaxis()->FindBin(0.1),
-            fSEMult[iPart1][iPart2]->GetYaxis()->FindBin(12.1), 0);
-      }
+//      if (iPart1 == 1 && iPart2 == 5) {
+//        fSE[iPart1][iPart2]->SetBinContent(1, 0);
+//        fSEMult[iPart1][iPart2]->SetBinContent(
+//            fSEMult[iPart1][iPart2]->GetXaxis()->FindBin(0.1),
+//            fSEMult[iPart1][iPart2]->GetYaxis()->FindBin(12.1), 0);
+//      }
       fME[iPart1][iPart2] = nullptr;
       hist1D = (TH1F*) PartList->FindObject(
           Form("MEDist_%s", FolderName.Data()));
