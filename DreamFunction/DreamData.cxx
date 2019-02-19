@@ -210,7 +210,7 @@ void DreamData::DrawCorrelationPlot(TCanvas* c) {
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
   leg->SetBorderSize(0);
   leg->SetTextFont(42);
-  leg->SetTextSize(gStyle->GetTextSize() * 0.75);
+  leg->SetTextSize(gStyle->GetTextSize() * 0.95);
   int legendCounter = 1;
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
   leg->AddEntry(fFakeGraph[0], fLegendName[0], fLegendOption[0]);

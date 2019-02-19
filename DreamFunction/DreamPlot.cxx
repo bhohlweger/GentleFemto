@@ -325,16 +325,16 @@ void DreamPlot::DrawCorrelationFunctions() {
   TCanvas* c_PP = new TCanvas("CFpp", "CFpp", 0, 0, 650, 550);
   c_PP->SetRightMargin(right);
   c_PP->SetTopMargin(top);
-  fProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p} pairs", "fpe");
+  fProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p}", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
   fProtonProton->SetRangePlotting(0, 200, 0.7, 3.);
   fProtonProton->SetInletRangePlotting(50,200,0.94,1.06);
   fProtonProton->SetInletCoordinates(0.35, 0.27, 0.95, 0.61);
   fProtonProton->SetNDivisions(505);
   fProtonProton->SetLegendCoordinates(
-      0.45, 0.71 - 0.09 * fProtonProton->GetNumberOfModels(), 0.7, 0.8);
+      0.37, 0.71 - 0.09 * fProtonProton->GetNumberOfModels(), 0.7, 0.8);
   fProtonProton->DrawCorrelationPlot(c_PP);
-  DrawSystemInfo(c_PP);
+  DrawSystemInfo(c_PP, true, 0.39);
   c_PP->cd();
   Numbering.DrawLatex( 0.3,
                        0.9,"#bf{a)}");
@@ -343,7 +343,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   TCanvas* c_PL = new TCanvas("CFpL", "CFpL", 0, 0, 650, 550);
   c_PL->SetRightMargin(right);
   c_PL->SetTopMargin(top);
-  fProtonLambda->SetLegendName("p-#Lambda #oplus #bar{p}-#bar{#Lambda} pairs",
+  fProtonLambda->SetLegendName("p-#Lambda #oplus #bar{p}-#bar{#Lambda}",
                                "fpe");
   fProtonLambda->SetLegendName("Femtoscopic fit (#chiEFT NLO)", "l");
   fProtonLambda->SetLegendName("Femtoscopic fit (#chiEFT LO)", "l");
@@ -363,7 +363,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_LL->SetRightMargin(right);
   c_LL->SetTopMargin(top);
   fLambdaLambda->SetLegendName(
-      "#Lambda-#Lambda #oplus #bar{#Lambda}-#bar{#Lambda} pairs", "fpe");
+      "#Lambda-#Lambda #oplus #bar{#Lambda}-#bar{#Lambda}", "fpe");
   fLambdaLambda->SetLegendName("Femtoscopic fit ", "l");
   fLambdaLambda->SetNDivisions(505);
   fLambdaLambda->SetRangePlotting(0, 200, 0.35, 2.);
@@ -376,18 +376,18 @@ void DreamPlot::DrawCorrelationFunctions() {
   TCanvas* c_pXi = new TCanvas("CFpXi", "CFpXi", 0, 0, 650, 550);
   c_pXi->SetRightMargin(right);
   c_pXi->SetTopMargin(top);
-  fProtonXi->SetLegendName("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+} pairs",
+  fProtonXi->SetLegendName("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+}",
                            "fpe");
   fProtonXi->SetLegendName("Coulomb + HAL-QCD", "fl");
   fProtonXi->SetLegendName("Coulomb", "l");
   fProtonXi->SetLegendName("p-#Xi^{-} sideband background", "l");
   fProtonXi->SetNDivisions(505);
   fProtonXi->SetRangePlotting(0, 300, 0.8, 2.5);
-  fProtonXi->SetLegendCoordinates(0.5,
+  fProtonXi->SetLegendCoordinates(0.35,
                                   0.785 - 0.09 * fProtonXi->GetNumberOfModels(),
                                   0.7, 0.875);
   fProtonXi->DrawCorrelationPlot(c_pXi);
-  DrawSystemInfo(c_pXi, false, 0.5);
+  DrawSystemInfo(c_pXi, false, 0.37);
   Numbering.DrawLatex( 0.3,
                        0.9,"#bf{b)}");
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
@@ -397,7 +397,7 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin) {
   c->cd();
   TLatex BeamText;
   TLatex text;
-  BeamText.SetTextSize(gStyle->GetTextSize() * 0.9);
+  BeamText.SetTextSize(gStyle->GetTextSize() * 0.95);
   BeamText.SetNDC(kTRUE);
 //  BeamText.DrawLatex(0.5, 0.875, "ALICE");
   TString CollisionSystem = Form("%s", fCollisionSystem);
@@ -413,15 +413,14 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin) {
         0.9,
         Form("ALICE %s #sqrt{#it{s}} = %i TeV", fCollisionSystem,
              (int) fEnergy));
-  text.SetTextSize(gStyle->GetTextSize() * 0.9);
-  text.SetNDC();
-  text.SetTextColor(1);
   if (plotRadius) {
-    text.SetTextSize(gStyle->GetTextSize() * 0.75);
+    text.SetNDC();
+    text.SetTextColor(1);
+    text.SetTextSize(gStyle->GetTextSize() * 0.83);
     text.DrawLatex(
         xMin,
         0.825,
-        Form("#it{r}_{0} = %.3f #pm %.3f (syst.) ^{+%.3f}_{-%.3f} (stat.) fm", fRadius,
+        Form("#it{r}_{0} = %.3f #pm %.3f (stat.) ^{+%.3f}_{-%.3f} (syst.) fm", fRadius,
              fRadiusStat, fRadiusSysUp, fRadiusSysLow));
   }
 }
