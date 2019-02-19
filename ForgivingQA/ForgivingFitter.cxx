@@ -19,6 +19,8 @@ ForgivingFitter::ForgivingFitter()
       fSigRangeMin(0),
       fSigRangeMax(0),
       fSignalCounts(0),
+      fWeightA(0),
+      fWeightB(0),
       fBackgroundCounts(0) {
 
 }
@@ -89,6 +91,17 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   signalOnly->Fit(fDoubleGaussian, "R Q N", "", fSigRangeMin * 1.01,
                   fSigRangeMax * 0.99);
   fSignalCounts = fDoubleGaussian->Integral(massCutMin, massCutMax)
+      / double(histo->GetBinWidth(1));
+  //Add weights
+  fSingleGaussian->SetParameters(fDoubleGaussian->GetParameter(0),
+                                 fDoubleGaussian->GetParameter(1),
+                                 fDoubleGaussian->GetParameter(2));
+  fWeightA = fSingleGaussian->Integral(fSigRangeMin, fSigRangeMax)
+      / double(histo->GetBinWidth(1));
+  fSingleGaussian->SetParameters(fDoubleGaussian->GetParameter(3),
+                                 fDoubleGaussian->GetParameter(4),
+                                 fDoubleGaussian->GetParameter(5));
+  fWeightB = fSingleGaussian->Integral(fSigRangeMin, fSigRangeMax)
       / double(histo->GetBinWidth(1));
   CreateFullFitFunction(histo);
   histo->Fit(fFullFitFnct, "R Q 0", "", fBkgRangeMin * 1.01,

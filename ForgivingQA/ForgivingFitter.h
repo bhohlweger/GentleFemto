@@ -31,15 +31,15 @@ class ForgivingFitter {
   }
   ;
   float GetMeanMass() {
-    return weightedMean(fFullFitFnct->GetParameter(3),
+    return weightedMean(fWeightA,
                         fFullFitFnct->GetParameter(4),
-                        fFullFitFnct->GetParameter(6),
+                        fWeightB,
                         fFullFitFnct->GetParameter(7));
   }
   float GetMeanWidth() {
-    return weightedMean(fFullFitFnct->GetParameter(3),
+    return weightedMean(fWeightA,
                         fFullFitFnct->GetParameter(5),
-                        fFullFitFnct->GetParameter(6),
+                        fWeightB,
                         fFullFitFnct->GetParameter(8));
   }
  private:
@@ -67,6 +67,8 @@ class ForgivingFitter {
   float fSigRangeMin;
   float fSigRangeMax;
   int fSignalCounts;
+  int fWeightA;
+  int fWeightB;
   int fBackgroundCounts;
 };
 
