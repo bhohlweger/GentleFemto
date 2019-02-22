@@ -336,9 +336,9 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             //this way you define a correlation function using a CATS object.
             //needed inputs: num source/pot pars, CATS obj
             DLM_Ck* Ck_pp = new DLM_Ck(NumSourcePars, 0, AB_pp);
-            //    DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
-            DLM_Ck* Ck_pL = new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
-                                       Lednicky_SingletTriplet);
+            DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
+//            DLM_Ck* Ck_pL = new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
+//                                       Lednicky_SingletTriplet);
             //this way you define a correlation function using Lednicky.
             //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
             DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
@@ -347,17 +347,17 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
             DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
 
-            if (vMod_pL == 1) {
-              Ck_pL->SetPotPar(0, 2.91);
-              Ck_pL->SetPotPar(1, 2.78);
-              Ck_pL->SetPotPar(2, 1.54);
-              Ck_pL->SetPotPar(3, 2.72);
-            } else if (vMod_pL == 2) {
-              Ck_pL->SetPotPar(0, 1.91);
-              Ck_pL->SetPotPar(1, 1.4);
-              Ck_pL->SetPotPar(2, 1.23);
-              Ck_pL->SetPotPar(3, 2.13);
-            }
+//            if (vMod_pL == 1) {
+//              Ck_pL->SetPotPar(0, 2.91);
+//              Ck_pL->SetPotPar(1, 2.78);
+//              Ck_pL->SetPotPar(2, 1.54);
+//              Ck_pL->SetPotPar(3, 2.72);
+//            } else if (vMod_pL == 2) {
+//              Ck_pL->SetPotPar(0, 1.91);
+//              Ck_pL->SetPotPar(1, 1.4);
+//              Ck_pL->SetPotPar(2, 1.23);
+//              Ck_pL->SetPotPar(3, 2.13);
+//            }
 
             Ck_pp->Update();
             Ck_pL->Update();
