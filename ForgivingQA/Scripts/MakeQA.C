@@ -17,6 +17,7 @@ int main(int argc, char* argv[]) {
 
   evtQA->PlotCutCounter();
   evtQA->PlotEventProperties(200);
+  evtQA->PlotPileUpRejection();
   evtQA->SetTightMargin();
   evtQA->PlotStatsTrackCleaner( { "p-#Lambda", "#bar{p}-#bar{#Lambda}", "p-#Xi",
                                    "#bar{p}-#bar{#Xi}" },
@@ -48,6 +49,7 @@ int main(int argc, char* argv[]) {
   cascQA->SetAntiDecayCuts(reader->GetAntiCascadeCuts());
   cascQA->SetRangesFitting(1.31, 1.33, 1.3, 1.35);
   cascQA->InvariantMassXi(1.317, 1.327);
+  cascQA->IvariantMassXiLambda();
   return 0;
 }
 

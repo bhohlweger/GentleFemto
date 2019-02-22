@@ -61,6 +61,49 @@ void DecayQA::InvariantMassXi(float CutMin, float CutMax) {
   FitInvariantMass(invMassAntiPart, CutMin, CutMax, "AntiXi");
 }
 
+void DecayQA::IvariantMassXiLambda() {
+  auto invMassXiLa = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fDecayCuts, { "Cascade" }), "InvMassv0Pt");
+  auto invMassLa = (TH1F*) invMassXiLa->ProjectionY("invMassXiLas", 0, -1, "e");
+  fHairyPlotter->FormatHistogram(invMassLa, 0, 0);
+  auto cInvLa = new TCanvas("invMassXiLa", "invMassXiLa");
+  fFitter->ShittyInvariantMass(invMassLa, cInvLa, 0.2, 6.3, "#Lambda");
+  cInvLa->SaveAs("InvariantMassXiLa.pdf");
+
+  auto invMassAntiXiLa = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fAntiDecayCuts, { "Cascade" }), "InvMassv0Pt");
+  auto invMassAntiLa = (TH1F*) invMassAntiXiLa->ProjectionY("invMassXiALas", 0,
+                                                            -1, "e");
+  fHairyPlotter->FormatHistogram(invMassAntiLa, 0, 0);
+  auto cInvALa = new TCanvas("invMassAXiALa", "invMassAXiALa");
+  fFitter->ShittyInvariantMass(invMassAntiLa, cInvALa, 0.2, 6.3, "#Lambda");
+  cInvALa->SaveAs("InvariantMassAXiALa.pdf");
+
+  auto cInvLapT = new TCanvas("InvMassXiLaPT", "InvMassXiLaPT", 0, 0, 2000, 1500);
+  cInvLapT->Divide(4, 3);
+  auto cInvALapT = new TCanvas("InvMassAXiALaPT", "InvMassAXiALaPT", 0, 0, 2000, 1500);
+  cInvALapT->Divide(4, 3);
+  for (int iPt = 1; iPt <= invMassXiLa->GetXaxis()->GetNbins(); ++iPt) {
+    TPad* tmppadLa = (TPad*) cInvLapT->cd(iPt);
+    auto invMassLapT = (TH1F*) invMassXiLa->ProjectionY(
+        Form("invMassLaPt_%u", iPt + 1), iPt + 1, iPt + 1, "e");
+    fHairyPlotter->FormatSmallHistogram(invMassLapT, 0, 0);
+    fFitter->ShittyInvariantMass(
+        invMassLapT, tmppadLa, invMassXiLa->GetXaxis()->GetBinLowEdge(iPt + 1),
+        invMassXiLa->GetXaxis()->GetBinUpEdge(iPt + 1), "#Lambda");
+
+    TPad* tmppadALa = (TPad*) cInvALapT->cd(iPt);
+    auto invMassALapT = (TH1F*) invMassAntiXiLa->ProjectionY(
+        Form("invMassALaPt_%u", iPt + 1), iPt + 1, iPt + 1, "e");
+    fHairyPlotter->FormatSmallHistogram(invMassALapT, 0, 0);
+    fFitter->ShittyInvariantMass(
+        invMassALapT, tmppadALa, invMassAntiXiLa->GetXaxis()->GetBinLowEdge(iPt + 1),
+        invMassAntiXiLa->GetXaxis()->GetBinUpEdge(iPt + 1), "#Lambda");
+  }
+  cInvLapT->SaveAs("InvMassXiLaPt.pdf");
+  cInvALapT->SaveAs("InvMassAXiALaPt.pdf");
+}
+
 void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                                const char* outname) {
   //First project the whole thing into one bin
@@ -74,7 +117,8 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   invMass->GetYaxis()->SetRangeUser(0, invMass->GetMaximum() * 1.8);
   invMass->GetYaxis()->SetMaxDigits(3);
   invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
-  invMass->GetXaxis()->SetTitle(Form("#it{M}_{%s} (GeV/#it{c}^{2})",fDecChannel));
+  invMass->GetXaxis()->SetTitle(
+      Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
   fHairyPlotter->FormatHistogram(invMass, 0, 0, 0.8);
   fHairyPlotter->DrawOnPad( { invMass }, intPad, "P");
   fHairyPlotter->DrawLatexLabel(
@@ -117,7 +161,8 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
     invMasspTBin->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
     invMasspTBin->GetYaxis()->SetRangeUser(
         0, invMasspTBin->GetMaximum() * fScaleMax);
-    invMasspTBin->GetXaxis()->SetTitle(Form("#it{M}_{%s} (GeV/#it{c}^{2})",fDecChannel));
+    invMasspTBin->GetXaxis()->SetTitle(
+        Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
     invMasspTBin->GetXaxis()->SetMaxDigits(2);
     invMasspTBin->GetXaxis()->SetNdivisions(420);
     invMasspTBin->GetYaxis()->SetMaxDigits(3);

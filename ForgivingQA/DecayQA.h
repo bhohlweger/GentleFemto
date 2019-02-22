@@ -27,6 +27,7 @@ class DecayQA {
   ;
   void InvariantMassLambda(float CutMin, float CutMax);
   void InvariantMassXi(float CutMin, float CutMax);
+  void IvariantMassXiLambda();
   void PlotKaonRejection(TH1F* invMassKaon, const char* outname);
   void SetCanvasDivisions(unsigned int divX, unsigned int divY) {
     fDivCanX = divX;
