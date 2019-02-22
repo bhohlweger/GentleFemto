@@ -36,6 +36,7 @@ class EventQA {
   }
   ;
   void PlotEventProperties(unsigned int multMax);
+  void PlotPileUpRejection();
   void PlotStatsTrackCleaner(std::vector<const char*> TrackDecay,
                              std::vector<const char*> DecayDecay,
                              unsigned int xMax);

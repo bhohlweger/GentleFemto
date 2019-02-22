@@ -34,7 +34,7 @@ void EventQA::PlotCutCounter() {
     std::cerr << "PlotCutCounter: No cutStat Hist\n";
   }
   fHairyPlotter->FormatHistogram(cutStats, 0, 1);
-  fHairyPlotter->DrawAndStore({cutStats}, "Evt_CutStats");
+  fHairyPlotter->DrawAndStore( { cutStats }, "Evt_CutStats");
 }
 
 void EventQA::PlotEventProperties(unsigned int multMax) {
@@ -49,7 +49,7 @@ void EventQA::PlotEventProperties(unsigned int multMax) {
   multiplicity->GetXaxis()->SetRangeUser(0, multMax);
   multiplicity->GetYaxis()->SetTitle(Form("N_{Events}"));
   fHairyPlotter->FormatHistogram(multiplicity, 0, 1);
-  fHairyPlotter->DrawLogYAndStore({multiplicity}, "EvtProp_eventMult");
+  fHairyPlotter->DrawLogYAndStore( { multiplicity }, "EvtProp_eventMult");
 
   auto* zVtx = (TH2F*) fReader->Get1DHistInList(
       fReader->GetListInList(fEventCuts, { { "after" } }), "VtxZ_after");
@@ -61,8 +61,34 @@ void EventQA::PlotEventProperties(unsigned int multMax) {
   zVtx->GetXaxis()->SetRangeUser(-11, 11);
   zVtx->GetYaxis()->SetTitle(Form("N_{Events}/%.1f cm", zVtx->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(zVtx, 0, 1);
-  std::vector<TH2*> drawVec = {{zVtx}};
+  std::vector<TH2*> drawVec = { { zVtx } };
   fHairyPlotter->DrawAndStore(drawVec, "EvtProp_zVtx");
+}
+
+void EventQA::PlotPileUpRejection() {
+  auto TkltsVsClusterBefore = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fEventCuts, { "before" }),
+      "SPDTrackletsVsClusterL01Sum_before");
+  auto* TkltsVsClusterAfter= (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fEventCuts, { "after" }),
+      "SPDTrackletsVsClusterL01Sum_after");
+  if (TkltsVsClusterBefore && TkltsVsClusterAfter) {
+    fHairyPlotter->FormatHistogram(TkltsVsClusterBefore);
+    TkltsVsClusterBefore->GetXaxis()->SetTitle("N_{SPD Tracklets}");
+    TkltsVsClusterBefore->GetYaxis()->SetTitle("N_{SPD Cluster}");
+    std::vector<TH2*> drawVecBefore = { { TkltsVsClusterBefore} };
+    fHairyPlotter->DrawAndStore(drawVecBefore,"TrackletsVsClustBefore", "COLZ");
+
+    fHairyPlotter->FormatHistogram(TkltsVsClusterAfter);
+    TkltsVsClusterAfter->GetXaxis()->SetTitle("N_{SPD Tracklets}");
+    TkltsVsClusterAfter->GetYaxis()->SetTitle("N_{SPD Cluster}");
+    std::vector<TH2*> drawVecAfter = { { TkltsVsClusterAfter } };
+    fHairyPlotter->DrawAndStore(drawVecAfter,"TrackletsVsClustAfter", "COLZ");
+
+  } else {
+   std::cerr << "No Tracklets vs. Clust Plot \n";
+  }
+  return;
 }
 
 void EventQA::PlotStatsTrackCleaner(std::vector<const char*> TrackDecay,
@@ -81,7 +107,8 @@ void EventQA::PlotStatsTrackCleaner(std::vector<const char*> TrackDecay,
     trackDecay->GetXaxis()->SetTitle(nameAxis.Data());
     trackDecay->GetXaxis()->SetRangeUser(0, xMax);
     fHairyPlotter->FormatHistogram(trackDecay, 0, 1);
-    fHairyPlotter->DrawLogYAndStore({trackDecay}, Form("DecTrack_%u", itrDec));
+    fHairyPlotter->DrawLogYAndStore( { trackDecay },
+                                    Form("DecTrack_%u", itrDec));
 
     ++itrDec;
   }
@@ -99,7 +126,8 @@ void EventQA::PlotStatsTrackCleaner(std::vector<const char*> TrackDecay,
     DecayDecay->GetXaxis()->SetTitle(nameAxis.Data());
     DecayDecay->GetXaxis()->SetRangeUser(0, xMax);
     fHairyPlotter->FormatHistogram(DecayDecay, 0, 1);
-    fHairyPlotter->DrawLogYAndStore({DecayDecay}, Form("Decdec_%u", iDecDec));
+    fHairyPlotter->DrawLogYAndStore( { DecayDecay },
+                                    Form("Decdec_%u", iDecDec));
 
     ++iDecDec;
   }
