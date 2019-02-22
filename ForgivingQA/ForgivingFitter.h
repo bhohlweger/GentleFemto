@@ -16,9 +16,6 @@ class ForgivingFitter {
  public:
   ForgivingFitter();
   virtual ~ForgivingFitter();
-//  void FitTheLambda(TH1F* histo, float &signal, float &signalErr,
-//                    float &background, float &backgroundErr, float lowerBound,
-//                    float upperBound, TCanvas *c1);
   void FitInvariantMass(TH1F* histo, float massCutMin, float massCutMax);
   void SetRanges(float SigMin, float SigMax, float BkgRangeMin,
                  float BkgRangeMax);
@@ -31,17 +28,15 @@ class ForgivingFitter {
   }
   ;
   float GetMeanMass() {
-    return weightedMean(fWeightA,
-                        fFullFitFnct->GetParameter(4),
-                        fWeightB,
+    return weightedMean(fWeightA, fFullFitFnct->GetParameter(4), fWeightB,
                         fFullFitFnct->GetParameter(7));
   }
   float GetMeanWidth() {
-    return weightedMean(fWeightA,
-                        fFullFitFnct->GetParameter(5),
-                        fWeightB,
+    return weightedMean(fWeightA, fFullFitFnct->GetParameter(5), fWeightB,
                         fFullFitFnct->GetParameter(8));
   }
+  void ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin, float pTMax,
+                           const char* part);
  private:
   void CreateBackgroundFunction();
   void CreateContinousBackgroundFunction();

@@ -6,7 +6,8 @@
  */
 
 #include "ForgivingFitter.h"
-
+#include "TLatex.h"
+#include "TStyle.h"
 ForgivingFitter::ForgivingFitter()
     : fBackGround(nullptr),
       fContinousBackGround(nullptr),
@@ -225,4 +226,101 @@ void ForgivingFitter::CalculateBackgorund(TH1F* targetHisto, float massCutMin,
   fBackgroundCounts = fLambda_background->Integral(massCutMin, massCutMax)
       / double(targetHisto->GetBinWidth(1));
   targetHisto->GetListOfFunctions()->Add(fLambda_background);
+}
+
+void ForgivingFitter::ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin,
+                                          float pTMax, const char* part) {
+  float lowerMass = 1.116 - 0.006;
+  float upperMass = 1.116 + 0.006;
+  histo->GetXaxis()->SetRangeUser(1.107, 1.125);
+  histo->GetYaxis()->SetRangeUser(0, histo->GetMaximum() * 2.5);
+  histo->GetXaxis()->SetTitle("#it{M}_{p#pi} (GeV/#it{c}^{2})");
+  histo->GetXaxis()->SetNdivisions(310);
+  histo->GetXaxis()->SetMaxDigits(1);
+  histo->GetYaxis()->SetNdivisions(310);
+  histo->GetYaxis()->SetMaxDigits(2);
+  histo->DrawCopy();
+  TH1F* hfp = (TH1F*) histo->Clone("hfp");
+  TH1F* hfg = (TH1F*) histo->Clone("hfg");
+
+  TF1* f1 = new TF1("f1", "pol1(0)+gaus(2)+gaus(5)", 1.108, 1.125);
+  f1->SetParameters(150000, 0, 2000000, 1.116, 0.0015, 1000000, 1.116, 0.0025);
+  f1->SetLineColor(kBlue);
+  f1->Draw("same");
+  f1->SetParLimits(2, 10000, 9000000);
+  f1->SetParLimits(5, 10000, 9000000);
+  f1->SetParLimits(3, 1.115, 1.117);
+  f1->SetParLimits(6, 1.115, 1.117);
+  f1->SetParLimits(4, 0.001, 0.003);
+  f1->SetParLimits(7, 0.001, 0.003);
+  histo->Fit(f1, "MRQ", "", 1.108, 1.1234);
+  //calculate lambda res:
+
+  TF1* signal = new TF1("signul", "gaus(0)+gaus(3)", 1.108, 1.1234);
+  signal->SetParameter(0, f1->GetParameter(2));
+  signal->SetParameter(1, f1->GetParameter(3));
+  signal->SetParameter(2, f1->GetParameter(4));
+  signal->SetParameter(3, f1->GetParameter(5));
+  signal->SetParameter(4, f1->GetParameter(6));
+  signal->SetParameter(5, f1->GetParameter(7));
+
+  TF1* signalOne = new TF1("signulOne", "gaus(0)+gaus(3)", 1.108, 1.1234);
+  signalOne->SetParameter(0, f1->GetParameter(2));
+  signalOne->SetParameter(1, f1->GetParameter(3));
+  signalOne->SetParameter(2, f1->GetParameter(4));
+  TF1* signalTwo = new TF1("signulTwo", "gaus(0)+gaus(3)", 1.108, 1.1234);
+  signalTwo->SetParameter(0, f1->GetParameter(5));
+  signalTwo->SetParameter(1, f1->GetParameter(6));
+  signalTwo->SetParameter(2, f1->GetParameter(7));
+
+  TF1* background = new TF1("buckground", "pol1", 1.108, 1.1234);
+  background->SetParameter(0, f1->GetParameter(0));
+  background->SetParameter(1, f1->GetParameter(1));
+  background->SetLineColor(kBlue);
+  background->SetLineStyle(3);
+  background->Draw("SAME");
+  Double_t N1 = signalOne->Integral(lowerMass, upperMass);
+  Double_t N2 = signalTwo->Integral(lowerMass, upperMass);
+  float signalLambda = signal->Integral(lowerMass, upperMass)
+      / (float) histo->GetBinWidth(1);
+  float backgroundLambda = background->Integral(lowerMass, upperMass)
+      / (float) histo->GetBinWidth(1);
+  for (int i = 1; i <= histo->GetNbinsX(); i++) {
+    hfp->SetBinContent(i, signal->Eval(histo->GetBinCenter(i)));
+    hfg->SetBinContent(i, background->Eval(histo->GetBinCenter(i)));
+  }
+  Float_t all = histo->Integral(histo->GetXaxis()->FindBin(lowerMass),
+                                histo->GetXaxis()->FindBin(upperMass));
+  Float_t signalHist = hfp->Integral(hfp->GetXaxis()->FindBin(lowerMass),
+                                     hfp->GetXaxis()->FindBin(upperMass));
+  Float_t backgroundHist = hfg->Integral(hfg->GetXaxis()->FindBin(lowerMass),
+                                         hfg->GetXaxis()->FindBin(upperMass));
+  Float_t purity = signalHist / (signalHist + backgroundHist);
+
+  float meanMass = weightedMean(N1, f1->GetParameter(3), N2,
+                                f1->GetParameter(6));
+  float meanWidthActual = weightedMean(N1, f1->GetParameter(4), N2,
+                                       f1->GetParameter(7));
+  TLatex Label;
+  Label.SetNDC(kTRUE);
+  Label.SetTextSize(gStyle->GetTextSize() * 1.25);
+  Label.DrawLatex(
+      gPad->GetUxmax() - 0.80,
+      gPad->GetUymax() - 0.55,
+      Form("#splitline{#splitline{#splitline{#splitline{#splitline"
+           "{%.2f < p_{T} < %.2f (GeV/#it{c})}"
+           "{%s: %.0f}}"
+           "{< #it{M} > = %.1f MeV/#it{c}^{2}}}"
+           "{#sigma= %.1f MeV/#it{c}^{2}}}"
+           "{Purity = %.1f %%}}"
+           "{S/B = %.1f}",
+           pTMin, pTMax, part, signalLambda, meanMass * 1000.f,
+           meanWidthActual * 1000.f,
+           signalLambda / (signalLambda + backgroundLambda) * 100.f,
+           signalLambda / backgroundLambda));
+  delete f1;
+  delete signal;
+  delete signalOne;
+  delete signalTwo;
+  delete background;
 }
