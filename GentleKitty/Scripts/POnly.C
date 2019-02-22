@@ -69,7 +69,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
   //This is for the CATS objects, make sure it covers the full femto range
   const int binwidth = 4 * Rebin;
   const unsigned NumMomBins = 105;
-  const double kMin = 0;
+  const double kMin = 4;
   const double kMax = kMin + 4 * NumMomBins;  //(4 is the bin width)
   unsigned int momBins = 0;
 
@@ -272,7 +272,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 
   TidyCats* tidy = new TidyCats();
   int uIter = 1;
-
+//
   for (vFemReg_pp = 0; vFemReg_pp < 3; ++vFemReg_pp) {
     for (vMod_pL = 1; vMod_pL < 3; ++vMod_pL) {
       for (vFrac_pL_pSigma0 = 0; vFrac_pL_pSigma0 < 3; ++vFrac_pL_pSigma0) {
@@ -294,11 +294,14 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 //            double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2,
 //                GaussSourceSize / 1.2, 0.5 };
             CATS AB_pp;
-            tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax);
+            tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, false);
+//            CATSparameters cPars(CATSparameters::tSource, 1, true);
+//            cPars.SetParameter(0, 1.2);
+//            AB_pp.SetAnaSource(GaussSource, cPars);
             AB_pp.KillTheCat();
-
-//            double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-//                GaussSourceSize / 1.2, 0.5 };
+//
+////            double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2,
+////                GaussSourceSize / 1.2, 0.5 };
             CATS AB_pL;
             tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax);
             AB_pL.KillTheCat();
@@ -727,10 +730,10 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 
             delete GraphFile;
             uIter++;
+
             if (NumIter == 0) {
               goto outofloop;
             }
-
           }
         }
       }
