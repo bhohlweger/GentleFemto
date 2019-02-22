@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     DreamdEtadPhi *ppRad = DreamFile->GetdEtadPhiAtRadDistribution(0, 0, 0, 1,
                                                                    1, 0, iRad,
                                                                    false);
-    ppRad->DivideSEandME(4);
+    ppRad->DivideSEandME(3);
     ppRad->Draw2D((TPad*) cpp->cd(iRad + 1), TPCradii[iRad]);
     ppRad->ProjectionY();
     ppRad->DrawProjectionY((TPad*) cppProjY->cd(iRad + 1), TPCradii[iRad]);
