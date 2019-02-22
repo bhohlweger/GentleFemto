@@ -294,12 +294,12 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 //            double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2,
 //                GaussSourceSize / 1.2, 0.5 };
             CATS AB_pp;
-            tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax);
+            tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, false);
             AB_pp.KillTheCat();
 
 //            double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2,
 //                GaussSourceSize / 1.2, 0.5 };
-            CATS AB_pL;
+/*            CATS AB_pL;
             tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax);
             AB_pL.KillTheCat();
 //            double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
@@ -727,16 +727,17 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 
             delete GraphFile;
             uIter++;
+*/
             if (NumIter == 0) {
               goto outofloop;
             }
-
           }
         }
       }
     }
   }
-  outofloop: OutFile->cd();
+  outofloop:
+  OutFile->cd();
   ntResult->Write();
 
   delete ntResult;

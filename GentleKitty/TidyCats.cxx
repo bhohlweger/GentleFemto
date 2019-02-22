@@ -23,19 +23,19 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
   const double Weight3P1 = 3. / 12.;
   const double Weight3P2 = 5. / 12.;
 
-  double PotPars1S0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 0, 0, 0 };
-  double PotPars3P0[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1, 0 };
-  double PotPars3P1[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1, 1 };
-  double PotPars3P2[10] = { 0, 0, NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1, 2 };
+  double PotPars1S0[8] = { NN_AV18, v18_Coupled3P2, 1, 1, 1, 0, 0, 0 };
+  double PotPars3P0[8] = { NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1, 0 };
+  double PotPars3P1[8] = { NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1, 1 };
+  double PotPars3P2[8] = { NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1, 2 };
 
   CATSparameters cPotPars1S0(CATSparameters::tPotential, 8, true);
-  cPotPars1S0.SetParameters(&PotPars1S0[2]);
+  cPotPars1S0.SetParameters(PotPars1S0);
   CATSparameters cPotPars3P0(CATSparameters::tPotential, 8, true);
-  cPotPars3P0.SetParameters(&PotPars3P0[2]);
+  cPotPars3P0.SetParameters(PotPars3P0);
   CATSparameters cPotPars3P1(CATSparameters::tPotential, 8, true);
-  cPotPars3P1.SetParameters(&PotPars3P1[2]);
+  cPotPars3P1.SetParameters(PotPars3P1);
   CATSparameters cPotPars3P2(CATSparameters::tPotential, 8, true);
-  cPotPars3P2.SetParameters(&PotPars3P2[2]);
+  cPotPars3P2.SetParameters(PotPars3P2);
 
   const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
