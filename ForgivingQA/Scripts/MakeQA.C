@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
   TrackQA* trkQA = new TrackQA();
   trkQA->SetTrackCuts(reader->GetTrackCuts());
   trkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
-//  trkQA->PlotKinematic();
+  trkQA->PlotKinematic();
   trkQA->PlotPID();
 
   DecayQA* v0QA = new DecayQA("#Lambda","p#pi");
