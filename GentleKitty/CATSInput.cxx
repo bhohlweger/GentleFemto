@@ -34,17 +34,24 @@ CATSInput::CATSInput()
 }
 
 CATSInput::~CATSInput() {
-  if (fDreamFile) delete fDreamFile;
-  if (fCF_pp) delete fCF_pp;
-  if (fCF_pL) delete fCF_pL;
-  if (fCF_LL) delete fCF_LL;
-  if (fCF_pXi) delete fCF_pXi;
+  if (fDreamFile)
+    delete fDreamFile;
+  if (fCF_pp)
+    delete fCF_pp;
+  if (fCF_pL)
+    delete fCF_pL;
+  if (fCF_LL)
+    delete fCF_LL;
+  if (fCF_pXi)
+    delete fCF_pXi;
 
   for (auto it : fRes) {
-    if(it) delete it;
+    if (it)
+      delete it;
   }
   for (auto it : fSigma) {
-    if(it) delete it;
+    if (it)
+      delete it;
   }
 
 }
@@ -63,9 +70,10 @@ void CATSInput::ReadResFile() {
     std::vector<const char*> FileNames = { "hRes_pp_pL", "hRes_pL_pSigma0",
         "hRes_pL_pXim", "hRes_pXim_pXim1530" };
     for (auto it : FileNames) {
-      auto hist = (TH2F*)FileRes->Get(it);
+      auto hist = (TH2F*) FileRes->Get(it);
       if (hist) {
-        inputHist.push_back((TH2F*) hist->Clone(Form("%s_clone", hist->GetName())));
+        inputHist.push_back(
+            (TH2F*) hist->Clone(Form("%s_clone", hist->GetName())));
         delete hist;
       } else {
         std::cout << it << " histogram not found \n";
@@ -118,9 +126,10 @@ void CATSInput::ReadSigmaFile() {
         "hSigmaMeV_Proton_Lambda", "hSigmaMeV_Lambda_Lambda",
         "hSigmaMeV_Proton_Xim" };
     for (auto it : FileNames) {
-      auto hist = (TH2F*)FileSigma->Get(it);
+      auto hist = (TH2F*) FileSigma->Get(it);
       if (hist) {
-        inputHist.push_back((TH2F*) hist->Clone(Form("%s_clone", hist->GetName())));
+        inputHist.push_back(
+            (TH2F*) hist->Clone(Form("%s_clone", hist->GetName())));
         delete hist;
       } else {
         std::cout << it << " histogram not found \n";
@@ -159,10 +168,11 @@ void CATSInput::ReadSigmaFile() {
   return;
 }
 
-void CATSInput::ReadCorrelationFile(const char* path, const char* prefix) {
+void CATSInput::ReadCorrelationFile(const char* path, const char* prefix,
+                                    const char* suffix) {
   TString filename = Form("%s/AnalysisResults.root", path);
   fDreamFile = new ReadDreamFile(6, 6);
-  fDreamFile->SetAnalysisFile(filename.Data(), prefix, "");
+  fDreamFile->SetAnalysisFile(filename.Data(), prefix, suffix);
   return;
 }
 
@@ -252,17 +262,18 @@ void CATSInput::ObtainCFs(int rebin, float normleft, float normright) {
 
       pXi->Rebin(pXi->GetPairFixShifted(0), rebin);
       ApAXi->Rebin(ApAXi->GetPairFixShifted(0), rebin);
-      pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
-      ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
 
-      pL->ReweightMixedEvent(pL->GetPairRebinned(0), 0.2, 0.9);
-      ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(0), 0.2, 0.9);
-
-      LL->ReweightMixedEvent(LL->GetPairRebinned(0), 0.2, 0.9);
-      ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(0), 0.2, 0.9);
-
-      pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
-      ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
+//      pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+//      ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+//
+//      pL->ReweightMixedEvent(pL->GetPairRebinned(0), 0.2, 0.9);
+//      ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(0), 0.2, 0.9);
+//
+//      LL->ReweightMixedEvent(LL->GetPairRebinned(0), 0.2, 0.9);
+//      ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(0), 0.2, 0.9);
+//
+//      pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
+//      ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
       fCF_pp->SetPairs(pp, ApAp);
       fCF_pp->GetCorrelations("pp");
 
@@ -287,8 +298,8 @@ TH1F* CATSInput::GetCF(TString pair, TString hist) {
   if (pair == TString("pp")) {
     for (auto it : fCF_pp->GetCorrelationFunctions()) {
       TString itName = it->GetName();
+      std::cout << it->GetName() << std::endl;
       if (hist == itName) {
-        std::cout << it->GetName() << std::endl;
         output = it;
       }
     }
@@ -323,7 +334,7 @@ TH1F* CATSInput::GetCF(TString pair, TString hist) {
     std::cout << "Danger! Histogram not set, maybe histname " << hist
               << " does not exist? \n";
   }
-  return (TH1F*)output->Clone(Form("%sCloned",output->GetName()));
+  return (TH1F*) output->Clone(Form("%sCloned", output->GetName()));
 }
 
 void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {

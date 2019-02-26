@@ -47,7 +47,7 @@ class CATSInput {
     return fSigma.size() > iPair ? fSigma[iPair] : nullptr;
   }
   ;
-  void ReadCorrelationFile(const char* path, const char* prefix="MB");
+  void ReadCorrelationFile(const char* path, const char* prefix="MB", const char* suffix="");
   void ObtainCFs(int rebin, float normleft, float normright);
   TH1F* GetCF(TString pair, TString hist);
   void AddSystematics(TString SysFile, TH1F* hist);
