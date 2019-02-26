@@ -21,3 +21,9 @@ include_directories(${DREAM_PATH})
 
 add_executable(systematicsSigma ${PROJECT_SOURCE_DIR}/EvalSigmaSystematics.C)
 target_link_libraries(systematicsSigma tidyCATS DreamFunctions)
+
+add_executable(AddFiles ${PROJECT_SOURCE_DIR}/AddOutputs.C)
+target_link_libraries(AddFiles tidyCATS DreamFunctions)
+
+add_executable(executeSysteamtics ${PROJECT_SOURCE_DIR}/EvalDreamSys.C)
+target_link_libraries(executeSysteamtics tidyCATS DreamFunctions)
