@@ -43,8 +43,6 @@ class ReadDreamFile {
                                               int iAPart1, int iAPart2,
                                               int iMix2, int iRad,
                                               bool smallkStar);
-  void GetNumberOfCandidates(const char* AnalysisFile, const char* prefix,
-                             const char* addon = "");
   const int fNPart1;
   const int fNPart2;
  private:
@@ -64,7 +62,6 @@ class ReadDreamFile {
   TH2F*** fMEdEtadPhi;
   TH2F***** fMEdEtadPhiAtRad;
   TH2F***** fMEdEtadPhiAtRadSmallkStar;
-  int *fnCandidates;
 };
 
 #endif /* DREAMFUNCTION_READDREAMFILE_H_ */
