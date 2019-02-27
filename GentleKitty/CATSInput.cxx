@@ -425,21 +425,3 @@ void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {
     std::cout << "Sys File not found " << SystErrFileName.Data() << std::endl;
   }
 }
-
-TH1F* CATSInput::FindHistogram(std::vector<TH1F*> histo, TString name) {
-  TH1F* output = nullptr;
-  for (auto it : histo) {
-    TString itName = it->GetName();
-    if (itName.Contains(name.Data())) {
-      output = it;
-    }
-  }
-  if (!output) {
-    std::cout << "Output Histogram not found for " << name.Data() << std::endl;
-    std::cout << "What we off is the following: \n";
-    for (auto it : histo) {
-      std::cout << it->GetName() << std::endl;
-    }
-  }
-  return output;
-}

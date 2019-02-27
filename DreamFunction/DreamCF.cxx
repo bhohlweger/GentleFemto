@@ -226,3 +226,21 @@ TH1F* DreamCF::ConvertToOtherUnit(TH1F* HistCF, int Scale, const char* name) {
   }
   return HistScaled;
 }
+
+TH1F* DreamCF::FindCorrelationFunction(TString name) {
+  TH1F* output = nullptr;
+  for (auto it : fCF) {
+    TString itName = it->GetName();
+    if (itName.Contains(name.Data())) {
+      output = it;
+    }
+  }
+  if (!output) {
+    std::cout << "Output Histogram not found for " << name.Data() << std::endl;
+    std::cout << "What we off is the following: \n";
+    for (auto it : fCF) {
+      std::cout << it->GetName() << std::endl;
+    }
+  }
+  return output;
+}
