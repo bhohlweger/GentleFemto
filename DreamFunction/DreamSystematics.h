@@ -18,6 +18,7 @@ class DreamSystematics {
   enum Pair {
     pp = 0,       ///< Proton-Proton correlation function
     pSigma0 = 1,       ///< Proton-Sigma0 correlation function
+    pXi = 2
   };
 
   DreamSystematics();
@@ -45,6 +46,7 @@ class DreamSystematics {
   int GetNumberOfVars() const {
     return vars[fParticlePairMode].size();
   }
+
   TString GetVariation(int count) const {
     return vars[fParticlePairMode][count];
   }
@@ -61,13 +63,15 @@ class DreamSystematics {
   TH1F* GetBarlow(TH1F* histDefault, TH1F* histVar) const;
 
   void EvalSystematics();
+  void EvalDifferenceInPairs();
+  void PairsProton();
   void ComputeUncertainty();
   void EvalProtonProton(const int kstar);
   void EvalProtonSigma(const int kstar);
+  void EvalProtonXi(const int kstar);
   void WriteOutput();
   void DrawAllCF();
   void FixStyle(TH1F* histCF) const;
-
  private:
   float fSystematicFitRangeLow;
   float fSystematicFitRangeUp;
@@ -84,6 +88,10 @@ class DreamSystematics {
   std::vector<TH1F*> fHistErrBudget;
   std::vector<TH1F*> fHistBarlow;
   std::vector<unsigned int> fnPairsVar;
+  std::vector<unsigned int> fnPairsAbsDiff;
+  std::vector<float> fnPairsRelDiff;
+  TH1F* fHistPairsAbsDiff;
+  TH1F* fHistPairsRelDiff;
 
   const std::vector<TString> ppVariations = { { "Proton #it{p}_{T} down",
       "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
@@ -118,9 +126,24 @@ class DreamSystematics {
       "Proton n#sigma down", "Proton FilterBit", "Proton TPC cluster down",
       "Proton TPC cluster up" } };
 
+  const std::vector<TString> pXiVariations = { { "Proton #it{p}_{T} down",
+      "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
+      "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",
+      "Proton TPC cluster down", "Proton TPC cluster up",
+      "Casc Daug d_{track} up", "Casc Daug d_{track} down",
+      "Casc Bach d_{Track, PV} down", "Casc Bach d_{Track, PV} up",
+      "Casc CPA up 1", "Casc CPA up 2", "Casc Transverse Radius down",
+      "Casc Transverse Radius up", "Casc V0 Daug d_{track} up 1",
+      "Casc V0 Daug d_{track} up 2", "Casc V0 CPA down", "Casc V0 CPA up",
+      "Casc V0 Transverse Radius down", "Casc V0 Transverse Radius up",
+      "Casc V0 d_{V0, PV} up", "Casc V0 d_{V0, PV} down",
+      "Casc V0 Daug d_{Track, PV} down", "Casc V0 Daug d_{Track, PV} up",
+      "Casc Track #eta up", "Casc Track #eta down", "Casc Track n#sigma up",
+      "Casc Track n#sigma down", "Casc #it{p}_{T} down" } };
+
   const std::vector<std::vector<TString>> vars = { { ppVariations,
-      pSigma0Variations } };
-  const std::vector<TString> pairName = { { "pp", "pSigma0" } };
+      pSigma0Variations, pXiVariations } };
+  const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi" } };
 };
 
 inline void DreamSystematics::DrawAllCF() {

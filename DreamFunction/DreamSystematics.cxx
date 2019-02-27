@@ -10,7 +10,7 @@ DreamSystematics::DreamSystematics()
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
       fFemtoRangeLow(0.f),
-      fFemtoRangeUp(200.f),
+      fFemtoRangeUp(0.2),
       fParticlePairMode(DreamSystematics::pp),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
@@ -21,14 +21,18 @@ DreamSystematics::DreamSystematics()
       fHistAbsErr(),
       fHistErrBudget(),
       fHistBarlow(),
-      fnPairsVar() {
+      fnPairsVar(),
+      fnPairsAbsDiff(),
+      fnPairsRelDiff(),
+      fHistPairsAbsDiff(nullptr),
+      fHistPairsRelDiff(nullptr) {
 }
 
 DreamSystematics::DreamSystematics(Pair pair)
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
       fFemtoRangeLow(0.f),
-      fFemtoRangeUp(200.f),
+      fFemtoRangeUp(0.2),
       fParticlePairMode(pair),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
@@ -39,7 +43,11 @@ DreamSystematics::DreamSystematics(Pair pair)
       fHistAbsErr(),
       fHistErrBudget(),
       fHistBarlow(),
-      fnPairsVar() {
+      fnPairsVar(),
+      fnPairsAbsDiff(),
+      fnPairsRelDiff(),
+      fHistPairsAbsDiff(nullptr),
+      fHistPairsRelDiff(nullptr) {
 }
 
 TH1F* DreamSystematics::GetAbsError(TH1F* histDefault, TH1F* histVar) const {
@@ -124,6 +132,39 @@ void DreamSystematics::EvalSystematics() {
   ComputeUncertainty();
 }
 
+void DreamSystematics::EvalDifferenceInPairs() {
+  for (auto it : fnPairsVar) {
+    fnPairsAbsDiff.push_back(std::abs((int) (fnPairsDefault - it)));
+    fnPairsRelDiff.push_back(
+        fnPairsDefault > 0 ?
+            std::abs((float) (1 - (it / (float) fnPairsDefault))) : 0);
+  }
+  switch (fParticlePairMode) {
+    case Pair::pp:
+      PairsProton();
+      break;
+    default:
+      break;
+  }
+}
+
+void DreamSystematics::PairsProton() {
+  fHistPairsAbsDiff = new TH1F("AbsDiffPairpp", "AbsDiffPairpp",
+                               fnPairsAbsDiff.size(), 0, fnPairsAbsDiff.size());
+  fHistPairsRelDiff = new TH1F("RelDiffPairpp", "RelDiffPairpp",
+                               fnPairsRelDiff.size(), 0, fnPairsRelDiff.size());
+  for (unsigned int iBin = 1; iBin < fnPairsAbsDiff.size(); ++iBin) {
+    fHistPairsAbsDiff->GetXaxis()->SetBinLabel(iBin,
+                                               GetVariation(iBin - 1).Data());
+    fHistPairsAbsDiff->SetBinContent(iBin, fnPairsAbsDiff[iBin]);
+  }
+  for (unsigned int iBin = 1; iBin < fnPairsRelDiff.size(); ++iBin) {
+    fHistPairsRelDiff->GetXaxis()->SetBinLabel(iBin,
+                                               GetVariation(iBin - 1).Data());
+    fHistPairsRelDiff->SetBinContent(iBin, fnPairsRelDiff[iBin]);
+  }
+}
+
 void DreamSystematics::ComputeUncertainty() {
 
   fHistSystErrAbs = (TH1F*) fHistDefault->Clone(
@@ -145,6 +186,12 @@ void DreamSystematics::ComputeUncertainty() {
       case Pair::pSigma0:
         EvalProtonSigma(ikstar);
         break;
+      case Pair::pXi:
+        EvalProtonXi(ikstar);
+        break;
+      default:
+        std::cout << "Non implemented Particle mode \n";
+        break;
     }
   }
 
@@ -156,21 +203,21 @@ void DreamSystematics::ComputeUncertainty() {
 void DreamSystematics::EvalProtonProton(const int kstar) {
   std::vector<float> addSyst;
 
-  // pT
+// pT
   addSyst.push_back(
       (fHistAbsErr[0]->GetBinContent(kstar)
           + fHistAbsErr[1]->GetBinContent(kstar)) / 2.);
-  // Eta
+// Eta
   addSyst.push_back(
       (fHistAbsErr[2]->GetBinContent(kstar)
           + fHistAbsErr[3]->GetBinContent(kstar)) / 2.);
-  // nSigma
+// nSigma
   addSyst.push_back(
       (fHistAbsErr[4]->GetBinContent(kstar)
           + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
-  // Filter Bit 96
+// Filter Bit 96
   addSyst.push_back(fHistAbsErr[6]->GetBinContent(kstar));
-  // TPC Cls
+// TPC Cls
   addSyst.push_back(
       (fHistAbsErr[7]->GetBinContent(kstar)
           + fHistAbsErr[8]->GetBinContent(kstar)) / 2.);
@@ -188,6 +235,85 @@ void DreamSystematics::EvalProtonProton(const int kstar) {
 
 void DreamSystematics::EvalProtonSigma(const int kstar) {
 
+}
+
+void DreamSystematics::EvalProtonXi(const int kstar) {
+  std::vector<float> addSyst;
+  //pT
+  addSyst.push_back(
+      (fHistAbsErr[0]->GetBinContent(kstar)
+          + fHistAbsErr[1]->GetBinContent(kstar)) / 2.);
+  // Eta
+  addSyst.push_back(
+      (fHistAbsErr[2]->GetBinContent(kstar)
+          + fHistAbsErr[3]->GetBinContent(kstar)) / 2.);
+  // nSigma
+  addSyst.push_back(
+      (fHistAbsErr[4]->GetBinContent(kstar)
+          + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
+
+  // Filter Bit 96
+  addSyst.push_back(fHistAbsErr[6]->GetBinContent(kstar));
+  // TPC Cls
+  addSyst.push_back(
+      (fHistAbsErr[7]->GetBinContent(kstar)
+          + fHistAbsErr[8]->GetBinContent(kstar)) / 2.);
+  //Daughter DCA to Casc Vtx
+  addSyst.push_back(
+      (fHistAbsErr[9]->GetBinContent(kstar)
+          + fHistAbsErr[10]->GetBinContent(kstar)) / 2.);
+  //Bach DCA to PV
+  addSyst.push_back(
+        (fHistAbsErr[11]->GetBinContent(kstar)
+            + fHistAbsErr[12]->GetBinContent(kstar)) / 2.);
+  //Xi CPA
+  addSyst.push_back(
+        (fHistAbsErr[13]->GetBinContent(kstar)
+            + fHistAbsErr[14]->GetBinContent(kstar)) / 2.);
+  //Xi Transverse Radius
+  addSyst.push_back(
+        (fHistAbsErr[15]->GetBinContent(kstar)
+            + fHistAbsErr[16]->GetBinContent(kstar)) / 2.);
+  //Daugh DCA to V0 Vtx
+  addSyst.push_back(
+          (fHistAbsErr[17]->GetBinContent(kstar)
+              + fHistAbsErr[18]->GetBinContent(kstar)) / 2.);
+  //V0 CPA
+  addSyst.push_back(
+          (fHistAbsErr[19]->GetBinContent(kstar)
+              + fHistAbsErr[20]->GetBinContent(kstar)) / 2.);
+  //V0 Transverse Radius
+  addSyst.push_back(
+            (fHistAbsErr[21]->GetBinContent(kstar)
+                + fHistAbsErr[22]->GetBinContent(kstar)) / 2.);
+  //V0 DCA to PV
+  addSyst.push_back(
+            (fHistAbsErr[23]->GetBinContent(kstar)
+                + fHistAbsErr[24]->GetBinContent(kstar)) / 2.);
+  //Daugh DCA to PV
+  addSyst.push_back(
+            (fHistAbsErr[25]->GetBinContent(kstar)
+                + fHistAbsErr[26]->GetBinContent(kstar)) / 2.);
+  //Xi Tracks Eta
+  addSyst.push_back(
+            (fHistAbsErr[27]->GetBinContent(kstar)
+                + fHistAbsErr[28]->GetBinContent(kstar)) / 2.);
+  //Xi Tracks PID
+  addSyst.push_back(
+             (fHistAbsErr[29]->GetBinContent(kstar)
+                 + fHistAbsErr[30]->GetBinContent(kstar)) / 2.);
+  // Xi Pt
+  addSyst.push_back(fHistAbsErr[31]->GetBinContent(kstar));
+
+  double sysErrTotal = 0.;
+  for (size_t iAdd = 0; iAdd < addSyst.size(); ++iAdd) {
+    sysErrTotal += (addSyst[iAdd] * addSyst[iAdd]);
+  }
+  sysErrTotal = std::sqrt(sysErrTotal);
+
+  fHistSystErrAbs->SetBinContent(kstar, sysErrTotal);
+  fHistSystErrRel->SetBinContent(
+      kstar, sysErrTotal / fHistDefault->GetBinContent(kstar));
 }
 
 void DreamSystematics::WriteOutput() {
@@ -223,6 +349,12 @@ void DreamSystematics::WriteOutput() {
   for (auto &it : fHistBarlow) {
     it->Write(Form("histBarlow_%i", iVar++));
   }
+  file->mkdir("nPairs");
+  file->cd("nPairs");
+  if (fHistPairsAbsDiff)
+    fHistPairsAbsDiff->Write();
+  if (fHistPairsRelDiff)
+    fHistPairsRelDiff->Write();
 
   file->cd();
   fHistSystErrAbs->Write("SystErrAbs");
