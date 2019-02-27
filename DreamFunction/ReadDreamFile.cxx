@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iostream>
 #include "stdlib.h"
+#include "ForgivingReader.h"
 
 ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
     : fNPart1(nPart1),
@@ -27,7 +28,8 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fMEdEtadPhimT(nullptr),
       fMEdEtadPhi(nullptr),
       fMEdEtadPhiAtRad(nullptr),
-      fMEdEtadPhiAtRadSmallkStar(nullptr) {
+      fMEdEtadPhiAtRadSmallkStar(nullptr),
+      fnCandidates(nullptr) {
   TH1::AddDirectory(kFALSE);
   TH2::AddDirectory(kFALSE);
 }
@@ -496,4 +498,12 @@ DreamdEtadPhi* ReadDreamFile::GetdEtadPhiAtRadDistribution(int iPart1,
           fMEdEtadPhiAtRadSmallkStar[iAPart1][iAPart2][iRad][iMix1] :
           fMEdEtadPhiAtRad[iAPart1][iAPart2][iRad][iMix2]);
   return outDist;
+}
+
+void ReadDreamFile::GetNumberOfCandidates(const char* AnalysisFile,
+                                          const char* prefix,
+                                          const char* addon) {
+  fnCandidates = new int[fNPart1];
+  ForgivingReader* readme = new ForgivingReader(AnalysisFile, prefix, addon);
+
 }
