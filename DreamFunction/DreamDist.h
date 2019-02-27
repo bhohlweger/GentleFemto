@@ -16,28 +16,28 @@ class DreamDist {
   DreamDist(DreamDist* pair, const char* name);
   virtual ~DreamDist();
   void SetSEDist(TH1F* SE, const char* name) {
-    fSE = (TH1F*) SE->Clone(Form("%s%s", SE->GetName(), name));
+    if (SE) fSE = (TH1F*) SE->Clone(Form("%s%s", SE->GetName(), name));
   }
   TH1F* GetSEDist() {
     return fSE;
   }
   ;
   void SetSEMultDist(TH2F* SEMult, const char* name) {
-    fSEMult = (TH2F*) SEMult->Clone(Form("%s%s", SEMult->GetName(), name));
+    if (SEMult) fSEMult = (TH2F*) SEMult->Clone(Form("%s%s", SEMult->GetName(), name));
   }
   TH2F* GetSEMultDist() {
     return fSEMult;
   }
   ;
   void SetMEDist(TH1F* ME, const char* name) {
-    fME = (TH1F*) ME->Clone(Form("%s%s", ME->GetName(), name));
+    if (ME) fME = (TH1F*) ME->Clone(Form("%s%s", ME->GetName(), name));
   }
   TH1F* GetMEDist() {
     return fME;
   }
   ;
   void SetMEMultDist(TH2F* MEMult, const char* name) {
-    fMEMult = (TH2F*) MEMult->Clone(Form("%s%s", MEMult->GetName(), name));
+    if (MEMult) fMEMult = (TH2F*) MEMult->Clone(Form("%s%s", MEMult->GetName(), name));
   }
   TH2F* GetMEMultDist() {
     return fMEMult;
