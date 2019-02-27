@@ -54,7 +54,6 @@ class CATSInput {
                         DreamDist* ApApDist, DreamDist* ppFake = nullptr,
                         DreamDist* ApApFake = nullptr);
   TH1F* GetCF(TString pair, TString hist);
-  TH1F* FindHistogram(std::vector<TH1F*> histo, TString name);
   void AddSystematics(TString SysFile, TH1F* hist);
   void SetNormalization(float normleft, float normright) {
     fnormalizationLeft = normleft;

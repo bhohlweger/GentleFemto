@@ -23,7 +23,7 @@ class DreamCF {
   void GetCorrelations(const char* pairName = "");
   void LoopCorrelations(std::vector<DreamDist*> PairOne,
                         std::vector<DreamDist*> PairTwo, const char* name);
-  void LoopCorrelations(std::vector<DreamDist*> Pair,const char* name);
+  void LoopCorrelations(std::vector<DreamDist*> Pair, const char* name);
   void WriteOutput(const char* name);
   TH1F* AddCF(TH1F* CF1, TH1F* CF2, const char* name);
   static TH1F* ConvertToOtherUnit(TH1F* HistCF, int Scale, const char* name);
@@ -31,6 +31,14 @@ class DreamCF {
     return fCF;
   }
   ;
+  unsigned int GetFemtoPairs(float kMin, float kMax) {
+    return
+        (fPairOne && fPairTwo) ?
+            (fPairOne->GetFemtoPairs(kMin, kMax)
+                + fPairTwo->GetFemtoPairs(kMin, kMax)) :
+            0;
+  }
+  TH1F* FindCorrelationFunction(TString name);
  private:
   std::vector<TH1F*> fCF;
   DreamPair* fPairOne;
