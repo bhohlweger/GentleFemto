@@ -42,6 +42,26 @@ DreamDist::~DreamDist() {
     delete fCF;
 }
 
+unsigned int DreamDist::GetFemtoPairs(float kMin, float kMax) {
+  unsigned int iPairs = 0;
+  if (fSE) {
+    if (fSE->GetXaxis()->GetXmin() <= kMin
+        && kMax <= fSE->GetXaxis()->GetXmax()) {
+      iPairs = fSE->Integral(fSE->FindBin(kMin), fSE->FindBin(kMax));
+    } else {
+      std::cout
+          << "DreamDist::GetFemtoPairs: Histogram and kMin/Max range do not add up: \n"
+          << "Histogram range (xmin - xmax): " << fSE->GetXaxis()->GetXmin()
+          << " - " << fSE->GetXaxis()->GetXmax() << '\n'
+          << "Integration range (kMin - kMax): " << kMin << " - " << kMax
+          << std::endl;
+    }
+  } else {
+    std::cout << "DreamDist::GetFemtoPairs SE does not exist \n";
+  }
+  return iPairs;
+}
+
 void DreamDist::Calculate_CF(float normleft, float normright) {
   if (!fCF) {
     TString CFname = fSE->GetName();

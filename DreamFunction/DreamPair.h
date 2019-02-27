@@ -23,6 +23,9 @@ class DreamPair {
     return fPair;
   }
   ;
+  unsigned int GetFemtoPairs(float kMin, float kMax) {
+    return fPair?fPair->GetFemtoPairs(kMin,kMax):0;
+  }
   DreamDist* GetPairShiftedEmpty(unsigned int iIter) {
     return iIter < fPairShifted.size() ? fPairShifted.at(iIter) : nullptr;
   }
