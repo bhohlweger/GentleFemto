@@ -10,7 +10,7 @@
 #include "TString.h"
 
 #include "DreamPlot.h"
-
+#include "DreamCF.h"
 /// \class DreamSystematics
 /// This class takes care of computing the systematic uncertainties for different particle pairs
 class DreamSystematics {
@@ -27,7 +27,14 @@ class DreamSystematics {
   void SetUpperFitRange(float fitRange) {
     fSystematicFitRangeUp = fitRange;
   }
-
+  void SetDefaultPair(DreamCF* CFDef, TString CFName) {
+    SetDefaultHist(CFDef->FindCorrelationFunction(CFName));
+    fnPairsDefault = CFDef->GetFemtoPairs(fFemtoRangeLow, fFemtoRangeUp);
+  }
+  void SetVarPair(DreamCF* CFVar, TString CFName) {
+    SetVarHist(CFVar->FindCorrelationFunction(CFName));
+    fnPairsVar.push_back(CFVar->GetFemtoPairs(fFemtoRangeLow, fFemtoRangeUp));
+  }
   void SetDefaultHist(TH1F* histDef) {
     fHistDefault = histDef;
   }
@@ -64,15 +71,19 @@ class DreamSystematics {
  private:
   float fSystematicFitRangeLow;
   float fSystematicFitRangeUp;
+  float fFemtoRangeLow;
+  float fFemtoRangeUp;
   Pair fParticlePairMode;
   TH1F *fHistDefault;
   TH1F *fHistSystErrAbs;
   TH1F *fHistSystErrRel;
+  unsigned int fnPairsDefault;
   TF1* fRatio;
   std::vector<TH1F*> fHistVar;
   std::vector<TH1F*> fHistAbsErr;
   std::vector<TH1F*> fHistErrBudget;
   std::vector<TH1F*> fHistBarlow;
+  std::vector<unsigned int> fnPairsVar;
 
   const std::vector<TString> ppVariations = { { "Proton #it{p}_{T} down",
       "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",

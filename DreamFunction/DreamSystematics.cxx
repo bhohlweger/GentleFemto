@@ -9,29 +9,37 @@
 DreamSystematics::DreamSystematics()
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
+      fFemtoRangeLow(0.f),
+      fFemtoRangeUp(200.f),
       fParticlePairMode(DreamSystematics::pp),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
       fHistSystErrRel(nullptr),
+      fnPairsDefault(0),
       fRatio(nullptr),
       fHistVar(),
       fHistAbsErr(),
       fHistErrBudget(),
-      fHistBarlow() {
+      fHistBarlow(),
+      fnPairsVar() {
 }
 
 DreamSystematics::DreamSystematics(Pair pair)
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
+      fFemtoRangeLow(0.f),
+      fFemtoRangeUp(200.f),
       fParticlePairMode(pair),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
       fHistSystErrRel(nullptr),
+      fnPairsDefault(0),
       fRatio(nullptr),
       fHistVar(),
       fHistAbsErr(),
       fHistErrBudget(),
-      fHistBarlow() {
+      fHistBarlow(),
+      fnPairsVar() {
 }
 
 TH1F* DreamSystematics::GetAbsError(TH1F* histDefault, TH1F* histVar) const {
