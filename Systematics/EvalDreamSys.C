@@ -10,34 +10,34 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
 
   DreamPlot::SetStyle();
   auto CATSinput = new CATSInput();
-
+  CATSinput->SetNormalization(0.240,0.340);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   DreamFile->SetAnalysisFile(filename.Data(), prefix);
   DreamDist* pp = DreamFile->GetPairDistributions(0, 0, "");
   DreamDist* ApAp = DreamFile->GetPairDistributions(1, 1, "");
-  DreamCF* CFDef = CATSinput->ObtainCFSyst(10, "ppDef",pp, ApAp);
-  auto dataHistProton = CFDef->
+  DreamCF* CFDef = CATSinput->ObtainCFSyst(10, "ppDef", pp, ApAp);
+  auto dataHistProton = CATSinput->FindHistogram(
+      CFDef->GetCorrelationFunctions(), "hCk_RebinnedppDefMeV_0");
   DreamSystematics protonproton(DreamSystematics::pp);
   protonproton.SetDefaultHist(dataHistProton);
   const int protonVarStart = 1;
   for (int i = protonVarStart;
       i < protonVarStart + protonproton.GetNumberOfVars(); ++i) {
-    auto CATSinputVar = new CATSInput();
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
     DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
-    CATSinputVar->SetNormalization(240, 340);
-    DreamCF* CFDef = CATSinputVar->ObtainCFSyst(10, "pp",
-                               DreamFile->GetPairDistributions(0, 0, ""),
-                               DreamFile->GetPairDistributions(1, 1, ""),
-                               pp, ApAp);
+    TString VarName = TString::Format("ppVar%u", i);
+    DreamCF* CFVar = CATSinput->ObtainCFSyst(
+        10, VarName.Data(), DreamVarFile->GetPairDistributions(0, 0, ""),
+        DreamVarFile->GetPairDistributions(1, 1, ""), pp, ApAp);
     protonproton.SetVarHist(
-        CATSinputVar->GetCF("pp", dataHistProtonName.Data()));
-    delete CATSinputVar;
+        CATSinput->FindHistogram(CFVar->GetCorrelationFunctions(),
+                                 TString::Format("Rebinned%sMeV", VarName.Data())));
+//    delete DreamVarFile;
+//    delete CFVar;
   }
   protonproton.EvalSystematics();
   protonproton.WriteOutput();
   protonproton.DrawAllCF();
-
 }
 
 int main(int argc, char* argv[]) {
