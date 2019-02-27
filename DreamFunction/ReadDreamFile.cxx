@@ -119,22 +119,23 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       if (!hist1D) {
         std::cout << "SE Histogramm missing from " << FolderName.Data()
                   << std::endl;
+      } else {
+        fSE[iPart1][iPart2] = (TH1F*) hist1D->Clone(
+            Form("%s_clone", hist1D->GetName()));
+        fSE[iPart1][iPart2]->Sumw2();
       }
-      fSE[iPart1][iPart2] = (TH1F*) hist1D->Clone(
-          Form("%s_clone", hist1D->GetName()));
-      fSE[iPart1][iPart2]->Sumw2();
-
       fSEMult[iPart1][iPart2] = nullptr;
       auto hist2D = (TH2F*) PartList->FindObject(
           Form("SEMultDist_%s", FolderName.Data()));
       if (!hist2D) {
         std::cout << "SEMult Histogramm missing from " << FolderName.Data()
                   << std::endl;
-      }
-      fSEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
-          Form("%s_clone", hist2D->GetName()));
+      } else {
+        fSEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
+            Form("%s_clone", hist2D->GetName()));
 
-      fSEMult[iPart1][iPart2]->Sumw2();
+        fSEMult[iPart1][iPart2]->Sumw2();
+      }
       //instead start the fixed shifted binning at 8!
 //      if (iPart1 == 1 && iPart2 == 5) {
 //        fSE[iPart1][iPart2]->SetBinContent(1, 0);
@@ -148,23 +149,24 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       if (!hist1D) {
         std::cout << "ME Histogramm missing from " << FolderName.Data()
                   << std::endl;
+      } else {
+        fME[iPart1][iPart2] = (TH1F*) hist1D->Clone(
+            Form("%s_clone", hist1D->GetName()));
+
+        fME[iPart1][iPart2]->Sumw2();
       }
-      fME[iPart1][iPart2] = (TH1F*) hist1D->Clone(
-          Form("%s_clone", hist1D->GetName()));
-
-      fME[iPart1][iPart2]->Sumw2();
-
       fMEMult[iPart1][iPart2] = nullptr;
       hist2D = (TH2F*) PartList->FindObject(
           Form("MEMultDist_%s", FolderName.Data()));
       if (!hist2D) {
         std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
                   << std::endl;
-      }
-      fMEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
-          Form("%s_clone", hist2D->GetName()));
+      } else {
+        fMEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
+            Form("%s_clone", hist2D->GetName()));
 
-      fMEMult[iPart1][iPart2]->Sumw2();
+        fMEMult[iPart1][iPart2]->Sumw2();
+      }
     }
   }
 }
@@ -467,10 +469,11 @@ DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistribution(int iPart1, int iPart2,
 }
 
 DreamdEtadPhi* ReadDreamFile::GetdEtadPhiAtRadDistribution(int iPart1,
-                                                           int iPart2,int iMix1,
+                                                           int iPart2,
+                                                           int iMix1,
                                                            int iAPart1,
-                                                           int iAPart2,int iMix2,
-                                                           int iRad,
+                                                           int iAPart2,
+                                                           int iMix2, int iRad,
                                                            bool smallkStar) {
   DreamdEtadPhi* outDist = new DreamdEtadPhi();
   outDist->SetSEDistribution(
