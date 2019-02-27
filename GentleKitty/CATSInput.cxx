@@ -263,17 +263,18 @@ void CATSInput::ObtainCFs(int rebin, float normleft, float normright) {
       pXi->Rebin(pXi->GetPairFixShifted(0), rebin);
       ApAXi->Rebin(ApAXi->GetPairFixShifted(0), rebin);
 
-//      pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
-//      ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
-//
-//      pL->ReweightMixedEvent(pL->GetPairRebinned(0), 0.2, 0.9);
-//      ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(0), 0.2, 0.9);
-//
-//      LL->ReweightMixedEvent(LL->GetPairRebinned(0), 0.2, 0.9);
-//      ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(0), 0.2, 0.9);
-//
-//      pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
-//      ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
+      pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+      ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+
+      pL->ReweightMixedEvent(pL->GetPairRebinned(0), 0.2, 0.9);
+      ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(0), 0.2, 0.9);
+
+      LL->ReweightMixedEvent(LL->GetPairRebinned(0), 0.2, 0.9);
+      ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(0), 0.2, 0.9);
+
+      pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
+      ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
+
       fCF_pp->SetPairs(pp, ApAp);
       fCF_pp->GetCorrelations("pp");
 
