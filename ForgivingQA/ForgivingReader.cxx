@@ -33,6 +33,7 @@ TList* ForgivingReader::GetListInDir(const char* pathToList) {
   fInput->GetObject(pathToList, outList);
   if (!outList) {
     std::cerr << "Error GetListInDir: Does not exist \n";
+    std::cout << pathToList << std::endl;
   }
   return outList;
 }
