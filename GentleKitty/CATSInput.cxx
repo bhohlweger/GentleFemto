@@ -13,7 +13,9 @@
 #include "TF1.h"
 
 CATSInput::CATSInput()
-    : fNameBasedir(),
+    : fFixBinningExternal(false),
+      fFixkMin(0.),
+      fNameBasedir(),
       fNameMomResFile(),
       fNameSigmaFile(),
       fFraction_Res(0),
@@ -326,11 +328,17 @@ DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
   pp->ShiftForEmpty(pp->GetPair());
   ApAp->ShiftForEmpty(ApAp->GetPair());
 
-  pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
-               ApAp->GetFirstBin());
-  ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
-                 pp->GetFirstBin());
-
+  if (fFixBinningExternal) {
+    pp->FixShift(pp->GetPair(), ApAp->GetPair(),
+                 fFixkMin, true);
+    ApAp->FixShift(ApAp->GetPair(), pp->GetPair(),
+                   fFixkMin, true);
+  } else {
+    pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
+                 ApAp->GetFirstBin());
+    ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
+                   pp->GetFirstBin());
+  }
   pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
   ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
 

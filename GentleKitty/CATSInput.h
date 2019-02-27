@@ -59,12 +59,18 @@ class CATSInput {
     fnormalizationLeft = normleft;
     fnormalizationRight = normright;
   }
+  void SetFixedkStarMinBin(bool doIt, float kMin = 0.) {
+    fFixBinningExternal = doIt;
+    fFixkMin = kMin;
+  }
  protected:
   ReadDreamFile* fDreamFile;
   float fnormalizationLeft;
   float fnormalizationRight;
   DreamCF* fCF_pp;
  private:
+  bool fFixBinningExternal;
+  float fFixkMin;
   TString fNameBasedir;
   TString fNameMomResFile;
   TString fNameSigmaFile;
