@@ -64,7 +64,7 @@ class DreamSystematics {
 
   void EvalSystematics();
   void EvalDifferenceInPairs();
-  void PairsProton();
+  void CountPairs();
   void ComputeUncertainty();
   void EvalProtonProton(const int kstar);
   void EvalProtonSigma(const int kstar);

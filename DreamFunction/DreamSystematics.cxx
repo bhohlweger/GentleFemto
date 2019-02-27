@@ -139,20 +139,18 @@ void DreamSystematics::EvalDifferenceInPairs() {
         fnPairsDefault > 0 ?
             std::abs((float) (1 - (it / (float) fnPairsDefault))) : 0);
   }
-  switch (fParticlePairMode) {
-    case Pair::pp:
-      PairsProton();
-      break;
-    default:
-      break;
-  }
+  CountPairs();
 }
 
-void DreamSystematics::PairsProton() {
-  fHistPairsAbsDiff = new TH1F("AbsDiffPairpp", "AbsDiffPairpp",
-                               fnPairsAbsDiff.size(), 0, fnPairsAbsDiff.size());
-  fHistPairsRelDiff = new TH1F("RelDiffPairpp", "RelDiffPairpp",
-                               fnPairsRelDiff.size(), 0, fnPairsRelDiff.size());
+void DreamSystematics::CountPairs() {
+  fHistPairsAbsDiff = new TH1F(
+      TString::Format("AbsDiffPair%s", GetPairName().Data()),
+      TString::Format("AbsDiffPair%s", GetPairName().Data()),
+      fnPairsAbsDiff.size(), 0, fnPairsAbsDiff.size());
+  fHistPairsRelDiff = new TH1F(
+      TString::Format("RelDiffPair%s", GetPairName().Data()),
+      TString::Format("RelDiffPair%s", GetPairName().Data()),
+      fnPairsRelDiff.size(), 0, fnPairsRelDiff.size());
   for (unsigned int iBin = 1; iBin < fnPairsAbsDiff.size(); ++iBin) {
     fHistPairsAbsDiff->GetXaxis()->SetBinLabel(iBin,
                                                GetVariation(iBin - 1).Data());
@@ -264,44 +262,44 @@ void DreamSystematics::EvalProtonXi(const int kstar) {
           + fHistAbsErr[10]->GetBinContent(kstar)) / 2.);
   //Bach DCA to PV
   addSyst.push_back(
-        (fHistAbsErr[11]->GetBinContent(kstar)
-            + fHistAbsErr[12]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[11]->GetBinContent(kstar)
+          + fHistAbsErr[12]->GetBinContent(kstar)) / 2.);
   //Xi CPA
   addSyst.push_back(
-        (fHistAbsErr[13]->GetBinContent(kstar)
-            + fHistAbsErr[14]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[13]->GetBinContent(kstar)
+          + fHistAbsErr[14]->GetBinContent(kstar)) / 2.);
   //Xi Transverse Radius
   addSyst.push_back(
-        (fHistAbsErr[15]->GetBinContent(kstar)
-            + fHistAbsErr[16]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[15]->GetBinContent(kstar)
+          + fHistAbsErr[16]->GetBinContent(kstar)) / 2.);
   //Daugh DCA to V0 Vtx
   addSyst.push_back(
-          (fHistAbsErr[17]->GetBinContent(kstar)
-              + fHistAbsErr[18]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[17]->GetBinContent(kstar)
+          + fHistAbsErr[18]->GetBinContent(kstar)) / 2.);
   //V0 CPA
   addSyst.push_back(
-          (fHistAbsErr[19]->GetBinContent(kstar)
-              + fHistAbsErr[20]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[19]->GetBinContent(kstar)
+          + fHistAbsErr[20]->GetBinContent(kstar)) / 2.);
   //V0 Transverse Radius
   addSyst.push_back(
-            (fHistAbsErr[21]->GetBinContent(kstar)
-                + fHistAbsErr[22]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[21]->GetBinContent(kstar)
+          + fHistAbsErr[22]->GetBinContent(kstar)) / 2.);
   //V0 DCA to PV
   addSyst.push_back(
-            (fHistAbsErr[23]->GetBinContent(kstar)
-                + fHistAbsErr[24]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[23]->GetBinContent(kstar)
+          + fHistAbsErr[24]->GetBinContent(kstar)) / 2.);
   //Daugh DCA to PV
   addSyst.push_back(
-            (fHistAbsErr[25]->GetBinContent(kstar)
-                + fHistAbsErr[26]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[25]->GetBinContent(kstar)
+          + fHistAbsErr[26]->GetBinContent(kstar)) / 2.);
   //Xi Tracks Eta
   addSyst.push_back(
-            (fHistAbsErr[27]->GetBinContent(kstar)
-                + fHistAbsErr[28]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[27]->GetBinContent(kstar)
+          + fHistAbsErr[28]->GetBinContent(kstar)) / 2.);
   //Xi Tracks PID
   addSyst.push_back(
-             (fHistAbsErr[29]->GetBinContent(kstar)
-                 + fHistAbsErr[30]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[29]->GetBinContent(kstar)
+          + fHistAbsErr[30]->GetBinContent(kstar)) / 2.);
   // Xi Pt
   addSyst.push_back(fHistAbsErr[31]->GetBinContent(kstar));
 
