@@ -293,6 +293,58 @@ void CATSInput::ObtainCFs(int rebin, float normleft, float normright) {
   }
 }
 
+DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
+                                 DreamDist* ApApDist, DreamDist* ppFake,
+                                 DreamDist* ApApFake) {
+  //normleft & right in MeV!
+  DreamCF* outCF = nullptr;
+  if (!fDreamFile) {
+    std::cout << "No File was set via ReadCorrelationFile\n";
+  } else {
+    outCF = new DreamCF();
+    DreamPair* pp = new DreamPair("Part", fnormalizationLeft,
+                                  fnormalizationRight);
+    DreamPair* ApAp = new DreamPair("AntiPart", fnormalizationLeft,
+                                    fnormalizationRight);
+
+    std::cout << "Set pair\n";
+    pp->SetPair(ppDist);
+    ApAp->SetPair(ApApDist);
+
+    if (ppFake) {
+      pp->GetPair()->SetSEMultDist(ppFake->GetSEMultDist(), "");
+      pp->GetPair()->SetMEMultDist(ppFake->GetMEMultDist(), "");
+    }
+
+    if (ApApFake) {
+      ApAp->GetPair()->SetSEMultDist(ApApFake->GetSEMultDist(), "");
+      ApAp->GetPair()->SetMEMultDist(ApApFake->GetMEMultDist(), "");
+    }
+
+    pp->ShiftForEmpty(pp->GetPair());
+    ApAp->ShiftForEmpty(ApAp->GetPair());
+
+    pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
+                 ApAp->GetFirstBin());
+    ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
+                   pp->GetFirstBin());
+
+    pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+    ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+
+    if (rebin != 1) {
+      pp->Rebin(pp->GetPairFixShifted(0), rebin);
+      ApAp->Rebin(ApAp->GetPairFixShifted(0), rebin);
+      pp->ReweightMixedEvent(pp->GetPairRebinned(0), 0.2, 0.9);
+      ApAp->ReweightMixedEvent(ApAp->GetPairRebinned(0), 0.2, 0.9);
+    }
+
+    outCF->SetPairs(pp, ApAp);
+    outCF->GetCorrelations(name);
+  }
+  return outCF;
+}
+
 TH1F* CATSInput::GetCF(TString pair, TString hist) {
   TH1F* output = nullptr;
   if (pair == TString("pp")) {
@@ -338,7 +390,7 @@ TH1F* CATSInput::GetCF(TString pair, TString hist) {
 }
 
 void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {
-  //!CHANGE PATH HERE
+//!CHANGE PATH HERE
   TString SystErrFileName = TString::Format("%s%s", fNameBasedir.Data(),
                                             SysFile.Data());
   TFile* SystErrFile =

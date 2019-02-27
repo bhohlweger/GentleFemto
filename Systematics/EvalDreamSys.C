@@ -5,26 +5,33 @@
 #include <iostream>
 
 void EvalDreamSystematics(TString InputDir, TString prefix) {
+  TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   const int rebin = 5;
 
   DreamPlot::SetStyle();
   auto CATSinput = new CATSInput();
-  CATSinput->ReadCorrelationFile(InputDir.Data(), prefix.Data());
-  CATSinput->ObtainCFs(10, 240, 340);
-  TString dataHistProtonName = "hCk_RebinnedppMeV_0";
-  auto dataHistProton = CATSinput->GetCF("pp", dataHistProtonName.Data());
 
+  ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
+  DreamFile->SetAnalysisFile(filename.Data(), prefix);
+  DreamDist* pp = DreamFile->GetPairDistributions(0, 0, "");
+  DreamDist* ApAp = DreamFile->GetPairDistributions(1, 1, "");
+  DreamCF* CFDef = CATSinput->ObtainCFSyst(10, "ppDef",pp, ApAp);
+  auto dataHistProton = CFDef->
   DreamSystematics protonproton(DreamSystematics::pp);
   protonproton.SetDefaultHist(dataHistProton);
   const int protonVarStart = 1;
-  for (int i = protonVarStart; i < protonVarStart + protonproton.GetNumberOfVars();
-      ++i) {
-    auto CATSinputVar = new CATSInput( );
-
-    CATSinputVar->ReadCorrelationFile(InputDir.Data(), prefix.Data(), Form("%u",i));
-
-    CATSinputVar->ObtainCFs(10, 240, 340);
-    protonproton.SetVarHist(CATSinputVar->GetCF("pp", dataHistProtonName.Data()));
+  for (int i = protonVarStart;
+      i < protonVarStart + protonproton.GetNumberOfVars(); ++i) {
+    auto CATSinputVar = new CATSInput();
+    ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
+    DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
+    CATSinputVar->SetNormalization(240, 340);
+    DreamCF* CFDef = CATSinputVar->ObtainCFSyst(10, "pp",
+                               DreamFile->GetPairDistributions(0, 0, ""),
+                               DreamFile->GetPairDistributions(1, 1, ""),
+                               pp, ApAp);
+    protonproton.SetVarHist(
+        CATSinputVar->GetCF("pp", dataHistProtonName.Data()));
     delete CATSinputVar;
   }
   protonproton.EvalSystematics();

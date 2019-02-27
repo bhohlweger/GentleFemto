@@ -47,10 +47,18 @@ class CATSInput {
     return fSigma.size() > iPair ? fSigma[iPair] : nullptr;
   }
   ;
-  void ReadCorrelationFile(const char* path, const char* prefix="MB", const char* suffix="");
+  void ReadCorrelationFile(const char* path, const char* prefix = "MB",
+                           const char* suffix = "");
   void ObtainCFs(int rebin, float normleft, float normright);
+  DreamCF* ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
+                        DreamDist* ApApDist, DreamDist* ppFake = nullptr,
+                        DreamDist* ApApFake = nullptr);
   TH1F* GetCF(TString pair, TString hist);
   void AddSystematics(TString SysFile, TH1F* hist);
+  void SetNormalization(float normleft, float normright) {
+    fnormalizationLeft = normleft;
+    fnormalizationRight = normright;
+  }
  protected:
   ReadDreamFile* fDreamFile;
   float fnormalizationLeft;
