@@ -297,51 +297,48 @@ DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
                                  DreamDist* ApApDist, DreamDist* ppFake,
                                  DreamDist* ApApFake) {
   //normleft & right in MeV!
-  DreamCF* outCF = nullptr;
-  if (!fDreamFile) {
-    std::cout << "No File was set via ReadCorrelationFile\n";
-  } else {
-    outCF = new DreamCF();
-    DreamPair* pp = new DreamPair("Part", fnormalizationLeft,
+  DreamCF* outCF = new DreamCF();
+  DreamPair* pp = new DreamPair("Part", fnormalizationLeft,
+                                fnormalizationRight);
+  DreamPair* ApAp = new DreamPair("AntiPart", fnormalizationLeft,
                                   fnormalizationRight);
-    DreamPair* ApAp = new DreamPair("AntiPart", fnormalizationLeft,
-                                    fnormalizationRight);
 
-    std::cout << "Set pair\n";
-    pp->SetPair(ppDist);
-    ApAp->SetPair(ApApDist);
+  std::cout << "Set pair\n";
+  pp->SetPair(ppDist);
+  ApAp->SetPair(ApApDist);
 
-    if (ppFake) {
-      pp->GetPair()->SetSEMultDist(ppFake->GetSEMultDist(), "");
-      pp->GetPair()->SetMEMultDist(ppFake->GetMEMultDist(), "");
-    }
-
-    if (ApApFake) {
-      ApAp->GetPair()->SetSEMultDist(ApApFake->GetSEMultDist(), "");
-      ApAp->GetPair()->SetMEMultDist(ApApFake->GetMEMultDist(), "");
-    }
-
-    pp->ShiftForEmpty(pp->GetPair());
-    ApAp->ShiftForEmpty(ApAp->GetPair());
-
-    pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
-                 ApAp->GetFirstBin());
-    ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
-                   pp->GetFirstBin());
-
-    pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
-    ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
-
-    if (rebin != 1) {
-      pp->Rebin(pp->GetPairFixShifted(0), rebin);
-      ApAp->Rebin(ApAp->GetPairFixShifted(0), rebin);
-      pp->ReweightMixedEvent(pp->GetPairRebinned(0), 0.2, 0.9);
-      ApAp->ReweightMixedEvent(ApAp->GetPairRebinned(0), 0.2, 0.9);
-    }
-
-    outCF->SetPairs(pp, ApAp);
-    outCF->GetCorrelations(name);
+  if (ppFake) {
+    std::cout << "Faking SE Mult for " << name << std::endl;
+    pp->GetPair()->SetSEMultDist(ppFake->GetSEMultDist(), "");
+    pp->GetPair()->SetMEMultDist(ppFake->GetMEMultDist(), "");
   }
+
+  if (ApApFake) {
+    std::cout << "Faking ME Mult for " << name << std::endl;
+    ApAp->GetPair()->SetSEMultDist(ApApFake->GetSEMultDist(), "");
+    ApAp->GetPair()->SetMEMultDist(ApApFake->GetMEMultDist(), "");
+  }
+
+  pp->ShiftForEmpty(pp->GetPair());
+  ApAp->ShiftForEmpty(ApAp->GetPair());
+
+  pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
+               ApAp->GetFirstBin());
+  ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
+                 pp->GetFirstBin());
+
+  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+
+  if (rebin != 1) {
+    pp->Rebin(pp->GetPairFixShifted(0), rebin);
+    ApAp->Rebin(ApAp->GetPairFixShifted(0), rebin);
+    pp->ReweightMixedEvent(pp->GetPairRebinned(0), 0.2, 0.9);
+    ApAp->ReweightMixedEvent(ApAp->GetPairRebinned(0), 0.2, 0.9);
+  }
+
+  outCF->SetPairs(pp, ApAp);
+  outCF->GetCorrelations(name);
   return outCF;
 }
 
@@ -423,4 +420,23 @@ void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {
   } else {
     std::cout << "Sys File not found " << SystErrFileName.Data() << std::endl;
   }
+}
+
+TH1F* CATSInput::FindHistogram(std::vector<TH1F*> histo, TString name) {
+  TH1F* output = nullptr;
+  for (auto it : histo) {
+    TString itName = it->GetName();
+
+    if (itName.Contains(name.Data())) {
+      output = it;
+    }
+  }
+  if (!output) {
+    std::cout << "Output Histogram not found for " << name.Data() << std::endl;
+    std::cout << "What we off is the following: \n";
+    for (auto it : histo) {
+      std::cout << it->GetName() << std::endl;
+    }
+  }
+  return output;
 }
