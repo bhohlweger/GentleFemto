@@ -13,7 +13,6 @@ include(${ROOT_USE_FILE})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${binFolder}/DreamFunctions)
 include_directories(${CMAKE_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${ROOT_INCLUDE_DIRS})
-include_directories(${PROJECT_SOURCE_DIR}/../ForgivingQA/)
 add_definitions(${ROOT_CXX_FLAGS})
 
 set(SRCS
@@ -26,7 +25,6 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/DreamPlot.cxx
   ${PROJECT_SOURCE_DIR}/DreamSystematics.cxx
   ${PROJECT_SOURCE_DIR}/ReadDreamFile.cxx
-  ${PROJECT_SOURCE_DIR}/../ForgivingQA/ForgivingReader.cxx
   ${PROJECT_SOURCE_DIR}/global.cxx
   )
 
@@ -40,7 +38,6 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/DreamPlot.h
   ${PROJECT_SOURCE_DIR}/DreamSystematics.h
   ${PROJECT_SOURCE_DIR}/ReadDreamFile.h
-  ${PROJECT_SOURCE_DIR}/../ForgivingQA/ForgivingReader.h
   ${PROJECT_SOURCE_DIR}/global.h
   )
 add_library(DreamFunctions STATIC ${SRCS})
