@@ -11,6 +11,7 @@
 #include "TSystem.h"
 #include "TROOT.h"
 #include "TF1.h"
+
 CATSInput::CATSInput()
     : fNameBasedir(),
       fNameMomResFile(),
@@ -303,7 +304,9 @@ DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
                                 fnormalizationRight);
   DreamPair* ApAp = new DreamPair("AntiPart", fnormalizationLeft,
                                   fnormalizationRight);
-
+  if (fnormalizationLeft == 0 || fnormalizationRight == 0) {
+    std::cout << "Normalization is 0! Bad results incoming! \n";
+  }
   std::cout << "Set pair\n";
   pp->SetPair(ppDist);
   ApAp->SetPair(ApApDist);
@@ -427,7 +430,6 @@ TH1F* CATSInput::FindHistogram(std::vector<TH1F*> histo, TString name) {
   TH1F* output = nullptr;
   for (auto it : histo) {
     TString itName = it->GetName();
-
     if (itName.Contains(name.Data())) {
       output = it;
     }
