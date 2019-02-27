@@ -232,12 +232,14 @@ TH1F* DreamCF::FindCorrelationFunction(TString name) {
   for (auto it : fCF) {
     TString itName = it->GetName();
     if (itName.Contains(name.Data())) {
+      std::cout << "For Histo: " << name << '\t' << "we use the "
+                << itName.Data() << std::endl;
       output = it;
     }
   }
   if (!output) {
     std::cout << "Output Histogram not found for " << name.Data() << std::endl;
-    std::cout << "What we off is the following: \n";
+    std::cout << "What we offer is the following: \n";
     for (auto it : fCF) {
       std::cout << it->GetName() << std::endl;
     }
