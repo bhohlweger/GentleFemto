@@ -39,7 +39,7 @@ TH1F* DreamSystematics::GetAbsError(TH1F* histDefault, TH1F* histVar) const {
   histNew->SetTitle(Form("AbsErr %s", histVar->GetTitle()));
   histNew->GetYaxis()->SetTitle("|CF_{default} - CF_{var}|");
 
-  for (int i = 0; i < histVar->GetNbinsX() + 1; ++i) {
+  for (int i = 1; i < histVar->GetNbinsX() + 1; ++i) {
     histNew->SetBinContent(
         i, std::abs(histDefault->GetBinContent(i) - histVar->GetBinContent(i)));
     histNew->SetBinError(
@@ -58,7 +58,7 @@ TH1F* DreamSystematics::GetErrorBudget(TH1F* histDefault, TH1F* histVar) const {
   histNew->GetYaxis()->SetTitle("|1  - CF_{var} / CF_{default}|");
 
   float binContDef, binContVar, binErrDef, binErrVar;
-  for (int i = 0; i < histVar->GetNbinsX() + 1; ++i) {
+  for (int i = 1; i < histVar->GetNbinsX() + 1; ++i) {
     binContDef = histDefault->GetBinContent(i);
     binContVar = histVar->GetBinContent(i);
     binErrDef = histDefault->GetBinError(i);
@@ -83,7 +83,7 @@ TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) const {
   histNew->GetYaxis()->SetTitle("n#sigma");
 
   float binContDef, binContVar, binErrDef, binErrVar, statErrVariation;
-  for (int i = 0; i < histVar->GetNbinsX() + 1; ++i) {
+  for (int i = 1; i < histVar->GetNbinsX() + 1; ++i) {
     binContDef = histDefault->GetBinContent(i);
     binErrDef = histDefault->GetBinError(i);
     binContVar = histVar->GetBinContent(i);
