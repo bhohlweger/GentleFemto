@@ -52,9 +52,15 @@ void DreamDist::Calculate_CF(float normleft, float normright) {
                                       fSE->FindBin(normright));
     double IntegralME = fME->Integral(fME->FindBin(normleft),
                                       fME->FindBin(normright));
-    norm_relK = IntegralSE / IntegralME;
+    if (IntegralME != 0) {
+      norm_relK = IntegralSE / IntegralME;
+      fCF->Divide(fSE, fME, 1, norm_relK);
+    } else {
+      std::cout << "DreamDist::Calculate_CF division by 0 \n";
+      std::cout << "Normalization left: " << normleft << " and right: "
+                << normright << std::endl;
+    }
 
-    fCF->Divide(fSE, fME, 1, norm_relK);
   } else {
     std::cout << fCF->GetName() << " was already set, skipping\n";
   }
