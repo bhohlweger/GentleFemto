@@ -22,7 +22,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
   DreamDist* ApAp = DreamFile->GetPairDistributions(1, 1, "");
   DreamCF* CFppDef = CATSinput->ObtainCFSyst(10, "ppDef", pp, ApAp);
   DreamSystematics protonproton(DreamSystematics::pp);
-  protonproton.SetDefaultPair(CFppDef, "hCk_RebinnedppDefMeV_0");
+  protonproton.SetDefaultHist(CFppDef, "hCk_RebinnedppDefMeV_0");
 
   const int protonVarStart = 1;
   for (int i = protonVarStart;
@@ -33,7 +33,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
     DreamCF* CFppVar = CATSinput->ObtainCFSyst(
         10, VarName.Data(), DreamVarFile->GetPairDistributions(0, 0, ""),
         DreamVarFile->GetPairDistributions(1, 1, ""), pp, ApAp);
-    protonproton.SetVarPair(CFppVar,
+    protonproton.SetVarHist(CFppVar,
                             TString::Format("Rebinned%sMeV", VarName.Data()));
   }
   protonproton.EvalSystematics();
