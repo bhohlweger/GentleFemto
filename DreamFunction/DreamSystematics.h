@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "TH1F.h"
+#include "TFile.h"
 #include "TString.h"
 
 #include "DreamPlot.h"
@@ -28,6 +29,7 @@ class DreamSystematics {
   void SetUpperFitRange(float fitRange) {
     fSystematicFitRangeUp = fitRange;
   }
+
   void SetDefaultHist(TH1F* histDef) {
     fHistDefault = histDef;
   }
@@ -86,8 +88,10 @@ class DreamSystematics {
   void EvalProtonSigma(const int kstar);
   void EvalProtonXi(const int kstar);
   void WriteOutput();
-  void DrawAllCF();
+  void WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
+                   const TString name);
   void FixStyle(TH1F* histCF) const;
+
  private:
   float fSystematicFitRangeLow;
   float fSystematicFitRangeUp;
@@ -97,6 +101,7 @@ class DreamSystematics {
   TH1F *fHistDefault;
   TH1F *fHistSystErrAbs;
   TH1F *fHistSystErrRel;
+  TGraphErrors* fGrFinalError;
   TF1* fRatio;
   std::vector<TH1F*> fHistVar;
   std::vector<TH1F*> fHistAbsErr;
@@ -142,10 +147,10 @@ class DreamSystematics {
       "Lambda Daug TPC ncls down", "Lambda Daug #eta down", "Lambda mass",
       "Photon #eta down", "Photon #it{p}_{T} down", "Photon #it{p}_{T} up",
       "Photon Daug TPC ncls finable up", "Photon Daug n#sigma down",
-      "Photon Daug n#sigma up", "Photon q_{T} 1-D up",
-      "Photon q_{T} 2-D down", "Photon #Psi_{Pair} 1-D up",
-      "Photon #Psi_{Pair} 2-D down", "Photon CPA down", "Photon CPA up",
-      "Photon DCA_R up", "Photon DCA_Z up" } };
+      "Photon Daug n#sigma up", "Photon q_{T} 1-D up", "Photon q_{T} 2-D down",
+      "Photon #Psi_{Pair} 1-D up", "Photon #Psi_{Pair} 2-D down",
+      "Photon CPA down", "Photon CPA up", "Photon DCA_{R} up",
+      "Photon DCA_{Z} up" } };
 
   const std::vector<TString> pXiVariations = { { "Proton #it{p}_{T} down",
       "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
@@ -166,23 +171,6 @@ class DreamSystematics {
       pSigma0Variations, pXiVariations } };
   const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi" } };
 };
-
-inline void DreamSystematics::DrawAllCF() {
-  auto c = new TCanvas();
-  DreamPlot::SetStyleHisto(fHistDefault, 20, 0);
-  fHistDefault->SetMarkerSize(0.5);
-  fHistDefault->Draw();
-  fHistDefault->GetXaxis()->SetRangeUser(fSystematicFitRangeLow,
-                                         fSystematicFitRangeUp);
-  fHistDefault->GetYaxis()->SetRangeUser(0, 4);
-  int iCount = 0;
-  for (auto &it : fHistVar) {
-    DreamPlot::SetStyleHisto(it, 20 + iCount, ++iCount);
-    it->SetMarkerSize(0.5);
-    it->Draw("same");
-  }
-  c->Print(TString::Format("CF_var_%s.pdf", GetPairName().Data()));
-}
 
 inline
 void DreamSystematics::FixStyle(TH1F* histCF) const {

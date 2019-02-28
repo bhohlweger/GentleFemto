@@ -85,7 +85,6 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
 //  protonXi.EvalDifferenceInPairs();
   protonXi.EvalDifferenceInParticles();
   protonXi.WriteOutput();
-  protonXi.DrawAllCF();
   std::cout << "Worked through " << iPXICounter << " variations" << std::endl;
 }
 
