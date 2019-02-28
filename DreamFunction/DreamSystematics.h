@@ -132,33 +132,20 @@ class DreamSystematics {
       "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",
       "Proton TPC cluster down", "Proton TPC cluster up" } };
 
-  const std::vector<TString> pSigma0Variations = { {
-      "Lambda PileUp one daughter", "Lambda #it{p}_{T} 0.24",
-      "Lambda #it{p}_{T} 0.36", "Lambda CPA 0.995", "Lambda CPA 0.98",
-      "Lambda Daug n#sigma 3", "Lambda Daug n#sigma 3 only dE/dx",
-      "Lambda Daug n#sigma 6", "Lambda Daug n#sigma 6 only dE/dx",
-      "Lambda only dE/dx", "Lambda Daug TPC ncls 80", "Lambda Daug TPC ncls 60",
-      "Lambda Daug #eta 0.8", "Lambda Daug #eta 0.75",
-      "Lambda Daug d_{track} 1.2", "Lambda Daug d_{track} 0.9",
-      "Lambda Daug d_{Track, PV} 0.06", "Lambda Daug d_{Track, PV} 0.04",
-      "Lambda K0 Rejection", "Lambda Lambda selection 8",
-      "Lambda radius up 120 decay vtx 120", "Lambda radius up 80",
-      "Lambda radius low 0", "Lambda radius low 5", "Lambda radius low 5",
-      "Lambda decay vtx 80", "Lambda decay vtx 120", "Photon #eta 0.8",
-      "Photon #eta 0.75", "Photon r 0-180", "Photon r 10-180",
-      "Photon #it{p}_{T,e} = 0, #it{p}_{T} = 0",
-      "Photon #it{p}_{T,e} = 0.15, #it{p}_{T} = 0.02",
-      "Photon #it{p}_{T,e} = 0.05, #it{p}_{T} = 0.15",
-      "Photon Daug TPC ncls finable 0.6", "Photon Daug n#sigma 10",
-      "Photon Daug n#sigma 3", "Photon pKpi rej.", "Photon q_{T} < 0.1 1-D",
-      "Photon q_{T} < 0.02 2-D", "Photon #chi^{2} < 100",
-      "Photon #chi^{2} < 10", "Photon #Psi_{Pair} < 0.2 1-D",
-      "Photon #Psi_{Pair} < 0.1 2-D", "Photon CPA 0.98", "Photon CPA 0.995",
-      "Photon Shared e", "Photon DCA_R < 5", "Photon DCA_Z < 5",
-      "Photon Pile-up", "Proton #it{p}_{T} down", "Proton #it{p}_{T} up",
-      "Proton #eta up", "Proton #eta down", "Proton n#sigma up",
-      "Proton n#sigma down", "Proton FilterBit", "Proton TPC cluster down",
-      "Proton TPC cluster up" } };
+  const std::vector<TString> pSigma0Variations = { { "Proton #it{p}_{T} down",
+      "Proton #it{p}_{T} up", "Proton #eta down", "Proton #eta up",
+      "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",
+      "Proton TPC cluster down", "Proton TPC cluster up",
+      "Lambda #it{p}_{T} down", "Lambda #it{p}_{T} up", "Lambda CPA up",
+      "Lambda CPA down", "Lambda Daug n#sigma up", "Lambda Daug n#sigma down",
+      "Lambda Armenteros-Podolandski", "Lambda Daug TPC ncls up",
+      "Lambda Daug TPC ncls down", "Lambda Daug #eta down", "Lambda mass",
+      "Photon #eta down", "Photon #it{p}_{T} down", "Photon #it{p}_{T} up",
+      "Photon Daug TPC ncls finable up", "Photon Daug n#sigma down",
+      "Photon Daug n#sigma up", "Photon q_{T} 1-D up",
+      "Photon q_{T} 2-D down", "Photon #Psi_{Pair} 1-D up",
+      "Photon #Psi_{Pair} 2-D down", "Photon CPA down", "Photon CPA up",
+      "Photon DCA_R up", "Photon DCA_Z up" } };
 
   const std::vector<TString> pXiVariations = { { "Proton #it{p}_{T} down",
       "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
@@ -202,6 +189,7 @@ void DreamSystematics::FixStyle(TH1F* histCF) const {
   histCF->Sumw2();
   histCF->GetXaxis()->SetRangeUser(fSystematicFitRangeLow,
                                    fSystematicFitRangeUp);
+  DreamPlot::SetStyleHisto(histCF);
   histCF->GetXaxis()->SetTitle("#it{k}* (GeV/#it{c})");
   histCF->GetYaxis()->SetTitle("C(#it{k}*)");
 }

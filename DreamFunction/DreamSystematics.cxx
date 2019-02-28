@@ -280,6 +280,91 @@ void DreamSystematics::EvalProtonProton(const int kstar) {
 }
 
 void DreamSystematics::EvalProtonSigma(const int kstar) {
+  std::vector<float> addSyst;
+
+  // === PROTON ===
+  // pT
+  addSyst.push_back(
+      (fHistAbsErr[0]->GetBinContent(kstar)
+          + fHistAbsErr[1]->GetBinContent(kstar)) / 2.);
+  // Eta
+  addSyst.push_back(
+      (fHistAbsErr[2]->GetBinContent(kstar)
+          + fHistAbsErr[3]->GetBinContent(kstar)) / 2.);
+  // nSigma
+  addSyst.push_back(
+      (fHistAbsErr[4]->GetBinContent(kstar)
+          + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
+  // Filter Bit 96
+  addSyst.push_back(fHistAbsErr[6]->GetBinContent(kstar));
+  // TPC Cls
+  addSyst.push_back(
+      (fHistAbsErr[7]->GetBinContent(kstar)
+          + fHistAbsErr[8]->GetBinContent(kstar)) / 2.);
+
+  // === Lambda ===
+  // pT
+  addSyst.push_back(
+      (fHistAbsErr[9]->GetBinContent(kstar)
+          + fHistAbsErr[10]->GetBinContent(kstar)) / 2.);
+  // CPA
+  addSyst.push_back(
+      (fHistAbsErr[11]->GetBinContent(kstar)
+          + fHistAbsErr[12]->GetBinContent(kstar)) / 2.);
+  // TPC nSigma PID
+  addSyst.push_back(
+      (fHistAbsErr[13]->GetBinContent(kstar)
+          + fHistAbsErr[14]->GetBinContent(kstar)) / 2.);
+  // Armenteros-Podolandski
+  addSyst.push_back(fHistAbsErr[15]->GetBinContent(kstar));
+  // TPC Cls
+  addSyst.push_back(
+      (fHistAbsErr[16]->GetBinContent(kstar)
+          + fHistAbsErr[17]->GetBinContent(kstar)) / 2.);
+  // Eta
+  addSyst.push_back(fHistAbsErr[18]->GetBinContent(kstar));
+  // Mass window
+  addSyst.push_back(fHistAbsErr[19]->GetBinContent(kstar));
+
+  // === Photon ===
+  // Eta
+  addSyst.push_back(fHistAbsErr[20]->GetBinContent(kstar));
+  // pT
+  addSyst.push_back(
+      (fHistAbsErr[21]->GetBinContent(kstar)
+          + fHistAbsErr[22]->GetBinContent(kstar)) / 2.);
+  // TPC Cls
+  addSyst.push_back(fHistAbsErr[23]->GetBinContent(kstar));
+  // TPC nSigma PID
+  addSyst.push_back(
+      (fHistAbsErr[24]->GetBinContent(kstar)
+          + fHistAbsErr[25]->GetBinContent(kstar)) / 2.);
+  // Armenteros-Podolandski
+  addSyst.push_back(
+      (fHistAbsErr[26]->GetBinContent(kstar)
+          + fHistAbsErr[27]->GetBinContent(kstar)) / 2.);
+  // Psi_pair
+  addSyst.push_back(
+      (fHistAbsErr[28]->GetBinContent(kstar)
+          + fHistAbsErr[29]->GetBinContent(kstar)) / 2.);
+  // CPA
+  addSyst.push_back(
+      (fHistAbsErr[30]->GetBinContent(kstar)
+          + fHistAbsErr[31]->GetBinContent(kstar)) / 2.);
+  // DCA
+  addSyst.push_back(
+      (fHistAbsErr[32]->GetBinContent(kstar)
+          + fHistAbsErr[33]->GetBinContent(kstar)) / 2.);
+
+  double sysErrTotal = 0.;
+  for (size_t iAdd = 0; iAdd < addSyst.size(); ++iAdd) {
+    sysErrTotal += (addSyst[iAdd] * addSyst[iAdd]);
+  }
+  sysErrTotal = std::sqrt(sysErrTotal);
+
+  fHistSystErrAbs->SetBinContent(kstar, sysErrTotal);
+  fHistSystErrRel->SetBinContent(
+      kstar, sysErrTotal / fHistDefault->GetBinContent(kstar));
 
 }
 
