@@ -28,28 +28,30 @@ class DreamSystematics {
   void SetUpperFitRange(float fitRange) {
     fSystematicFitRangeUp = fitRange;
   }
-  void SetDefaultPair(DreamCF* CFDef, TString CFName) {
-    SetDefaultHist(CFDef->FindCorrelationFunction(CFName));
-    fnPairsDefault = CFDef->GetFemtoPairs(fFemtoRangeLow, fFemtoRangeUp);
-  }
-  void SetVarPair(DreamCF* CFVar, TString CFName) {
-    SetVarHist(CFVar->FindCorrelationFunction(CFName));
-    fnPairsVar.push_back(CFVar->GetFemtoPairs(fFemtoRangeLow, fFemtoRangeUp));
-  }
   void SetDefaultHist(TH1F* histDef) {
     fHistDefault = histDef;
   }
   void SetVarHist(TH1F* histVar) {
     fHistVar.emplace_back(histVar);
   }
-  void SetNDefaultParticles(unsigned int nPart1, unsigned int nPart2) {
-    fNPartOneDefault = nPart1;
-    fNPartTwoDefault = nPart2;
-  };
-  void SetNVariationParticles(unsigned int nPart1, unsigned int nPart2) {
+  void SetDefaultHist(DreamCF* CFDef, const char* CFName) {
+    SetDefaultHist(CFDef->FindCorrelationFunction(CFName));
+  }
+  void SetVarHist(DreamCF* CFVar, const char* CFName) {
+    SetVarHist(CFVar->FindCorrelationFunction(CFName));
+  }
+  void SetPair(unsigned int nDef, unsigned int nVar) {
+    fnPairsDefault.push_back(nDef);
+    fnPairsVar.push_back(nVar);
+  }
+  void SetParticles(unsigned int nDef1, unsigned int nDef2, unsigned int nPart1,
+                    unsigned int nPart2) {
+    fNPartOneDefault.push_back(nDef1);
+    fNPartTwoDefault.push_back(nDef2);
     fNPartOneVariations.push_back(nPart1);
     fNPartTwoVariations.push_back(nPart2);
-  };
+  }
+  ;
   int GetNumberOfVars() const {
     return vars[fParticlePairMode].size();
   }
@@ -70,10 +72,15 @@ class DreamSystematics {
   TH1F* GetBarlow(TH1F* histDefault, TH1F* histVar) const;
 
   void EvalSystematics();
+  void EvalDifference(std::vector<unsigned int> CountsDefault,
+                      std::vector<unsigned int> CountsVar,
+                      std::vector<float> *AbsDiff,
+                      std::vector<float> *RelDiff);
+  TH1F* FillHisto(std::vector<float> Diff, const char* name);
   void EvalDifferenceInPairs();
-  void CountPairs();
+//  void CountPairs();
   void EvalDifferenceInParticles();
-  void CountParticles();
+//  void CountParticles();
   void ComputeUncertainty();
   void EvalProtonProton(const int kstar);
   void EvalProtonSigma(const int kstar);
@@ -90,29 +97,36 @@ class DreamSystematics {
   TH1F *fHistDefault;
   TH1F *fHistSystErrAbs;
   TH1F *fHistSystErrRel;
-  unsigned int fnPairsDefault;
   TF1* fRatio;
   std::vector<TH1F*> fHistVar;
   std::vector<TH1F*> fHistAbsErr;
   std::vector<TH1F*> fHistErrBudget;
   std::vector<TH1F*> fHistBarlow;
+
+  std::vector<unsigned int> fnPairsDefault;
+  std::vector<unsigned int> fNPartOneDefault;
+  std::vector<unsigned int> fNPartTwoDefault;
+
   std::vector<unsigned int> fnPairsVar;
-  std::vector<unsigned int> fnPairsAbsDiff;
-  std::vector<float> fnPairsRelDiff;
-  unsigned int fNPartOneDefault;
   std::vector<unsigned int> fNPartOneVariations;
-  unsigned int fNPartTwoDefault;
   std::vector<unsigned int> fNPartTwoVariations;
-  std::vector<unsigned int> fnPartOneAbsDiff;
+
+  std::vector<float> fnPairsAbsDiff;
+  std::vector<float> fnPartOneAbsDiff;
+  std::vector<float> fnPartTwoAbsDiff;
+
+  std::vector<float> fnPairsRelDiff;
   std::vector<float> fnPartOneRelDiff;
-  std::vector<unsigned int> fnPartTwoAbsDiff;
   std::vector<float> fnPartTwoRelDiff;
+
   TH1F* fHistPairsAbsDiff;
-  TH1F* fHistPairsRelDiff;
   TH1F* fHistPartOneAbsDiff;
-  TH1F* fHistPartOneRelDiff;
   TH1F* fHistPartTwoAbsDiff;
+
+  TH1F* fHistPairsRelDiff;
+  TH1F* fHistPartOneRelDiff;
   TH1F* fHistPartTwoRelDiff;
+
   const std::vector<TString> ppVariations = { { "Proton #it{p}_{T} down",
       "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
       "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",
