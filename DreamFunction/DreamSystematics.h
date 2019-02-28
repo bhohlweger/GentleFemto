@@ -42,7 +42,14 @@ class DreamSystematics {
   void SetVarHist(TH1F* histVar) {
     fHistVar.emplace_back(histVar);
   }
-
+  void SetNDefaultParticles(unsigned int nPart1, unsigned int nPart2) {
+    fNPartOneDefault = nPart1;
+    fNPartTwoDefault = nPart2;
+  };
+  void SetNVariationParticles(unsigned int nPart1, unsigned int nPart2) {
+    fNPartOneVariations.push_back(nPart1);
+    fNPartTwoVariations.push_back(nPart2);
+  };
   int GetNumberOfVars() const {
     return vars[fParticlePairMode].size();
   }
@@ -65,6 +72,8 @@ class DreamSystematics {
   void EvalSystematics();
   void EvalDifferenceInPairs();
   void CountPairs();
+  void EvalDifferenceInParticles();
+  void CountParticles();
   void ComputeUncertainty();
   void EvalProtonProton(const int kstar);
   void EvalProtonSigma(const int kstar);
@@ -90,9 +99,20 @@ class DreamSystematics {
   std::vector<unsigned int> fnPairsVar;
   std::vector<unsigned int> fnPairsAbsDiff;
   std::vector<float> fnPairsRelDiff;
+  unsigned int fNPartOneDefault;
+  std::vector<unsigned int> fNPartOneVariations;
+  unsigned int fNPartTwoDefault;
+  std::vector<unsigned int> fNPartTwoVariations;
+  std::vector<unsigned int> fnPartOneAbsDiff;
+  std::vector<float> fnPartOneRelDiff;
+  std::vector<unsigned int> fnPartTwoAbsDiff;
+  std::vector<float> fnPartTwoRelDiff;
   TH1F* fHistPairsAbsDiff;
   TH1F* fHistPairsRelDiff;
-
+  TH1F* fHistPartOneAbsDiff;
+  TH1F* fHistPartOneRelDiff;
+  TH1F* fHistPartTwoAbsDiff;
+  TH1F* fHistPartTwoRelDiff;
   const std::vector<TString> ppVariations = { { "Proton #it{p}_{T} down",
       "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
       "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",

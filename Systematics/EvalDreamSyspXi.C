@@ -24,12 +24,14 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
 
   //Proton - Xi
 
-
   DreamDist* pXi = DreamFile->GetPairDistributions(0, 4, "");
   DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 5, "");
   DreamCF* CFpXiDef = CATSinput->ObtainCFSyst(20, "ppDef", pXi, ApAXi);
   DreamSystematics protonXi(DreamSystematics::pXi);
   protonXi.SetDefaultPair(CFpXiDef, "hCk_RebinnedppDefMeV_0");
+  unsigned int nProtons = 1.799336e8+1.545516e8;
+  unsigned int nCascade = 838588 + 792439;
+  protonXi.SetNDefaultParticles(nProtons,nCascade);
   int iPXICounter = 0;
   const int XiVarStart = protonproton.GetNumberOfVars();
   for (int i = protonVarStart;
@@ -47,6 +49,8 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
                                                          prefix,
                                                          VarString.Data());
     counter->SetNumberOfCandidates(ForgivingFile);
+    protonXi.SetNVariationParticles(counter->GetNumberOfTracks(),
+                                    counter->GetNumberOfCascades());
     iPXICounter++;
   }
   for (int i = XiVarStart;
@@ -66,10 +70,13 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
                                                          prefix,
                                                          VarString.Data());
     counter->SetNumberOfCandidates(ForgivingFile);
+    protonXi.SetNVariationParticles(counter->GetNumberOfTracks(),
+                                    counter->GetNumberOfCascades());
     iPXICounter++;
   }
   protonXi.EvalSystematics();
   protonXi.EvalDifferenceInPairs();
+  protonXi.EvalDifferenceInParticles();
   protonXi.WriteOutput();
   protonXi.DrawAllCF();
   std::cout << "Worked through " << iPXICounter << " variations" << std::endl;

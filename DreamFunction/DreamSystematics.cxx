@@ -24,8 +24,16 @@ DreamSystematics::DreamSystematics()
       fnPairsVar(),
       fnPairsAbsDiff(),
       fnPairsRelDiff(),
+      fNPartOneDefault(0),
+      fNPartOneVariations(),
+      fNPartTwoDefault(0),
+      fNPartTwoVariations(),
       fHistPairsAbsDiff(nullptr),
-      fHistPairsRelDiff(nullptr) {
+      fHistPairsRelDiff(nullptr),
+      fHistPartOneAbsDiff(nullptr),
+      fHistPartOneRelDiff(nullptr),
+      fHistPartTwoAbsDiff(nullptr),
+      fHistPartTwoRelDiff(nullptr) {
 }
 
 DreamSystematics::DreamSystematics(Pair pair)
@@ -46,8 +54,16 @@ DreamSystematics::DreamSystematics(Pair pair)
       fnPairsVar(),
       fnPairsAbsDiff(),
       fnPairsRelDiff(),
+      fNPartOneDefault(0),
+      fNPartOneVariations(),
+      fNPartTwoDefault(0),
+      fNPartTwoVariations(),
       fHistPairsAbsDiff(nullptr),
-      fHistPairsRelDiff(nullptr) {
+      fHistPairsRelDiff(nullptr),
+      fHistPartOneAbsDiff(nullptr),
+      fHistPartOneRelDiff(nullptr),
+      fHistPartTwoAbsDiff(nullptr),
+      fHistPartTwoRelDiff(nullptr) {
 }
 
 TH1F* DreamSystematics::GetAbsError(TH1F* histDefault, TH1F* histVar) const {
@@ -160,6 +176,64 @@ void DreamSystematics::CountPairs() {
     fHistPairsRelDiff->GetXaxis()->SetBinLabel(iBin,
                                                GetVariation(iBin - 1).Data());
     fHistPairsRelDiff->SetBinContent(iBin, fnPairsRelDiff[iBin]);
+  }
+}
+
+void DreamSystematics::EvalDifferenceInParticles() {
+  for (auto it : fNPartOneVariations) {
+    fnPartOneAbsDiff.push_back(std::abs((int) (fNPartOneDefault - it)));
+    fnPartOneRelDiff.push_back(
+        fNPartOneDefault > 0 ?
+            std::abs((float) (1 - (it / (float) fNPartOneDefault))) : 0);
+  }
+  for (auto it : fNPartTwoVariations) {
+    fnPartTwoAbsDiff.push_back(std::abs((int) (fNPartTwoDefault - it)));
+    fnPartTwoRelDiff.push_back(
+        fNPartTwoDefault > 0 ?
+            std::abs((float) (1 - (it / (float) fNPartTwoDefault))) : 0);
+  }
+  CountParticles();
+}
+
+void DreamSystematics::CountParticles() {
+  fHistPartOneAbsDiff = new TH1F(
+      TString::Format("AbsDiffPartOne%s", GetPairName().Data()),
+      TString::Format("AbsDiffPartOne%s", GetPairName().Data()),
+      fnPartOneAbsDiff.size(), 0, fnPartOneAbsDiff.size());
+  fHistPartOneRelDiff = new TH1F(
+      TString::Format("RelDiffPartOne%s", GetPairName().Data()),
+      TString::Format("RelDiffPartOne%s", GetPairName().Data()),
+      fnPartOneRelDiff.size(), 0, fnPartOneRelDiff.size());
+
+  fHistPartTwoAbsDiff = new TH1F(
+      TString::Format("AbsDiffPartTwo%s", GetPairName().Data()),
+      TString::Format("AbsDiffPartTwo%s", GetPairName().Data()),
+      fnPartTwoAbsDiff.size(), 0, fnPartTwoAbsDiff.size());
+  fHistPartTwoRelDiff = new TH1F(
+      TString::Format("RelDiffPartTwo%s", GetPairName().Data()),
+      TString::Format("RelDiffPartTwo%s", GetPairName().Data()),
+      fnPartTwoRelDiff.size(), 0, fnPartTwoRelDiff.size());
+
+  for (unsigned int iBin = 1; iBin < fnPartOneAbsDiff.size(); ++iBin) {
+    fHistPartOneAbsDiff->GetXaxis()->SetBinLabel(iBin,
+                                                 GetVariation(iBin - 1).Data());
+    fHistPartOneAbsDiff->SetBinContent(iBin, fnPartOneAbsDiff[iBin]);
+  }
+  for (unsigned int iBin = 1; iBin < fnPartOneRelDiff.size(); ++iBin) {
+    fHistPartOneRelDiff->GetXaxis()->SetBinLabel(iBin,
+                                                 GetVariation(iBin - 1).Data());
+    fHistPartOneRelDiff->SetBinContent(iBin, fnPartOneRelDiff[iBin]);
+  }
+
+  for (unsigned int iBin = 1; iBin < fnPartTwoAbsDiff.size(); ++iBin) {
+    fHistPartTwoAbsDiff->GetXaxis()->SetBinLabel(iBin,
+                                                 GetVariation(iBin - 1).Data());
+    fHistPartTwoAbsDiff->SetBinContent(iBin, fnPartTwoAbsDiff[iBin]);
+  }
+  for (unsigned int iBin = 1; iBin < fnPartTwoRelDiff.size(); ++iBin) {
+    fHistPartTwoRelDiff->GetXaxis()->SetBinLabel(iBin,
+                                                 GetVariation(iBin - 1).Data());
+    fHistPartTwoRelDiff->SetBinContent(iBin, fnPartTwoRelDiff[iBin]);
   }
 }
 
@@ -353,6 +427,16 @@ void DreamSystematics::WriteOutput() {
     fHistPairsAbsDiff->Write();
   if (fHistPairsRelDiff)
     fHistPairsRelDiff->Write();
+  file->mkdir("nParticles");
+  file->cd("nParticles");
+  if (fHistPartOneAbsDiff)
+    fHistPartOneAbsDiff->Write();
+  if (fHistPartOneRelDiff)
+    fHistPartOneRelDiff->Write();
+  if (fHistPartTwoAbsDiff)
+    fHistPartTwoAbsDiff->Write();
+  if (fHistPartTwoRelDiff)
+    fHistPartTwoRelDiff->Write();
 
   file->cd();
   fHistSystErrAbs->Write("SystErrAbs");
