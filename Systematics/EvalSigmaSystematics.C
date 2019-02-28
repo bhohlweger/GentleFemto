@@ -19,38 +19,34 @@ void SigmaEvalSystematics(TString InputDir, TString appendix) {
 
   DreamSystematics protonproton(DreamSystematics::pp);
   protonproton.SetDefaultHist(dataHistProton);
-  const int protonVarStart = 51;
-  for (int i = protonVarStart; i < protonVarStart + protonproton.GetNumberOfVars();
-      ++i) {
+  for (int i = 1; i <= protonproton.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
     auto appendixVar = TString::Format("%s_%i", appendix.Data(), i);
     CATSinputVar->ReadSigma0CorrelationFile(InputDir.Data(),
                                             appendixVar.Data());
     CATSinputVar->ObtainCFs(10, 340, 440, rebin);
-    protonproton.SetVarHist(CATSinputVar->GetCF("pp", dataHistProtonName.Data()));
+    protonproton.SetVarHist(
+        CATSinputVar->GetCF("pp", dataHistProtonName.Data()));
     delete CATSinputVar;
   }
   protonproton.EvalSystematics();
   protonproton.WriteOutput();
-  protonproton.DrawAllCF();
 
   DreamSystematics protonsigma(DreamSystematics::pSigma0);
   protonsigma.SetDefaultHist(dataHistSigma);
   protonsigma.SetUpperFitRange(650);
-  const int sigmaVarStart = 1;
-  for (int i = sigmaVarStart; i < sigmaVarStart + protonsigma.GetNumberOfVars();
-      ++i) {
+  for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
     auto appendixVar = TString::Format("%s_%i", appendix.Data(), i);
     CATSinputVar->ReadSigma0CorrelationFile(InputDir.Data(),
                                             appendixVar.Data());
     CATSinputVar->ObtainCFs(10, 340, 440, rebin);
-    protonsigma.SetVarHist(CATSinputVar->GetCF("pSigma0", dataHistSigmaName.Data()));
+    protonsigma.SetVarHist(
+        CATSinputVar->GetCF("pSigma0", dataHistSigmaName.Data()));
     delete CATSinputVar;
   }
   protonsigma.EvalSystematics();
   protonsigma.WriteOutput();
-  protonsigma.DrawAllCF();
 }
 
 int main(int argc, char* argv[]) {

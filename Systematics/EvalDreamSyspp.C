@@ -39,7 +39,6 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
   protonproton.EvalSystematics();
   protonproton.EvalDifferenceInPairs();
   protonproton.WriteOutput();
-  protonproton.DrawAllCF();
 }
 
 int main(int argc, char* argv[]) {

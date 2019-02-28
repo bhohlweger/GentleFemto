@@ -3,6 +3,8 @@
 /// \author A. Mathis
 
 #include "DreamSystematics.h"
+#include "TLatex.h"
+#include "TStyle.h"
 #include "TFile.h"
 #include <cmath>
 
@@ -15,6 +17,7 @@ DreamSystematics::DreamSystematics()
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
       fHistSystErrRel(nullptr),
+      fGrFinalError(nullptr),
       fnPairsDefault(0),
       fRatio(nullptr),
       fHistVar(),
@@ -34,6 +37,7 @@ DreamSystematics::DreamSystematics()
       fHistPartOneRelDiff(nullptr),
       fHistPartTwoAbsDiff(nullptr),
       fHistPartTwoRelDiff(nullptr) {
+  DreamPlot::SetStyle();
 }
 
 DreamSystematics::DreamSystematics(Pair pair)
@@ -45,6 +49,7 @@ DreamSystematics::DreamSystematics(Pair pair)
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
       fHistSystErrRel(nullptr),
+      fGrFinalError(nullptr),
       fnPairsDefault(0),
       fRatio(nullptr),
       fHistVar(),
@@ -64,6 +69,7 @@ DreamSystematics::DreamSystematics(Pair pair)
       fHistPartOneRelDiff(nullptr),
       fHistPartTwoAbsDiff(nullptr),
       fHistPartTwoRelDiff(nullptr) {
+  DreamPlot::SetStyle();
 }
 
 TH1F* DreamSystematics::GetAbsError(TH1F* histDefault, TH1F* histVar) const {
@@ -106,6 +112,10 @@ TH1F* DreamSystematics::GetErrorBudget(TH1F* histDefault, TH1F* histVar) const {
 
                     ));
   }
+  auto fit = new TF1(Form("%s_fit", histNew->GetName()), "pol0",
+                     fSystematicFitRangeLow, fSystematicFitRangeUp);
+  fit->SetLineColor(kGreen + 2);
+  histNew->Fit(fit, "QR");
   return histNew;
 }
 
@@ -241,29 +251,42 @@ void DreamSystematics::ComputeUncertainty() {
     }
   }
 
-  fRatio = new TF1(Form("Ratio_%s", fHistDefault->GetName()), "pol2", 0.,
-                   fSystematicFitRangeUp);
-  fHistSystErrRel->Fit(fRatio, "R", 0, fSystematicFitRangeUp);
+  fRatio = new TF1(Form("Ratio_%s", fHistDefault->GetName()), "pol2",
+                   fSystematicFitRangeLow, fSystematicFitRangeUp);
+  fRatio->SetLineColor(kGreen + 2);
+  fHistSystErrRel->Fit(fRatio, "RQ");
+
+  fGrFinalError = new TGraphErrors();
+
+  const float xerrLL = fHistDefault->GetBinWidth(1) / 2.;
+  for (int kstarBin = 0; kstarBin < nBins; ++kstarBin) {
+    const float x = fHistDefault->GetBinCenter(kstarBin + 1);
+    const float y = fHistDefault->GetBinContent(kstarBin + 1);
+    fGrFinalError->SetPoint(kstarBin, x, y);
+    fGrFinalError->SetPointError(kstarBin, xerrLL, y * fRatio->Eval(x));
+  }
+  fGrFinalError->SetFillColor(kGray + 1);
+  fGrFinalError->SetLineColor(kGray + 1);
 }
 
 void DreamSystematics::EvalProtonProton(const int kstar) {
   std::vector<float> addSyst;
 
-// pT
+  // pT
   addSyst.push_back(
       (fHistAbsErr[0]->GetBinContent(kstar)
           + fHistAbsErr[1]->GetBinContent(kstar)) / 2.);
-// Eta
+  // Eta
   addSyst.push_back(
       (fHistAbsErr[2]->GetBinContent(kstar)
           + fHistAbsErr[3]->GetBinContent(kstar)) / 2.);
-// nSigma
+  // nSigma
   addSyst.push_back(
       (fHistAbsErr[4]->GetBinContent(kstar)
           + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
-// Filter Bit 96
+  // Filter Bit 96
   addSyst.push_back(fHistAbsErr[6]->GetBinContent(kstar));
-// TPC Cls
+  // TPC Cls
   addSyst.push_back(
       (fHistAbsErr[7]->GetBinContent(kstar)
           + fHistAbsErr[8]->GetBinContent(kstar)) / 2.);
@@ -450,36 +473,17 @@ void DreamSystematics::EvalProtonXi(const int kstar) {
 void DreamSystematics::WriteOutput() {
   auto file = new TFile(Form("Systematics_%s.root", GetPairName().Data()),
                         "recreate");
-  file->mkdir("Raw");
-  file->cd("Raw");
+  WriteOutput(file, fHistVar, "Raw");
+  WriteOutput(file, fHistAbsErr, "AbsErr");
+  WriteOutput(file, fHistErrBudget, "ErrBudget");
+  WriteOutput(file, fHistBarlow, "Barlow");
+  file->cd();
   fHistDefault->Write("histDefault");
-  int iVar = 0;
-  for (auto &it : fHistVar) {
-    it->Write(Form("histVar_%i", iVar++));
-  }
-  file->cd();
-  file->mkdir("AbsErr");
-  file->cd("AbsErr");
-  iVar = 0;
-  for (auto &it : fHistAbsErr) {
-    it->Write(Form("histAbsErr_%i", iVar++));
-  }
+  fHistSystErrAbs->Write("SystErrAbs");
+  fHistSystErrRel->Write("SystErrRel");
+  fRatio->Write("SystError");
+  fGrFinalError->Write("grError");
 
-  file->cd();
-  file->mkdir("ErrBudget");
-  file->cd("ErrBudget");
-  iVar = 0;
-  for (auto &it : fHistErrBudget) {
-    it->Write(Form("histErrBudget_%i", iVar++));
-  }
-
-  file->cd();
-  file->mkdir("Barlow");
-  file->cd("Barlow");
-  iVar = 0;
-  for (auto &it : fHistBarlow) {
-    it->Write(Form("histBarlow_%i", iVar++));
-  }
   if (fnPairsDefault.size() > 0) {
     file->mkdir("nPairs");
     file->cd("nPairs");
@@ -500,11 +504,65 @@ void DreamSystematics::WriteOutput() {
     if (fHistPartTwoRelDiff)
       fHistPartTwoRelDiff->Write();
   }
-  file->cd();
-  fHistSystErrAbs->Write("SystErrAbs");
-  fHistSystErrRel->Write("SystErrRel");
-  fRatio->Write("SystError");
-
   file->Close();
+}
+
+void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
+                                   const TString name) {
+  file->cd();
+  file->mkdir(name.Data());
+  file->cd(name.Data());
+
+  TLatex text;
+  text.SetNDC(kTRUE);
+  text.SetTextSize(1.3 * gStyle->GetTextSize());
+
+  auto canvasName = TString::Format("%s_%s", name.Data(), GetPairName().Data());
+  auto c = new TCanvas(canvasName.Data(), canvasName.Data(), 1400, 1000);
+  switch (fParticlePairMode) {
+    case Pair::pp:
+      c->Divide(3, 3);
+      break;
+    case Pair::pSigma0:
+      c->Divide(7, 5);
+      break;
+    case Pair::pXi:
+      c->Divide(7, 5);
+      break;
+  }
+
+  int iVar = 0;
+  for (auto &it : histvec) {
+    it->Write(Form("histVar_%i", iVar++));
+    c->cd(iVar);
+    it->Draw("pe");
+    if (name == TString("ErrBudget")) {
+      auto fit = it->GetFunction(Form("%s_fit", it->GetName()));
+      if (fit) {
+        text.DrawLatex(
+            0.35,
+            0.8,
+            TString::Format("err. budget = %.2f %%",
+                            fit->GetParameter(0) * 100.f));
+      }
+    }
+  }
+  c->Write();
+  c->Print(TString::Format("CF_%s_%s.pdf", name.Data(), GetPairName().Data()));
+  delete c;
+
+  // For the raw CF write also the Default and all variations in one plot
+  if (name == TString("Raw")) {
+    auto c1 = new TCanvas("CF_var", "CF_var");
+    fHistDefault->Draw();
+    int iCount = 0;
+    for (auto &it : fHistVar) {
+      DreamPlot::SetStyleHisto(it, 20 + iCount, ++iCount);
+      it->Draw("same");
+    }
+    c1->Write();
+    c1->Print(TString::Format("CF_var_%s.pdf", GetPairName().Data()));
+    delete c1;
+  }
 
 }
