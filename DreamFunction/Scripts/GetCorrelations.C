@@ -82,23 +82,24 @@ void GetCorrelations(const char* filename, const char* prefix,
   std::cout << "==Rebinning & Weighting==" << std::endl;
   std::cout << "=========================" << std::endl;
 
-  for (int iReb = 4; iReb < 6; ++iReb) {
+  std::vector<int> rebinVec = {{4,5}};
+  for (size_t iReb = 0; iReb < rebinVec.size(); ++iReb) {
     std::cout << "==Rebinning==" << std::endl;
-    pL->Rebin(pL->GetPairFixShifted(0), iReb);
-    LL->Rebin(LL->GetPairFixShifted(0), iReb);
-    pXi->Rebin(pXi->GetPairFixShifted(0), iReb);
+    pL->Rebin(pL->GetPairFixShifted(0), rebinVec[iReb]);
+    LL->Rebin(LL->GetPairFixShifted(0), rebinVec[iReb]);
+    pXi->Rebin(pXi->GetPairFixShifted(0), rebinVec[iReb]);
     std::cout << "==Weighting==" << std::endl;
-    pL->ReweightMixedEvent(pL->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    LL->ReweightMixedEvent(LL->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    pXi->ReweightMixedEvent(pXi->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    pL->ReweightMixedEvent(pL->GetPairRebinned(iReb), 0.2, 0.9);
+    LL->ReweightMixedEvent(LL->GetPairRebinned(iReb), 0.2, 0.9);
+    pXi->ReweightMixedEvent(pXi->GetPairRebinned(iReb), 0.2, 0.9);
     std::cout << "==Rebinning==" << std::endl;
-    ApAL->Rebin(ApAL->GetPairFixShifted(0), iReb);
-    ALAL->Rebin(ALAL->GetPairFixShifted(0), iReb);
-    ApAXi->Rebin(ApAXi->GetPairFixShifted(0), iReb);
+    ApAL->Rebin(ApAL->GetPairFixShifted(0), rebinVec[iReb]);
+    ALAL->Rebin(ALAL->GetPairFixShifted(0), rebinVec[iReb]);
+    ApAXi->Rebin(ApAXi->GetPairFixShifted(0), rebinVec[iReb]);
     std::cout << "==Weighting==" << std::endl;
-    ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(iReb - 4), 0.2, 0.9);
-    ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(iReb - 4), 0.2, 0.9);
+    ApAL->ReweightMixedEvent(ApAL->GetPairRebinned(iReb), 0.2, 0.9);
+    ALAL->ReweightMixedEvent(ALAL->GetPairRebinned(iReb), 0.2, 0.9);
+    ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(iReb), 0.2, 0.9);
   }
   pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
   ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
