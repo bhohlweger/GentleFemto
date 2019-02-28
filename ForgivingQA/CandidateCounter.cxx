@@ -29,6 +29,8 @@ void CandidateCounter::SetNumberOfCandidates(ForgivingReader* reader) {
     std::cout
         << "CandidateCounter::SetNumberOfCandidates Proton Counter missing \n";
   } else {
+//    std::cout << pTProton->GetName() << std::endl;
+//    std::cout << "Number of Protons: " << pTProton->GetEntries() << std::endl;
     fnTracks += pTProton->GetEntries();
   }
   auto pTAntiProton = (TH1F*) reader->Get1DHistInList(
@@ -37,10 +39,12 @@ void CandidateCounter::SetNumberOfCandidates(ForgivingReader* reader) {
     std::cout
         << "CandidateCounter::SetNumberOfCandidates Anti-Proton Counter missing \n";
   } else {
+//    std::cout << pTAntiProton->GetName() << std::endl;
+//    std::cout << "Number of AndiProtons: "<< pTAntiProton->GetEntries() << std::endl;
     fnTracks += pTAntiProton->GetEntries();
   }
   auto pTv0 = (TH2F*) reader->Get2DHistInList(
-      reader->GetListInList(reader->GetAntiv0Cuts(), { "MinimalBooking" }), {
+      reader->GetListInList(reader->Getv0Cuts(), { "MinimalBooking" }), {
           "InvMassPt" });
   if (!pTv0) {
     std::cout
@@ -62,8 +66,8 @@ void CandidateCounter::SetNumberOfCandidates(ForgivingReader* reader) {
                                 pTIntAv0->FindBin(LambdaMass + 0.004));
   }
   auto pTCasc = (TH2F*) reader->Get2DHistInList(
-      reader->GetListInList(reader->GetAntiv0Cuts(), { "MinimalBooking" }), {
-          "InvMassPt" });
+      reader->GetListInList(reader->GetCascadeCuts(), { "MinimalBooking" }), {
+          "InvMassXiPt" });
   if (!pTCasc) {
     std::cout
         << "CandidateCounter::SetNumberOfCandidates Cascade Counter missing \n";
@@ -73,8 +77,8 @@ void CandidateCounter::SetNumberOfCandidates(ForgivingReader* reader) {
                                       pTIntCasc->FindBin(XiMass + 0.006));
   }
   auto pTAntiCasc = (TH2F*) reader->Get2DHistInList(
-      reader->GetListInList(reader->GetAntiv0Cuts(), { "MinimalBooking" }), {
-          "InvMassPt" });
+      reader->GetListInList(reader->GetAntiCascadeCuts(), { "MinimalBooking" }), {
+          "InvMassXiPt" });
   if (!pTAntiCasc) {
     std::cout
         << "CandidateCounter::SetNumberOfCandidates AntiCascade Counter missing \n";
