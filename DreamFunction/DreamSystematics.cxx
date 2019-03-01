@@ -176,8 +176,6 @@ void DreamSystematics::EvalDifference(std::vector<unsigned int> CountsDefault,
 }
 
 TH1F* DreamSystematics::FillHisto(std::vector<float> Diff, const char* name) {
-  std::cout << "" << Diff.size() << '\t'
-            << TString::Format("%s%s", name, GetPairName().Data()) << std::endl;
   TH1F* outHisto = new TH1F(TString::Format("%s%s", name, GetPairName().Data()),
                             TString::Format("%s%s", name, GetPairName().Data()),
                             Diff.size(), 0, Diff.size());
@@ -226,15 +224,14 @@ void DreamSystematics::ComputeUncertainty() {
   fHistSystErrAbs = (TH1F*) fHistDefault->Clone(
       Form("%s_SystErrAbs", fHistDefault->GetName()));
   fHistSystErrAbs->GetYaxis()->SetTitle("Syst. error");
-  fHistSystErrAbs->Clear();
+  fHistSystErrAbs->Reset("ICMS");
 
   fHistSystErrRel = (TH1F*) fHistDefault->Clone(
       Form("%s_SystErrRel", fHistDefault->GetName()));
   fHistSystErrRel->GetYaxis()->SetTitle("Rel. syst. error");
-  fHistSystErrRel->Clear();
-
+  fHistSystErrRel->Reset("ICMS");
   const int nBins = fHistDefault->GetXaxis()->FindBin(fSystematicFitRangeUp);
-  for (int ikstar = 0; ikstar < nBins; ++ikstar) {
+  for (int ikstar = 1; ikstar <= nBins; ++ikstar) {
     switch (fParticlePairMode) {
       case Pair::pp:
         EvalProtonProton(ikstar);
@@ -251,10 +248,25 @@ void DreamSystematics::ComputeUncertainty() {
     }
   }
 
-  fRatio = new TF1(Form("Ratio_%s", fHistDefault->GetName()), "pol2",
+  fRatio = new TF1(Form("Ratio_%s", fHistDefault->GetName()), "pol0(0)+expo(1)",
                    fSystematicFitRangeLow, fSystematicFitRangeUp);
+
+  fRatio->SetParameter(
+      0,
+      fHistSystErrRel->GetBinContent(
+          fHistSystErrRel->FindBin(fSystematicFitRangeUp)));
+  float startExp = fHistSystErrRel->GetBinContent(1) - fHistSystErrRel->GetBinContent(
+      fHistSystErrRel->FindBin(fSystematicFitRangeUp));
+
+  fRatio->SetParameter(
+        1,
+        TMath::Log(startExp));
+  std::cout << "Start Parameter 0: " << fHistSystErrRel->GetBinContent(
+      fHistSystErrRel->FindBin(fSystematicFitRangeUp)) << std::endl;
+  std::cout << "difference: " << startExp << std::endl;
+  std::cout << "Start Parameter 1: " << TMath::Log(startExp) << std::endl;
   fRatio->SetLineColor(kGreen + 2);
-  fHistSystErrRel->Fit(fRatio, "RQ");
+  fHistSystErrRel->Fit(fRatio, "WWRQ");
 
   fGrFinalError = new TGraphErrors();
 
@@ -464,7 +476,6 @@ void DreamSystematics::EvalProtonXi(const int kstar) {
     sysErrTotal += (addSyst[iAdd] * addSyst[iAdd]);
   }
   sysErrTotal = std::sqrt(sysErrTotal);
-
   fHistSystErrAbs->SetBinContent(kstar, sysErrTotal);
   fHistSystErrRel->SetBinContent(
       kstar, sysErrTotal / fHistDefault->GetBinContent(kstar));
