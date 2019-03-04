@@ -11,20 +11,20 @@ void GetCorrelations(const char* filename, const char* prefix,
   DreamFile->SetAnalysisFile(filename, prefix, addon);
 
   DreamCF* CF_pp = new DreamCF();
-  DreamPair* pp = new DreamPair("Part", 0.2, 0.4);
-  DreamPair* ApAp = new DreamPair("AntiPart", 0.2, 0.4);
+  DreamPair* pp = new DreamPair("Part", 0.24, 0.34);
+  DreamPair* ApAp = new DreamPair("AntiPart", 0.24, 0.34);
 
   DreamCF* CF_pL = new DreamCF();
-  DreamPair* pL = new DreamPair("Part", 0.2, 0.4);
-  DreamPair* ApAL = new DreamPair("AntiPart", 0.2, 0.4);
+  DreamPair* pL = new DreamPair("Part", 0.24, 0.34);
+  DreamPair* ApAL = new DreamPair("AntiPart", 0.24, 0.34);
 
   DreamCF* CF_LL = new DreamCF();
-  DreamPair* LL = new DreamPair("Part", 0.2, 0.4);
-  DreamPair* ALAL = new DreamPair("AntiPart", 0.2, 0.4);
+  DreamPair* LL = new DreamPair("Part", 0.24, 0.34);
+  DreamPair* ALAL = new DreamPair("AntiPart", 0.24, 0.34);
 
   DreamCF* CF_pXi = new DreamCF();
-  DreamPair* pXi = new DreamPair("Part", 0.2, 0.4);
-  DreamPair* ApAXi = new DreamPair("AntiPart", 0.2, 0.4);
+  DreamPair* pXi = new DreamPair("Part", 0.24, 0.34);
+  DreamPair* ApAXi = new DreamPair("AntiPart", 0.24, 0.34);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
