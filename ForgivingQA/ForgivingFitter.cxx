@@ -105,8 +105,7 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   fWeightB = fSingleGaussian->Integral(fSigRangeMin, fSigRangeMax)
       / double(histo->GetBinWidth(1));
   CreateFullFitFunction(histo);
-  histo->Fit(fFullFitFnct, "R Q 0", "", fBkgRangeMin * 1.01,
-             fBkgRangeMax * 0.99);
+  histo->Fit(fFullFitFnct, "R Q 0", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
   histo->GetListOfFunctions()->Add(
       fFullFitFnct->Clone(Form("fnc%s", histo->GetName())));
   CalculateBackgorund(histo, massCutMin, massCutMax);
@@ -212,6 +211,9 @@ void ForgivingFitter::CreateFullFitFunction(TH1F* targetHisto) {
                              1e2 * fDoubleGaussian->GetParameter(5));
   fFullFitFnct->SetLineColor(kBlue);
   fFullFitFnct->SetLineWidth(2);
+  fFullFitFnct->SetParNames("pol0", "pol1", "pol2", "AmpGausOne", "MeanGausOne",
+                            "WidthGausOne", "AmpGausTwo", "MeanGausTwo",
+                            "WidthGausTwo");
 }
 void ForgivingFitter::CalculateBackgorund(TH1F* targetHisto, float massCutMin,
                                           float massCutMax) {
