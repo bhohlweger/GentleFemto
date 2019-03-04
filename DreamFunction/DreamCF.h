@@ -25,6 +25,7 @@ class DreamCF {
                         std::vector<DreamDist*> PairTwo, const char* name);
   void LoopCorrelations(std::vector<DreamDist*> Pair, const char* name);
   void WriteOutput(const char* name);
+  void WriteOutput(TFile* output, bool closeFile);
   TH1F* AddCF(TH1F* CF1, TH1F* CF2, const char* name);
   static TH1F* ConvertToOtherUnit(TH1F* HistCF, int Scale, const char* name);
   std::vector<TH1F*> GetCorrelationFunctions() {

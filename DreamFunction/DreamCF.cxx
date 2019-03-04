@@ -145,6 +145,10 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> Pair, const char* name) {
 
 void DreamCF::WriteOutput(const char* name) {
   TFile* output = TFile::Open(name, "RECREATE");
+  WriteOutput(output,true);
+}
+
+void DreamCF::WriteOutput(TFile* output, bool closeFile) {
   output->cd();
   for (auto& it : fCF) {
     it->Write();
@@ -168,7 +172,7 @@ void DreamCF::WriteOutput(const char* name) {
   } else {
     std::cout << "not writing Pair 2 \n";
   }
-  output->Close();
+  if (closeFile)output->Close();
   return;
 }
 
