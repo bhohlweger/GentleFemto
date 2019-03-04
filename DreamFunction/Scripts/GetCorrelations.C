@@ -11,20 +11,20 @@ void GetCorrelations(const char* filename, const char* prefix,
   DreamFile->SetAnalysisFile(filename, prefix, addon);
 
   DreamCF* CF_pp = new DreamCF();
-  DreamPair* pp = new DreamPair("Part", 0.24, 0.34);
-  DreamPair* ApAp = new DreamPair("AntiPart", 0.24, 0.34);
+  DreamPair* pp = new DreamPair("Part", 0.240, 0.340);
+  DreamPair* ApAp = new DreamPair("AntiPart", 0.240, 0.340);
 
   DreamCF* CF_pL = new DreamCF();
-  DreamPair* pL = new DreamPair("Part", 0.24, 0.34);
-  DreamPair* ApAL = new DreamPair("AntiPart", 0.24, 0.34);
+  DreamPair* pL = new DreamPair("Part", 0.240, 0.340);
+  DreamPair* ApAL = new DreamPair("AntiPart", 0.240, 0.340);
 
   DreamCF* CF_LL = new DreamCF();
-  DreamPair* LL = new DreamPair("Part", 0.24, 0.34);
-  DreamPair* ALAL = new DreamPair("AntiPart", 0.24, 0.34);
+  DreamPair* LL = new DreamPair("Part", 0.240, 0.340);
+  DreamPair* ALAL = new DreamPair("AntiPart", 0.240, 0.340);
 
   DreamCF* CF_pXi = new DreamCF();
-  DreamPair* pXi = new DreamPair("Part", 0.24, 0.34);
-  DreamPair* ApAXi = new DreamPair("AntiPart", 0.24, 0.34);
+  DreamPair* pXi = new DreamPair("Part", 0.240, 0.340);
+  DreamPair* ApAXi = new DreamPair("AntiPart", 0.240, 0.340);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
@@ -59,11 +59,14 @@ void GetCorrelations(const char* filename, const char* prefix,
   std::cout << "=========================" << std::endl;
   std::cout << "====Pair Fix Shifted=====" << std::endl;
   std::cout << "=========================" << std::endl;
-  pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
-               ApAp->GetFirstBin());
-  ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
-                 pp->GetFirstBin());
-
+//  pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
+//               ApAp->GetFirstBin());
+//  ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
+//                 pp->GetFirstBin());
+  pp->FixShift(pp->GetPair(), ApAp->GetPair(),
+               0.004, true);
+  ApAp->FixShift(ApAp->GetPair(), pp->GetPair(),
+                 0.004, true);
   pL->FixShift(pL->GetPairShiftedEmpty(0), ApAL->GetPairShiftedEmpty(0),
                ApAL->GetFirstBin());
   ApAL->FixShift(ApAL->GetPairShiftedEmpty(0), pL->GetPairShiftedEmpty(0),
