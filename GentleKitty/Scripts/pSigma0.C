@@ -80,7 +80,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input
-  TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_MB/";
+  TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
   CATSInputSigma0 *CATSinput = new CATSInputSigma0();
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
   CATSinput->SetMomResFileName("run2_decay_matrices_old.root");

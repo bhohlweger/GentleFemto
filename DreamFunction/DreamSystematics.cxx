@@ -6,6 +6,7 @@
 #include "TLatex.h"
 #include "TStyle.h"
 #include "TFile.h"
+#include "TMath.h"
 #include <cmath>
 
 DreamSystematics::DreamSystematics()
