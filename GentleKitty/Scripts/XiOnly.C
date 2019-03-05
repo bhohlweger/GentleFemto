@@ -382,20 +382,20 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 
               TGraph SideBandStrongWithLambda;
               TGraph SideBandStrongWithOutLambda;
-              DLM_Histo1D<double>* StrongWithLambda = CkDec_pXim
+              DLM_Histo<double>* StrongWithLambda = CkDec_pXim
                   .GetChildContribution("pXiSideBand", true);
-              DLM_Histo1D<double>* StrongWithOutLambda = CkDec_pXim
+              DLM_Histo<double>* StrongWithOutLambda = CkDec_pXim
                   .GetChildContribution("pXiSideBand", false);
               for (int iBin = 0; iBin < StrongWithLambda->GetNbins(); ++iBin) {
                 SideBandStrongWithLambda.SetPoint(
                     iBin,
-                    StrongWithLambda->GetBinCenter(iBin),
+                    StrongWithLambda->GetBinCenter(0,iBin),
                     (StrongWithLambda->GetBinContent(iBin) + (1 - lam_pXim_fake)));
               }
               for (int iBin = 0; iBin < StrongWithOutLambda->GetNbins();
                   ++iBin) {
                 SideBandStrongWithOutLambda.SetPoint(
-                    iBin, StrongWithOutLambda->GetBinCenter(iBin),
+                    iBin, StrongWithOutLambda->GetBinCenter(0,iBin),
                     StrongWithOutLambda->GetBinContent(iBin));
               }
 
@@ -486,21 +486,21 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
                         << p_b_coulomb_err << std::endl;
               TGraph SideBandCoulombWithLambda;
               TGraph SideBandCoulombWithOutLambda;
-              DLM_Histo1D<double>* CoulombWithLambda = CkDec_pXim
+              DLM_Histo<double>* CoulombWithLambda = CkDec_pXim
                   .GetChildContribution("pXiSideBand", true);
-              DLM_Histo1D<double>* CoulombWithOutLambda = CkDec_pXim
+              DLM_Histo<double>* CoulombWithOutLambda = CkDec_pXim
                   .GetChildContribution("pXiSideBand", false);
               for (int iBin = 0; iBin < CoulombWithLambda->GetNbins(); ++iBin) {
                 SideBandCoulombWithLambda.SetPoint(
                     iBin,
-                    CoulombWithLambda->GetBinCenter(iBin),
+                    CoulombWithLambda->GetBinCenter(0,iBin),
                     CoulombWithLambda->GetBinContent(iBin)
                         + (1 - lam_pXim_fake));
               }
               for (int iBin = 0; iBin < CoulombWithOutLambda->GetNbins();
                   ++iBin) {
                 SideBandCoulombWithOutLambda.SetPoint(
-                    iBin, CoulombWithOutLambda->GetBinCenter(iBin),
+                    iBin, CoulombWithOutLambda->GetBinCenter(0,iBin),
                     CoulombWithOutLambda->GetBinContent(iBin));
               }
 
