@@ -11,20 +11,20 @@ void GetCorrelations(const char* filename, const char* prefix,
   DreamFile->SetAnalysisFile(filename, prefix, addon);
 
   DreamCF* CF_pp = new DreamCF();
-  DreamPair* pp = new DreamPair("Part", 0.240, 0.340);
-  DreamPair* ApAp = new DreamPair("AntiPart", 0.240, 0.340);
+  DreamPair* pp = new DreamPair("Part", 0.2,0.4);
+  DreamPair* ApAp = new DreamPair("AntiPart", 0.2,0.4);
 
   DreamCF* CF_pL = new DreamCF();
-  DreamPair* pL = new DreamPair("Part", 0.240, 0.340);
-  DreamPair* ApAL = new DreamPair("AntiPart", 0.240, 0.340);
+  DreamPair* pL = new DreamPair("Part", 0.2,0.4);
+  DreamPair* ApAL = new DreamPair("AntiPart", 0.2,0.4);
 
   DreamCF* CF_LL = new DreamCF();
-  DreamPair* LL = new DreamPair("Part", 0.240, 0.340);
-  DreamPair* ALAL = new DreamPair("AntiPart", 0.240, 0.340);
+  DreamPair* LL = new DreamPair("Part", 0.2,0.4);
+  DreamPair* ALAL = new DreamPair("AntiPart", 0.2,0.4);
 
   DreamCF* CF_pXi = new DreamCF();
-  DreamPair* pXi = new DreamPair("Part", 0.240, 0.340);
-  DreamPair* ApAXi = new DreamPair("AntiPart", 0.240, 0.340);
+  DreamPair* pXi = new DreamPair("Part", 0.2,0.4);
+  DreamPair* ApAXi = new DreamPair("AntiPart", 0.2,0.4);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
@@ -59,14 +59,21 @@ void GetCorrelations(const char* filename, const char* prefix,
   std::cout << "=========================" << std::endl;
   std::cout << "====Pair Fix Shifted=====" << std::endl;
   std::cout << "=========================" << std::endl;
-//  pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
-//               ApAp->GetFirstBin());
-//  ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
-//                 pp->GetFirstBin());
+  std::cout << "The old one \n";
+  std::cout << "p-p \n";
+  pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
+               ApAp->GetFirstBin());
+  std::cout << "Ap-Ap \n";
+  ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
+                 pp->GetFirstBin());
+  std::cout << "The new one \n";
+  std::cout << "p-p \n";
   pp->FixShift(pp->GetPair(), ApAp->GetPair(),
                0.004, true);
+  std::cout << "Ap-Ap \n";
   ApAp->FixShift(ApAp->GetPair(), pp->GetPair(),
                  0.004, true);
+  std::cout << "over \n";
   pL->FixShift(pL->GetPairShiftedEmpty(0), ApAL->GetPairShiftedEmpty(0),
                ApAL->GetFirstBin());
   ApAL->FixShift(ApAL->GetPairShiftedEmpty(0), pL->GetPairShiftedEmpty(0),
@@ -75,7 +82,6 @@ void GetCorrelations(const char* filename, const char* prefix,
                ALAL->GetFirstBin());
   ALAL->FixShift(ALAL->GetPairShiftedEmpty(0), LL->GetPairShiftedEmpty(0),
                  LL->GetFirstBin());
-
   pXi->FixShift(pXi->GetPairShiftedEmpty(0), ApAXi->GetPairShiftedEmpty(0),
                 ApAXi->GetFirstBin());
   ApAXi->FixShift(ApAXi->GetPairShiftedEmpty(0), pXi->GetPairShiftedEmpty(0),
@@ -106,6 +112,9 @@ void GetCorrelations(const char* filename, const char* prefix,
   }
   pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
   ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+
+  pp->ReweightMixedEvent(pp->GetPairFixShifted(1), 0.2, 0.9);
+  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(1), 0.2, 0.9);
 
   pL->Rebin(pL->GetPair(), 4);
   pL->Rebin(pL->GetPair(), 5);
