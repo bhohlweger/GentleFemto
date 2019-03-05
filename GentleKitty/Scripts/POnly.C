@@ -353,6 +353,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
               //!CHANGE PATH HERE
 
               const unsigned NumSourcePars = 1;
+//              const unsigned NumSourcePars = 2; //for levy.
 
               //this way you define a correlation function using a CATS object.
               //needed inputs: num source/pot pars, CATS obj
@@ -534,6 +535,10 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
                 fitter->FixParameter("pp", DLM_Fitter1::p_b, 0);
               }
 
+//              fitter->AddSameParameter("pLambda", DLM_Fitter1::p_sor0, "pp", DLM_Fitter1::p_sor0);
+//              fitter->AddSameParameter("pSigma0", DLM_Fitter1::p_sor0, "pp", DLM_Fitter1::p_sor0);
+//              fitter->AddSameParameter("pXim", DLM_Fitter1::p_sor0, "pp", DLM_Fitter1::p_sor0);
+//              fitter->AddSameParameter("pXim1530", DLM_Fitter1::p_sor0, "pp", DLM_Fitter1::p_sor0);
               fitter->AddSameSource("pLambda", "pp", 1);
               fitter->AddSameSource("pSigma0", "pp", 1);
               fitter->AddSameSource("pXim", "pp", 1);
@@ -542,6 +547,8 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
               fitter->FixParameter("pp", DLM_Fitter1::p_c, 0);
 
               fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 1.1, 1.5);
+//              fitter->SetParameter("pp", DLM_Fitter1::p_sor1, 1.4, 1.1, 1.5);
+//              fitter->FixParameter("pp", DLM_Fitter1::p_sor0, 1.32);
               fitter->FixParameter("pp", DLM_Fitter1::p_Cl, -1);
               std::cout << "CL Fixed \n";
 
@@ -563,7 +570,8 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
               FitResult_pp.SetName(TString::Format("FitResult_pp_%u", uIter));
               fitter->GetFitGraph(0, FitResult_pp);
 
-              double Chi2 = fitter->GetChi2();
+              double Chi2 = fitter->GetChi2
+                  ();
               unsigned NDF = fitter->GetNdf();
               double RadiusResult = fitter->GetParameter("pp",
                                                          DLM_Fitter1::p_sor0);
@@ -792,22 +800,3 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 
 }
 
-//if (uIter == 0) {
-//			vBlReg = 0;
-//			HaveWeABaseLine = false; // no base line in default
-//		} else if (uIter == 1) {
-//			vBlReg = 1;
-//			HaveWeABaseLine = false; // no base line in default
-//		} else if (uIter == 2) {
-//			vBlReg = 2;
-//			HaveWeABaseLine = false; // no base line in default
-//		} else if (uIter == 3) {
-//			vBlReg = 0;
-//			HaveWeABaseLine = true; // no base line in default
-//		} else if (uIter == 4) {
-//			vBlReg = 1;
-//			HaveWeABaseLine = true; // no base line in default
-//		} else if (uIter == 5) {
-//			vBlReg = 2;
-//			HaveWeABaseLine = true; // no base line in default
-//		}
