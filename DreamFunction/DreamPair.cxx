@@ -166,7 +166,9 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
               SE->GetXaxis()->GetNbins() - SE->FindBin(kMin) + 1 :
               otherSE->GetXaxis()->GetNbins();
       float xMin = fixedShift ? kMin : otherSE->GetXaxis()->GetXmin();
-      float xMax = otherSE->GetXaxis()->GetXmax();
+      float xMax =
+          fixedShift ?
+              SE->GetXaxis()->GetXmax() : otherSE->GetXaxis()->GetXmax();
 
       int multBins = SEMult->GetYaxis()->GetNbins();
       int multMax = SEMult->GetYaxis()->GetXmax();
@@ -189,9 +191,11 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
       MEMultShifted = new TH2F(MEMultHistName, MEMultHistName, nBins, xMin,
                                xMax, multBins, 1, multMax);
       MEMultShifted->Sumw2();
-      int startBin = SEShifted->FindBin(fFirstBin);
+      int startBin = fixedShift ? 1 : SEShifted->FindBin(fFirstBin);
       int endBin = SEShifted->GetNbinsX();
-      int iOtherBin = 1;
+      //for the fixedShift == true case the first bin has to be found,
+      //while if the other histogram is already shifted it is just the first bin.
+      int iOtherBin = fixedShift ? SE->FindBin(kMin) : 1;
       int endOtherBin = SE->GetXaxis()->GetNbins();
       for (int iBin = startBin; iBin <= endBin; ++iBin) {
         if (iOtherBin < endOtherBin) {
