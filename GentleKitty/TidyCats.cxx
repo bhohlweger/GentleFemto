@@ -9,6 +9,7 @@
 #include <iostream>
 #include "TDatabasePDG.h"
 #include "CATStools.h"
+#include "DLM_Source.h"
 TidyCats::TidyCats() {
 }
 
@@ -80,6 +81,22 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
   AB_pp->SetShortRangePotential(1, 1, fDlmPot, *cPotPars3P0);
   AB_pp->SetShortRangePotential(2, 1, fDlmPot, *cPotPars3P1);
   AB_pp->SetShortRangePotential(3, 1, fDlmPot, *cPotPars3P2);
+  //this has to permanently exist.
+//  static DLM_CleverLevy CleverLevy;
+//  CleverLevy.InitStability(20, 1, 2);
+//  CleverLevy.InitScale(35, 0.25, 2.0);
+//  CleverLevy.InitRad(256, 0, 64);
+//  CleverLevy.InitType(2);
+//  //Nolan Parameterization.
+//  AB_pp->SetAnaSource(CatsSourceForwarder, &CleverLevy, 2);
+//  AB_pp->SetAnaSource(0, 1.2);//r0
+//  AB_pp->SetAnaSource(1, 1.6);//Stability alpha ( 1= Cauchy, ... 2 = Gauss)
+//  AB_pp->SetUseAnalyticSource(true);
+//
+//  AB_pp->SetMomentumDependentSource(false);
+//  AB_pp->SetThetaDependentSource(false);
+//  AB_pp->SetExcludeFailedBins(false);
+
   return;
 }
 
