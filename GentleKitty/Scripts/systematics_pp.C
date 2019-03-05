@@ -135,6 +135,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
            uIterMean));
   if (!fileMean) {
     std::cout << "Missing file Mean \n";
+    return;
   }
   TGraph* FileGrDefault_pp = (TGraph*) fileMean->Get(
       Form("FitResult_pp_%u", uIterMean));
@@ -149,6 +150,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
            uIterLow));
   if (!fileSysLow) {
     std::cout << "Missing file Sys Low \n";
+    return;
   }
   TGraph* FileGrLow_pp = (TGraph*) fileSysLow->Get(
       Form("FitResult_pp_%u", uIterLow));
@@ -163,6 +165,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
            uIterUp));
   if (!fileSysUp) {
     std::cout << "Missing file SysUp \n";
+    return;
   }
   TGraph* FileGrUp_pp = (TGraph*) fileSysUp->Get(
       Form("FitResult_pp_%u", uIterUp));
