@@ -7,7 +7,8 @@ class SidebandSigma : public SideBandFit {
  public:
   SidebandSigma();
   virtual ~SidebandSigma();
-  void SetSideBandFile(const char* path, const char* suffix);
+  void SetSideBandFile(const char* path, const char* trigger,
+                       const char* suffix);
   void SideBandCFs();
 
  private:

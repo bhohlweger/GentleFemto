@@ -4,13 +4,12 @@
 #include "TCanvas.h"
 #include <iostream>
 
-void SigmaEvalSystematics(TString InputDir, TString appendix) {
+void SigmaEvalSystematics(TString InputDir, TString trigger, TString suffix) {
   const int rebin = 5;
 
   DreamPlot::SetStyle();
   auto CATSinput = new CATSInputSigma0();
-  auto appendixDefault = TString::Format("%s_0", appendix.Data());
-  CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), appendixDefault.Data());
+  CATSinput->ReadCorrelationFile(InputDir.Data(), trigger.Data(), "0");
   CATSinput->ObtainCFs(10, 340, 440, rebin);
   TString dataHistProtonName = "hCk_ReweightedppMeV_0";
   auto dataHistProton = CATSinput->GetCF("pp", dataHistProtonName.Data());
@@ -21,8 +20,8 @@ void SigmaEvalSystematics(TString InputDir, TString appendix) {
   protonproton.SetDefaultHist(dataHistProton);
   for (int i = 1; i <= protonproton.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
-    auto appendixVar = TString::Format("%s_%i", appendix.Data(), i);
-    CATSinputVar->ReadSigma0CorrelationFile(InputDir.Data(),
+    auto appendixVar = TString::Format("%i", i);
+    CATSinputVar->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
                                             appendixVar.Data());
     CATSinputVar->ObtainCFs(10, 340, 440, rebin);
     protonproton.SetVarHist(
@@ -37,8 +36,8 @@ void SigmaEvalSystematics(TString InputDir, TString appendix) {
   protonsigma.SetUpperFitRange(650);
   for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
-    auto appendixVar = TString::Format("%s_%i", appendix.Data(), i);
-    CATSinputVar->ReadSigma0CorrelationFile(InputDir.Data(),
+    auto appendixVar = TString::Format("%i", i);
+    CATSinputVar->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
                                             appendixVar.Data());
     CATSinputVar->ObtainCFs(10, 340, 440, rebin);
     protonsigma.SetVarHist(
@@ -50,7 +49,7 @@ void SigmaEvalSystematics(TString InputDir, TString appendix) {
 }
 
 int main(int argc, char* argv[]) {
-  SigmaEvalSystematics(argv[1], argv[2]);
+  SigmaEvalSystematics(argv[1], argv[2], argv[3]);
 
   return 1;
 }

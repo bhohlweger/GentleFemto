@@ -2,13 +2,14 @@
 #define GENTLEKITTY_CATSINPUTSIGMA0_H_
 #include "CATSInput.h"
 
-class CATSInputSigma0 : public CATSInput{
+class CATSInputSigma0 : public CATSInput {
  public:
 
   CATSInputSigma0();
   virtual ~CATSInputSigma0();
 
-  void ReadSigma0CorrelationFile(const char* path, const char* appendix = "0");
+  void ReadSigma0CorrelationFile(const char* path, const char* trigger,
+                                 const char* suffixChar);
   void ObtainCFs(int rebin, float normleft, float normright, int rebinSyst = 1);
   TH1F* GetCF(TString pair, TString hist);
  private:

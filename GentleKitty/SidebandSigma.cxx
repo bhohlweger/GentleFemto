@@ -10,13 +10,14 @@ SidebandSigma::SidebandSigma()
 }
 
 SidebandSigma::~SidebandSigma() {
-    delete fAnalysisFile;
+  delete fAnalysisFile;
 }
 
-void SidebandSigma::SetSideBandFile(const char* path, const char* suffix) {
+void SidebandSigma::SetSideBandFile(const char* path, const char* trigger,
+                                    const char* suffix) {
   TString filename = Form("%s/AnalysisResults.root", path);
-  fAnalysisFile = new ReadDreamFile(12, 12);
-  fAnalysisFile->SetSigmaAnalysisFile(filename.Data(), suffix);
+  fAnalysisFile = new ReadDreamFile(8, 8);
+  fAnalysisFile->SetAnalysisFile(filename.Data(), trigger, suffix);
 }
 
 void SidebandSigma::SideBandCFs() {

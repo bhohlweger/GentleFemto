@@ -14,10 +14,11 @@ CATSInputSigma0::~CATSInputSigma0() {
 }
 
 void CATSInputSigma0::ReadSigma0CorrelationFile(const char* path,
-                                                const char* appendix) {
+                                                const char* trigger,
+                                                const char* suffixChar) {
   TString filename = Form("%s/AnalysisResults.root", path);
-  fDreamFile = new ReadDreamFile(12, 12);
-  fDreamFile->SetSigmaAnalysisFile(filename.Data(), appendix);
+  fDreamFile = new ReadDreamFile(8, 8);
+  fDreamFile->SetAnalysisFile(filename.Data(), trigger, suffixChar);
   return;
 }
 
