@@ -129,8 +129,8 @@ int main(int argc, char *argv[]) {
 
   auto grSideband = new TGraph();
   for (unsigned int i = 0; i < Ck_pL->GetNbins(); ++i) {
-    grSideband->SetPoint(i, Ck_pL->GetBinCenter(i),
-                         CkDec_pL.EvalCk(Ck_pL->GetBinCenter(i)));
+    grSideband->SetPoint(i, Ck_pL->GetBinCenter(0, i),
+                         CkDec_pL.EvalCk(Ck_pL->GetBinCenter(0, i)));
   }
 
   auto c = new TCanvas();

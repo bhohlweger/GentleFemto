@@ -410,21 +410,21 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
             for (unsigned int i = 0; i < Ck_pSigma0->GetNbins(); ++i) {
               grCFSigmaRaw.SetPoint(
-                  i, Ck_pSigma0->GetBinCenter(i),
-                  CkDec_pSigma0.EvalCk(Ck_pSigma0->GetBinCenter(i)));
+                  i, Ck_pSigma0->GetBinCenter(0, i),
+                  CkDec_pSigma0.EvalCk(Ck_pSigma0->GetBinCenter(0, i)));
               grCFSigmaMain.SetPoint(
                   i,
-                  Ck_pSigma0->GetBinCenter(i),
-                  ((CkDec_pSigma0.EvalMain(Ck_pSigma0->GetBinCenter(i)) - 1.)
+                  Ck_pSigma0->GetBinCenter(0, i),
+                  ((CkDec_pSigma0.EvalMain(Ck_pSigma0->GetBinCenter(0, i)) - 1.)
                       * lambdaParams[lambdaIter].GetLambdaParam(
                           CATSLambdaParam::Primary)) + 1);
               grCFSigmaFeed.SetPoint(
-                  i, Ck_pSigma0->GetBinCenter(i),
-                  CkDec_pSigma0.EvalMainFeed(Ck_pSigma0->GetBinCenter(i)));
+                  i, Ck_pSigma0->GetBinCenter(0, i),
+                  CkDec_pSigma0.EvalMainFeed(Ck_pSigma0->GetBinCenter(0, i)));
               grCFSigmaSideband.SetPoint(
                   i,
-                  Ck_pSigma0->GetBinCenter(i),
-                  ((Ck_SideBand->Eval(Ck_pSigma0->GetBinCenter(i)) - 1.)
+                  Ck_pSigma0->GetBinCenter(0, i),
+                  ((Ck_SideBand->Eval(Ck_pSigma0->GetBinCenter(0, i)) - 1.)
                       * lambdaParams[lambdaIter].GetLambdaParam(
                           CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0))
                       + 1);
