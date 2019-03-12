@@ -285,13 +285,28 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 
   TidyCats* tidy = new TidyCats();
   int uIter = 1;
-//
+
+  CATS AB_pp;
+  tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax,
+                            TidyCats::sGaussian);
+  AB_pp.KillTheCat();
+
+  CATS AB_pL;
+  tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax,
+                            TidyCats::sGaussian);
+  AB_pL.KillTheCat();
+  CATS AB_pXim;
+  tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax,
+                             TidyCats::sGaussian, TidyCats::pHALQCD, 13);
+  AB_pXim.KillTheCat();
+
+  CATS AB_pXim1530;
+  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax);
+  AB_pXim1530.KillTheCat();
+
   for (vFemReg_pp = 0; vFemReg_pp < 3; ++vFemReg_pp) {
     for (vMod_pL = 1; vMod_pL < 3; ++vMod_pL) {
       for (vFrac_pp_pL = 0; vFrac_pp_pL < 3; ++vFrac_pp_pL) {
-//        for (vFrac_pL_pSigma0 = 0; vFrac_pL_pSigma0 < 3; ++vFrac_pL_pSigma0) {
-//          for (vFrac_pL_pXim = 0; vFrac_pL_pXim < 3; ++vFrac_pL_pXim) {
-//        for (iNorm = 1; iNorm < 2; ++iNorm) {
         for (int BaselineSlope = 0; BaselineSlope < 2; ++BaselineSlope) {
           if (BaselineSlope == 0) {
             HaveWeABaseLine = true;  //use baseline
@@ -307,39 +322,9 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             iNorm = 1;
             HaveWeABaseLine = false;  // no base line in default
           }
-//            double Pars_pp[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-//                GaussSourceSize / 1.2, 0.5 };
-          CATS AB_pp;
-          tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax,
-                                    TidyCats::sGaussian);
-//            CATSparameters cPars(CATSparameters::tSource, 1, true);
-//            cPars.SetParameter(0, 1.2);
-//            AB_pp.SetAnaSource(GaussSource, cPars);
-          AB_pp.KillTheCat();
-//
-////            double Pars_pL[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-////                GaussSourceSize / 1.2, 0.5 };
-          CATS AB_pL;
-          tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax,
-                                    TidyCats::sGaussian);
-          AB_pL.KillTheCat();
-//            double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-//                GaussSourceSize / 1.2, 0.5 };
-          CATS AB_pXim;
-          tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax,
-                                     TidyCats::sGaussian, TidyCats::pHALQCD,
-                                     13);
-          AB_pXim.KillTheCat();
-
-//            double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-//                GaussSourceSize / 1.2, 0.5 };
-          CATS AB_pXim1530;
-          tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax);
-          AB_pXim1530.KillTheCat();
 
           std::cout << "Reading Data \n";
 
-          //CATSinput->ObtainCFs(Rebin, 240, 340);
           CATSinput->SetNormalization(NormRegion[iNorm][0],
                                       NormRegion[iNorm][1]);
           DreamDist* pp = DreamFile->GetPairDistributions(0, 0, "");
@@ -357,7 +342,6 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
           //!CHANGE PATH HERE
 
           const unsigned NumSourcePars = 1;
-//              const unsigned NumSourcePars = 2; //for levy.
 
           //this way you define a correlation function using a CATS object.
           //needed inputs: num source/pot pars, CATS obj
@@ -381,12 +365,6 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             Ck_pL->SetPotPar(2, 1.54);
             Ck_pL->SetPotPar(3, 2.72);
           }
-//            else if (vMod_pL == 2) {
-//              Ck_pL->SetPotPar(0, 1.91);
-//              Ck_pL->SetPotPar(1, 1.4);
-//              Ck_pL->SetPotPar(2, 1.23);
-//              Ck_pL->SetPotPar(3, 2.13);
-//            }
 
           Ck_pp->Update();
           Ck_pL->Update();
@@ -534,10 +512,6 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             fitter->FixParameter("pp", DLM_Fitter1::p_b, 0);
           }
 
-//              fitter->AddSameParameter("pLambda", DLM_Fitter1::p_sor0, "pp", DLM_Fitter1::p_sor0);
-//              fitter->AddSameParameter("pSigma0", DLM_Fitter1::p_sor0, "pp", DLM_Fitter1::p_sor0);
-//              fitter->AddSameParameter("pXim", DLM_Fitter1::p_sor0, "pp", DLM_Fitter1::p_sor0);
-//              fitter->AddSameParameter("pXim1530", DLM_Fitter1::p_sor0, "pp", DLM_Fitter1::p_sor0);
           fitter->AddSameSource("pLambda", "pp", 1);
           fitter->AddSameSource("pSigma0", "pp", 1);
           fitter->AddSameSource("pXim", "pp", 1);
@@ -546,12 +520,9 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
           fitter->FixParameter("pp", DLM_Fitter1::p_c, 0);
 
           fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 1.1, 1.5);
-//              fitter->SetParameter("pp", DLM_Fitter1::p_sor1, 1.4, 1.1, 1.5);
-//              fitter->FixParameter("pp", DLM_Fitter1::p_sor0, 1.32);
           fitter->FixParameter("pp", DLM_Fitter1::p_Cl, -1);
           std::cout << "CL Fixed \n";
 
-          //    fitter->FixParameter("pp", DLM_Fitter1::p_sor0, 1.383);
           CkDec_pp.Update();
           CkDec_pL.Update();
           CkDec_pXim.Update();
@@ -715,9 +686,6 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             blPP->SetLineWidth(4);
 
             TString CanName = Form("cfast");
-            //          TString CanName = Form("cFastBL_%u_%u.root",
-            //              (int) BlRegion_pp[1][0],
-            //              (int) BlRegion_pp[1][1]);
             TCanvas* cfast = new TCanvas(CanName.Data(), CanName.Data(), 1);
             cfast->cd(0);
             cfast->SetCanvasSize(1920, 1280);
@@ -749,10 +717,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             delete cfast;
 
           }      //FAST_PLOT
-//                CFppDef->WriteOutput(GraphFile, false);
           GraphFile->Close();
-//              delete CFppDef;
-//            if (OliHisto_pp) delete OliHisto_pp;
           delete fitter;
           delete Ck_pp;
           delete Ck_pL;
