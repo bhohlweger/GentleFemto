@@ -213,9 +213,19 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 //  delete funct_0;
 //  delete funct_1;
 //
-  for (vFemReg_pXim = 0; vFemReg_pXim < 3; ++vFemReg_pXim) {
-    for (vFrac_pXim_pXi1530 = 0; vFrac_pXim_pXi1530 < 3; ++vFrac_pXim_pXi1530) {
-      for (tOut = 0; tOut < 3; ++tOut) {
+  CATS AB_pXim1530;
+  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim,
+                                 kMin_pXim, kMax_pXim);
+  AB_pXim1530.KillTheCat();
+  for (tOut = 0; tOut < 3; ++tOut) {
+    CATS AB_pXim;
+    tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin_pXim, kMax_pXim,
+                               TidyCats::sGaussian, TidyCats::pHALQCD,
+                               tQCDVars[tOut]);
+    AB_pXim.KillTheCat();
+    for (vFemReg_pXim = 0; vFemReg_pXim < 3; ++vFemReg_pXim) {
+      for (vFrac_pXim_pXi1530 = 0; vFrac_pXim_pXi1530 < 3;
+          ++vFrac_pXim_pXi1530) {
         for (ppRadius = 0; ppRadius < 3; ++ppRadius) {
           for (varSideNorm = 0; varSideNorm < 3; ++varSideNorm) {
             for (int BaselineSlope = 0; BaselineSlope < 4; ++BaselineSlope) {
@@ -240,22 +250,6 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               TH1F* fitme = side->GetSideBands(5);
               double SideBandPars[4];
               side->FitSideBands(fitme, SideBandPars);
-//              double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-//                  GaussSourceSize / 1.2, 0.5 };
-              CATS AB_pXim;
-              tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin_pXim,
-                                         kMax_pXim, TidyCats::sGaussian,
-                                         TidyCats::pHALQCD, tQCDVars[tOut]);
-              AB_pXim.KillTheCat();
-
-//              double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2,
-//                  GaussSourceSize / 1.2, 0.5 };
-              CATS AB_pXim1530;
-              tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim,
-                                             kMin_pXim, kMax_pXim);
-              AB_pXim1530.KillTheCat();
-
-//              TString HistpXiName = "hCk_ReweightedpXiMeV_0";
 
               TH1F* OliHisto_pXim = CATSinput->GetCF("pXi", HistpXiName.Data());
               if (!OliHisto_pXim)
@@ -290,16 +284,6 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               NULL);
               DLM_CkDecomposition CkDec_SideBand("pXiSideBand", 0, *Ck_SideBand,
               NULL);
-//              const double lam_pXim = Purities_p[vFrac_pXim_pXi1530][0]
-//                  * Fraction_p[vFrac_pXim_pXi1530][0] * Purities_Xim[0][0]
-//                  * Fraction_Xim[0][0];
-//              const double lam_pXim_pXim1530 = Purities_p[vFrac_pXim_pXi1530][0]
-//                  * Fraction_p[vFrac_pXim_pXi1530][0] * Purities_Xim[0][1]
-//                  * Fraction_Xim[0][1];
-//              const double lam_pXim_fake = Purities_p[vFrac_pXim_pXi1530][3]
-//                  * Purities_Xim[0][0]
-//                  + Purities_p[vFrac_pXim_pXi1530][0] * Purities_Xim[0][4]
-//                  + Purities_p[vFrac_pXim_pXi1530][3] * Purities_Xim[0][4];
               int vFrac_pp_pL = 1;
               const double lam_pXim = Purities_p[vFrac_pp_pL][0]
                   * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][0]
@@ -343,7 +327,6 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               } else {
                 fitter->FixParameter("pXim", DLM_Fitter1::p_a, p_a_prefit[0]);
                 fitter->FixParameter("pXim", DLM_Fitter1::p_b, p_b_prefit[0]);
-                ;
               }
               fitter->AddSameSource("pXim1530", "pXim", 1);
               fitter->AddSameSource("pXiSideBand", "pXim", 1);
@@ -783,37 +766,3 @@ int main(int argc, char *argv[]) {
   GetXiForRadius(atoi(argv[1]), argv[2], argv[3], argv[4]);
   return 0;
 }
-//
-//
-////Global Fit default
-//	//baseline
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_a, 1.06826);
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_b, 1.2624e-13);
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
-////	//gaussian radius
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
-////	//normalization
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -0.933815);
-//
-//	//Standalone Fit default
-//	//baseline
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_a, 1.05447);
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_b, 2.10185e-07);
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
-////	//gaussian radius
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
-////	//normalization
-////	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -0.933603);
-//
-//	//Fit BL & Normalization
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
-//
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_a, 1.);
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_b, 0);
-////	fitter->SetParameter("pXim", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
-////	fitter->SetParameter("pXim", DLM_Fitter1::p_b, 1e-4, 0, 2e-3);
-//
-////	fitter->SetParameter("pXim", DLM_Fitter1::p_Cl, -0.9, -1.2, -0.8);
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -1.);
-//
-//	fitter->FixParameter("pXim", DLM_Fitter1::p_sor0, GaussSourceSize);
