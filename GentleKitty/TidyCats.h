@@ -12,14 +12,25 @@
 
 class TidyCats {
  public:
+  enum Sources {
+    sGaussian,
+    sResonance,
+    sLevy
+  };
+  enum pXimPot {
+    pHALQCD,
+    pHaidenbauer,
+    pRikken
+  }
   TidyCats();
   virtual ~TidyCats();
   void GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin, double kMax,
-                           bool ResonanceSource = false);
+                           TidyCats::Sources source);
   void GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin, double kMax,
-                           bool ResonanceSource = false);
+                           TidyCats::Sources source);
   void GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
-                            double kMax, bool StrongOn, double QCDTime);
+                            double kMax, TidyCats::Sources source,
+                            TidyCats::pXimPot pot, double QCDTime);
   void GetCatsProtonXiMinusCutOff(CATS* AB_pXim, int momBins, double kMin,
                                   double kMax, bool StrongOn, double QCDTime,
                                   double cutOff);
