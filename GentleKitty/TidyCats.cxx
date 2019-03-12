@@ -10,6 +10,7 @@
 #include "TDatabasePDG.h"
 #include "CATStools.h"
 #include "DLM_Source.h"
+#include "DLM_WfModel.h"
 TidyCats::TidyCats() {
 }
 
@@ -18,7 +19,7 @@ TidyCats::~TidyCats() {
 }
 
 void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
-                                   double kMax, bool ResonanceSource) {
+                                   double kMax, TidyCats::Sources source) {
   const double Weight1S0 = 3. / 12.;
   const double Weight3P0 = 1. / 12.;
   const double Weight3P1 = 3. / 12.;
@@ -44,20 +45,37 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
 
   const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
-  if (ResonanceSource) {
-    double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
-    CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 6,
-                                               true);
-    double Pars_pp[6] = { 1.4, 1.65, 0.3578, 1361.52, massProton, massPion };
-    cPars->SetParameters(Pars_pp);
-    AB_pp->SetAnaSource(GaussExpTotIdenticalSimple_2body, *cPars);
-  } else {
-    CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1,
-                                               true);
-    cPars->SetParameter(0, 1.2);
-    AB_pp->SetAnaSource(GaussSource, *cPars);
+  double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
+  double Pars_pp[6] = { 1.4, 1.65, 0.3578, 1361.52, massProton, massPion };
+  CATSparameters* cPars;
+  static DLM_CleverLevy CleverLevy;
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      AB_pp->SetAnaSource(GaussSource, *cPars);
+      break;
+    case TidyCats::sResonance:
+      cPars = new CATSparameters(CATSparameters::tSource, 6, true);
+      cPars->SetParameters(Pars_pp);
+      AB_pp->SetAnaSource(GaussExpTotIdenticalSimple_2body, *cPars);
+      break;
+    case TidyCats::sLevy:
+      CleverLevy.InitStability(20, 1, 2);
+      CleverLevy.InitScale(35, 0.25, 2.0);
+      CleverLevy.InitRad(256, 0, 64);
+      CleverLevy.InitType(2);
+      //Nolan Parameterization.
+      AB_pp->SetAnaSource(CatsSourceForwarder, &CleverLevy, 2);
+      AB_pp->SetAnaSource(0, 1.2);  //r0
+      AB_pp->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
+      break;
+    default:
+      std::cout << "Source not implemented \n";
+      break;
   }
   AB_pp->SetUseAnalyticSource(true);
+  AB_pp->SetMomentumDependentSource(false);
   AB_pp->SetThetaDependentSource(false);
   AB_pp->SetExcludeFailedBins(false);
   AB_pp->SetMomBins(momBins, kMin, kMax);
@@ -81,45 +99,35 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
   AB_pp->SetShortRangePotential(1, 1, fDlmPot, *cPotPars3P0);
   AB_pp->SetShortRangePotential(2, 1, fDlmPot, *cPotPars3P1);
   AB_pp->SetShortRangePotential(3, 1, fDlmPot, *cPotPars3P2);
-  //this has to permanently exist.
-//  static DLM_CleverLevy CleverLevy;
-//  CleverLevy.InitStability(20, 1, 2);
-//  CleverLevy.InitScale(35, 0.25, 2.0);
-//  CleverLevy.InitRad(256, 0, 64);
-//  CleverLevy.InitType(2);
-//  //Nolan Parameterization.
-//  AB_pp->SetAnaSource(CatsSourceForwarder, &CleverLevy, 2);
-//  AB_pp->SetAnaSource(0, 1.2);//r0
-//  AB_pp->SetAnaSource(1, 1.6);//Stability alpha ( 1= Cauchy, ... 2 = Gauss)
-//  AB_pp->SetUseAnalyticSource(true);
-//
-//  AB_pp->SetMomentumDependentSource(false);
-//  AB_pp->SetThetaDependentSource(false);
-//  AB_pp->SetExcludeFailedBins(false);
 
   return;
 }
 
 void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
-                                   double kMax, bool ResonanceSource) {
+                                   double kMax, TidyCats::Sources source) {
 
   const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
   const double massLambda = TDatabasePDG::Instance()->GetParticle(3122)->Mass()
       * 1000;
-  if (ResonanceSource) {
-    double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
-    CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 11,
-                                               true);
-    double Pars_pL[11] = { 1.4, 1.65, 0.3578, 1361.52, massProton, massPion,
-        4.69, 0.3562, 1462.93, massLambda, massPion };
-    cPars->SetParameters(Pars_pL, true);
-    AB_pL->SetAnaSource(GaussExpTotSimple_2body, *cPars);
-  } else {
-    CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1,
-                                               true);
-    cPars->SetParameter(0, 1.2);
-    AB_pL->SetAnaSource(GaussSource, *cPars);
+  double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
+  double Pars_pL[11] = { 1.4, 1.65, 0.3578, 1361.52, massProton, massPion, 4.69,
+      0.3562, 1462.93, massLambda, massPion };
+  CATSparameters* cPars;
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      AB_pL->SetAnaSource(GaussSource, *cPars);
+      break;
+    case TidyCats::sResonance:
+      cPars = new CATSparameters(CATSparameters::tSource, 11, true);
+      cPars->SetParameters(Pars_pL, true);
+      AB_pL->SetAnaSource(GaussExpTotSimple_2body, *cPars);
+      break;
+    default:
+      std::cout << "Source not implemented \n";
+      break;
   }
   AB_pL->SetUseAnalyticSource(true);
   AB_pL->SetThetaDependentSource(false);
@@ -151,15 +159,25 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
 }
 
 void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
-                                    double kMax, bool StrongOn,
-                                    double QCDTime) {
-
+                                    double kMax, TidyCats::Sources source,
+                                    TidyCats::pXimPot pot, double QCDTime) {
   const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
   const double Mass_Xim = TDatabasePDG::Instance()->GetParticle(3312)->Mass()
       * 1000;
-  CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1, true);
-  cPars->SetParameter(0, 1.2);
+  CATSparameters* cPars = nullptr;
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      AB_pXim->SetAnaSource(GaussSource, *cPars);
+      break;
+    default:
+      std::cout << "Source not implemented \n";
+      break;
+  }
+//  CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+//  cPars->SetParameter(0, 1.2);
   AB_pXim->SetAnaSource(GaussSource, *cPars);
   AB_pXim->SetUseAnalyticSource(true);
   AB_pXim->SetThetaDependentSource(false);
@@ -186,7 +204,8 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
   AB_pXim->SetRedMass((Mass_p * Mass_Xim) / (Mass_p + Mass_Xim));
   AB_pXim->SetMaxRad(64);
   AB_pXim->SetMaxRho(32);
-  if (StrongOn) {
+  DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+  if (pot == pHALQCD) {
     double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
     double pXimPotParsI0S1[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1 };  // 9, 10, 11, 12
     double pXimPotParsI1S0[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0 };  //This is shit. Corresponds to 9-14 t
@@ -210,6 +229,14 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     AB_pXim->SetShortRangePotential(1, 0, fDlmPot, *cPotParsI0S1);
     AB_pXim->SetShortRangePotential(2, 0, fDlmPot, *cPotParsI1S0);
     AB_pXim->SetShortRangePotential(3, 0, fDlmPot, *cPotParsI1S1);
+  } else if (pot == pHaidenbauer) {
+    ExternalWF = Init_pXi_Haidenbauer(
+        "/home/schmollweger/cernbox/pXimWaveFunctions/", AB_pXim);
+//  } else if (pot == pRikken) {
+//    CATS Kitty;
+//    ExternalWF = Init_pXi_ESC16_IS(
+//        "/home/schmollweger/cernbox/pXimWaveFunctions/", Kitty);
+
   }
 
   return;
