@@ -75,7 +75,7 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
 // =========================================
 // Draw all systematic variations available
 void DrawSigma(const unsigned& NumIter, TString varFolder,
-               const bool& isExclusion, const float d0, const float REf0inv,
+               const int& potential, const float d0, const float REf0inv,
                const float IMf0inv) {
   bool batchmode = true;
 
@@ -84,7 +84,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
   TH1F* CF_Histo;
 
   TString graphfilename;
-  if (isExclusion) {
+  if (potential == 0) {
     graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
                                     varFolder.Data(), NumIter, d0, REf0inv,
                                     IMf0inv);
@@ -163,7 +163,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
   }
 
   if (!batchmode) {
-    if (isExclusion) {
+    if (potential == 0) {
       c1->Print(
           Form("%s/CF_pSigma_model_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
                REf0inv, IMf0inv));
@@ -171,7 +171,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
       c1->Print(Form("%s/CF_pSigma_model.pdf", varFolder.Data()));
     }
     CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
-    if (isExclusion) {
+    if (potential == 0) {
       c1->Print(
           Form("%s/CF_pSigma_model_zoom_%.3f_%.3f_%.3f.pdf", varFolder.Data(),
                d0, REf0inv, IMf0inv));
@@ -197,7 +197,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
 
   // in case we're running the exclusion task, we're interested in the best/worst chi2 for a given set of scattering parameters
   double bestChi2, defaultChi2, worstChi2;
-  if (isExclusion) {
+  if (potential == 0) {
     auto fitTuple = (TNtuple*) file->Get("fitResult");
 
     TString resultfilename = TString::Format("%s/Result_%.3f_%.3f_%.3f.root",
@@ -241,7 +241,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
   grSidebands->SetLineColorAlpha(kBlack, 0.0);
   TLatex BeamText;
   BeamText.SetNDC(kTRUE);
-  if (isExclusion) {
+  if (potential == 0) {
     BeamText.SetTextSize(0.8 * gStyle->GetTextSize());
     BeamText.DrawLatex(0.45, 0.8, TString::Format("d_{0} = %.3f fm", d0));
     BeamText.DrawLatex(
@@ -271,7 +271,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
   }
 
   if (!batchmode) {
-    if (isExclusion) {
+    if (potential == 0) {
       c->Print(
           Form("%s/CF_pSigma_fit_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
                REf0inv, IMf0inv));

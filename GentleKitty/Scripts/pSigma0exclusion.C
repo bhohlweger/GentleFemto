@@ -29,8 +29,8 @@ int main(int argc, char *argv[]) {
       f0invcurrent = f0invdef + f0inviter * stepSize;
 
       FitSigma0(allSyst, argv[1], argv[2], argv[3], argv[4], scattPar,
-                d0current, f0invcurrent, IMf0inv);
-      DrawSigma(allSyst, argv[1], scattPar, d0current, f0invcurrent, IMf0inv);
+                d0current, f0invcurrent, IMf0inv, "");
+      DrawSigma(allSyst, argv[3], scattPar, d0current, f0invcurrent, IMf0inv);
     }
   }
   return 0;
