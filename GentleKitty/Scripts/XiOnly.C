@@ -243,17 +243,16 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
 //              double Pars_pXi[6] = { 0, 0, 0, GaussSourceSize * 1.2,
 //                  GaussSourceSize / 1.2, 0.5 };
               CATS AB_pXim;
-              tidy->GetCatsProtonXiMinus(&AB_pXim,  NumMomBins_pXim,
-                                         kMin_pXim, kMax_pXim, true,
-                                         tQCDVars[tOut]);
+              tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin_pXim,
+                                         kMax_pXim, TidyCats::sGaussian,
+                                         TidyCats::pHALQCD, tQCDVars[tOut]);
               AB_pXim.KillTheCat();
 
 //              double Pars_pXim1530[6] = { 0, 0, 0, GaussSourceSize * 1.2,
 //                  GaussSourceSize / 1.2, 0.5 };
               CATS AB_pXim1530;
-              tidy->GetCatsProtonXiMinus1530(&AB_pXim1530,
-                                             NumMomBins_pXim, kMin_pXim,
-                                             kMax_pXim);
+              tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim,
+                                             kMin_pXim, kMax_pXim);
               AB_pXim1530.KillTheCat();
 
 //              TString HistpXiName = "hCk_ReweightedpXiMeV_0";
@@ -389,13 +388,13 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               for (int iBin = 0; iBin < StrongWithLambda->GetNbins(); ++iBin) {
                 SideBandStrongWithLambda.SetPoint(
                     iBin,
-                    StrongWithLambda->GetBinCenter(0,iBin),
+                    StrongWithLambda->GetBinCenter(0, iBin),
                     (StrongWithLambda->GetBinContent(iBin) + (1 - lam_pXim_fake)));
               }
               for (int iBin = 0; iBin < StrongWithOutLambda->GetNbins();
                   ++iBin) {
                 SideBandStrongWithOutLambda.SetPoint(
-                    iBin, StrongWithOutLambda->GetBinCenter(0,iBin),
+                    iBin, StrongWithOutLambda->GetBinCenter(0, iBin),
                     StrongWithOutLambda->GetBinContent(iBin));
               }
 
@@ -493,14 +492,14 @@ void GetXiForRadius(const unsigned& NumIter, TString InputDir, TString ppFile,
               for (int iBin = 0; iBin < CoulombWithLambda->GetNbins(); ++iBin) {
                 SideBandCoulombWithLambda.SetPoint(
                     iBin,
-                    CoulombWithLambda->GetBinCenter(0,iBin),
+                    CoulombWithLambda->GetBinCenter(0, iBin),
                     CoulombWithLambda->GetBinContent(iBin)
                         + (1 - lam_pXim_fake));
               }
               for (int iBin = 0; iBin < CoulombWithOutLambda->GetNbins();
                   ++iBin) {
                 SideBandCoulombWithOutLambda.SetPoint(
-                    iBin, CoulombWithOutLambda->GetBinCenter(0,iBin),
+                    iBin, CoulombWithOutLambda->GetBinCenter(0, iBin),
                     CoulombWithOutLambda->GetBinContent(iBin));
               }
 
