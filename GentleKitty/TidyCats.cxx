@@ -232,13 +232,22 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
   } else if (pot == pHaidenbauer) {
     ExternalWF = Init_pXi_Haidenbauer(
         "/home/schmollweger/cernbox/pXimWaveFunctions/", AB_pXim);
-//  } else if (pot == pRikken) {
-//    CATS Kitty;
-//    ExternalWF = Init_pXi_ESC16_IS(
-//        "/home/schmollweger/cernbox/pXimWaveFunctions/", Kitty);
-
+    for (unsigned uCh = 0; uCh < AB_pXim->GetNumChannels(); uCh++) {
+      AB_pXim->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
+                                    ExternalWF[1][uCh][0]);
+    }
+    CleanUpWfHisto(AB_pXim->GetNumChannels(),ExternalWF);
+  } else if (pot == pRikken) {
+    ExternalWF = Init_pXi_ESC16_IS(
+        "/home/schmollweger/cernbox/pXimWaveFunctions/", AB_pXim);
+    for (unsigned uCh = 0; uCh < AB_pXim->GetNumChannels(); uCh++) {
+      AB_pXim->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
+                                    ExternalWF[1][uCh][0]);
+    }
+    CleanUpWfHisto(AB_pXim->GetNumChannels(),ExternalWF);
+  } else {
+    std::cout << "no implemented potential called \n";
   }
-
   return;
 }
 
