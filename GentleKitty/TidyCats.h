@@ -21,7 +21,7 @@ class TidyCats {
     pHALQCD,
     pHaidenbauer,
     pRikken
-  }
+  };
   TidyCats();
   virtual ~TidyCats();
   void GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin, double kMax,
