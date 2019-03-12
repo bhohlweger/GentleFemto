@@ -238,9 +238,9 @@ void ForgivingFitter::ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin,
   histo->GetYaxis()->SetRangeUser(0, histo->GetMaximum() * 2.5);
   histo->GetXaxis()->SetTitle("#it{M}_{p#pi} (GeV/#it{c}^{2})");
   histo->GetXaxis()->SetNdivisions(310);
-  histo->GetXaxis()->SetMaxDigits(1);
+  //histo->GetXaxis()->SetMaxDigits(1);
   histo->GetYaxis()->SetNdivisions(310);
-  histo->GetYaxis()->SetMaxDigits(2);
+  //histo->GetYaxis()->SetMaxDigits(2);
   histo->DrawCopy();
   TH1F* hfp = (TH1F*) histo->Clone("hfp");
   TH1F* hfg = (TH1F*) histo->Clone("hfg");

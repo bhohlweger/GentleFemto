@@ -43,9 +43,9 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 }
 
 /// =====================================================================================
-void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
-               TString OutputDir, const bool& isExclusion, const float d0,
-               const float REf0inv, const float IMf0inv) {
+void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
+               TString suffix, TString OutputDir, const bool& isExclusion,
+               const float d0, const float REf0inv, const float IMf0inv) {
   bool batchmode = true;
 
   DreamPlot::SetStyle();
@@ -87,7 +87,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
   CATSinput->ReadResFile();
   CATSinput->SetSigmaFileName("Sample6_MeV_compact.root");
   CATSinput->ReadSigmaFile();
-  CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), appendix.Data());
+  CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
+                                       suffix.Data());
   CATSinput->ObtainCFs(10, 340, 440);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
   auto dataHist = CATSinput->GetCF("pSigma0", dataHistName.Data());
@@ -159,7 +160,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
   /// Fit the sideband
   auto side = new SidebandSigma();
   side->SetRebin(10);
-  side->SetSideBandFile(InputDir.Data(), appendix.Data());
+  side->SetSideBandFile(InputDir.Data(), trigger.Data(), suffix.Data());
 
   /// Prefit for the baseline
   auto Prefit = (TH1F*) dataHist->Clone(Form("%s_prefit", dataHist->GetName()));
@@ -410,21 +411,21 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString appendix,
 
             for (unsigned int i = 0; i < Ck_pSigma0->GetNbins(); ++i) {
               grCFSigmaRaw.SetPoint(
-                  i, Ck_pSigma0->GetBinCenter(i),
-                  CkDec_pSigma0.EvalCk(Ck_pSigma0->GetBinCenter(i)));
+                  i, Ck_pSigma0->GetBinCenter(0, i),
+                  CkDec_pSigma0.EvalCk(Ck_pSigma0->GetBinCenter(0, i)));
               grCFSigmaMain.SetPoint(
                   i,
-                  Ck_pSigma0->GetBinCenter(i),
-                  ((CkDec_pSigma0.EvalMain(Ck_pSigma0->GetBinCenter(i)) - 1.)
+                  Ck_pSigma0->GetBinCenter(0, i),
+                  ((CkDec_pSigma0.EvalMain(Ck_pSigma0->GetBinCenter(0, i)) - 1.)
                       * lambdaParams[lambdaIter].GetLambdaParam(
                           CATSLambdaParam::Primary)) + 1);
               grCFSigmaFeed.SetPoint(
-                  i, Ck_pSigma0->GetBinCenter(i),
-                  CkDec_pSigma0.EvalMainFeed(Ck_pSigma0->GetBinCenter(i)));
+                  i, Ck_pSigma0->GetBinCenter(0, i),
+                  CkDec_pSigma0.EvalMainFeed(Ck_pSigma0->GetBinCenter(0, i)));
               grCFSigmaSideband.SetPoint(
                   i,
-                  Ck_pSigma0->GetBinCenter(i),
-                  ((Ck_SideBand->Eval(Ck_pSigma0->GetBinCenter(i)) - 1.)
+                  Ck_pSigma0->GetBinCenter(0, i),
+                  ((Ck_SideBand->Eval(Ck_pSigma0->GetBinCenter(0, i)) - 1.)
                       * lambdaParams[lambdaIter].GetLambdaParam(
                           CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0))
                       + 1);

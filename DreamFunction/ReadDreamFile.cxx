@@ -68,20 +68,6 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
   TList *Results;
   dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
   ExtractResults(Results);
-  _file0->Close();
-}
-
-void ReadDreamFile::SetSigmaAnalysisFile(const char* PathAnalysisFile,
-                                         const char* suffix) {
-  auto file = TFile::Open(PathAnalysisFile);
-  TString name = "Sigma0_Femto_";
-  name += suffix;
-  TDirectory *dir = file->GetDirectory(name);
-  name = "femto_";
-  name += suffix;
-  auto histoList = (TList *) dir->Get(name);
-  auto Results = (TList*) histoList->FindObject("Results");
-  ExtractResults(Results);
   TIter next(Results);
   TObject *obj = nullptr;
   while (obj = next()) {
@@ -90,10 +76,9 @@ void ReadDreamFile::SetSigmaAnalysisFile(const char* PathAnalysisFile,
       list->Delete();
   }
   Results->Delete();
-  histoList->Delete();
-  dir->Close();
-  file->Close();
-  delete file;
+  dirResults->Close();
+  _file0->Close();
+  delete _file0;
 }
 
 void ReadDreamFile::ExtractResults(const TList *Results) {

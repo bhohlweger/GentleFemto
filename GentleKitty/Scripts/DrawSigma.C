@@ -74,9 +74,9 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
 
 // =========================================
 // Draw all systematic variations available
-void DrawSigma(const unsigned& NumIter, TString InputDir, TString appendix,
-               TString varFolder, const bool& isExclusion, const float d0,
-               const float REf0inv, const float IMf0inv) {
+void DrawSigma(const unsigned& NumIter, TString varFolder,
+               const bool& isExclusion, const float d0, const float REf0inv,
+               const float IMf0inv) {
   bool batchmode = true;
 
   DreamPlot::SetStyle();
