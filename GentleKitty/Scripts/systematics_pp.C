@@ -38,15 +38,16 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   if (!sysVarTree) {
     std::cout << "no Tree loaded\n";
   }
-  const float histRangeLow = (system == 0) ? 1.25 : 1.1;
-  const float histRangeUp = (system == 0) ? 1.45 : 1.3;
-  std::cout << "histRangeLow: " << histRangeLow << '\t' << "histRangeUp: " << histRangeUp << std::endl;
+  const float histRangeLow = (system == 0) ? 1.29 : 1.1;
+  const float histRangeUp = (system == 0) ? 1.35 : 1.3;
+  std::cout << "histRangeLow: " << histRangeLow << '\t' << "histRangeUp: "
+            << histRangeUp << std::endl;
 //  const int nBins = (system == 0) ? 1000 : 500;
-  const int nBins = 200;
+  const int nBins = 100;
   auto histRad = new TH1D("hRad", "hRad", nBins, histRangeLow, histRangeUp);
   auto histRadIter = new TH2D("hRadIter", "hRadIter", nBins, histRangeLow,
-                              histRangeUp, 120, 0, 120);
-  sysVarTree->Draw("Radius_pp>>hRad", "Chi2NdfGlobal<6");
+                              histRangeUp, 360, 0, 360);
+  sysVarTree->Draw("Radius_pp>>hRad");
   auto mean = histRad->GetMean();
 
   int n = histRad->GetXaxis()->GetNbins();
@@ -85,7 +86,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   }
   auto radMin = histRadCumulative->GetXaxis()->GetBinCenter(binMin);
   auto radMax = histRadCumulative->GetXaxis()->GetBinCenter(binMax);
-
+  std::cout << "RadMin: " << radMin << "\tRadMax: " << radMax << '\n';
   canRad->cd(3);
   sysVarTree->Draw("IterID:Radius_pp>>hRadIter");
   canRad->cd(4);
@@ -139,6 +140,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   }
   TGraph* FileGrDefault_pp = (TGraph*) fileMean->Get(
       Form("FitResult_pp_%u", uIterMean));
+//  auto CkDef = (TH1F*)fileMean->Get("");
   TGraph GrDefault_pp(*FileGrDefault_pp);
   GrDefault_pp.SetName("ppGraphDefault");
   outFile->cd();
@@ -186,6 +188,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   float rDefault_pp;
   float rErr_pp;
   float pa_pp, pb_pp;
+  float iNorm;
 
   sysVarTree->SetBranchAddress("IterID", &uIterIDDefault);
   sysVarTree->SetBranchAddress("vFemReg_pp", &vFemReg_pp);
@@ -199,11 +202,13 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   sysVarTree->SetBranchAddress("RadiusErr_pp", &rErr_pp);
   sysVarTree->SetBranchAddress("pa_pp", &pa_pp);
   sysVarTree->SetBranchAddress("pb_pp", &pb_pp);
+  sysVarTree->SetBranchAddress("pb_pp", &pb_pp);
+//  sysVarTree->SetBranchAddress("iNorm", &iNorm);
 
   for (int iEntry = 0; iEntry < sysVarTree->GetEntries(); iEntry++) {
     sysVarTree->GetEntry(iEntry);
     if (vFemReg_pp == 1 && vFrac_pp_pL == 1 && vFrac_pL_pSigma0 == 1
-        && vFrac_pL_pXim == 1 && vModpL == 1
+        && vFrac_pL_pXim == 1 && vModpL == 2
         && HaveWeABaseLine == (int) false) {
       break;
     }
@@ -219,10 +224,10 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
           rErr_pp * rErr_pp + (0.2 * rDefault_pp) * (0.2 * rDefault_pp)
               + errLow * errLow);
   float rUp = rDefault_pp + TMath::Sqrt(rErr_pp * rErr_pp + errLow * errLow);
-  std::cout << "Default radius\t" << rDefault_pp << "\nStat. Error\t"
-            << rErr_pp << "\nSyst. Error low\t" << errLow
-            << "\nSyst. Error up\t" << errUp << "\nLower radius\t" << rLower
-            << "\nUpper radius\t" << rUp << '\n';
+  std::cout << "Default radius\t" << rDefault_pp << "\nStat. Error\t" << rErr_pp
+            << "\nSyst. Error low\t" << errLow << "\nSyst. Error up\t" << errUp
+            << "\nLower radius\t" << rLower << "\nUpper radius\t" << rUp
+            << '\n';
   TNtuple* outTuple = new TNtuple(
       "outTuple", "outTuple",
       "Rad_pp:RadStat_pp:RadSysLow_pp:RadSysUp_pp:RadLow_pXi:RadUp_pXi");
@@ -239,7 +244,8 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
 
   std::ofstream radiusOut;
   radiusOut.open(Form("%s/radius.dat", OutDirName));
-  radiusOut << rDefault_pp << " " << rErr_pp << " " << errLow << " " << errUp << "\n";
+  radiusOut << rDefault_pp << " " << rErr_pp << " " << errLow << " " << errUp
+            << "\n";
   radiusOut.close();
 
   std::ofstream baseline;
@@ -251,27 +257,29 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   histRad->Rebin(2);
   histRad->Draw();
 
-  auto histRadLimits = (TH1F*)histRad->Clone("histRadLimits");
+  auto histRadLimits = (TH1F*) histRad->Clone("histRadLimits");
   histRadLimits->Reset();
-  for(int i = 0; i<histRad->GetNbinsX(); ++i) {
-    if(histRad->GetBinCenter(i) < radMin || histRad->GetBinCenter(i) > radMax) continue;
+  for (int i = 0; i < histRad->GetNbinsX(); ++i) {
+    if (histRad->GetBinCenter(i) < radMin || histRad->GetBinCenter(i) > radMax)
+      continue;
     histRadLimits->SetBinContent(i, histRad->GetBinContent(i));
   }
-  histRadLimits->SetFillColor(kGray+1);
+  histRadLimits->SetFillColor(kGray + 1);
   histRadLimits->Draw("same");
 
-  auto lineDefault = new TLine(rDefault_pp, 0, rDefault_pp, histRad->GetMaximum());
-  lineDefault->SetLineColor(kRed+2);
+  auto lineDefault = new TLine(rDefault_pp, 0, rDefault_pp,
+                               histRad->GetMaximum());
+  lineDefault->SetLineColor(kRed + 2);
   lineDefault->SetLineWidth(2);
   lineDefault->Draw("same");
 
   auto lineLow = new TLine(radMin, 0, radMin, histRad->GetMaximum());
-  lineLow->SetLineColor(kGreen+2);
+  lineLow->SetLineColor(kGreen + 2);
   lineLow->SetLineWidth(2);
   lineLow->Draw("same");
 
   auto lineUp = new TLine(radMax, 0, radMax, histRad->GetMaximum());
-  lineUp->SetLineColor(kGreen+2);
+  lineUp->SetLineColor(kGreen + 2);
   lineUp->SetLineWidth(2);
   lineUp->Draw("same");
 
