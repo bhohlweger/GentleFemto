@@ -1,6 +1,7 @@
 #include "DLM_Source.h"
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
+#include "DLM_WfModel.h"
 #include "CATS.h"
 #include "DLM_CkDecomposition.h"
 #include "DLM_Fitters.h"
@@ -44,8 +45,9 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 
 /// =====================================================================================
 void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
-               TString suffix, TString OutputDir, const bool& isExclusion,
-               const float d0, const float REf0inv, const float IMf0inv) {
+               TString suffix, TString OutputDir, const int potential,
+               const float d0, const float REf0inv, const float IMf0inv,
+               TString pathToWF) {
   bool batchmode = true;
 
   DreamPlot::SetStyle();
@@ -67,7 +69,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   bool useBaseline = true;
 
   TString graphfilename;
-  if (isExclusion) {
+  if (potential == 0) {
     graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
                                     OutputDir.Data(), NumIter, d0, REf0inv,
                                     IMf0inv);
@@ -211,17 +213,39 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 
   // Set up the model, fitter, etc.
   DLM_Ck* Ck_pSigma0;
+  CATS AB_pSigma0;
 
-  if (isExclusion) {
-    Ck_pSigma0 = new DLM_Ck(1, 3, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
-                            ComplexLednicky_Singlet_InvScatLen);
+  if (potential == 0) {  //  Effective Lednicky with scattering parameters
     std::cout << "Running with scattering parameters - d0 = " << d0
               << " fm - Re(f0^-1) = " << REf0inv << " fm^-1 - Im(f0^-1) = "
               << IMf0inv << "\n";
-  } else {
+    Ck_pSigma0 = new DLM_Ck(1, 3, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
+                            ComplexLednicky_Singlet_InvScatLen);
+  } else if (potential == 1) {  // Lednicky coupled channel model fss2
+    std::cout << "Running with coupled Lednicky \n";
     Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             Lednicky_gauss_Sigma0);
-    std::cout << "Running with modelled potential \n";
+  } else if (potential == 2) {  // Haidenbauer WF
+    std::cout << "Running with the Haidenbauer chiEFT potential \n";
+
+    AB_pSigma0.SetMomBins(NumMomBins_pSigma, kMin_pSigma, kMax_pSigma);
+    CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1,
+                                               true);
+    cPars->SetParameter(0, ppRadius);
+    AB_pSigma0.SetAnaSource(GaussSource, *cPars);
+    AB_pSigma0.SetUseAnalyticSource(true);
+    AB_pSigma0.SetMomentumDependentSource(false);
+    AB_pSigma0.SetThetaDependentSource(false);
+    AB_pSigma0.SetExcludeFailedBins(false);
+    DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+    ExternalWF = Init_pSigma0_Haidenbauer(pathToWF, AB_pSigma0);
+    for (unsigned uCh = 0; uCh < AB_pSigma0.GetNumChannels(); uCh++) {
+      AB_pSigma0.SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
+                                         ExternalWF[1][uCh][0]);
+    }
+    AB_pSigma0.KillTheCat();
+    Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
+    CleanUpWfHisto(AB_pSigma0.GetNumChannels(), ExternalWF);
   }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -318,7 +342,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             fitter->FixParameter("pSigma0", DLM_Fitter1::p_sor0,
                                  sourceSize[sizeIter]);
 
-            if (isExclusion) {
+            if (potential == 0) {
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, REf0inv);
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, IMf0inv);
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, d0);
@@ -508,7 +532,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
               info->Draw("same");
               c->Write("CFplot");
               if (!batchmode) {
-                if (isExclusion) {
+                if (potential == 0) {
                   c->Print(
                       Form("%s/CF_pSigma0_%.3f_%.3f_%.3f.pdf", OutputDir.Data(),
                            d0, REf0inv, IMf0inv));
