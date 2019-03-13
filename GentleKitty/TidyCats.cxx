@@ -199,7 +199,8 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
   AB_pXim->SetChannelWeight(2, 1. / 8.);
   AB_pXim->SetChannelWeight(3, 3. / 8.);
   AB_pXim->SetQ1Q2(-1);
-  AB_pXim->SetPdgId(2212, 3122);  //same as Lambda, in case we want to use EPOS pL source
+//  AB_pXim->SetGamow(true);
+  AB_pXim->SetPdgId(2212, 3312);
 
   AB_pXim->SetRedMass((Mass_p * Mass_Xim) / (Mass_p + Mass_Xim));
   AB_pXim->SetMaxRad(64);
