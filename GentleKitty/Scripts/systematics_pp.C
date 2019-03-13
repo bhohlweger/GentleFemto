@@ -223,7 +223,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
       - TMath::Sqrt(
           rErr_pp * rErr_pp + (0.2 * rDefault_pp) * (0.2 * rDefault_pp)
               + errLow * errLow);
-  float rUp = rDefault_pp + TMath::Sqrt(rErr_pp * rErr_pp + errLow * errLow);
+  float rUp = rDefault_pp + TMath::Sqrt(rErr_pp * rErr_pp + errUp * errUp);
   std::cout << "Default radius\t" << rDefault_pp << "\nStat. Error\t" << rErr_pp
             << "\nSyst. Error low\t" << errLow << "\nSyst. Error up\t" << errUp
             << "\nLower radius\t" << rLower << "\nUpper radius\t" << rUp
