@@ -219,7 +219,11 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
 
   SideBandFit* side = new SideBandFit();
   side->SetRebin(rebin);
-  side->SetSideBandFile("~/cernbox/pPb/Sidebands", "42", "43");
+  if (system==0) {
+    side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
+  }else if (system == 2) {
+    side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
+  }
   int uIter = 1;
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   TString InputFile = TString::Format("%s/AnalysisResults.root",

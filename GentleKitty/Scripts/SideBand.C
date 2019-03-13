@@ -5,7 +5,7 @@
 int main(int argc, char *argv[]) {
   SideBandFit* side = new SideBandFit();
   side->SetRebin(5);
-  side->SetSideBandFile("/home/hohlweger/cernbox/pPb/Sidebands", "42", "43");
+  side->SetSideBandFile("/home/hohlweger/cernbox/pPb/Sidebands", "MB","42", "43");
 
   side->SetNormalizationRange(400, 600);
   side->SideBandCFs(true);

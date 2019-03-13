@@ -27,19 +27,22 @@ SideBandFit::~SideBandFit() {
 //    delete it;
   }
 
-  if (fAnalysisFileUp) delete fAnalysisFileUp;
-  if (fAnalysisFileDown) delete fAnalysisFileDown;
+  if (fAnalysisFileUp)
+    delete fAnalysisFileUp;
+  if (fAnalysisFileDown)
+    delete fAnalysisFileDown;
 }
 
-void SideBandFit::SetSideBandFile(const char* path, const char* suffixUp,
+void SideBandFit::SetSideBandFile(const char* path, const char* prefix,
+                                  const char* suffixUp,
                                   const char* suffixDown) {
 
   TString filename = Form("%s/AnalysisResults.root", path);
   fAnalysisFileUp = new ReadDreamFile(6, 6);
-  fAnalysisFileUp->SetAnalysisFile(filename.Data(), "MB", suffixUp);
+  fAnalysisFileUp->SetAnalysisFile(filename.Data(), prefix, suffixUp);
 
   fAnalysisFileDown = new ReadDreamFile(6, 6);
-  fAnalysisFileDown->SetAnalysisFile(filename.Data(), "MB", suffixDown);
+  fAnalysisFileDown->SetAnalysisFile(filename.Data(), prefix, suffixDown);
 }
 
 void SideBandFit::SideBandCFs(bool doQA) {
@@ -136,7 +139,7 @@ void SideBandFit::SideBandCFs(bool doQA) {
     TH1F* SideBandRatio;
     for (auto it : fSideBandCFs) {
       if (it->GetName() == TString("SideBandSumUpMeV")) {
-        SideBandRatio = (TH1F*)it->Clone("RatioSideBandMeV");
+        SideBandRatio = (TH1F*) it->Clone("RatioSideBandMeV");
       }
       if (it->GetName() == TString("SideBandSumDownMeV")) {
         SideBandRatio->Divide(it);
@@ -261,7 +264,7 @@ void SideBandFit::WriteOutput(const char* outputPath) {
   output->cd();
 
   std::vector<const char*> sideNames = { "SideUp", "AntiSideUp", "SideDown",
-      "AntiSideDown" , "SumSideDown" , "SumSideUp" };
+      "AntiSideDown", "SumSideDown", "SumSideUp" };
   unsigned int iOut = 0;
   for (auto it : fSideBands) {
     TList *outlist = new TList();
