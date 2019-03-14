@@ -38,12 +38,12 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   if (!sysVarTree) {
     std::cout << "no Tree loaded\n";
   }
-  const float histRangeLow = (system == 0) ? 1.29 : 1.1;
-  const float histRangeUp = (system == 0) ? 1.35 : 1.3;
+  const float histRangeLow = (system == 0) ? 1.25 : 1.1;
+  const float histRangeUp = (system == 0) ? 1.5 : 1.3;
   std::cout << "histRangeLow: " << histRangeLow << '\t' << "histRangeUp: "
             << histRangeUp << std::endl;
 //  const int nBins = (system == 0) ? 1000 : 500;
-  const int nBins = 100;
+  const int nBins = 400;
   auto histRad = new TH1D("hRad", "hRad", nBins, histRangeLow, histRangeUp);
   auto histRadIter = new TH2D("hRadIter", "hRadIter", nBins, histRangeLow,
                               histRangeUp, 360, 0, 360);
@@ -224,6 +224,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
           rErr_pp * rErr_pp + (0.2 * rDefault_pp) * (0.2 * rDefault_pp)
               + errLow * errLow);
   float rUp = rDefault_pp + TMath::Sqrt(rErr_pp * rErr_pp + errUp * errUp);
+//  float rUp = rDefault_pp + TMath::Sqrt(rErr_pp * rErr_pp + errLow * errLow);
   std::cout << "Default radius\t" << rDefault_pp << "\nStat. Error\t" << rErr_pp
             << "\nSyst. Error low\t" << errLow << "\nSyst. Error up\t" << errUp
             << "\nLower radius\t" << rLower << "\nUpper radius\t" << rUp
