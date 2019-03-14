@@ -18,6 +18,7 @@ class TidyCats {
     sLevy
   };
   enum pXimPot {
+    pCoulomb,
     pHALQCD,
     pHaidenbauer,
     pRikken
