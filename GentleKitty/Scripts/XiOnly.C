@@ -20,8 +20,8 @@
 #include "CATSInput.h"
 #include "SideBandFit.h"
 #include "TMinuit.h"
-void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
-                    TString ppFile, TString OutputDir) {
+void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
+                    TString InputDir, TString ppFile, TString OutputDir) {
   bool FAST_PLOT = true;
 
   double BlRegion[2];
@@ -144,10 +144,15 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
   CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
   CATSinput->ReadResFile();
   std::cout << "Read Resolution File \n";
-
-
-  const int binwidth = 16;
-  const int rebin = 4;
+//  TidyCats::pXimPot pot = TidyCats::pCoulomb;
+  TidyCats::pXimPot pot;
+  if (iPot == 0) {
+    pot = TidyCats::pCoulomb;
+  } else if (iPot == 1){
+    pot = TidyCats::pHALQCD;
+  }
+  const int binwidth = 20;
+  const int rebin = 5;
   const unsigned NumMomBins_pXim = 30;
 
   double kMinXiP;
@@ -155,7 +160,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
   const char *prefix;
   if (system == 0) {
     CATSinput->SetSigmaFileName("Sample3_MeV_compact.root");
-    CATSinput->SetFixedkStarMinBin(true, 0.008);
+//    CATSinput->SetFixedkStarMinBin(true, 0.008);
     kMinXiP = 8.;
     prefix = "MB";
   } else if (system == 1) {
@@ -197,16 +202,13 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
                       "CutVarAdd", NumIter),
       "recreate");
   //you save a lot of stuff in an NTuple
-  TNtuple* ntResult = new TNtuple(
-      "ntResult", "ntResult", "IterID:vFemReg_pXim:vFrac_pXim_pXi1530:"
-      "tOut:ppRadius:varSideNorm:BLSlope:"
-      "p_a:p_a_err:p_b:p_b_err:"
-      "Chi2NdfGlobal:Chi2NdfLocal:pval:sigma:"
-      "p_a_coulomb:p_a_err_coulomb:p_b_coulomb:p_b_err_coulomb"
-      ":Chi2NdfGlobal_coulomb:Chi2NdfLocal_coulomb:"
-      "pval_coulomb:sigma_coulomb");
+  TNtuple* ntResult = new TNtuple("ntResult", "ntResult",
+                                  "IterID:vFemReg_pXim:vFrac_pXim_pXi1530:"
+                                  "tOut:ppRadius:varSideNorm:BLSlope:"
+                                  "p_a:p_a_err:p_b:p_b_err:"
+                                  "Chi2NdfGlobal:Chi2NdfLocal:pval:sigma");
 
-  Float_t ntBuffer[23];
+  Float_t ntBuffer[15];
 
   int vFemReg_pXim;  //which femto region we use for pXim (1 = default)
   int vFrac_pXim_pXi1530;
@@ -219,11 +221,12 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
 
   SideBandFit* side = new SideBandFit();
   side->SetRebin(rebin);
-  if (system==0) {
+  if (system == 0) {
     side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
-  }else if (system == 2) {
+  } else if (system == 2) {
     side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
   }
+
   int uIter = 1;
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   TString InputFile = TString::Format("%s/AnalysisResults.root",
@@ -236,7 +239,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
   DreamCF* CFpXiPrefix = CATSinput->ObtainCFSyst(rebin, "pXiPrefit", pXiPrefit,
                                                  ApAXiPrefit);
   TString HistpXiDefaultName = "hCk_ReweightedpXiPrefitMeV_1";
-  TH1F* Prefit = CFpXiPrefix->FindCorrelationFunction(HistpXiDefaultName.Data());
+  TH1F* Prefit = CFpXiPrefix->FindCorrelationFunction(
+      HistpXiDefaultName.Data());
 
   float p_a_prefit[4];
   float p_b_prefit[4];
@@ -277,10 +281,15 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim, kMin_pXim,
                                  kMax_pXim);
   AB_pXim1530.KillTheCat();
-  for (tOut = 0; tOut < 3; ++tOut) {
+  int tOutVars = 0;
+  if (pot == TidyCats::pHALQCD) {
+    tOutVars = 3;
+  } else {
+    tOutVars = 1;
+  }
+  for (tOut = 0; tOut < tOutVars; ++tOut) {
     tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin_pXim, kMax_pXim,
-                               TidyCats::sGaussian, TidyCats::pHALQCD,
-                               tQCDVars[tOut]);
+                               TidyCats::sGaussian, pot, tQCDVars[tOut]);
     AB_pXim.KillTheCat();
     for (vFemReg_pXim = 0; vFemReg_pXim < 3; ++vFemReg_pXim) {
       for (vFrac_pXim_pXi1530 = 0; vFrac_pXim_pXi1530 < 3;
@@ -310,10 +319,10 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
               double SideBandPars[4];
               side->FitSideBands(fitme, SideBandPars);
 
-              std::cout << "Actual Data \n";
               DreamDist* pXi = DreamFile->GetPairDistributions(0, 4, "");
               DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 5, "");
-              DreamCF* CFpXi = CATSinput->ObtainCFSyst(rebin, "pXi", pXi, ApAXi);
+              DreamCF* CFpXi = CATSinput->ObtainCFSyst(rebin, "pXi", pXi,
+                                                       ApAXi);
 
               TString HistpXiName = "hCk_ReweightedpXiMeV_1";
               TH1F* OliHisto_pXim = CFpXi->FindCorrelationFunction(
@@ -326,7 +335,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
               TH1F *OliHisto_pXimFornSigma = nullptr;
               OliHisto_pXimFornSigma = (TH1F*) OliHisto_pXim->Clone(
                   "pXiForNSigma");
-//              CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim);
+              CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim);
 
               const unsigned NumSourcePars = 1;
               DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
@@ -479,6 +488,10 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
                 }
                 dataY = OliHisto_pXimFornSigma->GetBinContent(uBin + 1);
                 dataErr = OliHisto_pXimFornSigma->GetBinError(uBin + 1);
+//                std::cout << mom << '\t' << theoryX << std::endl;
+//                std::cout << "theoryY: " << theoryY << '\t' << "dataY: "
+//                          << dataY << std::endl;
+//                std::cout << "dataErr: " << dataErr << std::endl;
                 Chi2_pXim += (dataY - theoryY) * (dataY - theoryY)
                     / (dataErr * dataErr);
                 EffNumBins_pXim++;
@@ -496,107 +509,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
               EffNumBins_pXim--;
               EffNumBins_pXim_kSm60--;
               EffNumBins_pXim_exclPeak--;
-              //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-              //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-              //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-              //++++++++++++++++Colomb Only++++++++++++++++++++++++++++++++
-              //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-              //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-              //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-              printf("AB_pXim[0] = %.2f\n", AB_pXim.GetCorrFun(0));
-              AB_pXim.RemoveShortRangePotential(0, 0);
-              AB_pXim.RemoveShortRangePotential(1, 0);
-              AB_pXim.RemoveShortRangePotential(2, 0);
-              AB_pXim.RemoveShortRangePotential(3, 0);
-              AB_pXim.KillTheCat(CATS::kPotentialChanged);
-              printf("NEW AB_pXim[0] = %.2f\n", AB_pXim.GetCorrFun(0));
-
-              CkDec_pXim.Update(true);
-              fitter->GoBabyGo();
-
-              TGraph FitResult_pXim_COULOMB;
-              FitResult_pXim_COULOMB.SetName(
-                  TString::Format("pXimGraph_COULOMB"));
-              fitter->GetFitGraph(0, FitResult_pXim_COULOMB);
-              double p_a_coulomb = fitter->GetParameter("pXim",
-                                                        DLM_Fitter1::p_a);
-              double p_a_coulomb_err = fitter->GetParError("pXim",
-                                                           DLM_Fitter1::p_a);
-              double p_b_coulomb = fitter->GetParameter("pXim",
-                                                        DLM_Fitter1::p_b);
-              double p_b_coulomb_err = fitter->GetParError("pXim",
-                                                           DLM_Fitter1::p_b);
-              double Cl_coulomb = fitter->GetParameter("pXim",
-                                                       DLM_Fitter1::p_c);
-              double ChiSqCoulombGlobal = fitter->GetChi2Ndf();
-              double pValCoulombGlobal = fitter->GetPval();
-              std::cout << "paCoulomb = " << p_a_coulomb << " pm "
-                        << p_a_coulomb_err << std::endl;
-              std::cout << "pbCoulomb = " << p_b_coulomb << " pm "
-                        << p_b_coulomb_err << std::endl;
-              TGraph SideBandCoulombWithLambda;
-              TGraph SideBandCoulombWithOutLambda;
-              DLM_Histo<double>* CoulombWithLambda = CkDec_pXim
-                  .GetChildContribution("pXiSideBand", true);
-              DLM_Histo<double>* CoulombWithOutLambda = CkDec_pXim
-                  .GetChildContribution("pXiSideBand", false);
-              for (int iBin = 0; iBin < CoulombWithLambda->GetNbins(); ++iBin) {
-                SideBandCoulombWithLambda.SetPoint(
-                    iBin,
-                    CoulombWithLambda->GetBinCenter(0, iBin),
-                    CoulombWithLambda->GetBinContent(iBin)
-                        + (1 - lam_pXim_fake));
-              }
-              for (int iBin = 0; iBin < CoulombWithOutLambda->GetNbins();
-                  ++iBin) {
-                SideBandCoulombWithOutLambda.SetPoint(
-                    iBin, CoulombWithOutLambda->GetBinCenter(0, iBin),
-                    CoulombWithOutLambda->GetBinContent(iBin));
-              }
-
-              double Chi2_pXim_COULOMB = 0;
-              unsigned EffNumBins_pXim_COULOMB = 0;
-              double Chi2_pXim_COULOMB_exclPeak = 0;
-              unsigned EffNumBins_pXim_COULOMB_exclPeak = 0;
-              double Chi2_pXim_COULOMB_kSm60 = 0;
-              unsigned EffNumBins_pXim_COULOMB_kSm60 = 0;
-
-              for (unsigned uBin = 0; uBin < maxkStarBin; uBin++) {
-
-                double mom = AB_pXim.GetMomentum(uBin);
-                double dataY;
-                double dataErr;
-                double theoryX;
-                double theoryY;
-
-                if (mom > FemtoRegion_pXim[vFemReg_pXim][1])
-                  continue;
-                FitResult_pXim_COULOMB.GetPoint(uBin, theoryX, theoryY);
-                if (mom != theoryX) {
-                  std::cout << mom << '\t' << theoryX << std::endl;
-                  printf("  PROBLEM pXi!\n");
-                }
-                dataY = OliHisto_pXimFornSigma->GetBinContent(uBin + 1);
-                dataErr = OliHisto_pXimFornSigma->GetBinError(uBin + 1);
-
-                Chi2_pXim_COULOMB += (dataY - theoryY) * (dataY - theoryY)
-                    / (dataErr * dataErr);
-                EffNumBins_pXim_COULOMB++;
-                if (mom < 60) {
-                  Chi2_pXim_COULOMB_kSm60 += (dataY - theoryY)
-                      * (dataY - theoryY) / (dataErr * dataErr);
-                  EffNumBins_pXim_COULOMB_kSm60++;
-                }
-                if (!(mom > 60 && mom < 100)) {
-                  Chi2_pXim_COULOMB_exclPeak += (dataY - theoryY)
-                      * (dataY - theoryY) / (dataErr * dataErr);
-                  EffNumBins_pXim_COULOMB_exclPeak++;
-                }
-              }
-              EffNumBins_pXim_COULOMB--;
-              EffNumBins_pXim_COULOMB_kSm60--;
-              EffNumBins_pXim_COULOMB_exclPeak--;
 
               double pvalXi = TMath::Prob(Chi2_pXim, round(EffNumBins_pXim));
               double nSigmaXi = TMath::Sqrt(2) * TMath::ErfcInverse(pvalXi);
@@ -610,23 +522,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
                   Chi2_pXim_exclPeak, round(EffNumBins_pXim_exclPeak));
               double nSigmaXi_exclPeak = TMath::Sqrt(2)
                   * TMath::ErfcInverse(pvalXi_exclPeak);
-
-              double pvalXiCoulomb = TMath::Prob(
-                  Chi2_pXim_COULOMB, round(EffNumBins_pXim_COULOMB));
-              double nSigmaXiCoulomb = TMath::Sqrt(2)
-                  * TMath::ErfcInverse(pvalXiCoulomb);
-
-              double pvalXiCoulomb_kSm60 = TMath::Prob(
-                  Chi2_pXim_COULOMB_kSm60,
-                  round(EffNumBins_pXim_COULOMB_kSm60));
-              double nSigmaXiCoulomb_kSm60 = TMath::Sqrt(2)
-                  * TMath::ErfcInverse(pvalXiCoulomb_kSm60);
-
-              double pvalXiCoulomb_exclPeak = TMath::Prob(
-                  Chi2_pXim_COULOMB_exclPeak,
-                  round(EffNumBins_pXim_COULOMB_exclPeak));
-              double nSigmaXiCoulomb_exclPeak = TMath::Sqrt(2)
-                  * TMath::ErfcInverse(pvalXiCoulomb_exclPeak);
 
               ntBuffer[0] = uIter;
               ntBuffer[1] = vFemReg_pXim;
@@ -643,14 +538,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
               ntBuffer[12] = Chi2_pXim / double(EffNumBins_pXim);
               ntBuffer[13] = pvalXi;
               ntBuffer[14] = nSigmaXi;
-              ntBuffer[15] = p_a_coulomb;
-              ntBuffer[16] = p_a_coulomb_err;
-              ntBuffer[17] = p_b_coulomb;
-              ntBuffer[18] = p_b_coulomb_err;
-              ntBuffer[19] = ChiSqCoulombGlobal;
-              ntBuffer[20] = Chi2_pXim_COULOMB / double(EffNumBins_pXim);
-              ntBuffer[21] = pvalXiCoulomb;
-              ntBuffer[22] = nSigmaXiCoulomb;
               ntResult->Fill(ntBuffer);
 
               TString outFileName = TString::Format(
@@ -659,7 +546,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
               TFile* file = TFile::Open(outFileName.Data(), "RECREATE");
               file->cd();
               OliHisto_pXimFornSigma->Write();
-              FitResult_pXim_COULOMB.Write();
               FitResult_pXim.Write();
               //we need to add the side band stuff here
               SideBandStrongWithLambda.SetName("SideBandStrongWithLambda");
@@ -667,13 +553,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
               SideBandStrongWithOutLambda.SetName(
                   "SideBandStrongWithOutLambda");
               SideBandStrongWithOutLambda.Write();
-              SideBandCoulombWithLambda.SetName("SideBandCoulombWithLambda");
-              SideBandCoulombWithLambda.Write();
-              SideBandCoulombWithOutLambda.SetName(
-                  "SideBandCoulombWithOutLambda");
-              SideBandCoulombWithOutLambda.Write();
               fitme->Write();
-              file->Close();
 
               if (FAST_PLOT) {
                 TPaveText* info4 = new TPaveText(0.2, 0.5, 0.9, 0.95, "blNDC");  //lbrt
@@ -682,6 +562,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
                 info4->SetTextSize(0.04);
                 info4->SetFillColor(kWhite);
                 info4->SetTextFont(22);
+
                 TString SOURCE_NAME = "Gauss";
                 double Yoffset = 1.2;
 
@@ -693,31 +574,18 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
                 info4->AddText(
                     TString::Format("p_a (COU + STRONG) = %.3f #pm %.5f",
                                     p_a_strong, p_a_strong_err));
-                info4->AddText(
-                    TString::Format("p_a (COU) = %.3f #pm %.5f", p_a_coulomb,
-                                    p_a_coulomb_err));
 
                 if (HaveWeABaseLineSlope) {
                   info4->AddText(
                       TString::Format(
                           "p_b (COU + STRONG) = (%.2f #pm %.2f )1e-4",
                           p_b_strong * 1e4, p_b_strong_err * 1e4));
-                  info4->AddText(
-                      TString::Format("p_b (COU) = (%.2f #pm %.2f )1e-4",
-                                      p_b_coulomb * 1e4,
-                                      p_b_coulomb_err * 1e4));
                 }
                 info4->AddText(
                     TString::Format(
                         "Local #chi^{2}/ndf=%.0f/%u=%.2f, p_{val}=%.5f, n#sigma=%.3f",
                         Chi2_pXim, EffNumBins_pXim,
                         Chi2_pXim / double(EffNumBins_pXim), pvalXi, nSigmaXi));
-                info4->AddText(
-                    TString::Format(
-                        "Coulomb #chi^{2}/ndf=%.0f/%u=%.2f, p_{val}=%.5f, n#sigma=%.3f",
-                        Chi2_pXim_COULOMB, EffNumBins_pXim,
-                        Chi2_pXim_COULOMB / double(EffNumBins_pXim),
-                        pvalXiCoulomb, nSigmaXiCoulomb));
 
                 TH1F* hAxis_pXim = new TH1F("hAxis_pXim", "hAxis_pXim", 600, 0,
                                             600);
@@ -738,7 +606,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
                 TCanvas* cfast = new TCanvas(
                     TString::Format("cfast_r%.2f", GaussSourceSize),
                     TString::Format("cfast_r%.2f", GaussSourceSize), 1);
-//                TPad* padFast = (TPad*)cfast->cd(0);
+
                 cfast->SetCanvasSize(1920, 1280);
                 cfast->SetMargin(0.15, 0.05, 0.2, 0.05);    //lrbt
                 cfast->Update();
@@ -751,30 +619,16 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
                 FitResult_pXim.SetMarkerColor(kRed);
                 FitResult_pXim.SetMarkerSize(1);
 
-                FitResult_pXim_COULOMB.SetLineWidth(2);
-                FitResult_pXim_COULOMB.SetLineColor(kGreen);
-                FitResult_pXim_COULOMB.SetMarkerStyle(24);
-                FitResult_pXim_COULOMB.SetMarkerColor(kGreen);
-                FitResult_pXim_COULOMB.SetMarkerSize(1);
-
                 hAxis_pXim->Draw("axis");
                 OliHisto_pXim->Draw("same");
                 FitResult_pXim.Draw("CP,same");
-                FitResult_pXim_COULOMB.Draw("CP,same");
                 SideBandStrongWithLambda.Draw("CP,SAME");
                 SideBandStrongWithOutLambda.Draw("CP,SAME");
-                SideBandCoulombWithLambda.Draw("CP,SAME");
-                SideBandCoulombWithOutLambda.Draw("CP,SAME");
                 info4->Draw("same");
                 TF1* blPXiStrong = new TF1("blPP", "pol1", 0, 500);
                 blPXiStrong->SetParameters(p_a_strong, p_b_strong);
                 blPXiStrong->SetLineColor(2);
                 blPXiStrong->SetLineStyle(8);
-
-                TF1* blPXiCoulomb = new TF1("blPP", "pol1", 0, 500);
-                blPXiCoulomb->SetParameters(p_a_coulomb, p_b_coulomb);
-                blPXiCoulomb->SetLineColor(3);
-                blPXiCoulomb->SetLineStyle(4);
 
                 TH1F* hAxis_pXimILOVEROOT = (TH1F*) hAxis_pXim->Clone(
                     "ILOVEROOT");
@@ -783,11 +637,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
                 hAxis_pXimILOVEROOT->Draw("axig same");
                 OliHisto_pXim->Draw("same");
                 FitResult_pXim.Draw("CP,same");
-                FitResult_pXim_COULOMB.Draw("CP,same");
                 SideBandStrongWithLambda.SetLineColor(4);
                 SideBandStrongWithLambda.Draw("CP,SAME");
                 blPXiStrong->Draw("Same");
-                blPXiCoulomb->Draw("Same");
                 info4->Draw("same");
                 cfast->SetGridx();
                 cfast->SetGridy();
@@ -799,7 +651,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
                 delete hAxis_pXim;
                 delete cfast;
                 delete blPXiStrong;
-                delete blPXiCoulomb;
               }
 
               delete fitter;
@@ -808,9 +659,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
               delete Ck_SideBand;
               delete StrongWithOutLambda;
               delete StrongWithLambda;
-              delete CoulombWithOutLambda;
-              delete CoulombWithLambda;
               uIter++;
+              file->Close();
               if (NumIter == 0) {
                 goto outofloop;
               }
@@ -833,6 +683,131 @@ void GetXiForRadius(const unsigned& NumIter, int system, TString InputDir,
 }
 
 int main(int argc, char *argv[]) {
-  GetXiForRadius(atoi(argv[1]), atoi(argv[2]), argv[3], argv[4], argv[5]);
+  GetXiForRadius(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), argv[4], argv[5],
+                 argv[6]);
   return 0;
 }
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++Colomb Only++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+//              printf("AB_pXim[0] = %.2f\n", AB_pXim.GetCorrFun(0));
+//              AB_pXim.RemoveShortRangePotential(0, 0);
+//              AB_pXim.RemoveShortRangePotential(1, 0);
+//              AB_pXim.RemoveShortRangePotential(2, 0);
+//              AB_pXim.RemoveShortRangePotential(3, 0);
+//              AB_pXim.KillTheCat(CATS::kPotentialChanged);
+//              printf("NEW AB_pXim[0] = %.2f\n", AB_pXim.GetCorrFun(0));
+//
+//              CkDec_pXim.Update(true);
+//              fitter->GoBabyGo();
+//
+//              TGraph FitResult_pXim_COULOMB;
+//              FitResult_pXim_COULOMB.SetName(
+//                  TString::Format("pXimGraph_COULOMB"));
+//              fitter->GetFitGraph(0, FitResult_pXim_COULOMB);
+//              double p_a_coulomb = fitter->GetParameter("pXim",
+//                                                        DLM_Fitter1::p_a);
+//              double p_a_coulomb_err = fitter->GetParError("pXim",
+//                                                           DLM_Fitter1::p_a);
+//              double p_b_coulomb = fitter->GetParameter("pXim",
+//                                                        DLM_Fitter1::p_b);
+//              double p_b_coulomb_err = fitter->GetParError("pXim",
+//                                                           DLM_Fitter1::p_b);
+//              double Cl_coulomb = fitter->GetParameter("pXim",
+//                                                       DLM_Fitter1::p_c);
+//              double ChiSqCoulombGlobal = fitter->GetChi2Ndf();
+//              double pValCoulombGlobal = fitter->GetPval();
+//              std::cout << "paCoulomb = " << p_a_coulomb << " pm "
+//                        << p_a_coulomb_err << std::endl;
+//              std::cout << "pbCoulomb = " << p_b_coulomb << " pm "
+//                        << p_b_coulomb_err << std::endl;
+//              TGraph SideBandCoulombWithLambda;
+//              TGraph SideBandCoulombWithOutLambda;
+//              DLM_Histo<double>* CoulombWithLambda = CkDec_pXim
+//                  .GetChildContribution("pXiSideBand", true);
+//              DLM_Histo<double>* CoulombWithOutLambda = CkDec_pXim
+//                  .GetChildContribution("pXiSideBand", false);
+//              for (int iBin = 0; iBin < CoulombWithLambda->GetNbins(); ++iBin) {
+//                SideBandCoulombWithLambda.SetPoint(
+//                    iBin,
+//                    CoulombWithLambda->GetBinCenter(0, iBin),
+//                    CoulombWithLambda->GetBinContent(iBin)
+//                        + (1 - lam_pXim_fake));
+//              }
+//              for (int iBin = 0; iBin < CoulombWithOutLambda->GetNbins();
+//                  ++iBin) {
+//                SideBandCoulombWithOutLambda.SetPoint(
+//                    iBin, CoulombWithOutLambda->GetBinCenter(0, iBin),
+//                    CoulombWithOutLambda->GetBinContent(iBin));
+//              }
+//
+//              double Chi2_pXim_COULOMB = 0;
+//              unsigned EffNumBins_pXim_COULOMB = 0;
+//              double Chi2_pXim_COULOMB_exclPeak = 0;
+//              unsigned EffNumBins_pXim_COULOMB_exclPeak = 0;
+//              double Chi2_pXim_COULOMB_kSm60 = 0;
+//              unsigned EffNumBins_pXim_COULOMB_kSm60 = 0;
+//
+//              for (unsigned uBin = 0; uBin < maxkStarBin; uBin++) {
+//
+//                double mom = AB_pXim.GetMomentum(uBin);
+//                double dataY;
+//                double dataErr;
+//                double theoryX;
+//                double theoryY;
+//
+//                if (mom > FemtoRegion_pXim[vFemReg_pXim][1])
+//                  continue;
+//                FitResult_pXim_COULOMB.GetPoint(uBin, theoryX, theoryY);
+//                if (mom != theoryX) {
+//                  std::cout << mom << '\t' << theoryX << std::endl;
+//                  printf("  PROBLEM pXi!\n");
+//                }
+//                dataY = OliHisto_pXimFornSigma->GetBinContent(uBin + 1);
+//                dataErr = OliHisto_pXimFornSigma->GetBinError(uBin + 1);
+//
+////                std::cout << mom << '\t' << theoryX << std::endl;
+////                std::cout << "theoryY: " << theoryY << '\t' << "dataY: "
+////                          << dataY << std::endl;
+////                std::cout << "dataErr: " << dataErr << std::endl;
+//                Chi2_pXim_COULOMB += (dataY - theoryY) * (dataY - theoryY)
+//                    / (dataErr * dataErr);
+//                EffNumBins_pXim_COULOMB++;
+//                if (mom < 60) {
+//                  Chi2_pXim_COULOMB_kSm60 += (dataY - theoryY)
+//                      * (dataY - theoryY) / (dataErr * dataErr);
+//                  EffNumBins_pXim_COULOMB_kSm60++;
+//                }
+//                if (!(mom > 60 && mom < 100)) {
+//                  Chi2_pXim_COULOMB_exclPeak += (dataY - theoryY)
+//                      * (dataY - theoryY) / (dataErr * dataErr);
+//                  EffNumBins_pXim_COULOMB_exclPeak++;
+//                }
+//              }
+//              EffNumBins_pXim_COULOMB--;
+//              EffNumBins_pXim_COULOMB_kSm60--;
+//              EffNumBins_pXim_COULOMB_exclPeak--;
+//
+
+//              double pvalXiCoulomb = TMath::Prob(
+//                  Chi2_pXim_COULOMB, round(EffNumBins_pXim_COULOMB));
+//              double nSigmaXiCoulomb = TMath::Sqrt(2)
+//                  * TMath::ErfcInverse(pvalXiCoulomb);
+//
+//              double pvalXiCoulomb_kSm60 = TMath::Prob(
+//                  Chi2_pXim_COULOMB_kSm60,
+//                  round(EffNumBins_pXim_COULOMB_kSm60));
+//              double nSigmaXiCoulomb_kSm60 = TMath::Sqrt(2)
+//                  * TMath::ErfcInverse(pvalXiCoulomb_kSm60);
+//
+//              double pvalXiCoulomb_exclPeak = TMath::Prob(
+//                  Chi2_pXim_COULOMB_exclPeak,
+//                  round(EffNumBins_pXim_COULOMB_exclPeak));
+//              double nSigmaXiCoulomb_exclPeak = TMath::Sqrt(2)
+//                  * TMath::ErfcInverse(pvalXiCoulomb_exclPeak);
