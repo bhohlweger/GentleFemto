@@ -4,27 +4,27 @@
 #include "TLegend.h"
 #include <iostream>
 
-void GetCorrelations(const char* filename, const char* prefix,
-                     const char* addon = "") {
+void GetCorrelations(const float fixShift, const char* filename,
+                     const char* prefix, const char* addon = "") {
   //gStyle->SetOptStat(0);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   DreamFile->SetAnalysisFile(filename, prefix, addon);
 
   DreamCF* CF_pp = new DreamCF();
-  DreamPair* pp = new DreamPair("Part", 0.2,0.4);
-  DreamPair* ApAp = new DreamPair("AntiPart", 0.2,0.4);
+  DreamPair* pp = new DreamPair("Part", 0.2, 0.4);
+  DreamPair* ApAp = new DreamPair("AntiPart", 0.2, 0.4);
 
   DreamCF* CF_pL = new DreamCF();
-  DreamPair* pL = new DreamPair("Part", 0.2,0.4);
-  DreamPair* ApAL = new DreamPair("AntiPart", 0.2,0.4);
+  DreamPair* pL = new DreamPair("Part", 0.2, 0.4);
+  DreamPair* ApAL = new DreamPair("AntiPart", 0.2, 0.4);
 
   DreamCF* CF_LL = new DreamCF();
-  DreamPair* LL = new DreamPair("Part", 0.2,0.4);
-  DreamPair* ALAL = new DreamPair("AntiPart", 0.2,0.4);
+  DreamPair* LL = new DreamPair("Part", 0.2, 0.4);
+  DreamPair* ALAL = new DreamPair("AntiPart", 0.2, 0.4);
 
   DreamCF* CF_pXi = new DreamCF();
-  DreamPair* pXi = new DreamPair("Part", 0.2,0.4);
-  DreamPair* ApAXi = new DreamPair("AntiPart", 0.2,0.4);
+  DreamPair* pXi = new DreamPair("Part", 0.2, 0.4);
+  DreamPair* ApAXi = new DreamPair("AntiPart", 0.2, 0.4);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
@@ -68,11 +68,9 @@ void GetCorrelations(const char* filename, const char* prefix,
                  pp->GetFirstBin());
   std::cout << "The new one \n";
   std::cout << "p-p \n";
-  pp->FixShift(pp->GetPair(), ApAp->GetPair(),
-               0.004, true);
+  pp->FixShift(pp->GetPair(), ApAp->GetPair(), 0.004, true);
   std::cout << "Ap-Ap \n";
-  ApAp->FixShift(ApAp->GetPair(), pp->GetPair(),
-                 0.004, true);
+  ApAp->FixShift(ApAp->GetPair(), pp->GetPair(), 0.004, true);
   std::cout << "over \n";
   pL->FixShift(pL->GetPairShiftedEmpty(0), ApAL->GetPairShiftedEmpty(0),
                ApAL->GetFirstBin());
@@ -82,16 +80,20 @@ void GetCorrelations(const char* filename, const char* prefix,
                ALAL->GetFirstBin());
   ALAL->FixShift(ALAL->GetPairShiftedEmpty(0), LL->GetPairShiftedEmpty(0),
                  LL->GetFirstBin());
-  pXi->FixShift(pXi->GetPairShiftedEmpty(0), ApAXi->GetPairShiftedEmpty(0),
-                ApAXi->GetFirstBin());
-  ApAXi->FixShift(ApAXi->GetPairShiftedEmpty(0), pXi->GetPairShiftedEmpty(0),
-                  pXi->GetFirstBin());
-
+  if (fixShift < 1e-6) {
+    pXi->FixShift(pXi->GetPairShiftedEmpty(0), ApAXi->GetPairShiftedEmpty(0),
+                  ApAXi->GetFirstBin());
+    ApAXi->FixShift(ApAXi->GetPairShiftedEmpty(0), pXi->GetPairShiftedEmpty(0),
+                    pXi->GetFirstBin());
+  } else {
+    pXi->FixShift(pXi->GetPair(), nullptr, fixShift, true);
+    ApAXi->FixShift(ApAXi->GetPair(), nullptr, fixShift, true);
+  }
   std::cout << "=========================" << std::endl;
   std::cout << "==Rebinning & Weighting==" << std::endl;
   std::cout << "=========================" << std::endl;
 
-  std::vector<int> rebinVec = {{4,5}};
+  std::vector<int> rebinVec = { { 4, 5 } };
   for (size_t iReb = 0; iReb < rebinVec.size(); ++iReb) {
     std::cout << "==Rebinning==" << std::endl;
     pL->Rebin(pL->GetPairFixShifted(0), rebinVec[iReb]);
