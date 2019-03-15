@@ -120,10 +120,20 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   std::cout << "NumMomBins_pSigma: " << NumMomBins_pSigma << std::endl;
 
   // pp radius systematic variations
-  const double ppRadius = 1.36;
-  const std::vector<double> sourceSize = { { ppRadius } };
-  // for the moment we disable the radius variations, since it's anyway just a guess for now
-  //, ppRadius * 0.8, ppRadius * 1.2 } };
+  const double ppRadius = 1.30796;
+  const double ppRadiusStatErr = 0.00437419;
+  const double ppRadiusSystErrUp = 0.00385732;
+  const double ppRadiusSystErrDown = 0.0123427;
+  const double ppRadiusLower = ppRadius
+      - std::sqrt(
+          ppRadiusStatErr * ppRadiusStatErr
+              + ppRadiusSystErrDown * ppRadiusSystErrDown);
+  const double ppRadiusUpper = ppRadius
+      + std::sqrt(
+          ppRadiusStatErr * ppRadiusStatErr
+              + ppRadiusSystErrUp * ppRadiusSystErrUp);
+  const std::vector<double> sourceSize = { { ppRadius, ppRadiusLower,
+      ppRadiusUpper } };
 
   // femto fit region systematic variations
   const std::vector<double> femtoFitRegionUp = { { 550, 500, 600 } };
