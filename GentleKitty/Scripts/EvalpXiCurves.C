@@ -13,13 +13,14 @@
 #include "TMath.h"
 static const int tupleLength = 18;
 //ONLY WORKS FOR 20 MEV BINNING
-void EvalpXiCurves(const char* cfpath, const char* varFolder) {
+void EvalpXiCurves(const char* cfpath, const char* prefix,
+                   const char* varFolder) {
   CATSInput *CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
 //  CATSinput->SetFixedkStarMinBin(true, 0.008);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   TString InputFile = TString::Format("%s/AnalysisResults.root", cfpath);
-  DreamFile->SetAnalysisFile(InputFile.Data(), "MB");
+  DreamFile->SetAnalysisFile(InputFile.Data(), prefix);
   DreamDist* pXi = DreamFile->GetPairDistributions(0, 4, "");
   DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 5, "");
   DreamCF* CFpXi = CATSinput->ObtainCFSyst(5, "pXi", pXi, ApAXi);
@@ -96,28 +97,37 @@ void EvalpXiCurves(const char* cfpath, const char* varFolder) {
   delete CATSinput;
 }
 
-void EvalError(const char* cfpath, const char* varFolder) {
+void EvalError(const char* cfpath, const char* prefix, const char* varFolder) {
   CATSInput *CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
 //  CATSinput->SetFixedkStarMinBin(true, 0.008);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   TString InputFile = TString::Format("%s/AnalysisResults.root", cfpath);
-  DreamFile->SetAnalysisFile(InputFile.Data(), "MB");
+  DreamFile->SetAnalysisFile(InputFile.Data(), prefix);
   DreamDist* pXi = DreamFile->GetPairDistributions(0, 4, "");
   DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 5, "");
   DreamCF* CFpXi = CATSinput->ObtainCFSyst(5, "pXi", pXi, ApAXi);
   TString HistpXiName = "hCk_ReweightedpXiMeV_1";
   TH1F* CF_Histo = CFpXi->FindCorrelationFunction(HistpXiName.Data());
-  CF_Histo->GetXaxis()->SetRangeUser(0, 500);
+  CF_Histo->GetXaxis()->SetRangeUser(0, 200);
   CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  CF_Histo->GetYaxis()->CenterTitle(true);
   CF_Histo->SetStats(false);
+  TH1F* CF_Draw = (TH1F*) CF_Histo->Clone(
+      TString::Format("%sDraw", CF_Histo->GetName()));
+  TH1F* Dummy = (TH1F*) CF_Histo->Clone("Dummy");
+  Dummy->Reset();
   DreamPlot::SetStyle();
   DreamPlot::SetStyleHisto(CF_Histo);
+
   TFile* output = TFile::Open(Form("%s/outfile.root", varFolder), "update");
   TNtuple* outFit = (TNtuple*) output->Get("pXiFit");
   TGraph grUp;
   TGraph grDefault;
   TGraph grLow;
+  TGraph grChiPerPointUp;
+  TGraph grChiPerPointDefault;
+  TGraph grChiPerPointLow;
 
   for (int iBranches = 1; iBranches < tupleLength + 1; ++iBranches) {
     float kVal = CF_Histo->GetBinCenter(iBranches);
@@ -160,13 +170,16 @@ void EvalError(const char* cfpath, const char* varFolder) {
 
     double chiDown = (CkVal - grLow.Eval(kVal)) / CkErrStat;
     chisqDown += chiDown * chiDown;
+
+    grChiPerPointDefault.SetPoint(iBin - 1, kVal, chiDefault);
+    grChiPerPointUp.SetPoint(iBin - 1, kVal, chiUp);
+    grChiPerPointLow.SetPoint(iBin - 1, kVal, chiDown);
   }
   std::cout << "ndf " << ndf << std::endl;
   std::cout << "Chisq Default " << chisqDefault << std::endl;
   std::cout << "Chisq Up " << chisqUp << std::endl;
   std::cout << "Chisq Down " << chisqDown << std::endl;
   std::cout << std::endl;
-
 
   double pvalXiDefault = TMath::Prob(chisqDefault, round(ndf));
   double nSigmaXiDefault = TMath::Sqrt(2) * TMath::ErfcInverse(pvalXiDefault);
@@ -197,18 +210,59 @@ void EvalError(const char* cfpath, const char* varFolder) {
   grDefault.SetLineColor(3);
   grLow.SetName("pXimGraphLowerLim");
   grLow.SetLineColor(3);
+  auto cErr = new TCanvas("cErr", "cErr");
+  //xlow ylow xup yup
+  cErr->cd();
+  TPad *p1 = new TPad("p1", "p1", 0.05, 0.3, 0.95, 0.99);
+  p1->SetTopMargin(0.01);
+  p1->SetBottomMargin(0);
+  p1->SetFillStyle(4000);
+  p1->SetFrameFillStyle(4000);
+  p1->Draw();
+  TPad *p2 = new TPad("p2", "p2", 0.05, 0.01, 0.95, 0.3);
+  p2->SetTopMargin(0);
+  p2->SetBottomMargin(0.45);
+  p2->Draw();
 
-  auto cErr = new TCanvas("cErr","cErr");
-  CF_Histo->Draw();
+  p1->cd();
+  CF_Draw->GetXaxis()->SetLabelSize(0);
+  CF_Draw->Draw();
   grUp.Draw("SAME");
   grDefault.Draw("SAME");
   grLow.Draw("SAME");
 
+  p2->cd();
+  Dummy->GetXaxis()->SetTitleSize(0.1);
+  Dummy->GetXaxis()->SetTitleOffset(0.9);
+  Dummy->GetXaxis()->SetLabelSize(0.1);
+
+  Dummy->GetYaxis()->SetTitle("#chi_{loc} (k*)");
+  Dummy->GetYaxis()->SetRangeUser(-5., 5.);
+  Dummy->GetYaxis()->SetNdivisions(2);
+  Dummy->GetYaxis()->SetTitleSize(0.1);
+  Dummy->GetYaxis()->SetLabelSize(0.1);
+  Dummy->GetYaxis()->CenterTitle(true);
+  Dummy->GetYaxis()->SetTitleOffset(0.4);
+  Dummy->GetYaxis()->SetLabelOffset(0.02);
 
 
+  Dummy->Draw("Y+");
+  grChiPerPointDefault.Draw("L3SAME");
+  grChiPerPointUp.Draw("L3SAME");
+  grChiPerPointLow.Draw("L3SAME");
+
+  cErr->SaveAs(TString::Format("%s/ChiSqQA.pdf", varFolder));
   grUp.Write();
   grDefault.Write();
   grLow.Write();
+
+  grChiPerPointDefault.SetName("PerPointChiSqDefault");
+  grChiPerPointUp.SetName("PerPointChiSqUp");
+  grChiPerPointLow.SetName("PerPointChiSqLow");
+
+  grChiPerPointDefault.Write();
+  grChiPerPointUp.Write();
+  grChiPerPointLow.Write();
 
   CF_Histo->Write();
 
@@ -260,7 +314,7 @@ void CombineIntoOneFile(const char* PathToppFolder,
     if (!clpXi->InheritsFrom("TGraph"))
       continue;
     TGraph *Graph = (TGraph*) keypXi->ReadObj();
-    std::cout << Graph->GetName() << std::endl;
+//    std::cout << Graph->GetName() << std::endl;
     pp->cd();
     Graph->Write(Graph->GetName());
   }
@@ -271,12 +325,12 @@ void CombineIntoOneFile(const char* PathToppFolder,
 
 int main(int argc, char *argv[]) {
   std::cout << "EvalpXiCurves \n";
-  EvalpXiCurves(argv[1], argv[2]);
+  EvalpXiCurves(argv[1], argv[2], argv[3]);
   std::cout << "EvalError \n";
-  EvalError(argv[1], argv[2]);
+  EvalError(argv[1], argv[2], argv[3]);
   std::cout << "SidebandCurves \n";
-  SidebandCurves(argv[2]);
+  SidebandCurves(argv[3]);
   std::cout << "CombineIntoOneFile \n";
-  CombineIntoOneFile(argv[3], argv[2]);
+  CombineIntoOneFile(argv[4], argv[3]);
   return 0;
 }
