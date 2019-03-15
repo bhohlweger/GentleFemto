@@ -12,71 +12,79 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
   CATSinput->SetFixedkStarMinBin(true, 0.008);
-
+  const int rebin = 7;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
-  DreamFile->SetAnalysisFile(filename.Data(), prefix);
+  DreamFile->SetAnalysisFile(filename.Data(), prefix, "0");
 
   //Proton - Proton
   DreamSystematics protonproton(DreamSystematics::pp);
   const int protonVarStart = 1;
   const int XiVarStart = 19;
 
+  ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(), prefix,
+                                                       "0");
+  counter->SetNumberOfCandidates(ForgivingFile);
+  const int nTracks = counter->GetNumberOfTracks();
+  const int nCascades = counter->GetNumberOfCascades();
+  counter->ResetCounter();
   //Proton - Xi
   DreamDist* pXi = DreamFile->GetPairDistributions(0, 4, "");
   DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 5, "");
-  DreamCF* CFpXiDef = CATSinput->ObtainCFSyst(20, "ppDef", pXi, ApAXi);
+  DreamCF* CFpXiDef = CATSinput->ObtainCFSyst(rebin, "ppDef", pXi, ApAXi);
   DreamSystematics protonXi(DreamSystematics::pXi);
-  protonXi.SetDefaultHist(CFpXiDef, "hCk_RebinnedppDefMeV_0");
+  protonXi.SetDefaultHist(CFpXiDef, "hCk_ReweightedppDefMeV_1");
   int iPXICounter = 0;
   for (int i = protonVarStart;
-      i < protonVarStart + protonproton.GetNumberOfVars(); ++i) {
+      i < protonVarStart + (protonproton.GetNumberOfVars()-2); ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
     DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
     TString VarName = TString::Format("pXiVar%u", i);
     DreamCF* CFpXiVar = CATSinput->ObtainCFSyst(
-        20, VarName.Data(), DreamVarFile->GetPairDistributions(0, 4, ""),
-        DreamVarFile->GetPairDistributions(1, 5, ""), pXi, ApAXi);
+        rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 4, ""),
+        DreamVarFile->GetPairDistributions(1, 5, ""));
     protonXi.SetVarHist(CFpXiVar,
-                        TString::Format("Rebinned%sMeV", VarName.Data()));
+                        TString::Format("Reweighted%sMeV_1", VarName.Data()));
     TString VarString = TString::Format("%u", i);
     ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
                                                          prefix,
                                                          VarString.Data());
     counter->SetNumberOfCandidates(ForgivingFile);
-    protonXi.SetParticles(332541686, 1709105,
-                                    counter->GetNumberOfTracks(),
-                                    counter->GetNumberOfCascades());
+    std::cout << "nTracks: " << nTracks << '\t' << "nCascades: " << nCascades
+              << '\t' << "counter->GetNumberOfTracks(): "
+              << counter->GetNumberOfTracks() << '\t'
+              << "counter->GetNumberOfCascades(): "
+              << counter->GetNumberOfCascades() << std::endl;
+    protonXi.SetParticles(nTracks, nCascades, counter->GetNumberOfTracks(),
+                          counter->GetNumberOfCascades());
     counter->ResetCounter();
     iPXICounter++;
   }
   for (int i = XiVarStart;
       i
           < XiVarStart + protonXi.GetNumberOfVars()
-              - protonproton.GetNumberOfVars(); ++i) {
+              - (protonproton.GetNumberOfVars()-2); ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
     DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
     TString VarName = TString::Format("pXiVar%u", i);
     DreamCF* CFpXiVar = CATSinput->ObtainCFSyst(
-        20, VarName.Data(), DreamVarFile->GetPairDistributions(0, 4, ""),
-        DreamVarFile->GetPairDistributions(1, 5, ""), pXi, ApAXi);
+        rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 4, ""),
+        DreamVarFile->GetPairDistributions(1, 5, ""));
     protonXi.SetVarHist(CFpXiVar,
-                        TString::Format("Rebinned%sMeV", VarName.Data()));
+                        TString::Format("Reweighted%sMeV_1", VarName.Data()));
     TString VarString = TString::Format("%u", i);
     ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
                                                          prefix,
                                                          VarString.Data());
     counter->SetNumberOfCandidates(ForgivingFile);
-    if (i < 23) {
-      protonXi.SetParticles(332541686, 1709105,
-                                      counter->GetNumberOfTracks(),
-                                      counter->GetNumberOfCascades());
-    } else {
-      protonXi.SetParticles(324724970, 1663602,
-                                      counter->GetNumberOfTracks(),
-                                      counter->GetNumberOfCascades());
-    }
+    std::cout << "nTracks: " << nTracks << '\t' << "nCascades: " << nCascades
+              << '\t' << "counter->GetNumberOfTracks(): "
+              << counter->GetNumberOfTracks() << '\t'
+              << "counter->GetNumberOfCascades(): "
+              << counter->GetNumberOfCascades() << std::endl;
+    protonXi.SetParticles(nTracks, nCascades, counter->GetNumberOfTracks(),
+                          counter->GetNumberOfCascades());
 
     counter->ResetCounter();
     iPXICounter++;
@@ -85,6 +93,9 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
 //  protonXi.EvalDifferenceInPairs();
   protonXi.EvalDifferenceInParticles();
   protonXi.WriteOutput();
+  auto file = new TFile(
+      Form("Systematics_%s.root", protonXi.GetPairName().Data()), "update");
+  CFpXiDef->WriteOutput(file, true);
   std::cout << "Worked through " << iPXICounter << " variations" << std::endl;
 }
 

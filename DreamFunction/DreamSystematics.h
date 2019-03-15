@@ -76,8 +76,7 @@ class DreamSystematics {
   void EvalSystematics();
   void EvalDifference(std::vector<unsigned int> CountsDefault,
                       std::vector<unsigned int> CountsVar,
-                      std::vector<float> *AbsDiff,
-                      std::vector<float> *RelDiff);
+                      std::vector<float> *AbsDiff, std::vector<float> *RelDiff);
   TH1F* FillHisto(std::vector<float> Diff, const char* name);
   void EvalDifferenceInPairs();
 //  void CountPairs();
@@ -135,7 +134,8 @@ class DreamSystematics {
   const std::vector<TString> ppVariations = { { "Proton #it{p}_{T} down",
       "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
       "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",
-      "Proton TPC cluster down", "Proton TPC cluster up" } };
+      "Proton TPC cluster down", "Proton TPC cluster up", "Proton CPR 0.012",
+      "Proton CPR 0.014" } };
 
   const std::vector<TString> pSigma0Variations = { { "Proton #it{p}_{T} down",
       "Proton #it{p}_{T} up", "Proton #eta down", "Proton #eta up",
@@ -152,20 +152,22 @@ class DreamSystematics {
       "Photon CPA down", "Photon CPA up", "Photon DCA_{R} up",
       "Photon DCA_{Z} up" } };
 
-  const std::vector<TString> pXiVariations = { { "Proton #it{p}_{T} down",
-      "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
-      "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",
-      "Proton TPC cluster down", "Proton TPC cluster up",
-      "Casc Daug d_{track} up", "Casc Daug d_{track} down",
-      "Casc Bach d_{Track, PV} down", "Casc Bach d_{Track, PV} up",
-      "Casc CPA up 1", "Casc CPA up 2", "Casc Transverse Radius down",
-      "Casc Transverse Radius up", "Casc V0 Daug d_{track} up 1",
-      "Casc V0 Daug d_{track} up 2", "Casc V0 CPA down", "Casc V0 CPA up",
-      "Casc V0 Transverse Radius down", "Casc V0 Transverse Radius up",
-      "Casc V0 d_{V0, PV} up", "Casc V0 d_{V0, PV} down",
-      "Casc V0 Daug d_{Track, PV} down", "Casc V0 Daug d_{Track, PV} up",
-      "Casc Track #eta up", "Casc Track #eta down", "Casc Track n#sigma up",
-      "Casc Track n#sigma down", "Casc #it{p}_{T} down" } };
+  const std::vector<TString> pXiVariations = {
+      { "Proton #it{p}_{T} down", "Proton #it{p}_{T} up", "Proton #eta up",
+          "Proton #eta down", "Proton n#sigma up", "Proton n#sigma down",
+          "Proton FilterBit", "Proton TPC cluster down",
+          "Proton TPC cluster up", "Casc Daug d_{track} up",
+          "Casc Daug d_{track} down", "Casc Bach d_{Track, PV} down",
+          "Casc Bach d_{Track, PV} up", "Casc CPA up 1", "Casc CPA up 2",
+          "Casc Transverse Radius down", "Casc Transverse Radius up",
+          "Casc V0 Daug d_{track} up 1", "Casc V0 Daug d_{track} up 2",
+          "Casc V0 CPA down", "Casc V0 CPA up",
+          "Casc V0 Transverse Radius down", "Casc V0 Transverse Radius up",
+          "Casc V0 d_{V0, PV} up", "Casc V0 d_{V0, PV} down",
+          "Casc V0 Daug d_{Track, PV} down", "Casc V0 Daug d_{Track, PV} up",
+          "Casc Track #eta up", "Casc Track #eta down", "Casc Track n#sigma up",
+          "Casc Track n#sigma down", "Casc #it{p}_{T} up 1",
+          "Casc #it{p}_{T} up 2" } };
 
   const std::vector<std::vector<TString>> vars = { { ppVariations,
       pSigma0Variations, pXiVariations } };

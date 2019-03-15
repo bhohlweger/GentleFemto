@@ -533,7 +533,7 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
   auto c = new TCanvas(canvasName.Data(), canvasName.Data(), 1400, 1000);
   switch (fParticlePairMode) {
     case Pair::pp:
-      c->Divide(3, 3);
+      c->Divide(3, 4);
       break;
     case Pair::pSigma0:
       c->Divide(7, 5);
