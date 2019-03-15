@@ -109,10 +109,10 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Set up the CATS ranges, lambda parameters, etc.
-  const int binwidth = dataHist->GetBinWidth(1);
-  const unsigned NumMomBins_pSigma = int(800 / binwidth);
+  const int binwidth = 10;
+  int NumMomBins_pSigma = int(800 / binwidth);
   double kMin_pSigma = dataHist->GetBinCenter(1) - binwidth / 2.f;
-  const double kMax_pSigma = kMin_pSigma + binwidth * NumMomBins_pSigma;
+  double kMax_pSigma = kMin_pSigma + binwidth * NumMomBins_pSigma;
 
   std::cout << "kMin_pSigma: " << kMin_pSigma << std::endl;
   std::cout << "kMax_pSigma: " << kMax_pSigma << std::endl;
@@ -224,7 +224,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   // Set up the model, fitter, etc.
   DLM_Ck* Ck_pSigma0;
   CATS AB_pSigma0;
-
   if (potential == 0) {  //  Effective Lednicky with scattering parameters
     std::cout << "Running with scattering parameters - d0 = " << d0
               << " fm - Re(f0^-1) = " << REf0inv << " fm^-1 - Im(f0^-1) = "
@@ -237,8 +236,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
                             Lednicky_gauss_Sigma0);
   } else if (potential == 2) {  // Haidenbauer WF
     std::cout << "Running with the Haidenbauer chiEFT potential \n";
-
-    AB_pSigma0.SetMomBins(NumMomBins_pSigma, kMin_pSigma, kMax_pSigma);
+    // Haidenbauer is valid up to 350 MeV, therefore we have to adopt
+    double kMax_pSigma_Haidenbauer = kMin_pSigma;
+    int NumMomBins_pSigma_Haidenbauer = 0;
+    while (kMax_pSigma_Haidenbauer < 348 - binwidth) {
+      kMax_pSigma_Haidenbauer += binwidth;
+      ++NumMomBins_pSigma_Haidenbauer;
+    }
+    AB_pSigma0.SetMomBins(NumMomBins_pSigma_Haidenbauer, kMin_pSigma,
+                          kMax_pSigma_Haidenbauer);
     CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1,
                                                true);
     cPars->SetParameter(0, ppRadius);

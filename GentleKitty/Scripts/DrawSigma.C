@@ -74,9 +74,8 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
 
 // =========================================
 // Draw all systematic variations available
-void DrawSigma(const unsigned& NumIter, TString varFolder,
-               const int& potential, const float d0, const float REf0inv,
-               const float IMf0inv) {
+void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
+               const float d0, const float REf0inv, const float IMf0inv) {
   bool batchmode = true;
   bool fancyPlot = false;
 
@@ -198,6 +197,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
 
   // in case we're running the exclusion task, we're interested in the best/worst chi2 for a given set of scattering parameters
   double bestChi2, defaultChi2, worstChi2;
+  ComputeChi2(CF_Histo, grCF, bestChi2, defaultChi2, worstChi2);
   if (potential == 0) {
     auto fitTuple = (TNtuple*) file->Get("fitResult");
 
@@ -208,7 +208,6 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
     TNtuple* ntResult = new TNtuple(
         "exclusion", "exclusion",
         "CFneg:d0:REf0inv:IMf0inv:bestChi2:defChi2:worstChi2");
-    ComputeChi2(CF_Histo, grCF, bestChi2, defaultChi2, worstChi2);
 
     Float_t ntBuffer[7];
     fitTuple->Draw("CFneg >> h");
@@ -244,13 +243,15 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
   BeamText.SetNDC(kTRUE);
   if (!fancyPlot) {
     BeamText.SetTextSize(0.8 * gStyle->GetTextSize());
-    BeamText.DrawLatex(0.45, 0.8, TString::Format("d_{0} = %.3f fm", d0));
-    BeamText.DrawLatex(
-        0.45, 0.73,
-        TString::Format("#Rgothic(f_{0}^{-1}) = %.3f fm^{-1}", REf0inv));
-    BeamText.DrawLatex(
-        0.45, 0.66,
-        TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}", IMf0inv));
+    if (potential == 0) {
+      BeamText.DrawLatex(0.45, 0.8, TString::Format("d_{0} = %.3f fm", d0));
+      BeamText.DrawLatex(
+          0.45, 0.73,
+          TString::Format("#Rgothic(f_{0}^{-1}) = %.3f fm^{-1}", REf0inv));
+      BeamText.DrawLatex(
+          0.45, 0.66,
+          TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}", IMf0inv));
+    }
     BeamText.DrawLatex(0.7, 0.8,
                        TString::Format("#chi^{2}_{best} = %.3f", bestChi2));
     BeamText.DrawLatex(0.7, 0.73,
