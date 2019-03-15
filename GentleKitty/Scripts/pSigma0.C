@@ -46,30 +46,44 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 /// =====================================================================================
 void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
                TString suffix, TString OutputDir, const int potential,
-               const float d0, const float REf0inv, const float IMf0inv,
-               TString pathToWF) {
+               std::vector<double> params) {
   bool batchmode = true;
+  double d0, REf0inv, IMf0inv;
 
   DreamPlot::SetStyle();
   bool fastPlot = (NumIter == 0) ? true : false;
   TRandom3 rangen(0);
   TidyCats* tidy = new TidyCats();  // for some reason we need this for the thing to compile
 
-  TNtuple* ntResult =
-      new TNtuple(
-          "fitResult",
-          "fitResult",
+  int nArguments = 32;
+  TString varList =
+      TString::Format(
           "IterID:femtoFitRange:BLSlope:ppRadius:bl_a:bl_a_err:bl_b:bl_b_err:"
           "sb_p0:sb_p0_err:sb_p1:sb_p1_err:sb_p2:sb_p2_err:sb_p3:sb_p3_err:sb_p4:sb_p4_err:sb_p5:sb_p5_err:"
           "primaryContrib:fakeContrib:SBnormDown:SBnormUp:"
-          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma:CFneg:d0:REf0inv:IMf0inv");
+          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma:CFneg")
+          .Data();
+  if (potential == 0) {
+    varList += ":d0:REf0inv:IMf0inv";
+    nArguments += 3;
+  }
 
-  Float_t ntBuffer[34];
+  TNtuple* ntResult = new TNtuple("fitResult", "fitResult", varList.Data());
+
+  Float_t ntBuffer[nArguments];
   int iterID = 0;
   bool useBaseline = true;
 
   TString graphfilename;
   if (potential == 0) {
+    if (params.size() != 3) {
+      std::cout << "ERROR: Wrong number of scattering parameters\n";
+      return;
+    }
+    d0 = params[0];
+    REf0inv = params[1];
+    IMf0inv = params[2];
+
     graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
                                     OutputDir.Data(), NumIter, d0, REf0inv,
                                     IMf0inv);
@@ -109,10 +123,10 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Set up the CATS ranges, lambda parameters, etc.
-  const int binwidth = dataHist->GetBinWidth(1);
-  const unsigned NumMomBins_pSigma = int(800 / binwidth);
+  const int binwidth = 10;
+  int NumMomBins_pSigma = int(800 / binwidth);
   double kMin_pSigma = dataHist->GetBinCenter(1) - binwidth / 2.f;
-  const double kMax_pSigma = kMin_pSigma + binwidth * NumMomBins_pSigma;
+  double kMax_pSigma = kMin_pSigma + binwidth * NumMomBins_pSigma;
 
   std::cout << "kMin_pSigma: " << kMin_pSigma << std::endl;
   std::cout << "kMax_pSigma: " << kMax_pSigma << std::endl;
@@ -120,10 +134,20 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   std::cout << "NumMomBins_pSigma: " << NumMomBins_pSigma << std::endl;
 
   // pp radius systematic variations
-  const double ppRadius = 1.36;
-  const std::vector<double> sourceSize = { { ppRadius } };
-  // for the moment we disable the radius variations, since it's anyway just a guess for now
-  //, ppRadius * 0.8, ppRadius * 1.2 } };
+  const double ppRadius = 1.30796;
+  const double ppRadiusStatErr = 0.00437419;
+  const double ppRadiusSystErrUp = 0.00385732;
+  const double ppRadiusSystErrDown = 0.0123427;
+  const double ppRadiusLower = ppRadius
+      - std::sqrt(
+          ppRadiusStatErr * ppRadiusStatErr
+              + ppRadiusSystErrDown * ppRadiusSystErrDown);
+  const double ppRadiusUpper = ppRadius
+      + std::sqrt(
+          ppRadiusStatErr * ppRadiusStatErr
+              + ppRadiusSystErrUp * ppRadiusSystErrUp);
+  const std::vector<double> sourceSize = { { ppRadius, ppRadiusLower,
+      ppRadiusUpper } };
 
   // femto fit region systematic variations
   const std::vector<double> femtoFitRegionUp = { { 550, 500, 600 } };
@@ -214,7 +238,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   // Set up the model, fitter, etc.
   DLM_Ck* Ck_pSigma0;
   CATS AB_pSigma0;
-
   if (potential == 0) {  //  Effective Lednicky with scattering parameters
     std::cout << "Running with scattering parameters - d0 = " << d0
               << " fm - Re(f0^-1) = " << REf0inv << " fm^-1 - Im(f0^-1) = "
@@ -227,8 +250,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
                             Lednicky_gauss_Sigma0);
   } else if (potential == 2) {  // Haidenbauer WF
     std::cout << "Running with the Haidenbauer chiEFT potential \n";
-
-    AB_pSigma0.SetMomBins(NumMomBins_pSigma, kMin_pSigma, kMax_pSigma);
+    // Haidenbauer is valid up to 350 MeV, therefore we have to adopt
+    double kMax_pSigma_Haidenbauer = kMin_pSigma;
+    int NumMomBins_pSigma_Haidenbauer = 0;
+    while (kMax_pSigma_Haidenbauer < 348 - binwidth) {
+      kMax_pSigma_Haidenbauer += binwidth;
+      ++NumMomBins_pSigma_Haidenbauer;
+    }
+    AB_pSigma0.SetMomBins(NumMomBins_pSigma_Haidenbauer, kMin_pSigma,
+                          kMax_pSigma_Haidenbauer);
     CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1,
                                                true);
     cPars->SetParameter(0, ppRadius);
@@ -238,7 +268,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
     AB_pSigma0.SetThetaDependentSource(false);
     AB_pSigma0.SetExcludeFailedBins(false);
     DLM_Histo<complex<double>>*** ExternalWF = nullptr;
-    ExternalWF = Init_pSigma0_Haidenbauer(pathToWF, AB_pSigma0);
+    ExternalWF = Init_pSigma0_Haidenbauer(
+        "/home/amathis/CERNhome/Sigma0/HaidenbauerWF/", AB_pSigma0);
     for (unsigned uCh = 0; uCh < AB_pSigma0.GetNumChannels(); uCh++) {
       AB_pSigma0.SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                          ExternalWF[1][uCh][0]);
@@ -610,9 +641,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             ntBuffer[29] = pvalpSigma0;
             ntBuffer[30] = nSigmapSigma0;
             ntBuffer[31] = (float) isCFneg;
-            ntBuffer[32] = d0;
-            ntBuffer[33] = REf0inv;
-            ntBuffer[34] = IMf0inv;
+            if (potential == 0) {
+              ntBuffer[32] = d0;
+              ntBuffer[33] = REf0inv;
+              ntBuffer[34] = IMf0inv;
+            }
 
             ntResult->Fill(ntBuffer);
             ++iterID;
@@ -641,4 +674,25 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   delete param;
   delete tidy;
   return;
+}
+
+/// =====================================================================================
+void FitSigma0(char *argv[]) {
+  const unsigned& NumIter = atoi(argv[1]);
+  TString InputDir = argv[2];
+  TString trigger = argv[3];
+  TString suffix = argv[4];
+  TString OutputDir = argv[5];
+  const int potential = atoi(argv[6]);
+  std::vector<double> params;
+  if (potential == 0) {
+    if (!argv[7] || !argv[8] || !argv[9]) {
+      std::cout << "ERROR: Missing the scattering parameters\n";
+      return;
+    }
+    params.push_back(atof(argv[7]));  // d0
+    params.push_back(atof(argv[8]));  // REf0inv
+    params.push_back(atof(argv[9]));  // IMf0inv
+  }
+  FitSigma0(NumIter, InputDir, trigger, suffix, OutputDir, potential, params);
 }
