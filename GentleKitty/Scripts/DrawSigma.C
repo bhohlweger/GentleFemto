@@ -22,8 +22,9 @@ void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
                  double &defaultChi2, double &worstChi2) {
   double theoryX, theoryY, theoryErr;
   double dataY, dataErr, dataErrSq;
-  double chi2Best, chi2Worst;
-  double chi2Down, chi2Def, chi2Up;
+  double chi2Down = 0.;
+  double chi2Def = 0.;
+  double chi2Up = 0.;
   int maxkStarBinChi2 = dataHist->FindBin(250);
   for (unsigned uBin = 1; uBin <= maxkStarBinChi2; uBin++) {
     double mom = dataHist->GetBinCenter(uBin);
