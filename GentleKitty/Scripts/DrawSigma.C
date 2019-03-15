@@ -78,6 +78,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
                const int& potential, const float d0, const float REf0inv,
                const float IMf0inv) {
   bool batchmode = true;
+  bool fancyPlot = false;
 
   DreamPlot::SetStyle();
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
@@ -241,7 +242,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder,
   grSidebands->SetLineColorAlpha(kBlack, 0.0);
   TLatex BeamText;
   BeamText.SetNDC(kTRUE);
-  if (potential == 0) {
+  if (!fancyPlot) {
     BeamText.SetTextSize(0.8 * gStyle->GetTextSize());
     BeamText.DrawLatex(0.45, 0.8, TString::Format("d_{0} = %.3f fm", d0));
     BeamText.DrawLatex(
