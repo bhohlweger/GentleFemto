@@ -75,9 +75,11 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
 // =========================================
 // Draw all systematic variations available
 void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
-               const float d0, const float REf0inv, const float IMf0inv) {
+               std::vector<double> params) {
+
   bool batchmode = true;
   bool fancyPlot = false;
+  double d0, REf0inv, IMf0inv;
 
   DreamPlot::SetStyle();
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
@@ -85,6 +87,14 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 
   TString graphfilename;
   if (potential == 0) {
+    if (params.size() != 3) {
+      std::cout << "ERROR: Wrong number of scattering parameters\n";
+      return;
+    }
+    d0 = params[0];
+    REf0inv = params[1];
+    IMf0inv = params[2];
+
     graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
                                     varFolder.Data(), NumIter, d0, REf0inv,
                                     IMf0inv);
@@ -293,4 +303,23 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   delete sideband;
   delete fit;
   file->Close();
+}
+
+// =========================================
+// Draw all systematic variations available
+void DrawSigma(char *argv[]) {
+  const unsigned& NumIter = atoi(argv[1]);
+  TString varFolder = argv[5];
+  const int potential = atoi(argv[6]);
+  std::vector<double> params;
+  if (potential == 0) {
+    if (!argv[7] || !argv[8] || !argv[9]) {
+      std::cout << "ERROR: Missing the scattering parameters\n";
+      return;
+    }
+    params.push_back(atof(argv[7]));  // d0
+    params.push_back(atof(argv[8]));  // REf0inv
+    params.push_back(atof(argv[9]));  // IMf0inv
+  }
+  DrawSigma(NumIter, varFolder, potential, params);
 }
