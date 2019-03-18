@@ -219,9 +219,9 @@ void MakeHistosGreat::DrawLatexLabel(float pTMin, float pTMax,
       gPad->GetUxmax() - xPos,
       gPad->GetUymax() - yPos,
       Form("#splitline{#splitline{#splitline{#splitline"
-           "{%.2f < p_{T} < %.2f (GeV/#it{c})}"
+           "{%.2f < #it{p}_{T} < %.2f GeV/#it{c}}"
            "{%s: %.0f}}"
-           "{< #it{M} > = %.1f MeV/#it{c}^{2}}}"
+           "{#LT #it{M} #GT = %.1f MeV/#it{c}^{2}}}"
            "{#sigma= %.1f MeV/#it{c}^{2}}}"
            "{Purity = %.1f %%}",
            pTMin, pTMax, part, signal, meanMass * 1000.f,
