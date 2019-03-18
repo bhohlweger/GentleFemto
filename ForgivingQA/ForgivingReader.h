@@ -61,6 +61,10 @@ class ForgivingReader {
     return GetListInDir(Form("%s/%s",AcascStd.Data(),AcascStd.Data()));
   }
   ;
+  TList* GetOtherCuts(TString others) {
+    TString othersStr = Form("%s%s%s", fPrefix, others.Data(), fSuffix);
+    return GetListInDir(Form("%s/%s",othersStr.Data(),othersStr.Data()));
+  }
  private:
   TFile* fInput;
   const char* fPrefix;
