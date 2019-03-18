@@ -327,7 +327,7 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
 
 }
 
-void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
+void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   // DCA daughters at the decay vertex
   auto dcaDaugVtx = (TH1F*)(fReader->Get2DHistInList(
                                 fReader->GetListInList(v0Cuts, {"After"}),
@@ -366,7 +366,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
     std::cerr << "DCA Pos Daug Distribution is missing for " << outname
               << std::endl;
   }
-  DCAPos->GetXaxis()->SetRangeUser(0, 100);
+  DCAPos->GetXaxis()->SetRangeUser(0, 7.5);
   DCAPos->GetXaxis()->SetTitle("DCA(Pos Daug,PV) (cm)");
   DCAPos->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(DCAPos, 0, 1);
@@ -381,7 +381,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
     std::cerr << "DCA Pos Daug Distribution is missing for " << outname
               << std::endl;
   }
-  DCANeg->GetXaxis()->SetRangeUser(0, 100.);
+  DCANeg->GetXaxis()->SetRangeUser(0, 7.5);
   DCANeg->GetXaxis()->SetTitle("DCA(Neg Daug,PV) (cm)");
   DCANeg->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(DCANeg, 0, 1);
@@ -405,6 +405,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   if (!phiDist) {
     std::cerr << "phi Distribution missing for " << outname << std::endl;
   }
+  phiDist->SetMinimum(0);
   phiDist->GetXaxis()->SetTitle("#varphi (rad)");
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
@@ -418,6 +419,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
     std::cerr << "eta Distribution missing for " << outname << std::endl;
   }
   etaDist->GetXaxis()->SetTitle("#eta");
+  etaDist->SetMinimum(0);
   etaDist->GetXaxis()->SetRangeUser(-1., 1.);
   etaDist->GetYaxis()->SetTitle(
       Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
@@ -439,7 +441,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   fHairyPlotter->DrawAndStore({cpa}, Form("%sCPA", outname));
 }
 
-void DecayQA::PlotPIDSigma0(TList* v0Cuts, const char* outname) {
+void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
   // Armenteros
   TH2F* armenteros = (TH2F*)fReader->Get2DHistInList(
       fReader->GetListInList(v0Cuts, {"After"}), "fHistArmenterosAfter");
@@ -475,4 +477,46 @@ void DecayQA::PlotPIDSigma0(TList* v0Cuts, const char* outname) {
   drawVecTPC = {negPID};
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_NegPID", outname),
                                   "colz");
+}
+
+void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
+
+  // pT
+  auto pTDist =
+      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistInvMassPt"))->ProjectionX();
+  if (!pTDist) {
+    std::cerr << "pT Distribution missing for " << outname << std::endl;
+  }
+  pTDist->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
+  pTDist->GetYaxis()->SetTitle(
+      Form("Entries/ %.1f GeV/#it{c}", pTDist->GetBinWidth(1)));
+  fHairyPlotter->FormatHistogram(pTDist, 0, 1);
+  fHairyPlotter->DrawLogYAndStore({pTDist}, Form("%spT", outname), "PE");
+
+  // Phi
+  auto* phiDist =
+      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))->ProjectionY();
+  if (!phiDist) {
+    std::cerr << "phi Distribution missing for " << outname << std::endl;
+  }
+  phiDist->GetXaxis()->SetTitle("#varphi (rad)");
+  phiDist->SetMinimum(0);
+  phiDist->GetYaxis()->SetTitle(
+      Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
+  fHairyPlotter->FormatHistogram(phiDist, 0, 1);
+  fHairyPlotter->DrawAndStore({phiDist}, Form("%s_phi", outname));
+
+  // Eta
+  auto* etaDist =
+      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))->ProjectionX();
+  if (!etaDist) {
+    std::cerr << "eta Distribution missing for " << outname << std::endl;
+  }
+  etaDist->SetMinimum(0);
+  etaDist->GetXaxis()->SetTitle("#eta");
+  etaDist->GetXaxis()->SetRangeUser(-1., 1.);
+  etaDist->GetYaxis()->SetTitle(
+      Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
+  fHairyPlotter->FormatHistogram(etaDist, 0, 1);
+  fHairyPlotter->DrawAndStore({etaDist}, Form("%s_eta", outname), "hist");
 }

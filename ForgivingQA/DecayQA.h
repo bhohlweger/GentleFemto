@@ -42,8 +42,9 @@ class DecayQA {
   };
   void PlotQATopologyLambda();
   void PlotQATopologyLambda(TList *v0Cuts, const char* outname);
+  void PlotQATopologySigma0Daughter(TList *v0Cuts, const char* outname);
   void PlotQATopologySigma0(TList *v0Cuts, const char* outname);
-  void PlotPIDSigma0(TList *v0Cuts, const char* outname);
+  void PlotPIDSigma0Daughter(TList *v0Cuts, const char* outname);
   void SetIMHistoScale(float scaleMaximum, float TexOffX, float TexOffY) {
     fScaleMax = scaleMaximum;
     fTexOffX = TexOffX;
