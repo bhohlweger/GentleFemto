@@ -1,5 +1,7 @@
 #include "DreamKayTee.h"
 #include "ReadDreamFile.h"
+#include "TROOT.h"
+#include "TSystem.h"
 
 int main(int argc, char* argv[]) {
   const char* filename = argv[1];
@@ -21,7 +23,7 @@ int main(int argc, char* argv[]) {
   mTppDists->SetSEMEReweightingRatio(CalibPP,"pp");
   mTppDists->SetKayTeeBins(mTppBins);
   mTppDists->SetNormalization(0.2, 0.4);
-  mTppDists->ObtainTheCorrelationFunction(foldername.Data(), prefix, "pp");
+  mTppDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pp");
 
   DreamKayTee* mTpLDists;
   DreamFile->ReadmTHistos(filename, prefix, addon);
@@ -33,7 +35,7 @@ int main(int argc, char* argv[]) {
   mTpLDists->SetSEMEReweightingRatio(CalibPL, "pL");
   mTpLDists->SetKayTeeBins(mTpLBins);
   mTpLDists->SetNormalization(0.2, 0.4);
-  mTpLDists->ObtainTheCorrelationFunction(foldername.Data(), prefix, "pL");
+  mTpLDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pL");
 
   return 1;
 }
