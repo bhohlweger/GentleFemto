@@ -26,6 +26,7 @@ class DecayQA {
   }
   ;
   void InvariantMassLambda(float CutMin, float CutMax);
+  void InvariantMassLambdaSigma0(float CutMin, float CutMax);
   void InvariantMassXi(float CutMin, float CutMax);
   void IvariantMassXiLambda();
   void PlotKaonRejection(TH1F* invMassKaon, const char* outname);
@@ -41,6 +42,8 @@ class DecayQA {
   };
   void PlotQATopologyLambda();
   void PlotQATopologyLambda(TList *v0Cuts, const char* outname);
+  void PlotQATopologySigma0(TList *v0Cuts, const char* outname);
+  void PlotPIDSigma0(TList *v0Cuts, const char* outname);
   void SetIMHistoScale(float scaleMaximum, float TexOffX, float TexOffY) {
     fScaleMax = scaleMaximum;
     fTexOffX = TexOffX;

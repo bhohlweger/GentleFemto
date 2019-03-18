@@ -51,6 +51,23 @@ void DecayQA::InvariantMassLambda(float CutMin, float CutMax) {
       "AntiLambda");
 }
 
+void DecayQA::InvariantMassLambdaSigma0(float CutMin, float CutMax) {
+  auto invMassPart = (TH2F*)fReader->Get2DHistInList(fDecayCuts, "InvMassPt");
+  invMassPart->RebinX(10);
+  FitInvariantMass(invMassPart, CutMin, CutMax, "Lambda");
+  PlotKaonRejection(
+      (TH1F*)fReader->Get1DHistInList(fDecayCuts, "fHistK0MassAfter"),
+      "Lambda");
+
+  auto invMassAntiPart =
+      (TH2F*)fReader->Get2DHistInList(fAntiDecayCuts, "InvMassPt");
+  invMassAntiPart->RebinX(10);
+  FitInvariantMass(invMassAntiPart, CutMin, CutMax, "AntiLambda");
+  PlotKaonRejection(
+      (TH1F*)fReader->Get1DHistInList(fAntiDecayCuts, "fHistK0MassAfter"),
+      "AntiLambda");
+}
+
 void DecayQA::InvariantMassXi(float CutMin, float CutMax) {
   auto invMassPart = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fDecayCuts, { "Cascade" }), "InvMassXi");
@@ -308,4 +325,154 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
   fHairyPlotter->FormatHistogram(etaDist, 0, 1);
   fHairyPlotter->DrawAndStore( { etaDist }, Form("%s_eta", outname), "hist");
 
+}
+
+void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
+  // DCA daughters at the decay vertex
+  auto dcaDaugVtx = (TH1F*)(fReader->Get2DHistInList(
+                                fReader->GetListInList(v0Cuts, {"After"}),
+                                "fHistDCADaughtersAfter"))
+                        ->ProjectionY();
+  if (!dcaDaugVtx) {
+    std::cerr << "dcaDaugter To Vtx is missing for " << outname << std::endl;
+  }
+  dcaDaugVtx->GetXaxis()->SetRangeUser(0, 1.5);
+  dcaDaugVtx->GetXaxis()->SetTitle("DCA(daughters at decay vtx) (cm)");
+  dcaDaugVtx->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(dcaDaugVtx, 0, 1);
+  fHairyPlotter->DrawAndStore({dcaDaugVtx}, Form("%sdcaDaugDecVtx", outname));
+
+  // Transverse radius
+  auto v0TRad = (TH1F*)(fReader->Get2DHistInList(
+                            fReader->GetListInList(v0Cuts, {"After"}),
+                            "fHistTransverseRadiusAfter"))
+                    ->ProjectionY();
+  if (!v0TRad) {
+    std::cerr << "Transverse Radius Distribution is missing for " << outname
+              << std::endl;
+  }
+  v0TRad->GetXaxis()->SetRangeUser(0, 120.);
+  v0TRad->GetXaxis()->SetTitle("r_{xy} (cm)");
+  v0TRad->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(v0TRad, 0, 1);
+  fHairyPlotter->DrawAndStore({v0TRad}, Form("%sTransRad", outname));
+
+  // DCA pos daughter to PV
+  auto DCAPos = (TH1F*)(fReader->Get2DHistInList(
+                            fReader->GetListInList(v0Cuts, {"V0_PosDaughter"}),
+                            "fHistSingleParticleDCAtoPVAfter_pos"))
+                    ->ProjectionY();
+  if (!DCAPos) {
+    std::cerr << "DCA Pos Daug Distribution is missing for " << outname
+              << std::endl;
+  }
+  DCAPos->GetXaxis()->SetRangeUser(0, 100);
+  DCAPos->GetXaxis()->SetTitle("DCA(Pos Daug,PV) (cm)");
+  DCAPos->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(DCAPos, 0, 1);
+  fHairyPlotter->DrawLogYAndStore({DCAPos}, Form("%sDCAPVPosDaug", outname));
+
+  // DCA neg daughter to PV
+  auto DCANeg = (TH1F*)(fReader->Get2DHistInList(
+                            fReader->GetListInList(v0Cuts, {"V0_NegDaughter"}),
+                            "fHistSingleParticleDCAtoPVAfter_neg"))
+                    ->ProjectionY();
+  if (!DCANeg) {
+    std::cerr << "DCA Pos Daug Distribution is missing for " << outname
+              << std::endl;
+  }
+  DCANeg->GetXaxis()->SetRangeUser(0, 100.);
+  DCANeg->GetXaxis()->SetTitle("DCA(Neg Daug,PV) (cm)");
+  DCANeg->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(DCANeg, 0, 1);
+  fHairyPlotter->DrawLogYAndStore({DCANeg}, Form("%sDCAPVNegDaug", outname));
+
+  // pT
+  auto pTDist =
+      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "InvMassPt"))->ProjectionX();
+  if (!pTDist) {
+    std::cerr << "pT Distribution missing for " << outname << std::endl;
+  }
+  pTDist->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
+  pTDist->GetYaxis()->SetTitle(
+      Form("Entries/ %.1f GeV/#it{c}", pTDist->GetBinWidth(1)));
+  fHairyPlotter->FormatHistogram(pTDist, 0, 1);
+  fHairyPlotter->DrawLogYAndStore({pTDist}, Form("%spT", outname), "PE");
+
+  // Phi
+  auto* phiDist =
+      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))->ProjectionY();
+  if (!phiDist) {
+    std::cerr << "phi Distribution missing for " << outname << std::endl;
+  }
+  phiDist->GetXaxis()->SetTitle("#varphi (rad)");
+  phiDist->GetYaxis()->SetTitle(
+      Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
+  fHairyPlotter->FormatHistogram(phiDist, 0, 1);
+  fHairyPlotter->DrawAndStore({phiDist}, Form("%s_phi", outname));
+
+  // Eta
+  auto* etaDist =
+      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))->ProjectionX();
+  if (!etaDist) {
+    std::cerr << "eta Distribution missing for " << outname << std::endl;
+  }
+  etaDist->GetXaxis()->SetTitle("#eta");
+  etaDist->GetXaxis()->SetRangeUser(-1., 1.);
+  etaDist->GetYaxis()->SetTitle(
+      Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
+  fHairyPlotter->FormatHistogram(etaDist, 0, 1);
+  fHairyPlotter->DrawAndStore({etaDist}, Form("%s_eta", outname), "hist");
+
+  // Cosine pointing angle
+  auto* cpa =
+      (TH1F*)(fReader->Get2DHistInList(
+                  fReader->GetListInList(v0Cuts, {"After"}), "fHistCosPAAfter"))
+          ->ProjectionY();
+  if (!cpa) {
+    std::cerr << "CPA is missing for " << outname << std::endl;
+  }
+  cpa->GetXaxis()->SetTitle("cos(#alpha)");
+  cpa->GetXaxis()->SetRangeUser(0.99, 1.);
+  cpa->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(cpa, 0, 1);
+  fHairyPlotter->DrawAndStore({cpa}, Form("%sCPA", outname));
+}
+
+void DecayQA::PlotPIDSigma0(TList* v0Cuts, const char* outname) {
+  // Armenteros
+  TH2F* armenteros = (TH2F*)fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, {"After"}), "fHistArmenterosAfter");
+  if (!armenteros) {
+    std::cerr << "Armenteros is missing for " << outname << std::endl;
+  }
+  armenteros->SetTitle("Armenteros-Podolandski");
+  fHairyPlotter->FormatHistogram(armenteros, 0, 1);
+  std::vector<TH2*> drawVecTPC = {armenteros};
+  fHairyPlotter->DrawAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
+                              "colz");
+
+  // dE/dc pos daughter
+  TH2F* posPID = (TH2F*)fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, {"V0_PosDaughter"}),
+      "fHistSingleParticlePID_pos");
+  if (!posPID) {
+    std::cerr << "Pos PID is missing for " << outname << std::endl;
+  }
+  fHairyPlotter->FormatHistogram(posPID, 0, 1);
+  drawVecTPC = {posPID};
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_PosPID", outname),
+                                  "colz");
+
+  // Armenteros
+  TH2F* negPID = (TH2F*)fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, {"V0_NegDaughter"}),
+      "fHistSingleParticlePID_neg");
+  if (!negPID) {
+    std::cerr << "Neg PID is missing for " << outname << std::endl;
+  }
+  fHairyPlotter->FormatHistogram(negPID, 0, 1);
+  drawVecTPC = {negPID};
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_NegPID", outname),
+                                  "colz");
 }
