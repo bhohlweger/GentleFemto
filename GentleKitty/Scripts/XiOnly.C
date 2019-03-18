@@ -148,7 +148,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
   TidyCats::pXimPot pot;
   if (iPot == 0) {
     pot = TidyCats::pCoulomb;
-  } else if (iPot == 1){
+  } else if (iPot == 1) {
     pot = TidyCats::pHALQCD;
   }
   const int binwidth = 20;
@@ -224,7 +224,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
   if (system == 0) {
     side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
   } else if (system == 2) {
-    side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
+    side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/Systematic", "HM",
+                          "42", "43");
   }
 
   int uIter = 1;
