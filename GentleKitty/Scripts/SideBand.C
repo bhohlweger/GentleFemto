@@ -3,9 +3,13 @@
 #include "TCanvas.h"
 
 int main(int argc, char *argv[]) {
+  TString WorkDir = TString::Format("%s", argv[1]);
+  const char* prefix = argv[2];
+  const char* suffixUp = argv[3];
+  const char* suffixDown = argv[4];
   SideBandFit* side = new SideBandFit();
   side->SetRebin(5);
-  side->SetSideBandFile("/home/hohlweger/cernbox/pPb/Sidebands", "MB","42", "43");
+  side->SetSideBandFile(WorkDir.Data(), prefix, suffixUp, suffixDown);
 
   side->SetNormalizationRange(400, 600);
   side->SideBandCFs(true);
@@ -17,15 +21,15 @@ int main(int argc, char *argv[]) {
   TCanvas* c1 = new TCanvas("c1", "c1");
   fitme->Draw();
   sideFit->Draw("SAME");
-  c1->SaveAs("/home/hohlweger/cernbox/pPb/Sidebands/fitsideband.png");
-  TFile* outfile = TFile::Open("/home/hohlweger/cernbox/pPb/Sidebands/out.root",
-                               "RECREATE");
+  c1->SaveAs(TString::Format("%s/fitsideband.png", WorkDir.Data()));
+  TFile* outfile = TFile::Open(TString::Format("%s/out.root", WorkDir.Data()),
+                               "update");
   outfile->cd();
   c1->Write();
   outfile->Close();
-  side->WriteOutput("/home/hohlweger/cernbox/pPb/Sidebands/");
-//    for (auto it = 0; it< 4; ++it) {
-//    	std::cout << "SideBand Par " << it << " value " << SideBandPars[it] << std::endl;
+  side->WriteOutput(
+      TString::Format("%s/Var%s_%s.root", WorkDir.Data(), suffixUp,
+                      suffixDown));
 //    }
   return 0;
 }
