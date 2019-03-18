@@ -11,7 +11,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
   DreamPlot::SetStyle();
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
-const int rebin = 20;
+  const int rebin = 20;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
@@ -22,6 +22,7 @@ const int rebin = 20;
   const int nTracks = counter->GetNumberOfTracks();
   counter->ResetCounter();
   //Proton - Proton
+  CATSinput->SetFixedkStarMinBin(true,0.004);
   DreamDist* pp = DreamFile->GetPairDistributions(0, 0, "");
   DreamDist* ApAp = DreamFile->GetPairDistributions(1, 1, "");
   DreamCF* CFppDef = CATSinput->ObtainCFSyst(rebin, "ppDef", pp, ApAp);
@@ -30,7 +31,7 @@ const int rebin = 20;
 
   const int protonVarStart = 1;
   for (int i = protonVarStart;
-      i < protonVarStart + protonproton.GetNumberOfVars()-2; ++i) {
+      i < protonVarStart + protonproton.GetNumberOfVars() - 2; ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
     DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
     TString VarName = TString::Format("ppVar%u", i);
