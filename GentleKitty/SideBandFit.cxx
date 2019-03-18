@@ -258,9 +258,7 @@ TH1F* SideBandFit::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
 }
 
 void SideBandFit::WriteOutput(const char* outputPath) {
-  TString name = Form("%s/SideBandCFs%2.0f_%2.0f.root", outputPath, fnormleft,
-                      fnormright);
-  TFile* output = TFile::Open(name, "RECREATE");
+  TFile* output = TFile::Open(outputPath, "RECREATE");
   output->cd();
 
   std::vector<const char*> sideNames = { "SideUp", "AntiSideUp", "SideDown",
