@@ -165,6 +165,30 @@ void MakeHistosGreat::DrawAndStore(std::vector<TH2*> hist, const char* outname,
   return;
 }
 
+void MakeHistosGreat::DrawLogZAndStore(std::vector<TH2*> hist,
+                                       const char* outname,
+                                       const char* drawOption) {
+  auto c1 = new TCanvas(Form("%s", outname), Form("%s", outname));
+  if (fTightMargin) {
+    c1->SetTopMargin(0.02);
+    c1->SetRightMargin(0.01);
+  }
+  c1->cd();
+  c1->SetLogz();
+  TString DrawOpt = Form("%s", drawOption);
+  bool oneTime = false;
+  for (auto it : hist) {
+    it->Draw(DrawOpt.Data());
+    if (!oneTime) {
+      oneTime = true;
+      DrawOpt += "same";
+    }
+  }
+  c1->SaveAs(Form("%s.pdf", outname));
+  delete c1;
+  return;
+}
+
 void MakeHistosGreat::SetStyle(bool title) {
   const int NCont = 255;
   gStyle->Reset("Plain");

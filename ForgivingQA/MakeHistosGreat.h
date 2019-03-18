@@ -29,6 +29,8 @@ class MakeHistosGreat {
                         const char* drawOption = "");
   void DrawAndStore(std::vector<TH2*> hist, const char* outname,
                     const char* drawOption = "");
+  void DrawLogZAndStore(std::vector<TH2*> hist, const char* outname,
+                        const char* drawOption = "");
   static void SetStyle(bool title = true);
   void SetTightMargin(bool set = false) {
     fTightMargin = set;
