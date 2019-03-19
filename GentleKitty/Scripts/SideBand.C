@@ -21,7 +21,9 @@ int main(int argc, char *argv[]) {
   TCanvas* c1 = new TCanvas("c1", "c1");
   fitme->Draw();
   sideFit->Draw("SAME");
-  c1->SaveAs(TString::Format("%s/fitsideband.png", WorkDir.Data()));
+  c1->SaveAs(
+      TString::Format("%s/fitsideband%s_%s.png", WorkDir.Data(), suffixUp,
+                      suffixDown));
   TFile* outfile = TFile::Open(TString::Format("%s/out.root", WorkDir.Data()),
                                "update");
   outfile->cd();
