@@ -323,6 +323,32 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     AB_pXim->SetShortRangePotential(1, 0, fDlmPot, *cPotParsI0S1);
     AB_pXim->SetShortRangePotential(2, 0, fDlmPot, *cPotParsI1S0);
     AB_pXim->SetShortRangePotential(3, 0, fDlmPot, *cPotParsI1S1);
+  } else if (pot == pHALQCDGamow) {
+    double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
+    double pXimPotParsI0S1[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1 };  // 9, 10, 11, 12
+    double pXimPotParsI1S0[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0 };  //This is shit. Corresponds to 9-14 t
+    double pXimPotParsI1S1[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1 };  // this value 1-6
+    CATSparameters* cPotParsI0S0 = new CATSparameters(
+        CATSparameters::tPotential, 8, true);
+    cPotParsI0S0->SetParameters(pXimPotParsI0S0);
+
+    CATSparameters* cPotParsI0S1 = new CATSparameters(
+        CATSparameters::tPotential, 8, true);
+    cPotParsI0S1->SetParameters(pXimPotParsI0S1);
+
+    CATSparameters* cPotParsI1S0 = new CATSparameters(
+        CATSparameters::tPotential, 8, true);
+    cPotParsI1S0->SetParameters(pXimPotParsI1S0);
+
+    CATSparameters* cPotParsI1S1 = new CATSparameters(
+        CATSparameters::tPotential, 8, true);
+    cPotParsI1S1->SetParameters(pXimPotParsI1S1);
+    AB_pXim->SetShortRangePotential(0, 0, fDlmPot, *cPotParsI0S0);
+    AB_pXim->SetShortRangePotential(1, 0, fDlmPot, *cPotParsI0S1);
+    AB_pXim->SetShortRangePotential(2, 0, fDlmPot, *cPotParsI1S0);
+    AB_pXim->SetShortRangePotential(3, 0, fDlmPot, *cPotParsI1S1);
+    AB_pXim->SetQ1Q2(0);
+    AB_pXim->SetGamow(true);
   } else if (pot == pHaidenbauer) {
     TString HomeDir = gSystem->GetHomeDirectory().c_str();
     ExternalWF = Init_pXi_Haidenbauer(

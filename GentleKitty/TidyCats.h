@@ -21,6 +21,7 @@ class TidyCats {
   enum pXimPot {
     pCoulomb,
     pHALQCD,
+    pHALQCDGamow,
     pHaidenbauer,
     pRikken
   };
