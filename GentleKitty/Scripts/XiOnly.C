@@ -150,6 +150,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
     pot = TidyCats::pCoulomb;
   } else if (iPot == 1) {
     pot = TidyCats::pHALQCD;
+  } else if (iPot == 2) {
+    pot = TidyCats::pHALQCDGamow;
   }
   const int binwidth = 20;
   const int rebin = 5;
@@ -283,7 +285,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
                                  kMax_pXim,TidyCats::sGaussian);
   AB_pXim1530.KillTheCat();
   int tOutVars = 0;
-  if (pot == TidyCats::pHALQCD) {
+  if (pot == TidyCats::pHALQCD || pot == TidyCats::pHALQCDGamow) {
     tOutVars = 3;
   } else {
     tOutVars = 1;
