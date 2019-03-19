@@ -429,6 +429,7 @@ void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {
       }
       delete RelSyst;
     }
+    SystErrFile->Close();
   } else {
     std::cout << "Sys File not found " << SystErrFileName.Data() << std::endl;
   }
