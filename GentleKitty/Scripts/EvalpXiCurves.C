@@ -93,6 +93,7 @@ void EvalpXiCurves(const char* cfpath, const char* prefix,
   output->cd();
   c1->Write();
   outFit->Write();
+  CF_Histo->Write();
   output->Close();
   delete CATSinput;
 }
@@ -324,6 +325,10 @@ void CombineIntoOneFile(const char* PathToppFolder,
 }
 
 int main(int argc, char *argv[]) {
+  //argv[1] =  cfpath (without AnalysisResults.root)
+  //argv[2] =  prefix
+  //argv[3] =  varfolder
+  //argv[4] =  Path to pp file
   std::cout << "EvalpXiCurves \n";
   EvalpXiCurves(argv[1], argv[2], argv[3]);
   std::cout << "EvalError \n";
