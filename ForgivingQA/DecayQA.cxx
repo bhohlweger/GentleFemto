@@ -132,7 +132,7 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   fFitter->FitInvariantMass(invMass, CutMin, CutMax);
   invMass->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
   invMass->GetYaxis()->SetRangeUser(0, invMass->GetMaximum() * 1.8);
-  invMass->GetYaxis()->SetMaxDigits(3);
+  //invMass->GetYaxis()->SetMaxDigits(3);
   invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
   invMass->GetXaxis()->SetTitle(
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
@@ -180,9 +180,9 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
         0, invMasspTBin->GetMaximum() * fScaleMax);
     invMasspTBin->GetXaxis()->SetTitle(
         Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
-    invMasspTBin->GetXaxis()->SetMaxDigits(2);
+    //invMasspTBin->GetXaxis()->SetMaxDigits(2);
     invMasspTBin->GetXaxis()->SetNdivisions(420);
-    invMasspTBin->GetYaxis()->SetMaxDigits(3);
+    //invMasspTBin->GetYaxis()->SetMaxDigits(3);
     invMasspTBin->GetYaxis()->SetNdivisions(210);
     fHairyPlotter->FormatSmallHistogram(invMasspTBin, 0, 0, 0.7);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad, "");
