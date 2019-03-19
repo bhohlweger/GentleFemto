@@ -319,6 +319,8 @@ void CombineIntoOneFile(const char* PathToppFolder,
     pp->cd();
     Graph->Write(Graph->GetName());
   }
+  pp->cd(); 
+  ((TH1F*)pXi->Get("hCk_ReweightedpXiMeV_1"))->Write(); 
   pXi->Close();
   pp->Close();
 
