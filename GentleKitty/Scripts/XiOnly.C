@@ -149,8 +149,10 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
   if (iPot == 0) {
     pot = TidyCats::pCoulomb;
   } else if (iPot == 1) {
-    pot = TidyCats::pHALQCD;
+    pot = TidyCats::pGamow; 
   } else if (iPot == 2) {
+    pot = TidyCats::pHALQCD;
+  } else if (iPot == 3) {
     pot = TidyCats::pHALQCDGamow;
   }
   const int binwidth = 20;

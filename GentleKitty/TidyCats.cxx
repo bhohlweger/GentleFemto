@@ -373,6 +373,10 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     CleanUpWfHisto(AB_pXim->GetNumChannels(), ExternalWF);
   } else if (pot == pCoulomb) {
     std::cout << "Setting no potential at all!";
+  } else if (pot == pGamow) {
+    AB_pXim->SetQ1Q2(0);
+    AB_pXim->SetGamow(true);
+    std::cout << "Setting no potential at all + Gamow correction \n"; 
   } else {
     std::cout << "no implemented potential called \n";
   }
