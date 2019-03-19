@@ -22,7 +22,7 @@
 #include "TMinuit.h"
 void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
                     TString InputDir, TString ppFile, TString OutputDir) {
-  bool FAST_PLOT = true;
+  bool FAST_PLOT = (NumIter ==0);
 
   double BlRegion[2];
   BlRegion[0] = 500;
@@ -225,7 +225,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
     side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
   } else if (system == 2) {
     side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/Systematic", "HM",
-                          "42", "43");
+                          "103", "104");
   }
 
   int uIter = 1;
@@ -555,7 +555,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
                   "SideBandStrongWithOutLambda");
               SideBandStrongWithOutLambda.Write();
               fitme->Write();
-
+              file->Close();
               if (FAST_PLOT) {
                 TPaveText* info4 = new TPaveText(0.2, 0.5, 0.9, 0.95, "blNDC");  //lbrt
                 info4->SetName("info4");
@@ -661,7 +661,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
               delete StrongWithOutLambda;
               delete StrongWithLambda;
               uIter++;
-              file->Close();
+
               if (NumIter == 0) {
                 goto outofloop;
               }
