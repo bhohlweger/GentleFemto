@@ -11,11 +11,27 @@
 #include "CATStools.h"
 #include "DLM_Source.h"
 #include "DLM_WfModel.h"
-TidyCats::TidyCats() {
+TidyCats::TidyCats()
+    : fppCleverLevy(nullptr),
+      fpLCleverLevy(nullptr),
+      fpXimCleverLevy(nullptr),
+      fpXim1530CleverLevy(nullptr) {
 }
 
 TidyCats::~TidyCats() {
   // TODO Auto-generated destructor stub
+  if (fppCleverLevy) {
+    delete fppCleverLevy;
+  }
+  if (fpLCleverLevy) {
+    delete fpLCleverLevy;
+  }
+  if (fpXimCleverLevy) {
+    delete fpXimCleverLevy;
+  }
+  if (fpXim1530CleverLevy) {
+    delete fpXim1530CleverLevy;
+  }
 }
 
 void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
@@ -48,7 +64,7 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
   double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
   double Pars_pp[6] = { 1.4, 1.65, 0.3578, 1361.52, massProton, massPion };
   CATSparameters* cPars;
-  static DLM_CleverLevy CleverLevy;
+
   switch (source) {
     case TidyCats::sGaussian:
       cPars = new CATSparameters(CATSparameters::tSource, 1, true);
@@ -61,12 +77,13 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       AB_pp->SetAnaSource(GaussExpTotIdenticalSimple_2body, *cPars);
       break;
     case TidyCats::sLevy:
-      CleverLevy.InitStability(20, 1, 2);
-      CleverLevy.InitScale(35, 0.25, 2.0);
-      CleverLevy.InitRad(256, 0, 64);
-      CleverLevy.InitType(2);
+      fppCleverLevy = new DLM_CleverLevy();
+      fppCleverLevy->InitStability(20, 1, 2);
+      fppCleverLevy->InitScale(35, 0.25, 2.0);
+      fppCleverLevy->InitRad(256, 0, 64);
+      fppCleverLevy->InitType(2);
       //Nolan Parameterization.
-      AB_pp->SetAnaSource(CatsSourceForwarder, &CleverLevy, 2);
+      AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverLevy, 2);
       AB_pp->SetAnaSource(0, 1.2);  //r0
       AB_pp->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
       break;
@@ -125,6 +142,17 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       cPars->SetParameters(Pars_pL, true);
       AB_pL->SetAnaSource(GaussExpTotSimple_2body, *cPars);
       break;
+    case TidyCats::sLevy:
+      fpLCleverLevy = new DLM_CleverLevy();
+      fpLCleverLevy->InitStability(20, 1, 2);
+      fpLCleverLevy->InitScale(35, 0.25, 2.0);
+      fpLCleverLevy->InitRad(256, 0, 64);
+      fpLCleverLevy->InitType(2);
+      //Nolan Parameterization.
+      AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverLevy, 2);
+      AB_pL->SetAnaSource(0, 1.2);  //r0
+      AB_pL->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
+      break;
     default:
       std::cout << "Source not implemented \n";
       break;
@@ -172,13 +200,21 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
       cPars->SetParameter(0, 1.2);
       AB_pXim->SetAnaSource(GaussSource, *cPars);
       break;
+    case TidyCats::sLevy:
+      fpXimCleverLevy = new DLM_CleverLevy();
+      fpXimCleverLevy->InitStability(20, 1, 2);
+      fpXimCleverLevy->InitScale(35, 0.25, 2.0);
+      fpXimCleverLevy->InitRad(256, 0, 64);
+      fpXimCleverLevy->InitType(2);
+      //Nolan Parameterization.
+      AB_pXim->SetAnaSource(CatsSourceForwarder, fpXimCleverLevy, 2);
+      AB_pXim->SetAnaSource(0, 1.2);  //r0
+      AB_pXim->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
+      break;
     default:
       std::cout << "Source not implemented \n";
       break;
   }
-//  CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1, true);
-//  cPars->SetParameter(0, 1.2);
-  AB_pXim->SetAnaSource(GaussSource, *cPars);
   AB_pXim->SetUseAnalyticSource(true);
   AB_pXim->SetThetaDependentSource(false);
 
@@ -235,18 +271,18 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
         "/home/schmollweger/cernbox/pXimWaveFunctions/", AB_pXim);
     for (unsigned uCh = 0; uCh < AB_pXim->GetNumChannels(); uCh++) {
       AB_pXim->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
-                                    ExternalWF[1][uCh][0]);
+                                       ExternalWF[1][uCh][0]);
     }
-    CleanUpWfHisto(AB_pXim->GetNumChannels(),ExternalWF);
+    CleanUpWfHisto(AB_pXim->GetNumChannels(), ExternalWF);
   } else if (pot == pRikken) {
     ExternalWF = Init_pXi_ESC16_IS(
         "/home/schmollweger/cernbox/pXimWaveFunctions/", AB_pXim);
     for (unsigned uCh = 0; uCh < AB_pXim->GetNumChannels(); uCh++) {
       AB_pXim->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
-                                    ExternalWF[1][uCh][0]);
+                                       ExternalWF[1][uCh][0]);
     }
-    CleanUpWfHisto(AB_pXim->GetNumChannels(),ExternalWF);
-  } else if (pot == pCoulomb){
+    CleanUpWfHisto(AB_pXim->GetNumChannels(), ExternalWF);
+  } else if (pot == pCoulomb) {
     std::cout << "Setting no potential at all!";
   } else {
     std::cout << "no implemented potential called \n";
@@ -329,14 +365,35 @@ void TidyCats::GetCatsProtonXiMinusCutOff(CATS* AB_pXim, int momBins,
 }
 
 void TidyCats::GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins,
-                                        double kMin, double kMax) {
+                                        double kMin, double kMax,
+                                        TidyCats::Sources source) {
   const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
   const double Mass_Xim1530 =
       TDatabasePDG::Instance()->GetParticle(3314)->Mass() * 1000;
-  CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1, true);
-  cPars->SetParameter(0, 1.2);
-  AB_pXim1530->SetAnaSource(GaussSource, *cPars);
+  CATSparameters* cPars = nullptr;
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      AB_pXim1530->SetAnaSource(GaussSource, *cPars);
+      break;
+    case TidyCats::sLevy:
+      fpXim1530CleverLevy = new DLM_CleverLevy();
+      fpXim1530CleverLevy->InitStability(20, 1, 2);
+      fpXim1530CleverLevy->InitScale(35, 0.25, 2.0);
+      fpXim1530CleverLevy->InitRad(256, 0, 64);
+      fpXim1530CleverLevy->InitType(2);
+      //Nolan Parameterization.
+      AB_pXim1530->SetAnaSource(CatsSourceForwarder, fpXim1530CleverLevy, 2);
+      AB_pXim1530->SetAnaSource(0, 1.2);  //r0
+      AB_pXim1530->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
+      break;
+    default:
+      std::cout << "Source not implemented \n";
+      break;
+  }
+
   AB_pXim1530->SetUseAnalyticSource(true);
   AB_pXim1530->SetThetaDependentSource(false);
 

@@ -36,8 +36,12 @@ class TidyCats {
                                   double kMax, bool StrongOn, double QCDTime,
                                   double cutOff);
   void GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins, double kMin,
-                                double kMax);
+                                double kMax, TidyCats::Sources source);
  private:
+  DLM_CleverLevy* fppCleverLevy;
+  DLM_CleverLevy* fpLCleverLevy;
+  DLM_CleverLevy* fpXimCleverLevy;
+  DLM_CleverLevy* fpXim1530CleverLevy;
 };
 
 #endif /* GENTLEKITTY_TIDYCATS_H_ */
