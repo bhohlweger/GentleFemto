@@ -11,6 +11,7 @@
 #include "CATStools.h"
 #include "DLM_Source.h"
 #include "DLM_WfModel.h"
+#include "TSystem.h"
 TidyCats::TidyCats()
     : fppCleverLevy(nullptr),
       fpLCleverLevy(nullptr),
@@ -19,7 +20,6 @@ TidyCats::TidyCats()
 }
 
 TidyCats::~TidyCats() {
-  // TODO Auto-generated destructor stub
   if (fppCleverLevy) {
     delete fppCleverLevy;
   }
@@ -36,6 +36,9 @@ TidyCats::~TidyCats() {
 
 void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
                                    double kMax, TidyCats::Sources source) {
+  TString HomeDir = gSystem->GetHomeDirectory().c_str();
+  TString Test = TString::Format("%s",HomeDir.Data());
+  std::cout << Test.Data() << std::endl;
   const double Weight1S0 = 3. / 12.;
   const double Weight3P0 = 1. / 12.;
   const double Weight3P1 = 3. / 12.;
@@ -121,7 +124,8 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
 }
 
 void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
-                                   double kMax, TidyCats::Sources source) {
+                                   double kMax, TidyCats::Sources source,
+                                   TidyCats::pLPot pot) {
 
   const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
@@ -170,20 +174,73 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
   AB_pL->SetQ1Q2(0);
   AB_pL->SetPdgId(2212, 3122);
   AB_pL->SetRedMass((massProton * massLambda) / (massProton + massLambda));
-  //!TEMPORARY: WE USE USMANI, ASK DIMI ABOUT FURTHER CHANGES (LIKE USE THE NLO)
-  //#,#,POT_ID,POT_FLAG,t_tot,t1,t2,s,l,j
-  double pLamPotPars1S0[8] = { pL_UsmaniOli, 0, 0, 0, 0, 0, 0, 0 };
-  double pLamPotPars3S1[8] = { pL_UsmaniOli, 0, 0, 0, 0, 1, 0, 1 };
-  CATSparameters* cPotPars1S0 = new CATSparameters(CATSparameters::tPotential,
-                                                   8, true);
-  cPotPars1S0->SetParameters(pLamPotPars1S0);
-  CATSparameters* cPotPars3S1 = new CATSparameters(CATSparameters::tPotential,
-                                                   8, true);
-  cPotPars3S1->SetParameters(pLamPotPars3S1);
-  AB_pL->SetShortRangePotential(0, 0, fDlmPot, *cPotPars1S0);
-  AB_pL->SetShortRangePotential(1, 0, fDlmPot, *cPotPars3S1);
-
+  DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+  if (pot == TidyCats::pUsmani) {
+    //!TEMPORARY: WE USE USMANI, ASK DIMI ABOUT FURTHER CHANGES (LIKE USE THE NLO)
+    //#,#,POT_ID,POT_FLAG,t_tot,t1,t2,s,l,j
+    double pLamPotPars1S0[8] = { pL_UsmaniOli, 0, 0, 0, 0, 0, 0, 0 };
+    double pLamPotPars3S1[8] = { pL_UsmaniOli, 0, 0, 0, 0, 1, 0, 1 };
+    CATSparameters* cPotPars1S0 = new CATSparameters(CATSparameters::tPotential,
+                                                     8, true);
+    cPotPars1S0->SetParameters(pLamPotPars1S0);
+    CATSparameters* cPotPars3S1 = new CATSparameters(CATSparameters::tPotential,
+                                                     8, true);
+    cPotPars3S1->SetParameters(pLamPotPars3S1);
+    AB_pL->SetShortRangePotential(0, 0, fDlmPot, *cPotPars1S0);
+    AB_pL->SetShortRangePotential(1, 0, fDlmPot, *cPotPars3S1);
+  } else if (pot == TidyCats::pNLOWF) {
+    TString HomeDir = gSystem->GetHomeDirectory().c_str();
+    ExternalWF = Init_pL_Haidenbauer(
+        TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pLambdaNLO/",
+                        HomeDir.Data()),
+        AB_pL, 0, 600);
+    for (unsigned uCh = 0; uCh < AB_pL->GetNumChannels(); uCh++) {
+      AB_pL->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
+                                     ExternalWF[1][uCh][0]);
+    }
+    CleanUpWfHisto(AB_pL->GetNumChannels(), ExternalWF);
+  } else if (pot == TidyCats::pLOWF) {
+    TString HomeDir = gSystem->GetHomeDirectory().c_str();
+    ExternalWF = Init_pL_Haidenbauer(
+        TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pLambdaLO_600/",
+                       HomeDir.Data()),
+        AB_pL, 10, 600);
+    for (unsigned uCh = 0; uCh < AB_pL->GetNumChannels(); uCh++) {
+      AB_pL->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
+                                     ExternalWF[1][uCh][0]);
+    }
+    CleanUpWfHisto(AB_pL->GetNumChannels(), ExternalWF);
+  } else {
+    std::cout << "potential " << pot << "not implemented \n";
+  }
   return;
+
+//  if (pot == "LO") {
+//    ExternalWF =
+//        Init_pL_Haidenbauer(
+//            "/home/dmihaylov/Dudek_Ubuntu/Work/Kclus/GeneralFemtoStuff/CorrelationFiles_2018/Haidenbauer/pLambdaLO_600/",
+//            Kitty, 0, 600);
+//    NumChannels = 2;
+//  } else if (pot == "LO_Coupled_S") {
+//    ExternalWF =
+//        Init_pL_Haidenbauer(
+//            "/home/dmihaylov/Dudek_Ubuntu/Work/Kclus/GeneralFemtoStuff/CorrelationFiles_2018/Haidenbauer/pLambdaLO_Coupling/",
+//            Kitty, 1, 600);
+//    NumChannels = 4;
+//  } else if (pot == "NLO") {
+//    ExternalWF =
+//        Init_pL_Haidenbauer(
+//            "/home/dmihaylov/Dudek_Ubuntu/Work/Kclus/GeneralFemtoStuff/CorrelationFiles_2018/Haidenbauer/pLambdaNLO/",
+//            Kitty, 10, 600);
+//    NumChannels = 2;
+//  } else if (pot == "NLO_Coupled_S") {
+//    ExternalWF =
+//        Init_pL_Haidenbauer(
+//            "/home/dmihaylov/Dudek_Ubuntu/Work/Kclus/GeneralFemtoStuff/CorrelationFiles_2018/Haidenbauer/pLambdaNLO_Coupling/",
+//            Kitty, 11, 600);
+//    NumChannels = 4;
+//  }
+
 }
 
 void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
@@ -267,16 +324,22 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     AB_pXim->SetShortRangePotential(2, 0, fDlmPot, *cPotParsI1S0);
     AB_pXim->SetShortRangePotential(3, 0, fDlmPot, *cPotParsI1S1);
   } else if (pot == pHaidenbauer) {
+    TString HomeDir = gSystem->GetHomeDirectory().c_str();
     ExternalWF = Init_pXi_Haidenbauer(
-        "/home/schmollweger/cernbox/pXimWaveFunctions/", AB_pXim);
+        TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pXi_ver1/",
+                        HomeDir.Data()),
+        AB_pXim);
     for (unsigned uCh = 0; uCh < AB_pXim->GetNumChannels(); uCh++) {
       AB_pXim->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                        ExternalWF[1][uCh][0]);
     }
     CleanUpWfHisto(AB_pXim->GetNumChannels(), ExternalWF);
   } else if (pot == pRikken) {
+    TString HomeDir = gSystem->GetHomeDirectory().c_str();
     ExternalWF = Init_pXi_ESC16_IS(
-        "/home/schmollweger/cernbox/pXimWaveFunctions/", AB_pXim);
+        TString::Format("%s/cernbox/WaveFunctions/Tom/IsospinSpin_Channel/",
+                        HomeDir.Data()),
+        AB_pXim);
     for (unsigned uCh = 0; uCh < AB_pXim->GetNumChannels(); uCh++) {
       AB_pXim->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                        ExternalWF[1][uCh][0]);
