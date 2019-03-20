@@ -105,7 +105,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   CATSinput->ReadSigmaFile();
   CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
                                        suffix.Data());
-  CATSinput->ObtainCFs(10, 340, 440);
+  CATSinput->ObtainCFs(10, 340, 490);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
   auto dataHist = CATSinput->GetCF("pSigma0", dataHistName.Data());
   if (!dataHist) {
@@ -125,7 +125,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   /// Set up the CATS ranges, lambda parameters, etc.
   const int binwidth = 10;
   int NumMomBins_pSigma = int(800 / binwidth);
-  double kMin_pSigma = dataHist->GetBinCenter(1) - binwidth / 2.f;
+  double kMin_pSigma = 0;
+  double kMin_fit_pSigma = dataHist->GetBinCenter(1) - binwidth / 2.f;
   double kMax_pSigma = kMin_pSigma + binwidth * NumMomBins_pSigma;
 
   std::cout << "kMin_pSigma: " << kMin_pSigma << std::endl;
@@ -163,7 +164,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
       protonLambda / (1. - protonPrimary) * 1.2 } };
   std::vector<CATSLambdaParam> lambdaParams;
 
-  const double sigmaPurity = 0.199;
+  const double sigmaPurity = 0.289;
   const double sigmaPrimary = 1.;
   const Particle sigma0(sigmaPurity, sigmaPrimary, { { 0 } });
 
@@ -179,8 +180,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   }
 
   // sideband fit normalization range systematic variation
-  const std::vector<double> sidebandNormDown = { { 340, 400, 460 } };
-  const std::vector<double> sidebandNormUp = { { 440, 500, 560 } };
+  const std::vector<double> sidebandNormDown = { { 340, 300, 380 } };
+  const std::vector<double> sidebandNormUp = { { 490, 450, 530 } };
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Fit the sideband
@@ -365,7 +366,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             /// Fitter
             DLM_Fitter1* fitter = new DLM_Fitter1(1);
-            fitter->SetSystem(0, *dataHist, 1, CkDec_pSigma0, kMin_pSigma,
+            fitter->SetSystem(0, *dataHist, 1, CkDec_pSigma0, kMin_fit_pSigma,
                               femtoFitRegionUp[femtoFitIter], 1000, 1000);
             fitter->SetSeparateBL(0, false);              //Simultaneous BL
             fitter->FixParameter("pSigma0", DLM_Fitter1::p_a, prefit_a[blIter]);
