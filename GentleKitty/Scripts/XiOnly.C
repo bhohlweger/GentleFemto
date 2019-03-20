@@ -280,7 +280,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
 
   CATS AB_pXim1530;
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim, kMin_pXim,
-                                 kMax_pXim);
+                                 kMax_pXim,TidyCats::sGaussian);
   AB_pXim1530.KillTheCat();
   int tOutVars = 0;
   if (pot == TidyCats::pHALQCD) {
