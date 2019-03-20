@@ -23,6 +23,7 @@
 #include "TLegend.h"
 #include "TMath.h"
 #include "TCanvas.h"
+#include "TSystem.h"
 
 #include <iostream>
 #include "stdlib.h"
@@ -319,10 +320,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
   AB_pp.KillTheCat();
 
-  CATS AB_pL;
-  tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource);
-  AB_pL.KillTheCat();
-
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, TheSource,
                              TidyCats::pHALQCD, 12);
@@ -333,8 +330,19 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                                  TheSource);
   AB_pXim1530.KillTheCat();
 
-  for (vFemReg_pp = 0; vFemReg_pp < 3; ++vFemReg_pp) {
-    for (vMod_pL = 1; vMod_pL < 3; ++vMod_pL) {
+  for (vMod_pL = TheSource == TidyCats::sLevy ? 1 : 0; vMod_pL < 3; ++vMod_pL) {
+    TidyCats::pLPot PLpot;
+    CATS AB_pL;
+    if (vMod_pL == 1) {
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+                                TidyCats::pUsmani);
+      AB_pL.KillTheCat();
+    } else if (vMod_pL == 2) {
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+                                TidyCats::pNLOWF);
+      AB_pL.KillTheCat();
+    }
+    for (vFemReg_pp = 0; vFemReg_pp < 3; ++vFemReg_pp) {
       for (vFrac_pp_pL = 0; vFrac_pp_pL < 3; ++vFrac_pp_pL) {
         for (int BaselineSlope = 0; BaselineSlope < 2; ++BaselineSlope) {
           if (BaselineSlope == 0) {
@@ -347,11 +355,14 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             vFrac_pp_pL = 1;
             vFrac_pL_pSigma0 = 1;
             vFrac_pL_pXim = 1;
-            vMod_pL = 1;
+            vMod_pL = 2;
+            tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+                                      TidyCats::pNLOWF);
+            AB_pL.KillTheCat();
             iNorm = 1;
             HaveWeABaseLine = false;  // no base line in default
-          }
 
+          }
           std::cout << "Reading Data \n";
 
           CATSinput->SetNormalization(NormRegion[iNorm][0],
@@ -376,10 +387,10 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           //needed inputs: num source/pot pars, CATS obj
           DLM_Ck* Ck_pp = new DLM_Ck(NumSourcePars, 0, AB_pp);
           DLM_Ck* Ck_pL =
-              vMod_pL == 1 ?
-                  new DLM_Ck(NumSourcePars, 0, AB_pL) :
+              vMod_pL == 0 ?
                   new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
-                             Lednicky_SingletTriplet);
+                             Lednicky_SingletTriplet) :
+                  new DLM_Ck(NumSourcePars, 0, AB_pL);
           //this way you define a correlation function using Lednicky.
           //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
           DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
@@ -387,14 +398,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           Ck_pSigma0->SetSourcePar(0, GaussSourceSize);
           DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
           DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
-
-          if (vMod_pL == 2) {
+          if (vMod_pL == 0) {
             Ck_pL->SetPotPar(0, 2.91);
             Ck_pL->SetPotPar(1, 2.78);
             Ck_pL->SetPotPar(2, 1.54);
             Ck_pL->SetPotPar(3, 2.72);
           }
-
           Ck_pp->Update();
           Ck_pL->Update();
           Ck_pSigma0->Update();
