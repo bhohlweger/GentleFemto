@@ -40,3 +40,6 @@ target_link_libraries(ForgivingFnct ${ROOT_LIBRARIES})
 
 add_executable(timeForQA ${PROJECT_SOURCE_DIR}/Scripts/MakeQA.C)
 target_link_libraries(timeForQA ForgivingFnct)
+
+add_executable(sigmaQA ${PROJECT_SOURCE_DIR}/Scripts/MakeSigmaQA.C)
+target_link_libraries(sigmaQA ForgivingFnct)
