@@ -543,7 +543,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                               FemtoRegion_pp[vFemReg_pp][1], BlRegion[0],
                               BlRegion[1]);
             fitter->AddSameSource("pLambda", "pp", 2);
-            fitter->AddSameSource("pSigma0", "pp", 2);
             fitter->AddSameSource("pXim", "pp", 2);
             fitter->AddSameSource("pXim1530", "pp", 2);
 
