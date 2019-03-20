@@ -248,7 +248,7 @@ void ppmTBins(TString InputDir, TString OutputDir, int system, int numkTBins) {
         massPion };
     CATS AB_pL;
     tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax,
-                              TidyCats::sResonance);
+                              TidyCats::sResonance, TidyCats::pUsmani);
     AB_pL.KillTheCat();
 
     std::cout << "Reading Data \n";
