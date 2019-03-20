@@ -1,38 +1,43 @@
+#include "CATS.h"
+#include "CATStools.h"
+#include "DLM_WfModel.h"
 #include "DLM_Source.h"
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
-#include "CATS.h"
 #include "DLM_CkDecomposition.h"
 #include "DLM_Fitters.h"
+
 #include "TidyCats.h"
 #include "CATSInput.h"
 #include "ReadDreamFile.h"
 #include "DreamCF.h"
 #include "DreamPair.h"
-#include "TRandom3.h"
+
 #include "TH2F.h"
 #include "TFile.h"
 #include "TNtuple.h"
+#include "TDatabasePDG.h"
 #include "TGraph.h"
 #include "TF1.h"
 #include "TPaveText.h"
 #include "TLegend.h"
 #include "TMath.h"
 #include "TCanvas.h"
+
 #include <iostream>
 #include "stdlib.h"
-void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
-                     TString OutputDir);
+void FitPPVariations(const unsigned& NumIter, int system, int source,
+                     TString InputDir, TString OutputDir);
 
 int main(int argc, char *argv[]) {
-  FitPPVariations(atoi(argv[1]), atoi(argv[2]), argv[3], argv[4]);
+  FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), argv[4],
+                  argv[5]);
   return 0;
 }
 
-void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
-                     TString OutputDir) {
+void FitPPVariations(const unsigned& NumIter, int system, int source,
+                     TString InputDir, TString OutputDir) {
 //	TRandom3 rangen(1 + JobID);
-  TRandom3 rangen(0);
   TString HistppName = "hCk_ReweightedppMeV_0";
 
   int Rebin = 5;
@@ -55,6 +60,17 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
         "/home/gu74req/Analysis/CATS_Input/SystematicsAndCalib/pPbRun2_MB/";
 //    system = 0;
   }
+  TidyCats::Sources TheSource;
+  if (source == 0) {
+    TheSource = TidyCats::sGaussian;
+  } else if (source == 1) {
+    TheSource = TidyCats::sResonance;
+  } else if (source == 2) {
+    TheSource = TidyCats::sLevy;
+  } else {
+    std::cout << "Source does not exist! Exiting \n";
+    return;
+  }
 
   //just some temp folder for temp files. Really not important, I will try to get rid of this soon
   //  const TString OutputDir = "/Users/bernhardhohlweger/CATSOutput/";
@@ -71,7 +87,6 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
   const unsigned NumMomBins = 105;
   const double kMin = 4;
   const double kMax = kMin + 4 * NumMomBins;  //(4 is the bin width)
-  unsigned int momBins = 0;
 
   //if you modify you may need to change the CATS ranges somewhere below
   double FemtoRegion_pp[3][2];
@@ -118,7 +133,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
     pL_f0 = 0.521433;  //fraction of primary Lambdas
     pL_f1 = 0.173811;  //fraction of Sigma0
     pL_f2 = 0.152378;  //fractions of Xi0/m
-  } else {  // pp MB + HM
+  } else if (system == 1) {  // pp MB + HM
     PurityProton = 0.991213;
     PurityLambda = 0.965964;
     PurityXi = 0.956;
@@ -129,6 +144,20 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
     pL_f0 = 0.619493;  //fraction of primary Lambdas
     pL_f1 = 0.206498;  //fraction of Sigma0
     pL_f2 = 0.0870044;  //fractions of Xi0/m
+  } else if (system == 2) {
+    PurityProton = 0.991213;
+    PurityLambda = 0.965964;
+    PurityXi = 0.956;
+
+    pp_f0 = 0.874808;
+    pp_f1 = 0.0876342;  //fraction of
+
+    pL_f0 = 0.619493;  //fraction of primary Lambdas
+    pL_f1 = 0.206498;  //fraction of Sigma0
+    pL_f2 = 0.0870044;  //fractions of Xi0/m
+  } else {
+    std::cout << "System " << system << " does not exist, exiting \n";
+    return;
   }
   //ADVANCED***
   double ProtonPrim = pp_f0;
@@ -287,21 +316,21 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
   int uIter = 1;
 
   CATS AB_pp;
-  tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax,
-                            TidyCats::sGaussian);
+  tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
   AB_pp.KillTheCat();
 
   CATS AB_pL;
-  tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax,
-                            TidyCats::sGaussian);
+  tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource);
   AB_pL.KillTheCat();
+
   CATS AB_pXim;
-  tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax,
-                             TidyCats::sGaussian, TidyCats::pHALQCD, 13);
+  tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, TheSource,
+                             TidyCats::pHALQCD, 12);
   AB_pXim.KillTheCat();
 
   CATS AB_pXim1530;
-  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax);
+  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
+                                 TheSource);
   AB_pXim1530.KillTheCat();
 
   for (vFemReg_pp = 0; vFemReg_pp < 3; ++vFemReg_pp) {
@@ -389,8 +418,9 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
           }
           DLM_CkDecomposition CkDec_pp("pp", 3, *Ck_pp,
                                        CATSinput->GetSigmaFile(0));
-          DLM_CkDecomposition CkDec_pL("pLambda", 4, *Ck_pL,
-                                       CATSinput->GetSigmaFile(1));
+          DLM_CkDecomposition CkDec_pL("pLambda",
+                                       TheSource == TidyCats::sLevy ? 3 : 4,
+                                       *Ck_pL, CATSinput->GetSigmaFile(1));
           DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0,
           NULL);
           DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
@@ -455,17 +485,27 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
             std::cout << "No Calib 2 \n";
             return;
           }
-
-          CkDec_pL.AddContribution(0, lam_pL_pS0,
-                                   DLM_CkDecomposition::cFeedDown,
-                                   &CkDec_pSigma0, CATSinput->GetResFile(1));
-          CkDec_pL.AddContribution(1, lam_pL_pXm,
-                                   DLM_CkDecomposition::cFeedDown, &CkDec_pXim,
-                                   CATSinput->GetResFile(2));
-          CkDec_pL.AddContribution(
-              2, 1. - lam_pL - lam_pL_pS0 - lam_pL_pXm - lam_pL_fake,
-              DLM_CkDecomposition::cFeedDown);
-          CkDec_pL.AddContribution(3, lam_pL_fake, DLM_CkDecomposition::cFake);  //0.03
+          if (TheSource == TidyCats::sLevy) {
+            CkDec_pL.AddContribution(0, lam_pL_pXm,
+                                     DLM_CkDecomposition::cFeedDown,
+                                     &CkDec_pXim, CATSinput->GetResFile(2));
+            CkDec_pL.AddContribution(1, 1. - lam_pL - lam_pL_pXm - lam_pL_fake,
+                                     DLM_CkDecomposition::cFeedDown);
+            CkDec_pL.AddContribution(2, lam_pL_fake,
+                                     DLM_CkDecomposition::cFake);  //0.03
+          } else {
+            CkDec_pL.AddContribution(0, lam_pL_pS0,
+                                     DLM_CkDecomposition::cFeedDown,
+                                     &CkDec_pSigma0, CATSinput->GetResFile(1));
+            CkDec_pL.AddContribution(1, lam_pL_pXm,
+                                     DLM_CkDecomposition::cFeedDown,
+                                     &CkDec_pXim, CATSinput->GetResFile(2));
+            CkDec_pL.AddContribution(
+                2, 1. - lam_pL - lam_pL_pS0 - lam_pL_pXm - lam_pL_fake,
+                DLM_CkDecomposition::cFeedDown);
+            CkDec_pL.AddContribution(3, lam_pL_fake,
+                                     DLM_CkDecomposition::cFake);  //0.03
+          }
 
           const double lam_pXim = Purities_p[vFrac_pp_pL][0]
               * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][0]
@@ -495,14 +535,37 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
           CkDec_pXim.AddContribution(2, lam_pXim_fake,
                                      DLM_CkDecomposition::cFake);
 
-          DLM_Fitter1* fitter = new DLM_Fitter1(1);
+          DLM_Fitter1* fitter;
+          if (TheSource == TidyCats::sLevy) {
+            fitter = new DLM_Fitter1(1);
+            fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pp,
+                              FemtoRegion_pp[vFemReg_pp][0],
+                              FemtoRegion_pp[vFemReg_pp][1], BlRegion[0],
+                              BlRegion[1]);
+            fitter->AddSameSource("pLambda", "pp", 2);
+            fitter->AddSameSource("pSigma0", "pp", 2);
+            fitter->AddSameSource("pXim", "pp", 2);
+            fitter->AddSameSource("pXim1530", "pp", 2);
+
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 1.1, 1.5);
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor1, 1.7, 1., 2.);
+          } else {
+            fitter = new DLM_Fitter1(1);
+
+            fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pp,
+                              FemtoRegion_pp[vFemReg_pp][0],
+                              FemtoRegion_pp[vFemReg_pp][1], BlRegion[0],
+                              BlRegion[1]);
+
+            fitter->AddSameSource("pLambda", "pp", 1);
+            fitter->AddSameSource("pSigma0", "pp", 1);
+            fitter->AddSameSource("pXim", "pp", 1);
+            fitter->AddSameSource("pXim1530", "pp", 1);
+
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 1.1, 1.5);
+          }
           fitter->SetOutputDir(OutputDir.Data());
 
-          std::cout << "pp" << std::endl;
-          fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pp,
-                            FemtoRegion_pp[vFemReg_pp][0],
-                            FemtoRegion_pp[vFemReg_pp][1], BlRegion[0],
-                            BlRegion[1]);
           fitter->SetSeparateBL(0, false);
           fitter->SetParameter("pp", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
           if (HaveWeABaseLine) {
@@ -511,15 +574,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
           } else {
             fitter->FixParameter("pp", DLM_Fitter1::p_b, 0);
           }
-
-          fitter->AddSameSource("pLambda", "pp", 1);
-          fitter->AddSameSource("pSigma0", "pp", 1);
-          fitter->AddSameSource("pXim", "pp", 1);
-          fitter->AddSameSource("pXim1530", "pp", 1);
-
           fitter->FixParameter("pp", DLM_Fitter1::p_c, 0);
-
-          fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 1.1, 1.5);
           fitter->FixParameter("pp", DLM_Fitter1::p_Cl, -1);
           std::cout << "CL Fixed \n";
 
@@ -740,7 +795,7 @@ void FitPPVariations(const unsigned& NumIter, int system, TString InputDir,
 
   delete ntResult;
   delete OutFile;
-
+  delete tidy;
   for (unsigned uVar = 0; uVar < 3; uVar++) {
     delete[] Purities_p[uVar];
     delete[] Fraction_p[uVar];
