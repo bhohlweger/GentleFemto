@@ -408,8 +408,8 @@ DreamKayTee* ReadDreamFile::GetkTPairDistributions(int iPart1, int iPart2,
   pair->SetSEkTDist(0, fSEkT[iPart1][iPart2]);
   pair->SetMEkTDist(0, fMEkT[iPart1][iPart2]);
 
-  pair->SetSEkTDist(1, fSEkT[iPart1][iPart2]);
-  pair->SetMEkTDist(1, fMEkT[iPart1][iPart2]);
+  pair->SetSEkTDist(1, fSEkT[iAPart1][iAPart2]);
+  pair->SetMEkTDist(1, fMEkT[iAPart1][iAPart2]);
 
   return pair;
 }
@@ -425,8 +425,8 @@ DreamKayTee* ReadDreamFile::GetmTPairDistributions(int iPart1, int iPart2,
   pair->SetSEmTDist(0, fSEmT[iPart1][iPart2]);
   pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
 
-  pair->SetSEmTDist(1, fSEmT[iPart1][iPart2]);
-  pair->SetMEmTDist(1, fMEmT[iPart1][iPart2]);
+  pair->SetSEmTDist(1, fSEmT[iAPart1][iAPart2]);
+  pair->SetMEmTDist(1, fMEmT[iAPart1][iAPart2]);
 
   return pair;
 }
