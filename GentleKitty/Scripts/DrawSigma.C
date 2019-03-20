@@ -80,7 +80,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 
   bool batchmode = true;
   bool fancyPlot = false;
-  double d0, REf0inv, IMf0inv;
+  double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
 
   DreamPlot::SetStyle();
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
@@ -99,10 +99,26 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
                                     varFolder.Data(), NumIter, d0, REf0inv,
                                     IMf0inv);
+  } else if (potential == 1) {
+    if (params.size() != 6) {
+      std::cout << "ERROR: Wrong number of parameters for delta/eta\n";
+      return;
+    }
+    deltap0 = params[0];
+    deltap1 = params[1];
+    deltap2 = params[2];
+    etap0 = params[3];
+    etap1 = params[4];
+    etap2 = params[5];
+
+    graphfilename = TString::Format(
+        "%s/Param_pSigma0_%i_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.root",
+        varFolder.Data(), NumIter, deltap0, deltap1, deltap2, etap0, etap1,
+        etap2);
+
   } else {
     graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
                                     varFolder.Data(), NumIter);
-
   }
 
   auto file = TFile::Open(graphfilename.Data(), "update");
@@ -178,6 +194,11 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       c1->Print(
           Form("%s/CF_pSigma_model_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
                REf0inv, IMf0inv));
+    } else if (potential == 1) {
+      c1->Print(
+          Form("%s/CF_pSigma_model_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
+               varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1,
+               etap2));
     } else {
       c1->Print(Form("%s/CF_pSigma_model.pdf", varFolder.Data()));
     }
@@ -186,6 +207,11 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       c1->Print(
           Form("%s/CF_pSigma_model_zoom_%.3f_%.3f_%.3f.pdf", varFolder.Data(),
                d0, REf0inv, IMf0inv));
+    } else if (potential == 1) {
+      c1->Print(
+          Form("%s/CF_pSigma_model_zoom_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
+               varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1,
+               etap2));
     } else {
       c1->Print(Form("%s/CF_pSigma_model_zoom.pdf", varFolder.Data()));
     }
@@ -234,6 +260,36 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     ntResult->Fill(ntBuffer);
     ntResult->Write();
     resultFile->Close();
+  } else if (potential == 1) {
+    auto fitTuple = (TNtuple*) file->Get("fitResult");
+
+    TString resultfilename = TString::Format(
+        "%s/Result_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.root", varFolder.Data(),
+        deltap0, deltap1, deltap2, etap0, etap1, etap2);
+    auto resultFile = TFile::Open(resultfilename.Data(), "recreate");
+    TNtuple* ntResult =
+        new TNtuple(
+            "exclusion",
+            "exclusion",
+            "CFneg:deltap0:deltap1:deltap2:etap0:etap1:etap2:bestChi2:defChi2:worstChi2");
+
+    Float_t ntBuffer[10];
+    fitTuple->Draw("CFneg >> h");
+    TH1F* hist = (TH1F*) gROOT->FindObject("h");
+    ntBuffer[0] = hist->GetMean();
+    ntBuffer[1] = deltap0;
+    ntBuffer[2] = deltap1;
+    ntBuffer[3] = deltap2;
+    ntBuffer[4] = etap0;
+    ntBuffer[5] = etap1;
+    ntBuffer[6] = etap2;
+    ntBuffer[7] = bestChi2;
+    ntBuffer[8] = defaultChi2;
+    ntBuffer[9] = worstChi2;
+
+    ntResult->Fill(ntBuffer);
+    ntResult->Write();
+    resultFile->Close();
   }
 
   file->cd();
@@ -262,6 +318,14 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       BeamText.DrawLatex(
           0.45, 0.66,
           TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}", IMf0inv));
+    } else if (potential == 1) {
+      BeamText.DrawLatex(0.3, 0.8, "Phase shift");
+      BeamText.DrawLatex(
+          0.3, 0.73,
+          TString::Format("%.2f, %.4f, %.6f", deltap0, deltap1, deltap2));
+      BeamText.DrawLatex(0.3, 0.66, "Elasticity");
+      BeamText.DrawLatex(
+          0.3, 0.59, TString::Format("%.2f, %.4f, %.6f", etap0, etap1, etap2));
     }
     BeamText.DrawLatex(0.7, 0.8,
                        TString::Format("#chi^{2}_{best} = %.3f", bestChi2));
@@ -288,6 +352,11 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       c->Print(
           Form("%s/CF_pSigma_fit_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
                REf0inv, IMf0inv));
+    } else if (potential == 1) {
+      c->Print(
+          Form("%s/CF_pSigma_fit_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
+               varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1,
+               etap2));
     } else {
       c->Print(Form("%s/CF_pSigma_fit.pdf", varFolder.Data()));
     }
@@ -321,6 +390,18 @@ void DrawSigma(char *argv[]) {
     params.push_back(atof(argv[7]));  // d0
     params.push_back(atof(argv[8]));  // REf0inv
     params.push_back(atof(argv[9]));  // IMf0inv
+  } else if (potential == 1) {
+    if (!argv[7] || !argv[8] || !argv[9] || !argv[10] || !argv[11]
+        || !argv[12]) {
+      std::cout << "ERROR: Missing the parameters for delta/eta\n";
+      return;
+    }
+    params.push_back(atof(argv[7]));   // deltap0
+    params.push_back(atof(argv[8]));   // deltap1
+    params.push_back(atof(argv[9]));   // deltap2
+    params.push_back(atof(argv[10]));  // etap0
+    params.push_back(atof(argv[11]));  // etap1
+    params.push_back(atof(argv[12]));  // etap2
   }
   DrawSigma(NumIter, varFolder, potential, params);
 }

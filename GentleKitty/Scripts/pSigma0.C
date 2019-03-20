@@ -48,7 +48,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
                TString suffix, TString OutputDir, const int potential,
                std::vector<double> params) {
   bool batchmode = true;
-  double d0, REf0inv, IMf0inv;
+  double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
 
   DreamPlot::SetStyle();
   bool fastPlot = (NumIter == 0) ? true : false;
@@ -66,6 +66,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   if (potential == 0) {
     varList += ":d0:REf0inv:IMf0inv";
     nArguments += 3;
+  } else if (potential == 1) {
+    varList += ":deltap0:deltap1:deltap2:etap0:etap1:etap2";
+    nArguments += 6;
   }
 
   TNtuple* ntResult = new TNtuple("fitResult", "fitResult", varList.Data());
@@ -87,10 +90,26 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
     graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
                                     OutputDir.Data(), NumIter, d0, REf0inv,
                                     IMf0inv);
+  } else if (potential == 1) {
+    if (params.size() != 6) {
+      std::cout << "ERROR: Wrong number of parameters for delta/eta\n";
+      return;
+    }
+    deltap0 = params[0];
+    deltap1 = params[1];
+    deltap2 = params[2];
+    etap0 = params[3];
+    etap1 = params[4];
+    etap2 = params[5];
+
+    graphfilename = TString::Format(
+        "%s/Param_pSigma0_%i_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.root",
+        OutputDir.Data(), NumIter, deltap0, deltap1, deltap2, etap0, etap1,
+        etap2);
+
   } else {
     graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
                                     OutputDir.Data(), NumIter);
-
   }
   auto param = new TFile(graphfilename, "RECREATE");
 
@@ -245,11 +264,18 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
               << IMf0inv << "\n";
     Ck_pSigma0 = new DLM_Ck(1, 3, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             ComplexLednicky_Singlet_InvScatLen);
-  } else if (potential == 1) {  // Lednicky coupled channel model fss2
+  } else if (potential == 1) {  // Effective Lednicky with delta/eta
+    std::cout << "Running with delta/eta parametrization \n";
+    std::cout << "Delta: " << deltap0 << " " << deltap1 << " " << deltap2
+              << "\n";
+    std::cout << "Eta  : " << etap0 << " " << etap1 << " " << etap2 << "\n";
+    Ck_pSigma0 = new DLM_Ck(1, 6, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
+                            LednickySingletScatAmplitude);
+  } else if (potential == 2) {  // Lednicky coupled channel model fss2
     std::cout << "Running with coupled Lednicky \n";
     Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             Lednicky_gauss_Sigma0);
-  } else if (potential == 2) {  // Haidenbauer WF
+  } else if (potential == 3) {  // Haidenbauer WF
     std::cout << "Running with the Haidenbauer chiEFT potential \n";
     // Haidenbauer is valid up to 350 MeV, therefore we have to adopt
     double kMax_pSigma_Haidenbauer = kMin_pSigma;
@@ -383,6 +409,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, REf0inv);
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, IMf0inv);
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, d0);
+            } else if (potential == 1) {
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, deltap0);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, deltap1);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, deltap2);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot3, etap0);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot4, etap1);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot5, etap2);
             }
 
             fitter->GoBabyGo();
@@ -573,6 +606,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
                   c->Print(
                       Form("%s/CF_pSigma0_%.3f_%.3f_%.3f.pdf", OutputDir.Data(),
                            d0, REf0inv, IMf0inv));
+                } else if (potential == 1) {
+                  c->Print(
+                      Form("%s/CF_pSigma0_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
+                           OutputDir.Data(), deltap0, deltap1, deltap2, etap0,
+                           etap1, etap2));
                 } else {
                   c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
                 }
@@ -651,6 +689,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
               ntBuffer[32] = d0;
               ntBuffer[33] = REf0inv;
               ntBuffer[34] = IMf0inv;
+            } else if (potential == 1) {
+              ntBuffer[32] = deltap0;
+              ntBuffer[33] = deltap1;
+              ntBuffer[34] = deltap2;
+              ntBuffer[35] = etap0;
+              ntBuffer[36] = etap1;
+              ntBuffer[37] = etap2;
             }
 
             ntResult->Fill(ntBuffer);
@@ -699,6 +744,18 @@ void FitSigma0(char *argv[]) {
     params.push_back(atof(argv[7]));  // d0
     params.push_back(atof(argv[8]));  // REf0inv
     params.push_back(atof(argv[9]));  // IMf0inv
+  } else if (potential == 1) {
+    if (!argv[7] || !argv[8] || !argv[9] || !argv[10] || !argv[11]
+        || !argv[12]) {
+      std::cout << "ERROR: Missing the parameters for delta/eta\n";
+      return;
+    }
+    params.push_back(atof(argv[7]));   // deltap0
+    params.push_back(atof(argv[8]));   // deltap1
+    params.push_back(atof(argv[9]));   // deltap2
+    params.push_back(atof(argv[10]));  // etap0
+    params.push_back(atof(argv[11]));  // etap1
+    params.push_back(atof(argv[12]));  // etap2
   }
   FitSigma0(NumIter, InputDir, trigger, suffix, OutputDir, potential, params);
 }
