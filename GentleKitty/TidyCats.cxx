@@ -193,7 +193,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     ExternalWF = Init_pL_Haidenbauer(
         TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pLambdaNLO/",
                         HomeDir.Data()),
-        AB_pL, 0, 600);
+        AB_pL, 10, 600);
     for (unsigned uCh = 0; uCh < AB_pL->GetNumChannels(); uCh++) {
       AB_pL->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                      ExternalWF[1][uCh][0]);
@@ -204,7 +204,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     ExternalWF = Init_pL_Haidenbauer(
         TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pLambdaLO_600/",
                        HomeDir.Data()),
-        AB_pL, 10, 600);
+        AB_pL, 0, 600);
     for (unsigned uCh = 0; uCh < AB_pL->GetNumChannels(); uCh++) {
       AB_pL->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                      ExternalWF[1][uCh][0]);
