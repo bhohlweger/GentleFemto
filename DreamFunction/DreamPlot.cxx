@@ -14,6 +14,7 @@ DreamPlot::DreamPlot()
       fProtonLambda(nullptr),
       fLambdaLambda(nullptr),
       fProtonXi(nullptr),
+      fProtonSigma(nullptr),
       fRadius(0),
       fRadiusStat(0),
       fRadiusSysUp(0),
@@ -25,6 +26,7 @@ DreamPlot::DreamPlot()
   fProtonLambda = new DreamData("ProtonLambda");
   fLambdaLambda = new DreamData("LambdaLambda");
   fProtonXi = new DreamData("ProtonXi");
+  fProtonSigma = new DreamData("ProtonSigma0");
 }
 
 DreamPlot::~DreamPlot() {
@@ -90,6 +92,18 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
                             sysWidth);
 
   return;
+}
+
+void DreamPlot::ReadDataSigma(const char* PathToDataFolder,
+                              const char* PathToSysFolder) {
+  auto CFFile = TFile::Open(Form("%s/CFOutput_pSigma.root", PathToDataFolder));
+  auto CFFile_Sys = TFile::Open(
+      Form("%s/Systematics_pSigma0.root", PathToSysFolder));
+  fProtonSigma->SetCorrelationFunction(
+      (TH1F*) CFFile->Get("hCk_ReweightedMeV_3"));
+  fProtonSigma->SetSystematics(
+      (TF1*) CFFile_Sys->Get("SystError"),
+      fProtonSigma->GetCorrelationFunction()->GetBinWidth(1) / 2.f);
 }
 
 void DreamPlot::ReadSimulation(const char* PathToSimFolder, int binWidth) {
@@ -391,6 +405,33 @@ void DreamPlot::DrawCorrelationFunctions() {
   Numbering.DrawLatex( 0.3,
                        0.9,"#bf{b)}");
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
+}
+
+void DreamPlot::DrawCorrelationFunctionSigma() {
+  SetStyle();
+  const float right = 0.025;
+  const float top = 0.025;
+  TLatex ref;
+  ref.SetTextSize(gStyle->GetTextSize() * 0.4);
+  ref.SetNDC(kTRUE);
+  TLatex Numbering;
+  Numbering.SetTextSize(gStyle->GetTextSize() * 1.3);
+  Numbering.SetNDC(kTRUE);
+  auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 550);
+  c->SetRightMargin(right);
+  c->SetTopMargin(top);
+  fProtonSigma->SetLegendName("p-#Sigma^{0} #oplus #bar{p}-#bar#Sigma^{0}", "fpe");
+//  fProtonSigma->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
+  fProtonSigma->SetRangePlotting(0, 450, 0.8, 1.7);
+//  fProtonSigma->SetInletRangePlotting(50,200,0.94,1.06);
+//  fProtonSigma->SetInletCoordinates(0.35, 0.27, 0.95, 0.61);
+  fProtonSigma->SetNDivisions(505);
+  fProtonSigma->SetLegendCoordinates(
+      0.37, 0.71 - 0.09 * fProtonSigma->GetNumberOfModels(), 0.7, 0.8);
+  fProtonSigma->DrawCorrelationPlot(c, 13);
+  DrawSystemInfo(c, false, 0.39);
+  c->cd();
+  c->SaveAs("CF_pSigma_prelim.pdf");
 }
 
 void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin) {

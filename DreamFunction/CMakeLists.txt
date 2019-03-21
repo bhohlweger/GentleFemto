@@ -58,6 +58,9 @@ target_link_libraries(executeKayTee DreamFunctions)
 add_executable(executePlot ${PROJECT_SOURCE_DIR}/Scripts/ExecutePlotCF.C)
 target_link_libraries(executePlot DreamFunctions)
 
+add_executable(executePlotSigma ${PROJECT_SOURCE_DIR}/Scripts/executePlotSigma.C)
+target_link_libraries(executePlotSigma DreamFunctions)
+
 add_executable(executeSigma ${PROJECT_SOURCE_DIR}/Scripts/ExecuteSigma.C)
 target_link_libraries(executeSigma DreamFunctions)
 
