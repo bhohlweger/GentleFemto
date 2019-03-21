@@ -252,8 +252,8 @@ void DreamSystematics::ComputeUncertainty() {
     }
   }
 
-  fRatio = new TF1(Form("Ratio_%s", fHistDefault->GetName()), "pol0(0)+expo(1)",
-                   fSystematicFitRangeLow, fSystematicFitRangeUp);
+  fRatio = new TF1("SystError", "pol0(0)+expo(1)", fSystematicFitRangeLow,
+                   fSystematicFitRangeUp);
 
   fRatio->SetParameter(
       0,
