@@ -93,3 +93,6 @@ target_link_libraries(executeQADream DreamFunctions)
 
 add_executable(executePurityDream ${PROJECT_SOURCE_DIR}/Scripts/executePurityDream.C)
 target_link_libraries(executePurityDream DreamFunctions)
+
+add_executable(executeDPhiDEtaBBar ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEtaBBar.C)
+target_link_libraries(executeDPhiDEtaBBar DreamFunctions)

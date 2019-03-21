@@ -247,11 +247,16 @@ void ReadDreamFile::ReaddEtadPhiAtRadHists(const unsigned int nMaxMix,
   TList *ResultsQA;
   dirResults->GetObject(Form("%sResultQA%s", prefix, Addon), ResultsQA);
   TList *PartList;
+
+
   for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
     fSEdEtadPhiAtRad[iPart1] = new TH2F***[fNPart2];
     fSEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F***[fNPart2];
     fMEdEtadPhiAtRad[iPart1] = new TH2F***[fNPart2];
     fMEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F***[fNPart2];
+
+
+
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
       TString FolderName = Form("QA_Particle%i_Particle%i", iPart1, iPart2);
       PartList = (TList*) ResultsQA->FindObject(FolderName.Data());
@@ -311,15 +316,19 @@ void ReadDreamFile::ReaddEtadPhiHists(const unsigned int NBinsmT,
   TList *Results;
   dirResults->GetObject(Form("%sResults%s", prefix, Addon), Results);
   TList *PartList;
+
   for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
     fSEdEtadPhi[iPart1] = new TH2F*[fNPart2];
     fMEdEtadPhi[iPart1] = new TH2F*[fNPart2];
+
     if (NBinsmT > 0) {
       fSEdEtadPhimT[iPart1] = new TH2F**[fNPart2];
       fMEdEtadPhimT[iPart1] = new TH2F**[fNPart2];
     }
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
       TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
+
+
       PartList = (TList*) Results->FindObject(FolderName.Data());
       if (NBinsmT > 0) {
         fSEdEtadPhimT[iPart1][iPart2] = new TH2F*[NBinsmT];
@@ -358,6 +367,7 @@ void ReadDreamFile::ReaddEtadPhiHists(const unsigned int NBinsmT,
           }
         }
       }
+
       if (NBinsmT > 0) {
         if (iSEmTCounter > 0 && iMEmTCounter) {
           std::cout << "Pair " << iPart1 << " & " << iPart2
@@ -453,6 +463,23 @@ DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistribution(int iPart1, int iPart2,
   return outDist;
 }
 
+DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistributionSingle(int iPart1, int iPart2,
+                                                      int imT) {
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamdEtadPhi* outDist = new DreamdEtadPhi();
+  if (imT < 0) {
+    outDist->SetSEDistribution(fSEdEtadPhi[iPart1][iPart2], "");
+    outDist->SetMEDistribution(fMEdEtadPhi[iPart1][iPart2], "");
+  } else {
+    outDist->SetSEDistribution(fSEdEtadPhimT[iPart1][iPart2][imT], "");
+    outDist->SetMEDistribution(fMEdEtadPhimT[iPart1][iPart2][imT], "");
+  }
+  return outDist;
+}
+
 DreamdEtadPhi* ReadDreamFile::GetdEtadPhiAtRadDistribution(int iPart1,
                                                            int iPart2,
                                                            int iMix1,
@@ -482,4 +509,3 @@ DreamdEtadPhi* ReadDreamFile::GetdEtadPhiAtRadDistribution(int iPart1,
           fMEdEtadPhiAtRad[iAPart1][iAPart2][iRad][iMix2]);
   return outDist;
 }
-

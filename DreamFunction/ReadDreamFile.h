@@ -38,6 +38,7 @@ class ReadDreamFile {
                                       int iAPart2);
   DreamdEtadPhi* GetdEtadPhiDistribution(int iPart1, int iPart2, int iAPart1,
                                          int iAPart2, int imT = 0);
+  DreamdEtadPhi* GetdEtadPhiDistributionSingle(int iPart1, int iPart2, int imT = 0);
   DreamdEtadPhi* GetdEtadPhiAtRadDistribution(int iPart1, int iPart2, int iMix1,
                                               int iAPart1, int iAPart2,
                                               int iMix2, int iRad,

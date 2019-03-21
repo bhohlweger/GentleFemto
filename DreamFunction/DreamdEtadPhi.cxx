@@ -91,6 +91,8 @@ void DreamdEtadPhi::ProjectionY() {
   TH1D* tmpME = fMEdEtadPhi->ProjectionY("TmpME");
   tmpME->Scale(1. / tmpME->Integral());
   fProjectionY->Divide(tmpME);
+  fProjectionY->GetXaxis()->SetTitleOffset(0.89);
+  fProjectionY->SetTitle("; #phi (rad); C(#Delta #phi)");
   delete tmpME;
 }
 
