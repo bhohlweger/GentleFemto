@@ -16,16 +16,16 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
   DreamPair* ApAp = new DreamPair("AntiPart", 0.24, 0.34);
 
   DreamCF* CF_pSigma = new DreamCF();
-  DreamPair* pSigma = new DreamPair("Part", 0.24, 0.34);
-  DreamPair* ApASigma = new DreamPair("AntiPart", 0.24, 0.34);
+  DreamPair* pSigma = new DreamPair("Part", 0.34, 0.49);
+  DreamPair* ApASigma = new DreamPair("AntiPart", 0.34, 0.49);
 
   DreamCF* CF_SidebandUp = new DreamCF();
-  DreamPair* pSiSBup = new DreamPair("Part_SB_up", 0.24, 0.34);
-  DreamPair* ApaSiSBup = new DreamPair("AntiPart_SB_up", 0.24, 0.34);
+  DreamPair* pSiSBup = new DreamPair("Part_SB_up", 0.34, 0.49);
+  DreamPair* ApaSiSBup = new DreamPair("AntiPart_SB_up", 0.34, 0.49);
 
   DreamCF* CF_SidebandLow = new DreamCF();
-  DreamPair* pSiSBlow = new DreamPair("Part_SB_low", 0.24, 0.34);
-  DreamPair* ApaSiSBlow = new DreamPair("AntiPart_SB_low", 0.24, 0.34);
+  DreamPair* pSiSBlow = new DreamPair("Part_SB_low", 0.34, 0.49);
+  DreamPair* ApaSiSBlow = new DreamPair("AntiPart_SB_low", 0.34, 0.49);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
