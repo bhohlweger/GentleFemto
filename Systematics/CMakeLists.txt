@@ -27,8 +27,11 @@ target_link_libraries(systematicsSigma tidyCATS DreamFunctions ForgivingFnct)
 add_executable(AddFiles ${PROJECT_SOURCE_DIR}/AddOutputs.C)
 target_link_libraries(AddFiles tidyCATS DreamFunctions ForgivingFnct)
 
-add_executable(executeSysteamticsPP ${PROJECT_SOURCE_DIR}/EvalDreamSyspp.C)
-target_link_libraries(executeSysteamticsPP tidyCATS DreamFunctions ForgivingFnct)
+add_executable(systematicsPP ${PROJECT_SOURCE_DIR}/EvalDreamSyspp.C)
+target_link_libraries(systematicsPP tidyCATS DreamFunctions ForgivingFnct)
 
-add_executable(executeSysteamticsPXi ${PROJECT_SOURCE_DIR}/EvalDreamSyspXi.C)
-target_link_libraries(executeSysteamticsPXi tidyCATS DreamFunctions ForgivingFnct)
+add_executable(systematicsPXi ${PROJECT_SOURCE_DIR}/EvalDreamSyspXi.C)
+target_link_libraries(systematicsPXi tidyCATS DreamFunctions ForgivingFnct)
+
+add_executable(systematicsPL ${PROJECT_SOURCE_DIR}/EvalDreamSyspl.C)
+target_link_libraries(systematicsPL tidyCATS DreamFunctions ForgivingFnct)

@@ -243,6 +243,9 @@ void DreamSystematics::ComputeUncertainty() {
       case Pair::pXi:
         EvalProtonXi(ikstar);
         break;
+      case Pair::pL:
+        EvalProtonLambda(ikstar);
+        break;
       default:
         std::cout << "Non implemented Particle mode \n";
         break;
@@ -310,6 +313,55 @@ void DreamSystematics::EvalProtonProton(const int kstar) {
   }
   sysErrTotal = std::sqrt(sysErrTotal);
 
+  fHistSystErrAbs->SetBinContent(kstar, sysErrTotal);
+  fHistSystErrRel->SetBinContent(
+      kstar, sysErrTotal / fHistDefault->GetBinContent(kstar));
+}
+
+void DreamSystematics::EvalProtonLambda(const int kstar) {
+  std::vector<float> addSyst;
+  // pT
+  addSyst.push_back(
+      (fHistAbsErr[0]->GetBinContent(kstar)
+          + fHistAbsErr[1]->GetBinContent(kstar)) / 2.);
+  // Eta
+  addSyst.push_back(
+      (fHistAbsErr[2]->GetBinContent(kstar)
+          + fHistAbsErr[3]->GetBinContent(kstar)) / 2.);
+  // nSigma
+  addSyst.push_back(
+      (fHistAbsErr[4]->GetBinContent(kstar)
+          + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
+  // Filter Bit 96
+  addSyst.push_back(fHistAbsErr[6]->GetBinContent(kstar));
+  // TPC Cls
+  addSyst.push_back(
+      (fHistAbsErr[7]->GetBinContent(kstar)
+          + fHistAbsErr[8]->GetBinContent(kstar)) / 2.);
+  // v0 pT
+  addSyst.push_back(
+      (fHistAbsErr[9]->GetBinContent(kstar)
+          + fHistAbsErr[10]->GetBinContent(kstar)) / 2.);
+  // CPA up
+  addSyst.push_back(fHistAbsErr[11]->GetBinContent(kstar));
+  // nSigma Up
+  addSyst.push_back(fHistAbsErr[12]->GetBinContent(kstar));
+  // Track TPC Cluster Up
+  addSyst.push_back(fHistAbsErr[13]->GetBinContent(kstar));
+  // Eta
+  addSyst.push_back(
+      (fHistAbsErr[14]->GetBinContent(kstar)
+          + fHistAbsErr[15]->GetBinContent(kstar)) / 2.);
+  // dca daughter
+  addSyst.push_back(fHistAbsErr[16]->GetBinContent(kstar));
+  // dca daughters to pv
+  addSyst.push_back(fHistAbsErr[17]->GetBinContent(kstar));
+
+  double sysErrTotal = 0.;
+  for (size_t iAdd = 0; iAdd < addSyst.size(); ++iAdd) {
+    sysErrTotal += (addSyst[iAdd] * addSyst[iAdd]);
+  }
+  sysErrTotal = std::sqrt(sysErrTotal);
   fHistSystErrAbs->SetBinContent(kstar, sysErrTotal);
   fHistSystErrRel->SetBinContent(
       kstar, sysErrTotal / fHistDefault->GetBinContent(kstar));
@@ -540,6 +592,9 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
       break;
     case Pair::pXi:
       c->Divide(7, 5);
+      break;
+    case Pair::pL:
+      c->Divide(3, 6);
       break;
   }
 

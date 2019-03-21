@@ -19,7 +19,8 @@ class DreamSystematics {
   enum Pair {
     pp = 0,       ///< Proton-Proton correlation function
     pSigma0 = 1,       ///< Proton-Sigma0 correlation function
-    pXi = 2
+    pXi = 2,
+    pL = 3
   };
 
   DreamSystematics();
@@ -86,6 +87,7 @@ class DreamSystematics {
   void EvalProtonProton(const int kstar);
   void EvalProtonSigma(const int kstar);
   void EvalProtonXi(const int kstar);
+  void EvalProtonLambda(const int kstar);
   void WriteOutput();
   void WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
                    const TString name);
@@ -169,9 +171,17 @@ class DreamSystematics {
           "Casc Track n#sigma down", "Casc #it{p}_{T} up 1",
           "Casc #it{p}_{T} up 2" } };
 
+  const std::vector<TString> pLVariations = { { "Proton #it{p}_{T} down",
+      "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
+      "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",
+      "Proton TPC cluster down", "Proton TPC cluster up", "V0 #it{p}_{T} down",
+      "V0 #it{p}_{T} up", "V0 CPA up", "V0 Track n#sigma up",
+      "V0 Track TPC cluster up", "V0 Track #eta up", "V0 Track #eta down",
+      "V0 Track d_{track} up", "V0 Track d_{Track, PV}" } };
+
   const std::vector<std::vector<TString>> vars = { { ppVariations,
-      pSigma0Variations, pXiVariations } };
-  const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi" } };
+      pSigma0Variations, pXiVariations, pLVariations } };
+  const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi", "pL" } };
 };
 
 inline
