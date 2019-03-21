@@ -439,10 +439,6 @@ void DreamSystematics::EvalProtonSigma(const int kstar) {
   addSyst.push_back(
       (fHistAbsErr[30]->GetBinContent(kstar)
           + fHistAbsErr[31]->GetBinContent(kstar)) / 2.);
-  // DCA
-  addSyst.push_back(
-      (fHistAbsErr[32]->GetBinContent(kstar)
-          + fHistAbsErr[33]->GetBinContent(kstar)) / 2.);
 
   double sysErrTotal = 0.;
   for (size_t iAdd = 0; iAdd < addSyst.size(); ++iAdd) {

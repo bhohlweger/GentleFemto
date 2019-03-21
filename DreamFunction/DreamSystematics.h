@@ -151,8 +151,7 @@ class DreamSystematics {
       "Photon Daug TPC ncls finable up", "Photon Daug n#sigma down",
       "Photon Daug n#sigma up", "Photon q_{T} 1-D up", "Photon q_{T} 2-D down",
       "Photon #Psi_{Pair} 1-D up", "Photon #Psi_{Pair} 2-D down",
-      "Photon CPA down", "Photon CPA up", "Photon DCA_{R} up",
-      "Photon DCA_{Z} up" } };
+      "Photon CPA down", "Photon CPA up"} };
 
   const std::vector<TString> pXiVariations = {
       { "Proton #it{p}_{T} down", "Proton #it{p}_{T} up", "Proton #eta up",
