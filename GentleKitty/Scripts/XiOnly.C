@@ -519,8 +519,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                   EffNumBins_pXim_kSm60++;
                 }
               }
-              EffNumBins_pXim--;
-              EffNumBins_pXim_kSm60--;
 
               double pvalXi = TMath::Prob(Chi2_pXim, round(EffNumBins_pXim));
               double nSigmaXi = TMath::Sqrt(2) * TMath::ErfcInverse(pvalXi);
@@ -566,14 +564,19 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               fitme->Write();
               file->Close();
               if (FAST_PLOT) {
-                TPaveText* info4 = new TPaveText(0.2, 0.5, 0.9, 0.95, "blNDC");  //lbrt
+                TPaveText* info4 = new TPaveText(0.5, 0.8, 0.9, 0.95, "blNDC");  //lbrt
                 info4->SetName("info4");
                 info4->SetBorderSize(1);
                 info4->SetTextSize(0.04);
                 info4->SetFillColor(kWhite);
                 info4->SetTextFont(22);
 
-                TString SOURCE_NAME = "Gauss";
+                TString SOURCE_NAME;
+                if (TheSource == TidyCats::sLevy) {
+                  SOURCE_NAME = "Levy";
+                } else if (TheSource == TidyCats::sGaussian) {
+                  SOURCE_NAME = "Gauss";
+                }
                 double Yoffset = 1.2;
 
                 info4->AddText(
@@ -618,7 +621,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                 hAxis_pXim->GetYaxis()->SetTitleOffset(Yoffset);
                 hAxis_pXim->GetYaxis()->SetTitleSize(0.075);
                 hAxis_pXim->GetXaxis()->SetRangeUser(0, 500);
-                hAxis_pXim->GetYaxis()->SetRangeUser(0.7, 4.5);    //pPb
+                hAxis_pXim->GetYaxis()->SetRangeUser(0.7, 3.);    //pPb
 
                 TCanvas* cfast = new TCanvas(
                     TString::Format("cfast_r%.2f", GaussSourceSize),
