@@ -22,6 +22,7 @@ class DreamData {
     fCorrelationFunction = CF;
   }
   ;
+  const TH1F* GetCorrelationFunction() { return fCorrelationFunction; }
   void SetCorrelationFunctionSimulation(TH1F* CF) {
     fCorrelationFunctionSimulation = CF;
   }
@@ -35,7 +36,7 @@ class DreamData {
                           int color, int lineStyle, double lineWidth,
                           int fillStyle, bool addtoLegend = true);
   void SetStyleHisto(TH1 *histo, int marker, int color);
-  void DrawCorrelationPlot(TCanvas* c);
+  void DrawCorrelationPlot(TCanvas* c, const int color = 0);
   void SetRangePlotting(float xMin, float xMax, float yMin, float yMax) {
     fXMin = xMin;
     fXMax = xMax;

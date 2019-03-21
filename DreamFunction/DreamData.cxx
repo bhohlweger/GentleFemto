@@ -46,7 +46,8 @@ DreamData::DreamData(const char* particlePair)
     kMagenta - 9,
     kOrange - 9,
     kCyan - 3,
-    kYellow - 7
+    kYellow - 7,
+    kBlue + 3
   };
   TColor myColor1;
   fColors = {
@@ -60,9 +61,10 @@ DreamData::DreamData(const char* particlePair)
     kYellow + 2,//7
     kWhite,//8
     kGreen - 5,//9
-    myColor1.GetColor(255,127,0),
-    myColor1.GetColor(31,120,180),
-    myColor1.GetColor(178,223,138)
+    myColor1.GetColor(255,127,0), //10
+    myColor1.GetColor(31,120,180), //11
+    myColor1.GetColor(178,223,138), //12
+    kBlue + 3 //13
   };
   fMarkers = {kFullCircle, kFullSquare, kOpenCircle, kOpenSquare, kOpenDiamond,
     kOpenCross, kFullCross, kFullDiamond, kFullStar, kOpenStar};
@@ -100,9 +102,6 @@ void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
       fSysError = new TGraphErrors();
 
       for (int i = 0; i < nBinsX; i++) {
-        if (fCorrelationFunction->GetBinCenter(i + 1)
-            > 0.5 * fUnitConversionData)
-          continue;
         fSysError->SetPoint(i, fCorrelationFunction->GetBinCenter(i + 1),
                             fCorrelationFunction->GetBinContent(i + 1));
         fSysError->SetPointError(i, errorwidth,
@@ -188,9 +187,9 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->SetLineColor(fColors[color]);
 }
 
-void DreamData::DrawCorrelationPlot(TCanvas* c) {
+void DreamData::DrawCorrelationPlot(TCanvas* c, const int color) {
   c->cd();
-  SetStyleHisto(fCorrelationFunction, 2, 0);
+  SetStyleHisto(fCorrelationFunction, 2, color);
   fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fCorrelationFunction->GetYaxis()->SetRangeUser(fYMin, fYMax);
   fSysError->SetLineColor(kWhite);
@@ -213,6 +212,8 @@ void DreamData::DrawCorrelationPlot(TCanvas* c) {
   leg->SetTextSize(gStyle->GetTextSize() * 0.95);
   int legendCounter = 1;
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
+  fFakeGraph[0]->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
+  fFakeGraph[0]->SetMarkerColor(fCorrelationFunction->GetMarkerColor());
   leg->AddEntry(fFakeGraph[0], fLegendName[0], fLegendOption[0]);
 //  leg->AddEntry(fBaseLine, "Baseline", "l");
   leg->Draw("same");
