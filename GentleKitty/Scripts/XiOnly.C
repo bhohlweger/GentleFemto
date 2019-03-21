@@ -564,7 +564,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               fitme->Write();
               file->Close();
               if (FAST_PLOT) {
-                TPaveText* info4 = new TPaveText(0.5, 0.8, 0.9, 0.95, "blNDC");  //lbrt
+                TPaveText* info4 = new TPaveText(0.3, 0.7, 0.9, 0.95, "blNDC");  //lbrt
                 info4->SetName("info4");
                 info4->SetBorderSize(1);
                 info4->SetTextSize(0.04);
