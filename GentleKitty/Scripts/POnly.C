@@ -299,11 +299,11 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   TNtuple* ntResult = new TNtuple(
       "ntResult", "ntResult",
       "IterID:vFemReg_pp:vFrac_pp_pL:vModpL:vFrac_pL_pSigma0:"
-      "vFrac_pL_pXim:BLSlope:Radius_pp:RadiusErr_pp:"
+      "vFrac_pL_pXim:BLSlope:Radius_pp:RadiusErr_pp:AlphaLev:AlphaLevErr:"
       "pa_pp:paErr_pp:pb_pp:pbErr_pp:pCl_pp:pClErr_pp:iNorm:"
       "Chi2NdfGlobal:pval:Chi2NdfLocal");
 
-  Float_t ntBuffer[19];
+  Float_t ntBuffer[21];
 
   int vFemReg_pp;  //which femto region we use for pp (1 = default)
   int vMod_pL = 1;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
@@ -605,7 +605,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           double Chi2 = fitter->GetChi2();
           unsigned NDF = fitter->GetNdf();
           double RadiusResult = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
-          double RadiusError = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
+          double RadiusError =  fitter->GetParError("pp", DLM_Fitter1::p_sor0);
           if (Chi2 / double(NDF) != fitter->GetChi2Ndf()) {
             printf("Oh boy...\n");
           }
@@ -648,16 +648,18 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           ntBuffer[6] = (int) HaveWeABaseLine;
           ntBuffer[7] = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
           ntBuffer[8] = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
-          ntBuffer[9] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
-          ntBuffer[10] = fitter->GetParError("pp", DLM_Fitter1::p_a);
-          ntBuffer[11] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
-          ntBuffer[12] = fitter->GetParError("pp", DLM_Fitter1::p_b);
-          ntBuffer[13] = fitter->GetParameter("pp", DLM_Fitter1::p_Cl);
-          ntBuffer[14] = fitter->GetParError("pp", DLM_Fitter1::p_Cl);
-          ntBuffer[15] = iNorm;
-          ntBuffer[16] = fitter->GetChi2Ndf();
-          ntBuffer[17] = fitter->GetPval();
-          ntBuffer[18] = Chi2_pp / double(EffNumBins_pp);
+          ntBuffer[9] = fitter->GetParameter("pp", DLM_Fitter1::p_sor1);
+          ntBuffer[10] = fitter->GetParError("pp", DLM_Fitter1::p_sor1);
+          ntBuffer[11] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
+          ntBuffer[12] = fitter->GetParError("pp", DLM_Fitter1::p_a);
+          ntBuffer[13] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
+          ntBuffer[14] = fitter->GetParError("pp", DLM_Fitter1::p_b);
+          ntBuffer[15] = fitter->GetParameter("pp", DLM_Fitter1::p_Cl);
+          ntBuffer[16] = fitter->GetParError("pp", DLM_Fitter1::p_Cl);
+          ntBuffer[17] = iNorm;
+          ntBuffer[18] = fitter->GetChi2Ndf();
+          ntBuffer[19] = fitter->GetPval();
+          ntBuffer[20] = Chi2_pp / double(EffNumBins_pp);
 
           //    ntBuffer[23] = (int) FIX_CL;
           ntResult->Fill(ntBuffer);
@@ -705,6 +707,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             info1->AddText(
                 TString::Format("R(%s)=%.3f#pm%.3f", SOURCE_NAME.Data(),
                                 RadiusResult, RadiusError));
+            if (TheSource == TidyCats::sLevy) {
+            info1->AddText(
+                TString::Format("#alpha(%s)=%.3f#pm%.3f", SOURCE_NAME.Data(),
+                                fitter->GetParameter("pp", DLM_Fitter1::p_sor1),
+                                fitter->GetParError("pp", DLM_Fitter1::p_sor1)));
+            }
             info1->AddText(
                 TString::Format("p_a = %.3f #pm %.5f",
                                 fitter->GetParameter("pp", DLM_Fitter1::p_a),

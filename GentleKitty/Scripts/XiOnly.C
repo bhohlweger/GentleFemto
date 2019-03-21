@@ -20,9 +20,9 @@
 #include "CATSInput.h"
 #include "SideBandFit.h"
 #include "TMinuit.h"
-void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
+void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                     TString InputDir, TString ppFile, TString OutputDir) {
-  bool FAST_PLOT = (NumIter ==0);
+  bool FAST_PLOT = (NumIter == 0);
 
   double BlRegion[2];
   BlRegion[0] = 500;
@@ -137,6 +137,18 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
   } else if (system == 2) {
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
   }
+  TidyCats::Sources TheSource;
+  if (iSource == 0) {
+    TheSource = TidyCats::sGaussian;
+  } else if (iSource == 1) {
+    std::cout << "Resonance source is not implemented for pXi, Exiting \n";
+    return;
+  } else if (iSource == 2) {
+    TheSource = TidyCats::sLevy;
+  } else {
+    std::cout << "Source does not exist! Exiting \n";
+    return;
+  }
 
   CATSInput *CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
@@ -206,13 +218,13 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
                       "CutVarAdd", NumIter),
       "recreate");
   //you save a lot of stuff in an NTuple
-  TNtuple* ntResult = new TNtuple("ntResult", "ntResult",
-                                  "IterID:vFemReg_pXim:vFrac_pXim_pXi1530:"
-                                  "tOut:ppRadius:varSideNorm:BLSlope:"
-                                  "p_a:p_a_err:p_b:p_b_err:"
-                                  "Chi2NdfGlobal:Chi2NdfLocal:pval:sigma");
+  TNtuple* ntResult = new TNtuple(
+      "ntResult", "ntResult", "IterID:vFemReg_pXim:vFrac_pXim_pXi1530:"
+      "tOut:ppRadius:AlphaLev:AlphaLevErr:varSideNorm:BLSlope:"
+      "p_a:p_a_err:p_b:p_b_err:"
+      "Chi2NdfGlobal:Chi2NdfLocal:pval:sigma200:sigma60");
 
-  Float_t ntBuffer[15];
+  Float_t ntBuffer[18];
 
   int vFemReg_pXim;  //which femto region we use for pXim (1 = default)
   int vFrac_pXim_pXi1530;
@@ -284,7 +296,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
 
   CATS AB_pXim1530;
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim, kMin_pXim,
-                                 kMax_pXim,TidyCats::sGaussian);
+                                 kMax_pXim, TheSource);
   AB_pXim1530.KillTheCat();
   int tOutVars = 0;
   if (pot == TidyCats::pHALQCD || pot == TidyCats::pHALQCDGamow) {
@@ -294,7 +306,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
   }
   for (tOut = 0; tOut < tOutVars; ++tOut) {
     tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin_pXim, kMax_pXim,
-                               TidyCats::sGaussian, pot, tQCDVars[tOut]);
+                               TheSource, pot, tQCDVars[tOut]);
     AB_pXim.KillTheCat();
     for (vFemReg_pXim = 0; vFemReg_pXim < 3; ++vFemReg_pXim) {
       for (vFrac_pXim_pXi1530 = 0; vFrac_pXim_pXi1530 < 3;
@@ -420,7 +432,10 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
 
               fitter->FixParameter("pXim", DLM_Fitter1::p_sor0,
                                    GaussSourceSize);
-
+              if (TheSource == TidyCats::sLevy) {
+                fitter->SetParameter("pXim", DLM_Fitter1::p_sor1, 1.7, 1.0,
+                                     2.0);
+              }
               fitter->GoBabyGo();
               double p_a_strong = fitter->GetParameter("pXim",
                                                        DLM_Fitter1::p_a);
@@ -468,8 +483,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
 
               double Chi2_pXim = 0;
               unsigned EffNumBins_pXim = 0;
-              double Chi2_pXim_exclPeak = 0;
-              unsigned EffNumBins_pXim_exclPeak = 0;
               double Chi2_pXim_kSm60 = 0;
               unsigned EffNumBins_pXim_kSm60 = 0;
               int maxkStarBin = OliHisto_pXimFornSigma->FindBin(200.);
@@ -505,15 +518,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
                       / (dataErr * dataErr);
                   EffNumBins_pXim_kSm60++;
                 }
-                if (!(mom > 60 && mom < 100)) {
-                  Chi2_pXim_exclPeak += (dataY - theoryY) * (dataY - theoryY)
-                      / (dataErr * dataErr);
-                  EffNumBins_pXim_exclPeak++;
-                }
               }
               EffNumBins_pXim--;
               EffNumBins_pXim_kSm60--;
-              EffNumBins_pXim_exclPeak--;
 
               double pvalXi = TMath::Prob(Chi2_pXim, round(EffNumBins_pXim));
               double nSigmaXi = TMath::Sqrt(2) * TMath::ErfcInverse(pvalXi);
@@ -523,26 +530,24 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
               double nSigmaXi_kSm60 = TMath::Sqrt(2)
                   * TMath::ErfcInverse(pvalXi_kSm60);
 
-              double pvalXi_exclPeak = TMath::Prob(
-                  Chi2_pXim_exclPeak, round(EffNumBins_pXim_exclPeak));
-              double nSigmaXi_exclPeak = TMath::Sqrt(2)
-                  * TMath::ErfcInverse(pvalXi_exclPeak);
-
               ntBuffer[0] = uIter;
               ntBuffer[1] = vFemReg_pXim;
               ntBuffer[2] = vFrac_pXim_pXi1530;
               ntBuffer[3] = tOut;
               ntBuffer[4] = GaussSourceSize;
-              ntBuffer[5] = varSideNorm;
-              ntBuffer[6] = (float) BaselineSlope;
-              ntBuffer[7] = p_a_strong;
-              ntBuffer[8] = p_a_strong_err;
-              ntBuffer[9] = p_b_strong;
-              ntBuffer[10] = p_b_strong_err;
-              ntBuffer[11] = ChiSqStrongGlobal;
-              ntBuffer[12] = Chi2_pXim / double(EffNumBins_pXim);
-              ntBuffer[13] = pvalXi;
-              ntBuffer[14] = nSigmaXi;
+              ntBuffer[5] = fitter->GetParameter("pXim", DLM_Fitter1::p_sor1);
+              ntBuffer[6] = fitter->GetParError("pXim", DLM_Fitter1::p_sor1);
+              ntBuffer[7] = varSideNorm;
+              ntBuffer[8] = (float) BaselineSlope;
+              ntBuffer[9] = p_a_strong;
+              ntBuffer[10] = p_a_strong_err;
+              ntBuffer[11] = p_b_strong;
+              ntBuffer[12] = p_b_strong_err;
+              ntBuffer[13] = ChiSqStrongGlobal;
+              ntBuffer[14] = Chi2_pXim / double(EffNumBins_pXim);
+              ntBuffer[15] = pvalXi;
+              ntBuffer[16] = nSigmaXi;
+              ntBuffer[17] = nSigmaXi_kSm60;
               ntResult->Fill(ntBuffer);
 
               TString outFileName = TString::Format(
@@ -576,6 +581,13 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
                         "R(%s)=%.3f#pm%.3f", SOURCE_NAME.Data(),
                         fitter->GetParameter("pXim", DLM_Fitter1::p_sor0),
                         fitter->GetParError("pXim", DLM_Fitter1::p_sor0)));
+                if (TheSource == TidyCats::sLevy) {
+                  info4->AddText(
+                      TString::Format(
+                          "#alpha(%s)=%.3f#pm%.3f", SOURCE_NAME.Data(),
+                          fitter->GetParameter("pXim", DLM_Fitter1::p_sor1),
+                          fitter->GetParError("pXim", DLM_Fitter1::p_sor1)));
+                }
                 info4->AddText(
                     TString::Format("p_a (COU + STRONG) = %.3f #pm %.5f",
                                     p_a_strong, p_a_strong_err));
@@ -688,8 +700,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot,
 }
 
 int main(int argc, char *argv[]) {
-  GetXiForRadius(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), argv[4], argv[5],
-                 argv[6]);
+  GetXiForRadius(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
+                 argv[5], argv[6], argv[7]);
   return 0;
 }
 
