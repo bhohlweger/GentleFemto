@@ -434,7 +434,7 @@ void DreamPlot::DrawCorrelationFunctionSigma() {
   c->SaveAs("CF_pSigma_prelim.pdf");
 }
 
-void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin) {
+void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin, bool isPreliminary) {
   c->cd();
   TLatex BeamText;
   TLatex text;
@@ -442,18 +442,33 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin) {
   BeamText.SetNDC(kTRUE);
 //  BeamText.DrawLatex(0.5, 0.875, "ALICE");
   TString CollisionSystem = Form("%s", fCollisionSystem);
-  if (CollisionSystem.Index("Pb") > 0)
-    BeamText.DrawLatex(
-        xMin,
-        0.9,
-        Form("ALICE %s #sqrt{#it{s}_{NN}} = %.2f TeV", fCollisionSystem,
-             fEnergy));
-  else
-    BeamText.DrawLatex(
-        xMin,
-        0.9,
-        Form("ALICE %s #sqrt{#it{s}} = %i TeV", fCollisionSystem,
-             (int) fEnergy));
+  if (CollisionSystem.Index("Pb") > 0) {
+    if (isPreliminary && !plotRadius) {
+      BeamText.DrawLatex(xMin, 0.9, "ALICE Preliminary");
+      BeamText.DrawLatex(
+          xMin, 0.825,
+          Form("%s #sqrt{#it{s}_{NN}} = %.2f TeV", fCollisionSystem, fEnergy));
+    } else {
+      BeamText.DrawLatex(
+          xMin,
+          0.9,
+          Form("ALICE %s #sqrt{#it{s}_{NN}} = %.2f TeV", fCollisionSystem,
+               fEnergy));
+    }
+  } else {
+    if (isPreliminary && !plotRadius) {
+      BeamText.DrawLatex(xMin, 0.9, "ALICE Preliminary");
+      BeamText.DrawLatex(
+          xMin, 0.825,
+          Form("%s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));
+    } else {
+      BeamText.DrawLatex(
+          xMin,
+          0.9,
+          Form("ALICE %s #sqrt{#it{s}} = %i TeV", fCollisionSystem,
+               (int) fEnergy));
+    }
+  }
   if (plotRadius) {
     text.SetNDC();
     text.SetTextColor(1);
