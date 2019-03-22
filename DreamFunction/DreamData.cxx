@@ -170,6 +170,29 @@ void DreamData::FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower,
   return;
 }
 
+void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color, int lineStyle,
+                                   double lineWidth, int fillStyle,
+                                   bool addtoLegend) {
+  grFemtoModel->SetLineColor(color);
+  grFemtoModel->SetFillColor(color);
+  grFemtoModel->SetLineWidth(lineWidth);
+  grFemtoModel->SetLineStyle(lineStyle);
+  if (fillStyle > 0)
+    grFemtoModel->SetFillStyle(fillStyle);
+  fFemtoModdeled.push_back(grFemtoModel);
+  if (addtoLegend) {
+    TGraph *grFakeModel = new TGraph();
+    grFakeModel->SetLineColor(color);
+    grFakeModel->SetFillColor(color);
+    grFakeModel->SetLineWidth(lineWidth * 1.8);
+    grFakeModel->SetLineStyle(lineStyle);
+    if (fillStyle > 0) {
+      grFakeModel->SetFillStyle(fillStyle);
+    }
+    fFakeGraph.push_back(grFakeModel);
+  }
+}
+
 void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->GetXaxis()->SetLabelSize(0.045);
   histo->GetXaxis()->SetTitleSize(0.05);
