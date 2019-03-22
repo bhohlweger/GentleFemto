@@ -17,6 +17,7 @@ class DreamPlot {
   void ReadDataSigma(const char* PathToDataFolder, const char* PathToSysFolder);
   void ReadSimulation(const char* PathToSimFolder, int binWidth);
   void ReadFit(const char* fitPath, int UnitConvCATS);
+  void ReadFitSigma(const char* fitPath);
   void SetProtonProtonBaseLine(float ppBL0, float ppBL1) {
     fProtonProton->SetBaseline(ppBL0, ppBL1);
   }

@@ -103,7 +103,7 @@ void DreamPlot::ReadDataSigma(const char* PathToDataFolder,
       (TH1F*) CFFile->Get("hCk_ReweightedMeV_3"));
   fProtonSigma->SetSystematics(
       (TF1*) CFFile_Sys->Get("SystError"),
-      fProtonSigma->GetCorrelationFunction()->GetBinWidth(1) / 2.f);
+      fProtonSigma->GetCorrelationFunction()->GetBinWidth(1) / 6.f);
 }
 
 void DreamPlot::ReadSimulation(const char* PathToSimFolder, int binWidth) {
@@ -253,6 +253,38 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
     }
   } else {
     std::cout << "No Cats file!  \n";
+  }
+  return;
+}
+
+void DreamPlot::ReadFitSigma(const char* fitPath) {
+  auto ledniFile = TFile::Open(Form("%s/Param_pSigma0_2.root", fitPath));
+  if (ledniFile) {
+    auto ledniband = (TGraphErrors*) ledniFile->Get("CF_fit");
+    auto sideband = (TGraphErrors*) ledniFile->Get("CF_sidebands");
+    if (!ledniband) {
+      std::cout << "No coupled Lednicky \n";
+    } else if (!sideband) {
+      std::cout << "No sideband \n";
+    } else {
+      fProtonSigma->FemtoModelFitBands(sideband, kCyan + 2, 2, 3, 3003, true);
+      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 2, 0, 0, 3252, true);
+    }
+  } else {
+    std::cout << "No Lednicky file!  \n";
+  }
+
+  auto haidenbauerFile = TFile::Open(Form("%s/Param_pSigma0_3.root", fitPath));
+  if (haidenbauerFile) {
+    auto haidenbauerband = (TGraphErrors*) haidenbauerFile->Get("CF_fit");
+    if (!haidenbauerband) {
+      std::cout << "No coupled Lednicky \n";
+    } else {
+      fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure - 3, 0, 0, 3225,
+                                       true);
+    }
+  } else {
+    std::cout << "No Haidenbauer file!  \n";
   }
   return;
 }
@@ -420,16 +452,18 @@ void DreamPlot::DrawCorrelationFunctionSigma() {
   auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 550);
   c->SetRightMargin(right);
   c->SetTopMargin(top);
-  fProtonSigma->SetLegendName("p-#Sigma^{0} #oplus #bar{p}-#bar#Sigma^{0}", "fpe");
-//  fProtonSigma->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
-  fProtonSigma->SetRangePlotting(0, 450, 0.8, 1.7);
-//  fProtonSigma->SetInletRangePlotting(50,200,0.94,1.06);
-//  fProtonSigma->SetInletCoordinates(0.35, 0.27, 0.95, 0.61);
+  fProtonSigma->SetLegendName("p#minus#Sigma^{0} #oplus #bar{p}#minus#bar{#Sigma^{0}}", "fpe");
+  fProtonSigma->SetLegendName("p-#Sigma^{0} sideband background", "l");
+  fProtonSigma->SetLegendName("Lednicky coupled channel", "fl");
+  fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
+  fProtonSigma->SetRangePlotting(0, 450, 0.9, 1.7);
   fProtonSigma->SetNDivisions(505);
   fProtonSigma->SetLegendCoordinates(
-      0.37, 0.71 - 0.09 * fProtonSigma->GetNumberOfModels(), 0.7, 0.8);
+      0.45, 0.71 - 0.09 * fProtonSigma->GetNumberOfModels(), 0.7, 0.8);
   fProtonSigma->DrawCorrelationPlot(c, 13);
-  DrawSystemInfo(c, false, 0.39);
+  // Necessary fix to get the right unit on the axes
+  fProtonSigma->SetUnitConversionCATS(2);
+  DrawSystemInfo(c, false, 0.45, true);
   c->cd();
   c->SaveAs("CF_pSigma_prelim.pdf");
 }
