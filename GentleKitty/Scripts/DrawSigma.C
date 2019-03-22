@@ -97,7 +97,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     IMf0inv = params[2];
 
     graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
-                                    varFolder.Data(), NumIter, d0, REf0inv,
+                                    varFolder.Data(), potential, d0, REf0inv,
                                     IMf0inv);
   } else if (potential == 1) {
     if (params.size() != 6) {
@@ -113,12 +113,12 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 
     graphfilename = TString::Format(
         "%s/Param_pSigma0_%i_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.root",
-        varFolder.Data(), NumIter, deltap0, deltap1, deltap2, etap0, etap1,
+        varFolder.Data(), potential, deltap0, deltap1, deltap2, etap0, etap1,
         etap2);
 
   } else {
     graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
-                                    varFolder.Data(), NumIter);
+                                    varFolder.Data(), potential);
   }
 
   auto file = TFile::Open(graphfilename.Data(), "update");

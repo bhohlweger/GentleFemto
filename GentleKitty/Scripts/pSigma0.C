@@ -88,7 +88,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
     IMf0inv = params[2];
 
     graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
-                                    OutputDir.Data(), NumIter, d0, REf0inv,
+                                    OutputDir.Data(), potential, d0, REf0inv,
                                     IMf0inv);
   } else if (potential == 1) {
     if (params.size() != 6) {
@@ -104,12 +104,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 
     graphfilename = TString::Format(
         "%s/Param_pSigma0_%i_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.root",
-        OutputDir.Data(), NumIter, deltap0, deltap1, deltap2, etap0, etap1,
+        OutputDir.Data(), potential, deltap0, deltap1, deltap2, etap0, etap1,
         etap2);
 
   } else {
     graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
-                                    OutputDir.Data(), NumIter);
+                                    OutputDir.Data(), potential);
   }
   auto param = new TFile(graphfilename, "RECREATE");
 
