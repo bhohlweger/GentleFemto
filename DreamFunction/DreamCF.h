@@ -9,6 +9,7 @@
 #define DREAMCF_H_
 #include <vector>
 #include "DreamPair.h"
+#include "TRatioPlot.h"
 #include "TH1F.h"
 
 class DreamCF {
@@ -42,6 +43,7 @@ class DreamCF {
   TH1F* FindCorrelationFunction(TString name);
  private:
   std::vector<TH1F*> fCF;
+  std::vector<TH1F*> fRatio;
   DreamPair* fPairOne;
   DreamPair* fPairTwo;
 };

@@ -12,6 +12,7 @@
 
 DreamCF::DreamCF()
     : fCF(),
+      fRatio(),
       fPairOne(nullptr),
       fPairTwo(nullptr) {
 
@@ -19,6 +20,9 @@ DreamCF::DreamCF()
 
 DreamCF::~DreamCF() {
   for (auto it : fCF) {
+    delete it;
+  }
+  for (auto it : fRatio) {
     delete it;
   }
   delete fPairOne;
@@ -154,6 +158,11 @@ void DreamCF::WriteOutput(TFile* output, bool closeFile) {
     it->Write();
     delete it;
   }
+
+  for (auto& it : fRatio) {
+    it->Write();
+    delete it;
+  }
   if (fPairOne) {
     TList *PairDist = new TList();
     PairDist->SetOwner();
@@ -180,6 +189,9 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
   TH1F* hist_CF_sum = nullptr;
   if (CF1 && CF2) {
     if (CF1->GetXaxis()->GetXmin() == CF2->GetXaxis()->GetXmin()) {
+      TH1F* Ratio = (TH1F*) CF1->Clone(TString::Format("%sRatio",name));
+      Ratio->Divide(CF2);
+      fRatio.push_back(Ratio);
       //Calculate CFs with error weighting
       hist_CF_sum = (TH1F*) CF1->Clone(name);
 
