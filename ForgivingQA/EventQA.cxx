@@ -14,7 +14,7 @@ EventQA::EventQA()
       fQA(nullptr),
       fEventCuts(nullptr),
       fHairyPlotter(new MakeHistosGreat()),
-      fNEvts(0) {
+      fNEvts(-1) {
   // TODO Auto-generated constructor stub
 }
 
