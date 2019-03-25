@@ -24,7 +24,9 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
   //Proton - Proton
   CATSinput->SetFixedkStarMinBin(true,0.004);
   DreamDist* pp = DreamFile->GetPairDistributions(0, 0, "");
+  std::cout << "Femto Pairs pp: " << pp->GetFemtoPairs(0, 0.200) << std::endl;
   DreamDist* ApAp = DreamFile->GetPairDistributions(1, 1, "");
+  std::cout << "Femto Pairs ApAp: " << ApAp->GetFemtoPairs(0, 0.200) << std::endl;
   DreamCF* CFppDef = CATSinput->ObtainCFSyst(rebin, "ppDef", pp, ApAp);
   DreamSystematics protonproton(DreamSystematics::pp);
   protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppDefMeV_1");
