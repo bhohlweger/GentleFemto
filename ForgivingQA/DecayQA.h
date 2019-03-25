@@ -27,6 +27,8 @@ class DecayQA {
   ;
   void InvariantMassLambda(float CutMin, float CutMax);
   void InvariantMassLambdaSigma0(float CutMin, float CutMax);
+  void GetPeriodQA(float CutMin, float CutMax, const char* period);
+  void GetPeriodQASigma(float CutMin, float CutMax, const char* period);
   void InvariantMassXi(float CutMin, float CutMax);
   void IvariantMassXiLambda();
   void PlotKaonRejection(TH1F* invMassKaon, const char* outname);
@@ -50,6 +52,9 @@ class DecayQA {
     fTexOffX = TexOffX;
     fTexOffY = TexOffY;
   };
+  double GetSignalCount() const { return fFitter->GetSignalCounts(); }
+  double GetBackgroundCount() const { return fFitter->GetBackgroundCounts(); }
+  double GetPurity() const { return fFitter->GetPurity(); }
  private:
   void FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                         const char* outname);

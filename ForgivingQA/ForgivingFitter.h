@@ -19,14 +19,15 @@ class ForgivingFitter {
   void FitInvariantMass(TH1F* histo, float massCutMin, float massCutMax);
   void SetRanges(float SigMin, float SigMax, float BkgRangeMin,
                  float BkgRangeMax);
-  int GetSignalCounts() {
+  int GetSignalCounts() const {
     return fSignalCounts;
   }
   ;
-  int GetBackgroundCounts() {
+  int GetBackgroundCounts() const {
     return fBackgroundCounts;
   }
   ;
+  double GetPurity() const;
   float GetMeanMass() {
     return weightedMean(fWeightA, fFullFitFnct->GetParameter(4), fWeightB,
                         fFullFitFnct->GetParameter(7));
@@ -66,5 +67,16 @@ class ForgivingFitter {
   int fWeightB;
   int fBackgroundCounts;
 };
+
+inline
+double ForgivingFitter::GetPurity() const {
+  const double signal = static_cast<double>(fSignalCounts);
+  const double bck = static_cast<double>(fBackgroundCounts);
+  if (bck < 1E-6) {
+    return 0;
+  } else {
+    return signal / (signal + bck);
+  }
+}
 
 #endif /* FORGIVINGQA_FORGIVINGFITTER_H_ */

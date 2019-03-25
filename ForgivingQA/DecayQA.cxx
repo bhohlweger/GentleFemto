@@ -68,6 +68,22 @@ void DecayQA::InvariantMassLambdaSigma0(float CutMin, float CutMax) {
       "AntiLambda");
 }
 
+void DecayQA::GetPeriodQA(float CutMin, float CutMax, const char* period) {
+  auto invMassPart = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fDecayCuts, { "v0Cuts" }), "InvMassPt");
+  FitInvariantMass(invMassPart, CutMin, CutMax, period);
+  auto* invMass = (TH1F*) invMassPart->ProjectionY("InvMassClone", 0, -1, "e");
+  fFitter->FitInvariantMass(invMass, CutMin, CutMax);
+}
+
+void DecayQA::GetPeriodQASigma(float CutMin, float CutMax, const char* period) {
+  auto invMasspT = (TH2F*) fReader->Get2DHistInList(fDecayCuts, "InvMassPt");
+  invMasspT->RebinX(10);
+  FitInvariantMass(invMasspT, CutMin, CutMax, period);
+  auto* invMass = (TH1F*) invMasspT->ProjectionY("InvMassClone", 0, -1, "e");
+  fFitter->FitInvariantMass(invMass, CutMin, CutMax);
+}
+
 void DecayQA::InvariantMassXi(float CutMin, float CutMax) {
   auto invMassPart = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fDecayCuts, { "Cascade" }), "InvMassXi");
