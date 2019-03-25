@@ -28,13 +28,12 @@ class ForgivingFitter {
   }
   ;
   double GetPurity() const;
-  float GetMeanMass() {
-    return weightedMean(fWeightA, fFullFitFnct->GetParameter(4), fWeightB,
-                        fFullFitFnct->GetParameter(7));
+  double GetPurityErr() const;
+  float GetMeanMass() const {
+    return fMeanMass;
   }
-  float GetMeanWidth() {
-    return weightedMean(fWeightA, fFullFitFnct->GetParameter(5), fWeightB,
-                        fFullFitFnct->GetParameter(8));
+  float GetMeanWidth() const {
+    return fMeanWidth;
   }
   void ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin, float pTMax,
                            const char* part);
@@ -63,9 +62,13 @@ class ForgivingFitter {
   float fSigRangeMin;
   float fSigRangeMax;
   int fSignalCounts;
+  int fSignalCountsErr;
   int fWeightA;
   int fWeightB;
   int fBackgroundCounts;
+  int fBackgroundCountsErr;
+  double fMeanMass;
+  double fMeanWidth;
 };
 
 inline
@@ -79,4 +82,20 @@ double ForgivingFitter::GetPurity() const {
   }
 }
 
+inline
+double ForgivingFitter::GetPurityErr() const {
+  const double signal = static_cast<double>(fSignalCounts);
+  const double bck = static_cast<double>(fBackgroundCounts);
+  const double signalErr = static_cast<double>(fSignalCountsErr);
+  const double bckErr = static_cast<double>(fBackgroundCountsErr);
+  const double signalBck = signal + bck;
+  const double signalBckForth = signalBck * signalBck * signalBck * signalBck;
+  if (bck < 1E-6) {
+    return 0;
+  } else {
+    return std::sqrt(
+        signalErr * signalErr * bck * bck / signalBckForth
+            + bckErr * bckErr * signal * signal / signalBckForth);
+  }
+}
 #endif /* FORGIVINGQA_FORGIVINGFITTER_H_ */

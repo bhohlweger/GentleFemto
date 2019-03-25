@@ -55,6 +55,7 @@ class DecayQA {
   double GetSignalCount() const { return fFitter->GetSignalCounts(); }
   double GetBackgroundCount() const { return fFitter->GetBackgroundCounts(); }
   double GetPurity() const { return fFitter->GetPurity(); }
+  double GetPurityErr() const { return fFitter->GetPurityErr(); }
  private:
   void FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                         const char* outname);

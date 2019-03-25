@@ -20,9 +20,13 @@ ForgivingFitter::ForgivingFitter()
       fSigRangeMin(0),
       fSigRangeMax(0),
       fSignalCounts(0),
+      fSignalCountsErr(0),
       fWeightA(0),
       fWeightB(0),
-      fBackgroundCounts(0) {
+      fBackgroundCounts(0),
+      fBackgroundCountsErr(0),
+      fMeanMass(0),
+      fMeanWidth(0) {
 
 }
 
@@ -109,6 +113,11 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   histo->GetListOfFunctions()->Add(
       fFullFitFnct->Clone(Form("fnc%s", histo->GetName())));
   CalculateBackgorund(histo, massCutMin, massCutMax);
+  fMeanMass = weightedMean(fWeightA, fFullFitFnct->GetParameter(4), fWeightB,
+                           fFullFitFnct->GetParameter(7));
+  fMeanWidth = weightedMean(fWeightA, fFullFitFnct->GetParameter(5), fWeightB,
+                            fFullFitFnct->GetParameter(8));
+}
 }
 
 void ForgivingFitter::SetRanges(float SigMin, float SigMax, float BkgRangeMin,
