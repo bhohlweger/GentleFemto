@@ -17,8 +17,17 @@ class PeriodQA {
   TH1F* PeriodQAHist(const char* name, const char* title);
 
  private:
+  double GetErrorNPart(double nEvt, double nPart, double nPartErr) const;
   TString fDirectory;
   std::vector<TString> fPeriods;
 };
+
+inline
+double PeriodQA::GetErrorNPart(double nEvt, double nPart,
+                               double nPartErr) const {
+  double nEvtSq = nEvt * nEvt;
+  return std::sqrt(
+      nPartErr * nPartErr / nEvtSq + nPart * nPart / (nEvtSq * nEvt));
+}
 
 #endif //FORGIVINGQA_PERIODQA_H_
