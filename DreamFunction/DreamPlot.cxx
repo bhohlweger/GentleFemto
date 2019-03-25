@@ -453,9 +453,9 @@ void DreamPlot::DrawCorrelationFunctionSigma() {
   c->SetRightMargin(right);
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName("p#minus#Sigma^{0} #oplus #bar{p}#minus#bar{#Sigma^{0}}", "fpe");
-  fProtonSigma->SetLegendName("p-#Sigma^{0} sideband background", "l");
   fProtonSigma->SetLegendName("Lednicky coupled channel", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
+  fProtonSigma->SetLegendName("p-#Sigma^{0} sideband background", "l");
   fProtonSigma->SetRangePlotting(0, 450, 0.9, 1.7);
   fProtonSigma->SetNDivisions(505);
   fProtonSigma->SetLegendCoordinates(
