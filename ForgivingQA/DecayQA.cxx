@@ -511,8 +511,8 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
   armenteros->SetTitle("Armenteros-Podolandski");
   fHairyPlotter->FormatHistogram(armenteros, 0, 1);
   std::vector<TH2*> drawVecTPC = {armenteros};
-  fHairyPlotter->DrawAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
-                              "colz");
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
+                                  "colz");
 
   // dE/dc pos daughter
   TH2F* posPID = (TH2F*)fReader->Get2DHistInList(
