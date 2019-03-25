@@ -101,6 +101,7 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
     delete evtQA;
     if (nEvents < 1E-6) {
       delete reader;
+      ++i;
       continue;
     }
 
