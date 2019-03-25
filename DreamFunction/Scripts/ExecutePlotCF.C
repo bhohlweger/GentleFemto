@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   PlotMe->SetRadius(r, rStatErr, rSystErrUp, rSystErrLow);
   PlotMe->SetCollisionSystem(globalBeamEnergy, globalCollisionSystem,
                              globalEventGenerator);
-  PlotMe->ReadData(expBaseDir, sysBaseDir, globalBinWidth, 1000);
+  PlotMe->ReadData(expBaseDir, sysBaseDir, globalBinWidth, 1);
   TString simDir = Form("%s", simBaseDir);
   if (simDir != "") {
     PlotMe->ReadSimulation(simBaseDir, globalBinWidth);
