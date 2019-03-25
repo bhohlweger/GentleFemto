@@ -218,12 +218,11 @@ void DreamData::DrawCorrelationPlot(TCanvas* c, const int color) {
   fSysError->SetLineColor(kWhite);
   fSysError->Draw("Ap");
   fBaseLine->Draw("same");
-  if (fUnitConversionData == 1) {
-    fSysError->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
-  } else if (fUnitConversionData) {
+  TString CFName = fCorrelationFunction->GetName();
+  if (CFName.Contains("MeV")) {
     fSysError->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   } else {
-    std::cout << "in DreamData::DrawCorrelationPlot we don't know this unit \n";
+    fSysError->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
   }
   fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);

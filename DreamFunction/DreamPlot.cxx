@@ -51,7 +51,7 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
   double sysWidth = 5;
   TFile* CFFile_pp = TFile::Open(Form("%s/CFOutput_pp.root", PathToDataFolder));
   TFile* CFFile_ppSys = TFile::Open(
-      Form("%s/C2totalsysPP.root", PathToSysFolder));
+      Form("%s/Systematics_pp.root", PathToSysFolder));
   fProtonProton->SetCorrelationFunction(
       (TH1F*) CFFile_pp->Get("hCk_ReweightedMeV_0"));
 
@@ -64,31 +64,31 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
 //  pPbSys->SetParameter(1, systematics->GetParameter(1));
 //  pPbSys->SetParameter(2, systematics->GetParameter(2));
 
-  fProtonProton->SetSystematics((TF1*) CFFile_ppSys->Get("RelSysPPUnbinned"),
+  fProtonProton->SetSystematics((TF1*) CFFile_ppSys->Get("SystError"),
                                 2);
 
   TFile* CFFile_pL = TFile::Open(Form("%s/CFOutput_pL.root", PathToDataFolder));
   TFile* CFFile_pLSys = TFile::Open(
-      Form("%s/C2totalsysPL.root", PathToSysFolder));
+      Form("%s/Systematics_pL.root", PathToSysFolder));
   fProtonLambda->SetCorrelationFunction(
       (TH1F*) CFFile_pL->Get(HistName.Data()));
-  fProtonLambda->SetSystematics((TF1*) CFFile_pLSys->Get("RelSysPLUnbinned"),
+  fProtonLambda->SetSystematics((TF1*) CFFile_pLSys->Get("SystError"),
                                 sysWidth);
 
   TFile* CFFile_LL = TFile::Open(Form("%s/CFOutput_LL.root", PathToDataFolder));
   TFile* CFFile_LLSys = TFile::Open(
-      Form("%s/C2totalsysLL.root", PathToSysFolder));
+      Form("%s/Systematics_LL.root", PathToSysFolder));
   fLambdaLambda->SetCorrelationFunction(
       (TH1F*) CFFile_LL->Get(HistName.Data()));
-  fLambdaLambda->SetSystematics((TF1*) CFFile_LLSys->Get("RelSysLLUnbinned"),
+  fLambdaLambda->SetSystematics((TF1*) CFFile_LLSys->Get("SystError"),
                                 sysWidth);
 
   TFile* CFFile_pXi = TFile::Open(
       Form("%s/CFOutput_pXi.root", PathToDataFolder));
   TFile* CFFile_pXiSys = TFile::Open(
-      Form("%s/C2totalsysPXi.root", PathToSysFolder));
+      Form("%s/Systematics_pXi.root", PathToSysFolder));
   fProtonXi->SetCorrelationFunction((TH1F*) CFFile_pXi->Get(HistName.Data()));
-  fProtonXi->SetSystematics((TF1*) CFFile_pXiSys->Get("RelSysPXiUnbinned"),
+  fProtonXi->SetSystematics((TF1*) CFFile_pXiSys->Get("SystError"),
                             sysWidth);
 
   return;
