@@ -124,7 +124,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   CATSinput->ReadSigmaFile();
   CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
                                        suffix.Data());
-  CATSinput->ObtainCFs(10, 340, 490);
+  CATSinput->ObtainCFs(10, 250, 400);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
   auto dataHist = CATSinput->GetCF("pSigma0", dataHistName.Data());
   if (!dataHist) {
@@ -144,8 +144,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   /// Set up the CATS ranges, lambda parameters, etc.
   const int binwidth = 10;
   int NumMomBins_pSigma = int(800 / binwidth);
-  double kMin_pSigma = 0;
-  double kMin_fit_pSigma = dataHist->GetBinCenter(1) - binwidth / 2.f;
+  double kMin_pSigma = dataHist->GetBinCenter(1) - binwidth / 2.f;
   double kMax_pSigma = kMin_pSigma + binwidth * NumMomBins_pSigma;
 
   std::cout << "kMin_pSigma: " << kMin_pSigma << std::endl;
@@ -199,8 +198,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   }
 
   // sideband fit normalization range systematic variation
-  const std::vector<double> sidebandNormDown = { { 340, 300, 380 } };
-  const std::vector<double> sidebandNormUp = { { 490, 450, 530 } };
+  const std::vector<double> sidebandNormDown = { { 300, 250, 350 } };
+  const std::vector<double> sidebandNormUp = { { 500, 450, 550 } };
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Fit the sideband
@@ -374,9 +373,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             Ck_pSigma0->SetSourcePar(0, sourceSize[sizeIter]);
             Ck_pSigma0->Update();
 
-            // TODO TO BE FIXED - MOMENTUM RESOLUTION MATRIX!
             DLM_CkDecomposition CkDec_pSigma0("pSigma0", 1, *Ck_pSigma0,
-                                              CATSinput->GetSigmaFile(0));
+                                              CATSinput->GetSigmaFile(1));
 
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -392,7 +390,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             /// Fitter
             DLM_Fitter1* fitter = new DLM_Fitter1(1);
-            fitter->SetSystem(0, *dataHist, 1, CkDec_pSigma0, kMin_fit_pSigma,
+            fitter->SetSystem(0, *dataHist, 1, CkDec_pSigma0, kMin_pSigma,
                               femtoFitRegionUp[femtoFitIter], 1000, 1000);
             fitter->SetSeparateBL(0, false);              //Simultaneous BL
             fitter->FixParameter("pSigma0", DLM_Fitter1::p_a, prefit_a[blIter]);
@@ -405,6 +403,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             fitter->FixParameter("pSigma0", DLM_Fitter1::p_sor0,
                                  sourceSize[sizeIter]);
 
+            // Suppress warnings from ROOT
+            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, 0);
+            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, 0);
+            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, 0);
+            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot3, 0);
+            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot4, 0);
+            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot5, 0);
             if (potential == 0) {
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, REf0inv);
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, IMf0inv);
@@ -504,25 +509,23 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             grCFSigmaSideband.SetName(Form("Sigma0Sideband_%i", iterID));
 
             for (unsigned int i = 0; i < Ck_pSigma0->GetNbins(); ++i) {
-              grCFSigmaRaw.SetPoint(
-                  i, Ck_pSigma0->GetBinCenter(0, i),
-                  CkDec_pSigma0.EvalCk(Ck_pSigma0->GetBinCenter(0, i)));
+              const float mom = Ck_pSigma0->GetBinCenter(0, i);
+              const float baseline = bl_a + bl_b * mom;
+              grCFSigmaRaw.SetPoint(i, mom, CkDec_pSigma0.EvalCk(mom) * baseline);
               grCFSigmaMain.SetPoint(
                   i,
-                  Ck_pSigma0->GetBinCenter(0, i),
-                  ((CkDec_pSigma0.EvalMain(Ck_pSigma0->GetBinCenter(0, i)) - 1.)
+                  mom,
+                  (((CkDec_pSigma0.EvalMain(mom) - 1.)
                       * lambdaParams[lambdaIter].GetLambdaParam(
-                          CATSLambdaParam::Primary)) + 1);
-              grCFSigmaFeed.SetPoint(
-                  i, Ck_pSigma0->GetBinCenter(0, i),
-                  CkDec_pSigma0.EvalMainFeed(Ck_pSigma0->GetBinCenter(0, i)));
+                          CATSLambdaParam::Primary)) + 1) * baseline);
+              grCFSigmaFeed.SetPoint(i, mom, CkDec_pSigma0.EvalMainFeed(mom) * baseline);
               grCFSigmaSideband.SetPoint(
                   i,
-                  Ck_pSigma0->GetBinCenter(0, i),
-                  ((Ck_SideBand->Eval(Ck_pSigma0->GetBinCenter(0, i)) - 1.)
+                  mom,
+                  (((Ck_SideBand->Eval(mom) - 1.)
                       * lambdaParams[lambdaIter].GetLambdaParam(
                           CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0))
-                      + 1);
+                      + 1) * baseline);
             }
 
             param->cd();
