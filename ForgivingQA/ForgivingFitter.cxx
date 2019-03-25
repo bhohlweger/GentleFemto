@@ -97,6 +97,7 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   SetStartParsDoubleGaussian(histo);
   signalOnly->Fit(fDoubleGaussian, "R Q N", "", fSigRangeMin * 1.01,
                   fSigRangeMax * 0.99);
+  delete signalOnly;
   fSignalCounts = fDoubleGaussian->Integral(massCutMin, massCutMax)
       / double(histo->GetBinWidth(1));
   //Add weights
@@ -159,6 +160,7 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts) {
                             fSigRangeMax);
   signalOnly->Fit(fSingleGaussian, "R Q N", "", fSigRangeMin * 1.01,
                   fSigRangeMax * 0.99);
+  delete signalOnly;
 
   fFullFitFnct = new TF1("fFullFitFnct", "fBackground2 + fSignalSingleGauss",
                          fSigRangeMin, fSigRangeMax);
