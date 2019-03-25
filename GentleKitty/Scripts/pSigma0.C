@@ -374,9 +374,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             Ck_pSigma0->SetSourcePar(0, sourceSize[sizeIter]);
             Ck_pSigma0->Update();
 
-            // TODO TO BE FIXED - MOMENTUM RESOLUTION MATRIX!
             DLM_CkDecomposition CkDec_pSigma0("pSigma0", 1, *Ck_pSigma0,
-                                              CATSinput->GetSigmaFile(0));
+                                              CATSinput->GetSigmaFile(1));
 
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
