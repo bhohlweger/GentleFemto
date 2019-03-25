@@ -6,6 +6,8 @@
  */
 
 #include "ForgivingFitter.h"
+#include "TFitResult.h"
+#include "TFitResultPtr.h"
 #include "TLatex.h"
 #include "TStyle.h"
 ForgivingFitter::ForgivingFitter()
@@ -118,6 +120,107 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   fMeanWidth = weightedMean(fWeightA, fFullFitFnct->GetParameter(5), fWeightB,
                             fFullFitFnct->GetParameter(8));
 }
+
+void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts) {
+  if (histo->GetEntries() < 5000) {
+    return;
+  }
+
+  // Fit Background with third order polynomial
+  if (fBackGround) {
+    delete fBackGround;
+  }
+  fBackGround = new TF1("fBackGround", [&](double *x, double *p) {
+    if (x[0] > fSigRangeMin && x[0] < fSigRangeMax) {
+      TF1::RejectPoint();
+      return (double)0;
+    }
+    return p[0] + p[1] * x[0] + p[2] * x[0] * x[0] +
+    p[3] * x[0] * x[0] * x[0];
+  },
+                        fBkgRangeMin, fBkgRangeMax, 4);
+  histo->Fit(fBackGround, "SRQ", "", fBkgRangeMin * 1.005,
+             fBkgRangeMax * 0.995);
+
+  // parse then to proper TF1
+  if (fContinousBackGround) {
+    delete fContinousBackGround;
+  }
+  fContinousBackGround = new TF1("fBackground2", "pol3", fBkgRangeMin,
+                                 fBkgRangeMax);
+  fContinousBackGround->SetParameter(0, fBackGround->GetParameter(0));
+  fContinousBackGround->SetParameter(1, fBackGround->GetParameter(1));
+  fContinousBackGround->SetParameter(2, fBackGround->GetParameter(2));
+  fContinousBackGround->SetParameter(3, fBackGround->GetParameter(3));
+  TH1F *signalOnly = getSignalHisto(fContinousBackGround, histo,
+                                    fSigRangeMin * 0.98, fSigRangeMax * 1.02,
+                                    Form("%s_signal_only", histo->GetName()));
+  fSingleGaussian = new TF1("fSignalSingleGauss", "gaus(0)", fSigRangeMin,
+                            fSigRangeMax);
+  signalOnly->Fit(fSingleGaussian, "R Q N", "", fSigRangeMin * 1.01,
+                  fSigRangeMax * 0.99);
+
+  fFullFitFnct = new TF1("fFullFitFnct", "fBackground2 + fSignalSingleGauss",
+                         fSigRangeMin, fSigRangeMax);
+  fFullFitFnct->SetNpx(1000);
+  fFullFitFnct->FixParameter(0, fBackGround->GetParameter(0));
+  fFullFitFnct->FixParameter(1, fBackGround->GetParameter(1));
+  fFullFitFnct->FixParameter(2, fBackGround->GetParameter(2));
+  fFullFitFnct->FixParameter(3, fBackGround->GetParameter(3));
+  histo->Fit("fFullFitFnct", "RQEM", "",
+                                       fSigRangeMin * 1.01, fSigRangeMax * 0.99);
+  fFullFitFnct->ReleaseParameter(0);
+  fFullFitFnct->ReleaseParameter(1);
+  fFullFitFnct->ReleaseParameter(2);
+  fFullFitFnct->ReleaseParameter(3);
+  TFitResultPtr fullFit = histo->Fit("fFullFitFnct", "SRQ", "",
+                                     fSigRangeMin * 1.01, fSigRangeMax * 0.99);
+
+  fMeanMass = fFullFitFnct->GetParameter(5);
+  fMeanWidth = fFullFitFnct->GetParameter(6);
+
+  const double rangeMin = fMeanMass - massCuts;
+  const double rangeMax = fMeanMass + massCuts;
+
+  // Get refitted Background function
+  auto background = new TF1("fBackground_refit", "pol3", fBkgRangeMin,
+                             fBkgRangeMax);
+  background->SetParameter(0, fFullFitFnct->GetParameter(0));
+  background->SetParameter(1, fFullFitFnct->GetParameter(1));
+  background->SetParameter(2, fFullFitFnct->GetParameter(2));
+  background->SetParameter(3, fFullFitFnct->GetParameter(3));
+
+  auto signal = new TF1("fSignal", "gaus(0)", 1.05, 1.25);
+  signal->SetParameter(0, fFullFitFnct->GetParameter(4));
+  signal->SetParameter(1, fFullFitFnct->GetParameter(5));
+  signal->SetParameter(2, fFullFitFnct->GetParameter(6));
+
+  fSignalCounts = signal->Integral(rangeMin, rangeMax)
+      / double(histo->GetBinWidth(1));
+
+  fBackgroundCounts = background->Integral(rangeMin, rangeMax)
+      / double(histo->GetBinWidth(1));
+
+  if(!fullFit) return;
+
+  fSignalCountsErr = signal->IntegralError(
+      rangeMin, rangeMax, fullFit->GetParams(),
+      fullFit->GetCovarianceMatrix().GetMatrixArray())
+      / double(histo->GetBinWidth(1));
+
+  fBackgroundCountsErr = background->IntegralError(
+      rangeMin, rangeMax, fullFit->GetParams(),
+      fullFit->GetCovarianceMatrix().GetMatrixArray())
+      / double(histo->GetBinWidth(1));
+}
+
+void ForgivingFitter::SetRangesSigma(float SigMin, float SigMax,
+                                     float BkgRangeMin, float BkgRangeMax) {
+  fBkgRangeMin = BkgRangeMin;
+  fBkgRangeMax = BkgRangeMax;
+  fSigRangeMin = SigMin;
+  fSigRangeMax = SigMax;
+  fRangesSet = true;
 }
 
 void ForgivingFitter::SetRanges(float SigMin, float SigMax, float BkgRangeMin,

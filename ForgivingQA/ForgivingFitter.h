@@ -19,6 +19,8 @@ class ForgivingFitter {
   void FitInvariantMass(TH1F* histo, float massCutMin, float massCutMax);
   void SetRanges(float SigMin, float SigMax, float BkgRangeMin,
                  float BkgRangeMax);
+  void SetRangesSigma(float SigMin, float SigMax, float BkgRangeMin,
+                      float BkgRangeMax);
   int GetSignalCounts() const {
     return fSignalCounts;
   }
@@ -37,6 +39,7 @@ class ForgivingFitter {
   }
   void ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin, float pTMax,
                            const char* part);
+  void FitInvariantMassSigma(TH1F* histo, float massCuts);
  private:
   void CreateBackgroundFunction();
   void CreateContinousBackgroundFunction();
