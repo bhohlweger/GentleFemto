@@ -261,13 +261,9 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
   auto ledniFile = TFile::Open(Form("%s/Param_pSigma0_2.root", fitPath));
   if (ledniFile) {
     auto ledniband = (TGraphErrors*) ledniFile->Get("CF_fit");
-    auto sideband = (TGraphErrors*) ledniFile->Get("CF_sidebands");
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
-    } else if (!sideband) {
-      std::cout << "No sideband \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(sideband, kCyan + 2, 0.5, true);
       fProtonSigma->FemtoModelFitBands(ledniband, kRed + 2, 0, 0, 3252, true);
     }
   } else {
@@ -277,11 +273,15 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
   auto haidenbauerFile = TFile::Open(Form("%s/Param_pSigma0_3.root", fitPath));
   if (haidenbauerFile) {
     auto haidenbauerband = (TGraphErrors*) haidenbauerFile->Get("CF_fit");
+    auto sideband = (TGraphErrors*) haidenbauerFile->Get("CF_sidebands");
     if (!haidenbauerband) {
       std::cout << "No coupled Lednicky \n";
+    } else if (!sideband) {
+      std::cout << "No sideband \n";
     } else {
       fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure - 3, 0, 0, 3225,
                                        true);
+      fProtonSigma->FemtoModelFitBands(sideband, kCyan + 2, 0.5, true);
     }
   } else {
     std::cout << "No Haidenbauer file!  \n";
