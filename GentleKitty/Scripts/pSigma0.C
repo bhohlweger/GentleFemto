@@ -124,7 +124,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   CATSinput->ReadSigmaFile();
   CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
                                        suffix.Data());
-  CATSinput->ObtainCFs(10, 340, 490);
+  CATSinput->ObtainCFs(10, 250, 400);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
   auto dataHist = CATSinput->GetCF("pSigma0", dataHistName.Data());
   if (!dataHist) {
@@ -198,8 +198,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   }
 
   // sideband fit normalization range systematic variation
-  const std::vector<double> sidebandNormDown = { { 340, 300, 380 } };
-  const std::vector<double> sidebandNormUp = { { 490, 450, 530 } };
+  const std::vector<double> sidebandNormDown = { { 300, 250, 350 } };
+  const std::vector<double> sidebandNormUp = { { 500, 450, 550 } };
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Fit the sideband
