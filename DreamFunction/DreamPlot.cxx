@@ -460,9 +460,9 @@ void DreamPlot::DrawCorrelationFunctionSigma() {
   fProtonSigma->SetNDivisions(505);
   fProtonSigma->SetLegendCoordinates(
       0.45, 0.71 - 0.09 * fProtonSigma->GetNumberOfModels(), 0.7, 0.8);
-  fProtonSigma->DrawCorrelationPlot(c, 13);
   // Necessary fix to get the right unit on the axes
-  fProtonSigma->SetUnitConversionCATS(2);
+  fProtonSigma->SetUnitConversionData(2);
+  fProtonSigma->DrawCorrelationPlot(c, 13);
   DrawSystemInfo(c, false, 0.45, true);
   c->cd();
   c->SaveAs("CF_pSigma_prelim.pdf");
