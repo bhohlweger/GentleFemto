@@ -267,7 +267,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else if (!sideband) {
       std::cout << "No sideband \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(sideband, kCyan + 2, 2, 3, 3003, true);
+      fProtonSigma->FemtoModelFitBands(sideband, kCyan + 2, 0.5, true);
       fProtonSigma->FemtoModelFitBands(ledniband, kRed + 2, 0, 0, 3252, true);
     }
   } else {
