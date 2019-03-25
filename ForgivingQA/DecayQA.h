@@ -54,8 +54,10 @@ class DecayQA {
     fTexOffX = TexOffX;
     fTexOffY = TexOffY;
   };
-  double GetSignalCount() const { return fFitter->GetSignalCounts(); }
-  double GetBackgroundCount() const { return fFitter->GetBackgroundCounts(); }
+  double GetSignalCounts() const { return fFitter->GetSignalCounts(); }
+  double GetSignalCountsErr() const { return fFitter->GetSignalCountsErr(); }
+  double GetBackgroundCounts() const { return fFitter->GetBackgroundCounts(); }
+  double GetBackgroundCountsErr() const { return fFitter->GetBackgroundCountsErr(); }
   double GetPurity() const { return fFitter->GetPurity(); }
   double GetPurityErr() const { return fFitter->GetPurityErr(); }
  private:

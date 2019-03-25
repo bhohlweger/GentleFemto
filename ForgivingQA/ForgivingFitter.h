@@ -25,10 +25,16 @@ class ForgivingFitter {
     return fSignalCounts;
   }
   ;
+  int GetSignalCountsErr() const {
+    return fSignalCountsErr;
+  }
   int GetBackgroundCounts() const {
     return fBackgroundCounts;
   }
   ;
+  int GetBackgroundCountsErr() const {
+    return fBackgroundCountsErr;
+  }
   double GetPurity() const;
   double GetPurityErr() const;
   float GetMeanMass() const {
