@@ -1,9 +1,3 @@
-//Dummy to remind bernie to implement the per run period QA
-//For:
-
-//Number of (Anti-)Protons per Period
-//Purity of (Anti-)Lambdas per Period
-//Purity of (Anti-)Xis per Period
 #include "TSystemDirectory.h"
 #include "TList.h"
 #include "MakeHistosGreat.h"
@@ -23,5 +17,6 @@ int main(int argc, char* argv[]) {
 
   PeriodQA *qa = new PeriodQA();
   qa->SetDirectory(argv[1]);
-  qa->ProcessQA(prefix, addon);
+  qa->ProcessSigmaQA(prefix, addon);
 }
+
