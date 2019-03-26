@@ -72,3 +72,6 @@ target_link_libraries(executeDPhiDEtaAtRad DreamFunctions)
 
 add_executable(executeHEP ${PROJECT_SOURCE_DIR}/Scripts/ConvertToHEP.C)
 target_link_libraries(executeHEP DreamFunctions)
+
+add_executable(executeOneFile ${PROJECT_SOURCE_DIR}/Scripts/MakeOneFile.C)
+target_link_libraries(executeOneFile DreamFunctions)
