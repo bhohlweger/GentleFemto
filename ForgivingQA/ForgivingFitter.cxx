@@ -123,7 +123,7 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
 }
 
 void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts) {
-  if (histo->GetEntries() < 5000) {
+  if (histo->GetEntries() < 12500) {
     return;
   }
 
@@ -139,44 +139,53 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts) {
     return p[0] + p[1] * x[0] + p[2] * x[0] * x[0] +
     p[3] * x[0] * x[0] * x[0];
   },
-                        fBkgRangeMin, fBkgRangeMax, 4);
-  histo->Fit(fBackGround, "SRQ", "", fBkgRangeMin * 1.005,
-             fBkgRangeMax * 0.995);
+                        fBkgRangeMin * 0.5, fBkgRangeMax * 2, 4);
+  histo->Fit(fBackGround, "SRQ", "", fBkgRangeMin * 0.995, fBkgRangeMax);
 
   // parse then to proper TF1
   if (fContinousBackGround) {
     delete fContinousBackGround;
   }
-  fContinousBackGround = new TF1("fBackground2", "pol3", fBkgRangeMin,
-                                 fBkgRangeMax);
+  fContinousBackGround = new TF1("fBackground2", "pol3", fBkgRangeMin * 0.5,
+                                 fBkgRangeMax * 2);
   fContinousBackGround->SetParameter(0, fBackGround->GetParameter(0));
   fContinousBackGround->SetParameter(1, fBackGround->GetParameter(1));
   fContinousBackGround->SetParameter(2, fBackGround->GetParameter(2));
   fContinousBackGround->SetParameter(3, fBackGround->GetParameter(3));
   TH1F *signalOnly = getSignalHisto(fContinousBackGround, histo,
-                                    fSigRangeMin * 0.98, fSigRangeMax * 1.02,
+                                    fBkgRangeMin * 0.8, fBkgRangeMax * 1.2,
                                     Form("%s_signal_only", histo->GetName()));
-  fSingleGaussian = new TF1("fSignalSingleGauss", "gaus(0)", fSigRangeMin,
-                            fSigRangeMax);
-  signalOnly->Fit(fSingleGaussian, "R Q N", "", fSigRangeMin * 1.01,
-                  fSigRangeMax * 0.99);
+  if (fSingleGaussian) {
+    delete fSingleGaussian;
+  }
+  fSingleGaussian = new TF1("fSignalSingleGauss", "gaus(0)", fBkgRangeMin,
+                            fBkgRangeMax);
+  fSingleGaussian->FixParameter(1, 1.1929);
+  fSingleGaussian->SetParameter(2, 0.0015);
+  signalOnly->Fit(fSingleGaussian, "RQN", "", fBkgRangeMin, fBkgRangeMax);
+  fSingleGaussian->ReleaseParameter(1);
+  signalOnly->Fit(fSingleGaussian, "RQN", "", fBkgRangeMin, fBkgRangeMax);
   delete signalOnly;
 
+  if (fFullFitFnct) {
+    delete fFullFitFnct;
+  }
   fFullFitFnct = new TF1("fFullFitFnct", "fBackground2 + fSignalSingleGauss",
-                         fSigRangeMin, fSigRangeMax);
+                         fBkgRangeMin * 0.5, fBkgRangeMax * 2);
   fFullFitFnct->SetNpx(1000);
   fFullFitFnct->FixParameter(0, fBackGround->GetParameter(0));
   fFullFitFnct->FixParameter(1, fBackGround->GetParameter(1));
   fFullFitFnct->FixParameter(2, fBackGround->GetParameter(2));
   fFullFitFnct->FixParameter(3, fBackGround->GetParameter(3));
-  histo->Fit("fFullFitFnct", "RQEM", "",
-                                       fSigRangeMin * 1.01, fSigRangeMax * 0.99);
+  histo->Fit("fFullFitFnct", "RQ", "", fBkgRangeMin, fBkgRangeMax);
   fFullFitFnct->ReleaseParameter(0);
   fFullFitFnct->ReleaseParameter(1);
   fFullFitFnct->ReleaseParameter(2);
   fFullFitFnct->ReleaseParameter(3);
-  TFitResultPtr fullFit = histo->Fit("fFullFitFnct", "SRQ", "",
-                                     fSigRangeMin * 1.01, fSigRangeMax * 0.99);
+  histo->Fit("fFullFitFnct", "RQ", "", fBkgRangeMin, fBkgRangeMax);
+  fFullFitFnct->ReleaseParameter(6);
+  TFitResultPtr fullFit = histo->Fit("fFullFitFnct", "SRQ", "", fBkgRangeMin,
+                                     fBkgRangeMax);
 
   fMeanMass = fFullFitFnct->GetParameter(5);
   fMeanWidth = fFullFitFnct->GetParameter(6);
@@ -185,14 +194,15 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts) {
   const double rangeMax = fMeanMass + massCuts;
 
   // Get refitted Background function
-  auto background = new TF1("fBackground_refit", "pol3", fBkgRangeMin,
-                             fBkgRangeMax);
+  auto background = new TF1("fBackground_refit", "pol3", fBkgRangeMin * 0.5,
+                            fBkgRangeMax * 2);
   background->SetParameter(0, fFullFitFnct->GetParameter(0));
   background->SetParameter(1, fFullFitFnct->GetParameter(1));
   background->SetParameter(2, fFullFitFnct->GetParameter(2));
   background->SetParameter(3, fFullFitFnct->GetParameter(3));
 
-  auto signal = new TF1("fSignal", "gaus(0)", 1.05, 1.25);
+  auto signal = new TF1("fSignal", "gaus(0)", fBkgRangeMin * 0.5,
+                        fBkgRangeMax * 2);
   signal->SetParameter(0, fFullFitFnct->GetParameter(4));
   signal->SetParameter(1, fFullFitFnct->GetParameter(5));
   signal->SetParameter(2, fFullFitFnct->GetParameter(6));
@@ -202,8 +212,6 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts) {
 
   fBackgroundCounts = background->Integral(rangeMin, rangeMax)
       / double(histo->GetBinWidth(1));
-
-  if(!fullFit) return;
 
   fSignalCountsErr = signal->IntegralError(
       rangeMin, rangeMax, fullFit->GetParams(),
