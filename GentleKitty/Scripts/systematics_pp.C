@@ -202,6 +202,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   float rErr_pp;
   float pa_pp, pb_pp;
   float iNorm;
+  float ChiSqNDF;
 
   sysVarTree->SetBranchAddress("IterID", &uIterIDDefault);
   sysVarTree->SetBranchAddress("vFemReg_pp", &vFemReg_pp);
@@ -216,6 +217,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
   sysVarTree->SetBranchAddress("pa_pp", &pa_pp);
   sysVarTree->SetBranchAddress("pb_pp", &pb_pp);
   sysVarTree->SetBranchAddress("pb_pp", &pb_pp);
+  sysVarTree->SetBranchAddress("Chi2NdfLocal", &ChiSqNDF);
 //  sysVarTree->SetBranchAddress("iNorm", &iNorm);
 
   for (int iEntry = 0; iEntry < sysVarTree->GetEntries(); iEntry++) {
@@ -223,6 +225,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
     if (vFemReg_pp == 1 && vFrac_pp_pL == 1 && vFrac_pL_pSigma0 == 1
         && vFrac_pL_pXim == 1 && vModpL == 2
         && HaveWeABaseLine == (int) false) {
+      std::cout << "Default Chi2: " << ChiSqNDF << std::endl;
       break;
     }
   }
