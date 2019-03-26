@@ -6,7 +6,7 @@
 #include "TCanvas.h"
 #include <iostream>
 
-void EvalDreamSystematics(TString InputDir, TString prefix, int upperFitRange) {
+void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange) {
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle();
   auto CATSinput = new CATSInput();
@@ -81,7 +81,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, int upperFitRange) {
 }
 
 int main(int argc, char* argv[]) {
-  EvalDreamSystematics(argv[1], argv[2], atoi(argv[3]));
+  EvalDreamSystematics(argv[1], argv[2], atof(argv[3]));
 
   return 1;
 }

@@ -6,13 +6,13 @@
 #include "TCanvas.h"
 #include <iostream>
 
-void EvalDreamSystematics(TString InputDir, TString prefix, int upperFitRange) {
+void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange) {
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle();
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
   CATSinput->SetFixedkStarMinBin(true, 0. );
-  const int rebin = 10;
+  const int rebin = 20;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
@@ -29,6 +29,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, int upperFitRange) {
   DreamDist* ApAL = DreamFile->GetPairDistributions(1, 3, "");
   DreamCF* CFpLDef = CATSinput->ObtainCFSyst(rebin, "pLDef", pL, ApAL);
   DreamSystematics protonL(DreamSystematics::pL);
+//  protonL.SetUpperFitRange(0.080);
   protonL.SetDefaultHist(CFpLDef, "hCk_ReweightedpLDefMeV_1");
   protonL.SetUpperFitRange(upperFitRange);
   int iPLCounter = 0;
@@ -64,10 +65,11 @@ void EvalDreamSystematics(TString InputDir, TString prefix, int upperFitRange) {
       Form("Systematics_%s.root", protonL.GetPairName().Data()), "update");
   CFpLDef->WriteOutput(file, true);
   std::cout << "Worked through " << iPLCounter << " variations" << std::endl;
+  std::cout << "Upper fit range " << upperFitRange << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-  EvalDreamSystematics(argv[1], argv[2], atoi(argv[3]));
+  EvalDreamSystematics(argv[1], argv[2], atof(argv[3]));
 
   return 1;
 }
