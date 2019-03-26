@@ -29,13 +29,25 @@ int main(int argc, char* argv[]) {
   DreamFile->ReadmTHistos(filename, prefix, addon);
   mTpLDists = DreamFile->GetmTPairDistributions(0, 2, 1, 3);
 
-  std::vector<float> mTpLBins = { 1.08, 1.26, 1.32, 1.44, 1.62, 1.68, 4.5 };
+  std::vector<float> mTpLBins = { 1.02, 1.26, 1.32, 1.44, 1.62, 1.68, 4.5 };
 
   TString CalibPL = Form("%s/CFOutput_pL.root",CalibName);
   mTpLDists->SetSEMEReweightingRatio(CalibPL, "pL");
   mTpLDists->SetKayTeeBins(mTpLBins);
   mTpLDists->SetNormalization(0.2, 0.4);
   mTpLDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pL");
+
+  DreamKayTee* mTpXiDists;
+  DreamFile->ReadmTHistos(filename, prefix, addon);
+  mTpXiDists = DreamFile->GetmTPairDistributions(0, 4, 1, 5);
+
+  std::vector<float> mTpXiBins = { 1.08, 4.5 };
+
+  TString CalibpXi = Form("%s/CFOutput_pXi.root",CalibName);
+  mTpXiDists->SetSEMEReweightingRatio(CalibpXi, "pXi");
+  mTpXiDists->SetKayTeeBins(mTpXiBins);
+  mTpXiDists->SetNormalization(0.2, 0.4);
+  mTpXiDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pXi");
 
   return 1;
 }
