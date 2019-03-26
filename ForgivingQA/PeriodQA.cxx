@@ -138,9 +138,9 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
     delete antiv0QA;
 
     DecayQA* sigma0QA = new DecayQA("#Sigma", "#Lambda#gamma");
-        sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
-        sigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
-    sigma0QA->SetRangesFitting(1.182, 1.202, 1.167, 1.217);
+    sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
+    sigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
+    sigma0QA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
     sigma0QA->GetPeriodQASigma0(0.003, it.Data());
     purity = sigma0QA->GetPurity();
     purityErr = sigma0QA->GetPurityErr();
@@ -157,21 +157,27 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
   }
   auto c = new TCanvas();
   histPurityLambda->Draw("PE");
+  histPurityLambda->Fit("pol0");
   c->Print("PeriodQALambda.pdf");
   auto c2 = new TCanvas();
   histNLambda->Draw("PE");
+  histNLambda->Fit("pol0");
   c2->Print("PeriodQANLambda.pdf");
   auto d = new TCanvas();
   histPurityAntiLambda->Draw("PE");
+  histPurityAntiLambda->Fit("pol0");
   d->Print("PeriodQAAntiLambda.pdf");
   auto d2 = new TCanvas();
   histNAntiLambda->Draw("PE");
+  histNAntiLambda->Fit("pol0");
   d2->Print("PeriodQANAntiLambda.pdf");
   auto e = new TCanvas();
   histPuritySigma->Draw("PE");
+  histPuritySigma->Fit("pol0");
   e->Print("PeriodQASigma.pdf");
   auto e2 = new TCanvas();
   histNSigma->Draw("PE");
+  histNSigma->Fit("pol0");
   e2->Print("PeriodQANSigma.pdf");
 }
 
