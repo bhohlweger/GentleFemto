@@ -72,6 +72,7 @@ void DecayQA::InvariantMassSigma0(float massCuts) {
   auto invMassPart = (TH2F*)fReader->Get2DHistInList(fDecayCuts, "fHistInvMassPtRaw");
   auto invMassAntiPart = (TH2F*)fReader->Get2DHistInList(fAntiDecayCuts, "fHistInvMassPtRaw");
   invMassPart->Add(invMassAntiPart);
+  invMassPart->RebinX(20);
   FitInvariantMassSigma0(invMassPart, massCuts, "Sigma0");
 }
 
@@ -94,7 +95,6 @@ void DecayQA::GetPeriodQASigma0(float massCuts, const char* period) {
   auto invMassAntiPart = (TH2F*)fReader->Get2DHistInList(fAntiDecayCuts, "fHistInvMassPtRaw");
   invMasspT->Add(invMassAntiPart);
   auto invMass = (TH1F*) invMasspT->ProjectionY("InvMassClone", 0, -1, "e");
-  FitInvariantMassSigma0(invMasspT, massCuts, period);
   fFitter->FitInvariantMassSigma(invMass, massCuts);
 }
 
@@ -262,6 +262,62 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts, const char
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,
                           invMass->GetMaximum() * 0.5);
   cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
+  auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname));
+    cMassBins->Divide(fDivCanX, fDivCanY);
+    if (invMasspT->GetXaxis()->GetNbins() > fDivCanX * fDivCanY) {
+      std::cerr << "FitInvariantMass: Number of divisions not sufficient"
+                " to plot all pT bins: \n"
+                << "pT Bins: " << invMasspT->GetXaxis()->GetNbins() << '\n';
+    }
+    auto* Purity = new TH1F(Form("%sPurity", outname), Form("%sPurity", outname),
+                            invMasspT->GetXaxis()->GetNbins(),
+                            invMasspT->GetXaxis()->GetXmin(),
+                            invMasspT->GetXaxis()->GetXmax());
+    Purity->GetXaxis()->SetTitle("p_{T} (GeV/#it{c})");
+    Purity->GetYaxis()->SetTitle(
+        Form("Purity / %.1f (GeV/#it{c})^{-1}", Purity->GetBinWidth(1)));
+    for (int ipT = fInvMassPtStartBin;
+        ipT < invMasspT->GetXaxis()->GetNbins() + 1; ++ipT) {
+      unsigned int iPad = 0;
+      if (fInvMassPtStartBin != 1) {
+        iPad = ipT - fInvMassPtStartBin + 1;
+      } else {
+        iPad = ipT;
+      }
+      TPad* CurrentPad = (TPad*) cMassBins->cd(iPad);
+      CurrentPad->SetTopMargin(0.08);
+      CurrentPad->SetRightMargin(0.03);
+      auto invMasspTBin = (TH1F*) invMasspT->ProjectionY(
+          Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
+      fFitter->FitInvariantMassSigma(invMasspTBin, massCuts);
+      invMasspTBin->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
+      invMasspTBin->GetYaxis()->SetRangeUser(
+          0, invMasspTBin->GetMaximum() * fScaleMax);
+      invMasspTBin->GetXaxis()->SetTitle(
+          Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
+      invMasspTBin->GetXaxis()->SetNdivisions(420);
+      invMasspTBin->GetXaxis()->SetMaxDigits(2);
+      invMasspTBin->GetYaxis()->SetMaxDigits(2);
+      invMasspTBin->GetYaxis()->SetNdivisions(210);
+      fHairyPlotter->FormatSmallHistogram(invMasspTBin, 0, 0, 0.7);
+      fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad, "");
+      fHairyPlotter->DrawLatexLabel(invMasspT->GetXaxis()->GetBinLowEdge(ipT),
+                                    invMasspT->GetXaxis()->GetBinUpEdge(ipT),
+                                    fFitter, CurrentPad, fPartLatex, fTexOffX,
+                                    fTexOffY);
+      fHairyPlotter->DrawLine(CurrentPad, CutMin, CutMin, 0,
+                              invMasspTBin->GetMaximum() * 0.5);
+      fHairyPlotter->DrawLine(CurrentPad, CutMax, CutMax, 0,
+                              invMasspTBin->GetMaximum() * 0.5);
+      float signal = (float) fFitter->GetSignalCounts();
+      float background = (float) fFitter->GetBackgroundCounts();
+      Purity->SetBinContent(ipT, fFitter->GetPurity());
+      Purity->SetBinError(ipT, fFitter->GetPurityErr());
+    }
+    Purity->GetYaxis()->SetRangeUser(0.1, 0.7);
+    cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
+    fHairyPlotter->FormatHistogram(Purity, 0, 0, 1.5);
+    fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
 
 void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname) {
