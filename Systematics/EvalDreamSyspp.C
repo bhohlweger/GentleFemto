@@ -11,24 +11,27 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
   DreamPlot::SetStyle();
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
-  const int rebin = 20;
+  const int rebin = 10;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   DreamFile->SetAnalysisFile(filename.Data(), prefix, "0");
-  ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(), prefix,
+
+  ForgivingReader* ForgivingFileDef = new ForgivingReader(filename.Data(), prefix,
                                                        "0");
-  counter->SetNumberOfCandidates(ForgivingFile);
+  counter->SetNumberOfCandidates(ForgivingFileDef);
   const int nTracks = counter->GetNumberOfTracks();
   counter->ResetCounter();
   //Proton - Proton
-  CATSinput->SetFixedkStarMinBin(true,0.004);
+  CATSinput->SetFixedkStarMinBin(true, 0.004);
   DreamDist* pp = DreamFile->GetPairDistributions(0, 0, "");
   std::cout << "Femto Pairs pp: " << pp->GetFemtoPairs(0, 0.200) << std::endl;
   DreamDist* ApAp = DreamFile->GetPairDistributions(1, 1, "");
-  std::cout << "Femto Pairs ApAp: " << ApAp->GetFemtoPairs(0, 0.200) << std::endl;
+  std::cout << "Femto Pairs ApAp: " << ApAp->GetFemtoPairs(0, 0.200)
+            << std::endl;
   DreamCF* CFppDef = CATSinput->ObtainCFSyst(rebin, "ppDef", pp, ApAp);
   DreamSystematics protonproton(DreamSystematics::pp);
+//  protonproton.SetUpperFitRange(44);
   protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppDefMeV_1");
 
   const int protonVarStart = 1;
@@ -42,8 +45,13 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
         DreamVarFile->GetPairDistributions(1, 1, ""));
     protonproton.SetVarHist(
         CFppVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+    TString VarString = TString::Format("%u", i);
+    ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
+                                                         prefix,
+                                                         VarString.Data());
     counter->SetNumberOfCandidates(ForgivingFile);
     protonproton.SetParticles(nTracks, 1, counter->GetNumberOfTracks(), 1);
+    counter->ResetCounter();
   }
 
   for (int i = 43; i < 45; ++i) {
@@ -55,11 +63,17 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
         DreamVarFile->GetPairDistributions(1, 1, ""));
     protonproton.SetVarHist(
         CFppVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+    TString VarString = TString::Format("%u", i);
+    ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
+                                                         prefix,
+                                                         VarString.Data());
     counter->SetNumberOfCandidates(ForgivingFile);
     protonproton.SetParticles(nTracks, 1, counter->GetNumberOfTracks(), 1);
+    counter->ResetCounter();
   }
   protonproton.EvalSystematics();
-  protonproton.EvalDifferenceInPairs();
+  protonproton.EvalDifferenceInParticles();
+//  protonproton.EvalDifferenceInPairs();
   protonproton.WriteOutput();
   auto file = new TFile(
       Form("Systematics_%s.root", protonproton.GetPairName().Data()), "update");
