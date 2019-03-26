@@ -47,7 +47,12 @@ int main(int argc, char* argv[]) {
   gammaQA->PlotQATopologySigma0Daughter(reader->GetOtherCuts("PhotonCuts"), "Photon");
   gammaQA->PlotPIDSigma0Daughter(reader->GetOtherCuts("PhotonCuts"), "Photon");
 
-
   DecayQA* sigma0QA = new DecayQA("#Sigma", "#Lambda#gamma");
+  sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
+  sigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
+  sigma0QA->SetCanvasDivisions(5, 2);
+  sigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   sigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"), "Sigma0");
+  sigma0QA->SetRangesFitting(1.182, 1.202, 1.167, 1.217);
+  sigma0QA->InvariantMassSigma0(0.003);
 }

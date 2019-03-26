@@ -27,6 +27,10 @@ class DecayQA {
   ;
   void InvariantMassLambda(float CutMin, float CutMax);
   void InvariantMassLambdaSigma0(float CutMin, float CutMax);
+  void InvariantMassSigma0(float massCuts);
+  void GetPeriodQA(float CutMin, float CutMax, const char* period);
+  void GetPeriodQASigma(float CutMin, float CutMax, const char* period);
+  void GetPeriodQASigma0(float massCuts, const char* period);
   void InvariantMassXi(float CutMin, float CutMax);
   void IvariantMassXiLambda();
   void PlotKaonRejection(TH1F* invMassKaon, const char* outname);
@@ -50,9 +54,17 @@ class DecayQA {
     fTexOffX = TexOffX;
     fTexOffY = TexOffY;
   };
+  double GetSignalCounts() const { return fFitter->GetSignalCounts(); }
+  double GetSignalCountsErr() const { return fFitter->GetSignalCountsErr(); }
+  double GetBackgroundCounts() const { return fFitter->GetBackgroundCounts(); }
+  double GetBackgroundCountsErr() const { return fFitter->GetBackgroundCountsErr(); }
+  double GetPurity() const { return fFitter->GetPurity(); }
+  double GetPurityErr() const { return fFitter->GetPurityErr(); }
  private:
   void FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                         const char* outname);
+  void FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
+                              const char* outname);
   ForgivingReader* fReader;
   MakeHistosGreat* fHairyPlotter;
   ForgivingFitter* fFitter;

@@ -20,6 +20,7 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/EventQA.cxx
   ${PROJECT_SOURCE_DIR}/TrackQA.cxx
   ${PROJECT_SOURCE_DIR}/DecayQA.cxx
+  ${PROJECT_SOURCE_DIR}/PeriodQA.cxx
   ${PROJECT_SOURCE_DIR}/ForgivingFitter.cxx
   ${PROJECT_SOURCE_DIR}/CandidateCounter.cxx
   ${PROJECT_SOURCE_DIR}/MakeHistosGreat.cxx
@@ -30,6 +31,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/EventQA.h
   ${PROJECT_SOURCE_DIR}/TrackQA.h
   ${PROJECT_SOURCE_DIR}/DecayQA.h
+  ${PROJECT_SOURCE_DIR}/PeriodQA.h
   ${PROJECT_SOURCE_DIR}/ForgivingFitter.h
   ${PROJECT_SOURCE_DIR}/CandidateCounter.h
   ${PROJECT_SOURCE_DIR}/MakeHistosGreat.h
@@ -41,5 +43,11 @@ target_link_libraries(ForgivingFnct ${ROOT_LIBRARIES})
 add_executable(timeForQA ${PROJECT_SOURCE_DIR}/Scripts/MakeQA.C)
 target_link_libraries(timeForQA ForgivingFnct)
 
+add_executable(timeForPeriodQA ${PROJECT_SOURCE_DIR}/Scripts/PerEventQA.C)
+target_link_libraries(timeForPeriodQA ForgivingFnct)
+
 add_executable(sigmaQA ${PROJECT_SOURCE_DIR}/Scripts/MakeSigmaQA.C)
 target_link_libraries(sigmaQA ForgivingFnct)
+
+add_executable(sigmaPeriodQA ${PROJECT_SOURCE_DIR}/Scripts/PeriodQASigma.C)
+target_link_libraries(sigmaPeriodQA ForgivingFnct)

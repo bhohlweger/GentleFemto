@@ -24,6 +24,9 @@ include_directories(${FORGIVEN_PATH})
 add_executable(systematicsSigma ${PROJECT_SOURCE_DIR}/EvalSigmaSystematics.C)
 target_link_libraries(systematicsSigma tidyCATS DreamFunctions ForgivingFnct)
 
+add_executable(sigmaSidebands ${PROJECT_SOURCE_DIR}/EvalSidebands.C)
+target_link_libraries(sigmaSidebands tidyCATS DreamFunctions ForgivingFnct)
+
 add_executable(AddFiles ${PROJECT_SOURCE_DIR}/AddOutputs.C)
 target_link_libraries(AddFiles tidyCATS DreamFunctions ForgivingFnct)
 

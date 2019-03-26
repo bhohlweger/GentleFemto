@@ -68,6 +68,36 @@ void DecayQA::InvariantMassLambdaSigma0(float CutMin, float CutMax) {
       "AntiLambda");
 }
 
+void DecayQA::InvariantMassSigma0(float massCuts) {
+  auto invMassPart = (TH2F*)fReader->Get2DHistInList(fDecayCuts, "fHistInvMassPtRaw");
+  auto invMassAntiPart = (TH2F*)fReader->Get2DHistInList(fAntiDecayCuts, "fHistInvMassPtRaw");
+  invMassPart->Add(invMassAntiPart);
+  FitInvariantMassSigma0(invMassPart, massCuts, "Sigma0");
+}
+
+void DecayQA::GetPeriodQA(float CutMin, float CutMax, const char* period) {
+  auto invMassPart = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fDecayCuts, { "v0Cuts" }), "InvMassPt");
+  auto* invMass = (TH1F*) invMassPart->ProjectionY("InvMassClone", 0, -1, "e");
+  fFitter->FitInvariantMass(invMass, CutMin, CutMax);
+}
+
+void DecayQA::GetPeriodQASigma(float CutMin, float CutMax, const char* period) {
+  auto invMasspT = (TH2F*) fReader->Get2DHistInList(fDecayCuts, "InvMassPt");
+  invMasspT->RebinX(10);
+  auto* invMass = (TH1F*) invMasspT->ProjectionY("InvMassClone", 0, -1, "e");
+  fFitter->FitInvariantMass(invMass, CutMin, CutMax);
+}
+
+void DecayQA::GetPeriodQASigma0(float massCuts, const char* period) {
+  auto invMasspT = (TH2F*) fReader->Get2DHistInList(fDecayCuts, "fHistInvMassPtRaw");
+  auto invMassAntiPart = (TH2F*)fReader->Get2DHistInList(fAntiDecayCuts, "fHistInvMassPtRaw");
+  invMasspT->Add(invMassAntiPart);
+  auto invMass = (TH1F*) invMasspT->ProjectionY("InvMassClone", 0, -1, "e");
+  FitInvariantMassSigma0(invMasspT, massCuts, period);
+  fFitter->FitInvariantMassSigma(invMass, massCuts);
+}
+
 void DecayQA::InvariantMassXi(float CutMin, float CutMax) {
   auto invMassPart = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fDecayCuts, { "Cascade" }), "InvMassXi");
@@ -204,6 +234,36 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   fHairyPlotter->FormatHistogram(Purity, 0, 0, 1.5);
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
+
+
+void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts, const char* outname) {
+  //First project the whole thing into one bin
+  auto* cMassIntegrated = new TCanvas(Form("cInt%s", outname),
+                                      Form("cInt%s", outname));
+  auto* invMass = (TH1F*) invMasspT->ProjectionY(Form("InvMass%s", outname), 0,
+                                                 -1, "e");
+  TPad* intPad = (TPad*) cMassIntegrated->cd();
+  fFitter->FitInvariantMassSigma(invMass, massCuts);
+  const double CutMin = fFitter->GetMeanMass() - massCuts;
+  const double CutMax = fFitter->GetMeanMass() + massCuts;
+  invMass->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
+  invMass->GetYaxis()->SetRangeUser(0, invMass->GetMaximum() * 1.8);
+  //invMass->GetYaxis()->SetMaxDigits(3);
+  invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
+  invMass->GetXaxis()->SetTitle(
+      Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
+  fHairyPlotter->FormatHistogram(invMass, 0, 0, 0.8);
+  fHairyPlotter->DrawOnPad( { invMass }, intPad, "P");
+  fHairyPlotter->DrawLatexLabel(
+      invMasspT->GetXaxis()->GetBinLowEdge(fInvMassPtStartBin),
+      invMasspT->GetXaxis()->GetXmax(), fFitter, intPad, fPartLatex, 0.8, 0.45);
+  fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0,
+                          invMass->GetMaximum() * 0.5);
+  fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,
+                          invMass->GetMaximum() * 0.5);
+  cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
+}
+
 void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname) {
   invMassKaon->SetName(Form("%s%s", outname, invMassKaon->GetName()));
   invMassKaon->GetXaxis()->SetRangeUser(0.44, 0.56);
@@ -451,8 +511,8 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
   armenteros->SetTitle("Armenteros-Podolandski");
   fHairyPlotter->FormatHistogram(armenteros, 0, 1);
   std::vector<TH2*> drawVecTPC = {armenteros};
-  fHairyPlotter->DrawAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
-                              "colz");
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
+                                  "colz");
 
   // dE/dc pos daughter
   TH2F* posPID = (TH2F*)fReader->Get2DHistInList(
