@@ -161,11 +161,15 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   if (iPot == 0) {
     pot = TidyCats::pCoulomb;
   } else if (iPot == 1) {
-    pot = TidyCats::pGamow; 
+    pot = TidyCats::pGamow;
   } else if (iPot == 2) {
     pot = TidyCats::pHALQCD;
   } else if (iPot == 3) {
     pot = TidyCats::pHALQCDGamow;
+  } else if (iPot == 6) {
+    pot = TidyCats::pRikkenPot;
+  } else {
+    std::cout << "iPot " << iPot << " not implemented ,exiting \n";
   }
   const int binwidth = 20;
   const int rebin = 5;
@@ -422,8 +426,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                 fitter->FixParameter("pXim", DLM_Fitter1::p_a, p_a_prefit[0]);
                 fitter->FixParameter("pXim", DLM_Fitter1::p_b, p_b_prefit[0]);
               }
-              fitter->AddSameSource("pXim1530", "pXim", 1);
-              fitter->AddSameSource("pXiSideBand", "pXim", 1);
+              fitter->AddSameSource("pXim1530", "pXim", 2);
+//              fitter->AddSameSource("pXiSideBand", "pXim", 1);
               //Global Fit default
               //Fit BL & Normalization
               fitter->FixParameter("pXim", DLM_Fitter1::p_c, 0);
@@ -433,7 +437,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               fitter->FixParameter("pXim", DLM_Fitter1::p_sor0,
                                    GaussSourceSize);
               if (TheSource == TidyCats::sLevy) {
-                fitter->SetParameter("pXim", DLM_Fitter1::p_sor1, 1.7, 1.0,
+                std::cout << "levy sor1 activated!!! \n";
+                fitter->SetParameter("pXim", DLM_Fitter1::p_sor1, 1.6, 1.0,
                                      2.0);
               }
               fitter->GoBabyGo();
