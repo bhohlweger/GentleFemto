@@ -119,7 +119,8 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
               //dont worry if iBin seems to change, its due to the rebinning!
               std::cout << "======================================\n";
               std::cout << it->GetName() << std::endl;
-              std::cout << "!for ikT = " << ikT << " and iBin = " << iBin << "!\n";
+              std::cout << "!for ikT = " << ikT << " and iBin = " << iBin
+                        << "!\n";
               std::cout << "Correction factor 0, CFs meaningless!!! \n";
               std::cout << "======================================\n";
               std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
@@ -140,17 +141,19 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
 void DreamKayTee::AveragekT(const char *pair) {
   const char* variable = (fIskT) ? "kT" : "mT";
   fAveragekT = new TGraphErrors();
-  TH2F* kTkStar = (TH2F*) fSEkT[0]->Clone(Form("%s%skStarForAverage", variable,pair));
+  TH2F* kTkStar = (TH2F*) fSEkT[0]->Clone(
+      Form("%s%skStarForAverage", variable, pair));
   kTkStar->Add(fSEkT[1]);
-  TH1F* kTProjection = (TH1F*) kTkStar->ProjectionY(Form("%s%sDist", variable, pair), 0,
-                                                    -1, "e");
-  auto *c1 = new TCanvas(Form("c%s",pair), Form("c%s",pair));
+  TH1F* kTProjection = (TH1F*) kTkStar->ProjectionY(
+      Form("%s%sDist", variable, pair), kTkStar->GetXaxis()->FindBin(0.),
+      kTkStar->GetXaxis()->FindBin(0.2), "e");
+  auto *c1 = new TCanvas(Form("c%s", pair), Form("c%s", pair));
   c1->Divide(2, 1);
   c1->cd(1);
   kTkStar->Draw("COLZ");
   c1->cd(2);
   kTProjection->Draw();
-  c1->SaveAs(Form("kTProjection%s.pdf",pair));
+  c1->SaveAs(Form("kTProjection%s.pdf", pair));
   for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
     int binLow = kTProjection->GetXaxis()->FindBin(fKayTeeBins.at(ikT));
     int binUp = kTProjection->GetXaxis()->FindBin(fKayTeeBins.at(ikT + 1));
@@ -161,7 +164,7 @@ void DreamKayTee::AveragekT(const char *pair) {
                 << " Up Edge: " << kTProjection->GetBinLowEdge(binLow + 1)
                 << std::endl;
       binErr = (kTProjection->GetBinLowEdge(binLow + 1)
-          - kTProjection->GetBinLowEdge(binLow))/2.;
+          - kTProjection->GetBinLowEdge(binLow)) / 2.;
     }
     std::cout << ikT << '\t' << "Bin Low: " << binLow + 1 << "(="
               << fKayTeeBins.at(ikT) << ")" << '\t' << "Bin Up: " << binUp
@@ -216,6 +219,28 @@ void DreamKayTee::SetSEMEReweightingRatio(const char* pathToFile,
     RatioPair1->Divide(tfconstant, 2);
     RatioPair2->Divide(tfconstant, 2);
     fSEMEReweighting = (TH1F*) RatioPair1->Clone("pLReweightingFactor");
+    fSEMEReweighting->Add(RatioPair2);
+    TString MeVName = Form("%sMeV", fSEMEReweighting->GetName());
+    fSEMEReweightingMeV = DreamCF::ConvertToOtherUnit(fSEMEReweighting, 1000,
+                                                      MeVName.Data());
+  } else if (pair == TString("pXi")) {
+    TString HistNamePair1 = HistName;
+    HistNamePair1 += "Particle0_Particle4_Rebinned_5";
+    TString HistNamePair2 = HistName;
+    HistNamePair2 += "Particle1_Particle5_Rebinned_5";
+    TH1F* RatioPair1 = (TH1F*) CalibFile->Get(HistNamePair1.Data());
+    if (!RatioPair1) {
+      std::cout << "Ratio Pair 1 missing \n";
+    }
+    TH1F* RatioPair2 = (TH1F*) CalibFile->Get(HistNamePair2.Data());
+    if (!RatioPair2) {
+      std::cout << "Ratio Pair 2 missing \n";
+    }
+    TF1* tfconstant = new TF1("myConst", "pol0", 0, 3000);
+    tfconstant->SetParameter(0, 1.);
+    RatioPair1->Divide(tfconstant, 2);
+    RatioPair2->Divide(tfconstant, 2);
+    fSEMEReweighting = (TH1F*) RatioPair1->Clone("pXiReweightingFactor");
     fSEMEReweighting->Add(RatioPair2);
     TString MeVName = Form("%sMeV", fSEMEReweighting->GetName());
     fSEMEReweightingMeV = DreamCF::ConvertToOtherUnit(fSEMEReweighting, 1000,
