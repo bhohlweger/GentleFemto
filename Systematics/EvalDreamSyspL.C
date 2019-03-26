@@ -6,13 +6,13 @@
 #include "TCanvas.h"
 #include <iostream>
 
-void EvalDreamSystematics(TString InputDir, TString prefix) {
+void EvalDreamSystematics(TString InputDir, TString prefix, int upperFitRange) {
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle();
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
-  CATSinput->SetFixedkStarMinBin(true, 0.008);
-  const int rebin = 7;
+  CATSinput->SetFixedkStarMinBin(true, 0. );
+  const int rebin = 10;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
@@ -30,6 +30,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
   DreamCF* CFpLDef = CATSinput->ObtainCFSyst(rebin, "pLDef", pL, ApAL);
   DreamSystematics protonL(DreamSystematics::pL);
   protonL.SetDefaultHist(CFpLDef, "hCk_ReweightedpLDefMeV_1");
+  protonL.SetUpperFitRange(upperFitRange);
   int iPLCounter = 0;
   for (int i = 1; i <= protonL.GetNumberOfVars(); ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
@@ -66,7 +67,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
 }
 
 int main(int argc, char* argv[]) {
-  EvalDreamSystematics(argv[1], argv[2]);
+  EvalDreamSystematics(argv[1], argv[2], atoi(argv[3]));
 
   return 1;
 }

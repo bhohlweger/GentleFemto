@@ -6,7 +6,7 @@
 #include "TCanvas.h"
 #include <iostream>
 
-void EvalDreamSystematics(TString InputDir, TString prefix) {
+void EvalDreamSystematics(TString InputDir, TString prefix, int upperFitRange) {
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle();
   auto CATSinput = new CATSInput();
@@ -33,7 +33,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
   DreamSystematics protonproton(DreamSystematics::pp);
 //  protonproton.SetUpperFitRange(44);
   protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppDefMeV_1");
-
+  protonproton.SetUpperFitRange(upperFitRange);
   const int protonVarStart = 1;
   for (int i = protonVarStart;
       i < protonVarStart + protonproton.GetNumberOfVars() - 2; ++i) {
@@ -81,7 +81,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
 }
 
 int main(int argc, char* argv[]) {
-  EvalDreamSystematics(argv[1], argv[2]);
+  EvalDreamSystematics(argv[1], argv[2], atoi(argv[3]));
 
   return 1;
 }
