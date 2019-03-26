@@ -76,7 +76,7 @@ void GetQADistributions(const char* PairName, DreamDist* PairOrg,
   leg3.Draw("same");
 
   c1->cd(4);
-  TH1F* Ratio = (TH1F*) CFRaw->Clone(Form("SEMEReweightingRatio_%s",PairName));
+  TH1F* Ratio = (TH1F*) CFRaw->Clone(Form("SEMEReweightingRatio_%s", PairName));
   if (Ratio->Divide(CFRew)) {
     Ratio->Draw();
     Ratio->SetStats(false);
@@ -107,24 +107,26 @@ void ReweightingQA(TList* PairList) {
     PairRew->SetMEMultDist((TH2F*) PairReweightedList->At(5 * iQA + 3), "_");
     PairRew->Calculate_CF(0.2, 0.4);
     //Get the corresponding unmodified pair, which was just reweighted!
-    DreamDist* Pair=nullptr;
+    DreamDist* Pair = nullptr;
     TString SEName = PairRew->GetSEDist()->GetName();
     TString PartName = SEName(SEName.Index("Particle"), 19);
     TString CanName = PartName;
 
     TString test = "_Rebinned_";
     int iStart = SEName.Index(test.Data());
-
-    std::cout << PartName.Data() << std::endl;
+//    std::cout << "iQA: " << iQA << '\t' << "SEName: " << SEName.Data() << std::endl;
+//    std::cout << "iStart: " << iStart << std::endl;
+//    std::cout << PartName.Data() << std::endl;
     if (iStart > 0) {
       iStart += test.Length();
-      std::cout << SEName.Data() << std::endl;
       TString RebinName = SEName(iStart, 1);
+//      std::cout << "RebinName: " << RebinName.Data() << std::endl;
       CanName += "_Rebinned_";
       CanName += RebinName;
+//      PairRebinnedList->ls();
       if (PairRebinnedList->FindObject(
-          Form("SEDist_%s_clone_Shifted_FixShifted_Rebinned_%s", PartName.Data(),
-               RebinName.Data()))) {
+          Form("SEDist_%s_clone_Shifted_FixShifted_Rebinned_%s",
+               PartName.Data(), RebinName.Data()))) {
         Pair = new DreamDist();
         Pair->SetSEDist(
             (TH1F*) PairRebinnedList->FindObject(
@@ -149,9 +151,14 @@ void ReweightingQA(TList* PairList) {
         Pair->Calculate_CF(0.2, 0.4);
       } else {
         std::cout
-            << "===========" << '\n' << "==Missing==" << '\n' << "==========="
+            << "==========="
             << '\n'
-            << Form("SEDist_%s_clone_Rebinned_%s", PartName.Data(), RebinName.Data())
+            << "==Missing=="
+            << '\n'
+            << "==========="
+            << '\n'
+            << Form("SEDist_%s_clone_Shifted_FixShifted_Rebinned_%s",
+                    PartName.Data(), RebinName.Data())
             << std::endl;
       }
     } else {
@@ -166,7 +173,8 @@ void ReweightingQA(TList* PairList) {
             "_");
         Pair->SetSEMultDist(
             (TH2F*) UntouchedPairList->FindObject(
-                Form("SEMultDist_%s_clone_Shifted_FixShifted", PartName.Data())),
+                Form("SEMultDist_%s_clone_Shifted_FixShifted",
+                     PartName.Data())),
             "_");
         Pair->SetMEDist(
             (TH1F*) UntouchedPairList->FindObject(
@@ -174,7 +182,8 @@ void ReweightingQA(TList* PairList) {
             "_");
         Pair->SetMEMultDist(
             (TH2F*) UntouchedPairList->FindObject(
-                Form("MEMultDist_%s_clone_Shifted_FixShifted", PartName.Data())),
+                Form("MEMultDist_%s_clone_Shifted_FixShifted",
+                     PartName.Data())),
             "_");
         Pair->Calculate_CF(0.2, 0.4);
       } else {
@@ -184,7 +193,7 @@ void ReweightingQA(TList* PairList) {
                   << std::endl;
       }
     }
-    std::cout << CanName.Data() << std::endl;
+//    std::cout << CanName.Data() << std::endl;
     if (Pair && PairRew) {
       GetQADistributions(CanName.Data(), Pair, PairRew);
     }
@@ -213,6 +222,7 @@ void METoSEReweighting(const char* foldername) {
     if (AntiPairDist) {
       ReweightingQA(AntiPairDist);
     }
+    file->Close();
 //    TH1F* CFRaw;
 //    TH1F* CFRew;
 //    if (iFile == 0) {
