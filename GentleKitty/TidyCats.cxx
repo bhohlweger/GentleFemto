@@ -12,6 +12,8 @@
 #include "DLM_Source.h"
 #include "DLM_WfModel.h"
 #include "TSystem.h"
+#include "TFile.h"
+#include "TGraph.h"
 TidyCats::TidyCats()
     : fppCleverLevy(nullptr),
       fpLCleverLevy(nullptr),
@@ -37,7 +39,7 @@ TidyCats::~TidyCats() {
 void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
                                    double kMax, TidyCats::Sources source) {
   TString HomeDir = gSystem->GetHomeDirectory().c_str();
-  TString Test = TString::Format("%s",HomeDir.Data());
+  TString Test = TString::Format("%s", HomeDir.Data());
   std::cout << Test.Data() << std::endl;
   const double Weight1S0 = 3. / 12.;
   const double Weight3P0 = 1. / 12.;
@@ -203,7 +205,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     TString HomeDir = gSystem->GetHomeDirectory().c_str();
     ExternalWF = Init_pL_Haidenbauer(
         TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pLambdaLO_600/",
-                       HomeDir.Data()),
+                        HomeDir.Data()),
         AB_pL, 0, 600);
     for (unsigned uCh = 0; uCh < AB_pL->GetNumChannels(); uCh++) {
       AB_pL->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
@@ -360,7 +362,7 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
                                        ExternalWF[1][uCh][0]);
     }
     CleanUpWfHisto(AB_pXim->GetNumChannels(), ExternalWF);
-  } else if (pot == pRikken) {
+  } else if (pot == pRikkenWF) {
     TString HomeDir = gSystem->GetHomeDirectory().c_str();
     ExternalWF = Init_pXi_ESC16_IS(
         TString::Format("%s/cernbox/WaveFunctions/Tom/IsospinSpin_Channel/",
@@ -371,12 +373,39 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
                                        ExternalWF[1][uCh][0]);
     }
     CleanUpWfHisto(AB_pXim->GetNumChannels(), ExternalWF);
+  } else if (pot == pRikkenPot) {
+    CATSparameters* PotParsI0S0 = new CATSparameters(CATSparameters::tSource, 2,
+                                                     true);
+    PotParsI0S0->SetParameter(0, 0);
+    PotParsI0S0->SetParameter(1, 0);
+
+    CATSparameters* PotParsI0S1 = new CATSparameters(CATSparameters::tSource, 2,
+                                                     true);
+    PotParsI0S1->SetParameter(0, 0);
+    PotParsI0S1->SetParameter(1, 1);
+
+    CATSparameters* PotParsI1S0 = new CATSparameters(CATSparameters::tSource, 2,
+                                                     true);
+    PotParsI1S0->SetParameter(0, 1);
+    PotParsI1S0->SetParameter(1, 0);
+
+    CATSparameters* PotParsI1S1 = new CATSparameters(CATSparameters::tSource, 2,
+                                                     true);
+    PotParsI1S1->SetParameter(0, 1);
+    PotParsI1S1->SetParameter(1, 1);
+
+    CATS Kitty;
+    //define the usual stuff
+    AB_pXim->SetShortRangePotential(0, 0, ESC16_pXim_EXAMPLE, *PotParsI0S0);
+    AB_pXim->SetShortRangePotential(1, 0, ESC16_pXim_EXAMPLE, *PotParsI0S1);
+    AB_pXim->SetShortRangePotential(2, 0, ESC16_pXim_EXAMPLE, *PotParsI1S0);
+    AB_pXim->SetShortRangePotential(3, 0, ESC16_pXim_EXAMPLE, *PotParsI1S1);
   } else if (pot == pCoulomb) {
     std::cout << "Setting no potential at all!";
   } else if (pot == pGamow) {
     AB_pXim->SetQ1Q2(0);
     AB_pXim->SetGamow(true);
-    std::cout << "Setting no potential at all + Gamow correction \n"; 
+    std::cout << "Setting no potential at all + Gamow correction \n";
   } else {
     std::cout << "no implemented potential called \n";
   }
@@ -504,4 +533,38 @@ void TidyCats::GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins,
   AB_pXim1530->SetRedMass((Mass_p * Mass_Xim1530) / (Mass_p + Mass_Xim1530));
 
   return;
+}
+
+double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {
+//[0] radius, [1] momentum
+//[2] IsoSpin, [3] Spin
+  if (Parameters[0] > 2)
+    return 0;
+
+  //change the path here
+  TString HomeDir = gSystem->GetHomeDirectory().c_str();
+
+  const double& Isospin = Parameters[2];
+  const double& Spin = Parameters[3];
+
+  TFile fIn(
+      TString::Format(
+          "%s/cernbox/WaveFunctions/Tom/Potential/ESC16_190319.root",
+          HomeDir.Data()),
+      "read");
+  TGraph* gPot;
+
+  if (Isospin == 0 && Spin == 0) {
+    gPot = (TGraph*) fIn.Get("EffPotI0S0");
+  } else if (Isospin == 0 && Spin == 1) {
+    gPot = (TGraph*) fIn.Get("EffPotI0S1");
+  } else if (Isospin == 1 && Spin == 0) {
+    gPot = (TGraph*) fIn.Get("EffPotI1S0");
+  } else if (Isospin == 1 && Spin == 1) {
+    gPot = (TGraph*) fIn.Get("EffPotI1S1");
+  } else {
+    printf(" ESC16_pXim_EXAMPLE says ????????????????");
+    return 0;
+  }
+  return gPot->Eval(Parameters[0]);
 }

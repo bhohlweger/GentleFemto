@@ -24,7 +24,8 @@ class TidyCats {
     pHALQCD,
     pHALQCDGamow,
     pHaidenbauer,
-    pRikken
+    pRikkenWF,
+    pRikkenPot
   };
   enum pLPot {
     pUsmani,
@@ -47,6 +48,7 @@ class TidyCats {
                                   double cutOff);
   void GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins, double kMin,
                                 double kMax, TidyCats::Sources source);
+  static double ESC16_pXim_EXAMPLE(double* Parameters);
  private:
   DLM_CleverLevy* fppCleverLevy;
   DLM_CleverLevy* fpLCleverLevy;
