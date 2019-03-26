@@ -93,7 +93,7 @@ void GetCorrelations(const float fixShift, const char* filename,
   std::cout << "==Rebinning & Weighting==" << std::endl;
   std::cout << "=========================" << std::endl;
 
-  std::vector<int> rebinVec = { { 4, 5 } };
+  std::vector<int> rebinVec = {{1,2,3,4,5}};
   for (size_t iReb = 0; iReb < rebinVec.size(); ++iReb) {
     std::cout << "==Rebinning==" << std::endl;
     pL->Rebin(pL->GetPairFixShifted(0), rebinVec[iReb]);

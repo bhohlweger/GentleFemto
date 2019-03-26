@@ -63,17 +63,28 @@ unsigned int DreamDist::GetFemtoPairs(float kMin, float kMax) {
 }
 
 void DreamDist::Calculate_CF(float normleft, float normright) {
+	bool Normalization = true;
+	if(normleft==normright) Normalization=false;
   if (!fCF) {
     TString CFname = fSE->GetName();
     CFname.Replace(CFname.Index("SE"), 2, "CF");
     fCF = (TH1F*) fSE->Clone(CFname.Data());
     Double_t norm_relK = 0;
-    double IntegralSE = fSE->Integral(fSE->FindBin(normleft),
+    double IntegralSE;
+    double IntegralME;
+    if(Normalization){
+		IntegralSE = fSE->Integral(fSE->FindBin(normleft),
                                       fSE->FindBin(normright));
-    double IntegralME = fME->Integral(fME->FindBin(normleft),
-                                      fME->FindBin(normright));
+		IntegralME = fME->Integral(fME->FindBin(normleft),
+                                      fME->FindBin(normright));	
+	}
+	else{
+		IntegralSE = fSE->Integral(1,fSE->GetNbinsX());
+		IntegralME = fME->Integral(1,fME->GetNbinsX());		
+	}
+
     if (IntegralME != 0) {
-      norm_relK = IntegralSE / IntegralME;
+      norm_relK=IntegralSE/IntegralME;
       fCF->Divide(fSE, fME, 1, norm_relK);
     } else {
       std::cout << "DreamDist::Calculate_CF division by 0 \n";

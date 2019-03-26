@@ -58,7 +58,7 @@ class DreamDist {
   }
   ;
   unsigned int GetFemtoPairs(float kMin, float kMax);
-  void Calculate_CF(float normleft, float normright);
+  void Calculate_CF(float normleft=0, float normright=0);
  private:
   TH1F* fSE;
   TH2F* fSEMult;

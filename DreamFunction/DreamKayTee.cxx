@@ -30,6 +30,79 @@ DreamKayTee::~DreamKayTee() {
   // TODO Auto-generated destructor stub
 }
 
+//computes for each k* we compute the weights of the kT bins
+//iType 0 is SE, 1 is ME
+void DreamKayTee::GetKayTeeWeights(const int& iPart, const int& iType, TH2F*& Weights, TH1F*& AvgKayTee){
+	int Num_k_bins;
+	TH2F* KayTeeDistro;
+	if(iType==0) KayTeeDistro = fSEkT[iPart];
+	else KayTeeDistro = fMEkT[iPart];
+	Num_k_bins = KayTeeDistro->GetXaxis()->GetNbins();
+	double kMin = KayTeeDistro->GetXaxis()->GetBinLowEdge(1);
+	double kMax = KayTeeDistro->GetXaxis()->GetBinUpEdge(Num_k_bins);
+	double* hWeightsBinning = new double [fNKayTeeBins];
+	for (int ikT = 0; ikT < fNKayTeeBins; ++ikT){
+		hWeightsBinning[ikT]=fKayTeeBins[ikT];
+	}
+	TH2F* hWeights = new TH2F(TString::Format("hWeights_%i_%s",iPart,iType==0?"SE":"ME"),TString::Format("hWeights_%i_%s",iPart,iType==0?"SE":"ME"),
+	Num_k_bins,kMin,kMax,fNKayTeeBins-1,hWeightsBinning);
+	
+	TH1F* hAvgKayTee = new TH1F(TString::Format("hAvgKayTee_%i_%s",iPart,iType==0?"SE":"ME"),TString::Format("hAvgKayTee_%i_%s",iPart,iType==0?"SE":"ME"),
+	Num_k_bins,kMin,kMax);
+	
+	delete [] hWeightsBinning;
+	
+	for(int iMom=0; iMom<Num_k_bins; iMom++){
+		
+		TH1D* hProjection = KayTeeDistro->ProjectionY("KayTeeDistroProjectionY",iMom+1,iMom+1);
+		double TotalYield = hProjection->Integral(1,hProjection->GetNbinsX());
+		double QA_TotalYield=0;
+
+		int kTminBin=0;
+		int kTmaxBin=0;
+		for (int ikT = 0; ikT < fNKayTeeBins-1; ++ikT){
+			kTminBin = KayTeeDistro->GetYaxis()->FindBin(fKayTeeBins[ikT]);
+			kTmaxBin = KayTeeDistro->GetYaxis()->FindBin(fKayTeeBins[ikT + 1]-1e-16);
+			if(kTmaxBin>KayTeeDistro->GetYaxis()->GetNbins()){
+				kTmaxBin = KayTeeDistro->GetYaxis()->GetNbins();
+				if(kTminBin>kTmaxBin) kTminBin=kTmaxBin;
+			}
+			
+			double KayTeeYield = 0;
+			double FirstBin_LowEdge=KayTeeDistro->GetYaxis()->GetBinLowEdge(kTminBin);
+			double FirstBin_UpEdge=KayTeeDistro->GetYaxis()->GetBinUpEdge(kTminBin);
+			double FirstBin_Width=KayTeeDistro->GetYaxis()->GetBinWidth(kTminBin);
+			double FractionOfFirstBin=(FirstBin_UpEdge-fKayTeeBins[ikT])/(FirstBin_Width);
+			
+			double LastBin_LowEdge=KayTeeDistro->GetYaxis()->GetBinLowEdge(kTmaxBin);
+			double LastBin_UpEdge=KayTeeDistro->GetYaxis()->GetBinUpEdge(kTmaxBin);
+			double LastBin_Width=KayTeeDistro->GetYaxis()->GetBinWidth(kTmaxBin);
+			double FractionOfLastBin=(fKayTeeBins[ikT+1]-LastBin_LowEdge)/(LastBin_Width);			
+			
+			double Increase=0;
+			
+			Increase += hProjection->Integral(kTminBin,kTminBin)*FractionOfFirstBin;
+			Increase += hProjection->Integral(kTmaxBin,kTmaxBin)*FractionOfLastBin;
+			if(kTmaxBin-kTminBin>=2){
+				Increase += hProjection->Integral(kTminBin+1,kTmaxBin-1);
+			}
+			KayTeeYield+=Increase;
+			
+			QA_TotalYield+=KayTeeYield;		
+ 
+			hWeights->SetBinContent(iMom+1,ikT+1,TotalYield?KayTeeYield/TotalYield:0);			
+		}
+		
+		hAvgKayTee->SetBinContent(iMom+1,hProjection->GetMean());
+		hAvgKayTee->SetBinError(iMom+1,hProjection->GetMeanError());
+
+		delete hProjection;
+	}
+	hWeights->GetZaxis()->SetRangeUser(0,1);
+	Weights = hWeights;
+	AvgKayTee = hAvgKayTee;
+}
+
 void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
                                                const char* prefix,
                                                const char* pair) {
@@ -65,7 +138,7 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
                                                 kTminBin + 1, kTmaxBin, "e"),
               "");
           fCFPart[iPart][ikT]->SetPair(kTDist);
-          fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), 2);
+          //fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), 2);
         }
       }
       this->AveragekT(pair);
@@ -78,6 +151,7 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
       outname += "_";
       outname += prefix;
       outname += ".root";
+      
       TFile* allCFsOut = TFile::Open(outname.Data(), "RECREATE");
       if (fAveragekT) {
         fAveragekT->Write(Form("Average%s", variable));
@@ -97,7 +171,9 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
         outfileName += "_";
         outfileName += ikT;
         outfileName += ".root";
+
         allCFsOut->cd();
+
         for (auto &it : CFs) {
           TString HistName = it->GetName();
           for (int iBin = 1; iBin < it->GetNbinsX(); ++iBin) {
@@ -131,9 +207,35 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
         }
         fSum[ikT]->WriteOutput(outfileName.Data());
       }
+		allCFsOut->cd();
+		TH2F* hWeights_00;TH1F* hAvgKayTee_00;
+		TH2F* hWeights_10;TH1F* hAvgKayTee_10;
+		TH2F* hWeights_01;TH1F* hAvgKayTee_01;
+		TH2F* hWeights_11;TH1F* hAvgKayTee_11;
+		GetKayTeeWeights(0,0,hWeights_00,hAvgKayTee_00);
+		GetKayTeeWeights(1,0,hWeights_10,hAvgKayTee_10);
+		GetKayTeeWeights(0,1,hWeights_01,hAvgKayTee_01);
+		GetKayTeeWeights(1,1,hWeights_11,hAvgKayTee_11);
+        hWeights_00->Write();
+        hWeights_10->Write();
+        hWeights_01->Write();
+        hWeights_11->Write();
+        hAvgKayTee_00->Write();
+        hAvgKayTee_10->Write();
+        hAvgKayTee_01->Write();
+        hAvgKayTee_11->Write();        
+        delete hWeights_00;
+        delete hWeights_10;
+        delete hWeights_01;
+        delete hWeights_11;
+        delete hAvgKayTee_00;
+        delete hAvgKayTee_10;
+        delete hAvgKayTee_01;
+        delete hAvgKayTee_11;        
     } else {
       std::cout << "No SE " << variable << " histogram with index 0 \n";
     }
+ 
   }
   return;
 }

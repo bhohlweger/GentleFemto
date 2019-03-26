@@ -12,7 +12,7 @@
 #include "DreamDist.h"
 class DreamPair {
  public:
-  DreamPair(const char* name, float normleft, float normright);
+  DreamPair(const char* name, float normleft=0, float normright=0);
   virtual ~DreamPair();
   void SetPair(DreamDist* Pair) {
     fPair = Pair;

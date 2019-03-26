@@ -44,6 +44,9 @@ class DreamKayTee {
     fNormright = right;
   }
   ;
+  
+  void GetKayTeeWeights(const int& iPart, const int& Type, TH2F*& Weights, TH1F*& AvgKayTee);
+  
   void ObtainTheCorrelationFunction(const char* outFolder, const char* prefix =
                                         "MB",
                                     const char* pair = "pp");
