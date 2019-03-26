@@ -7,7 +7,7 @@
 void SigmaEvalSystematics(TString InputDir, TString trigger) {
   const int rebin = 8;
 
-  DreamPlot::SetStyle();
+  DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInputSigma0();
   CATSinput->ReadCorrelationFile(InputDir.Data(), trigger.Data(), "0");
   CATSinput->ObtainCFs(10, 340, 490, rebin);

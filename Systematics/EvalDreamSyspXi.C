@@ -8,7 +8,7 @@
 
 void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange) {
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
-  DreamPlot::SetStyle();
+  DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
   CATSinput->SetFixedkStarMinBin(true, 0.);

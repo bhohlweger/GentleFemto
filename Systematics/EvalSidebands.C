@@ -4,7 +4,7 @@
 #include "TLegend.h"
 
 void SigmaEvalSidebands(TString InputDir, TString trigger) {
-  DreamPlot::SetStyle();
+  DreamPlot::SetStyle(false, true);
   auto c = new TCanvas();
   std::vector<TH1F*> histVec;
 
