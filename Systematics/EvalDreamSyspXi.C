@@ -23,9 +23,9 @@ void EvalDreamSystematics(TString InputDir, TString prefix) {
   const int protonVarStart = 1;
   const int XiVarStart = 19;
 
-  ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(), prefix,
+  ForgivingReader* ForgivingFileDef = new ForgivingReader(filename.Data(), prefix,
                                                        "0");
-  counter->SetNumberOfCandidates(ForgivingFile);
+  counter->SetNumberOfCandidates(ForgivingFileDef);
   const int nTracks = counter->GetNumberOfTracks();
   const int nCascades = counter->GetNumberOfCascades();
   counter->ResetCounter();
