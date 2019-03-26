@@ -180,7 +180,7 @@ TH1F* DreamSystematics::FillHisto(std::vector<float> Diff, const char* name) {
   TH1F* outHisto = new TH1F(TString::Format("%s%s", name, GetPairName().Data()),
                             TString::Format("%s%s", name, GetPairName().Data()),
                             Diff.size(), 0, Diff.size());
-  for (unsigned int iBin = 1; iBin < Diff.size(); ++iBin) {
+  for (unsigned int iBin = 1; iBin <= Diff.size(); ++iBin) {
     outHisto->GetXaxis()->SetBinLabel(iBin, GetVariation(iBin - 1).Data());
     outHisto->SetBinContent(iBin, Diff[iBin - 1]);
   }
