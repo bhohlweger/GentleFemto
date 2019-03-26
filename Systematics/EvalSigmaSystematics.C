@@ -5,24 +5,24 @@
 #include <iostream>
 
 void SigmaEvalSystematics(TString InputDir, TString trigger) {
-  const int rebin = 8;
+  const int rebin = 3;
 
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInputSigma0();
   CATSinput->ReadCorrelationFile(InputDir.Data(), trigger.Data(), "0");
-  CATSinput->ObtainCFs(10, 340, 490, rebin);
+  CATSinput->ObtainCFs(10, 250, 400, rebin);
   TString dataHistSigmaName = "hCk_ReweightedpSigma0MeV_0";
   auto dataHistSigma = CATSinput->GetCF("pSigma0", dataHistSigmaName.Data());
 
   DreamSystematics protonsigma(DreamSystematics::pSigma0);
   protonsigma.SetDefaultHist(dataHistSigma);
-  protonsigma.SetUpperFitRange(650);
+  protonsigma.SetUpperFitRange(400);
   for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
     auto appendixVar = TString::Format("%i", i);
     CATSinputVar->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
                                             appendixVar.Data());
-    CATSinputVar->ObtainCFs(10, 340, 490, rebin);
+    CATSinputVar->ObtainCFs(10, 250, 400, rebin);
     protonsigma.SetVarHist(
         CATSinputVar->GetCF("pSigma0", dataHistSigmaName.Data()));
     delete CATSinputVar;
