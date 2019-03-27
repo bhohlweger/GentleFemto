@@ -43,6 +43,9 @@ class DreamKayTee {
     fNormleft = left;
     fNormright = right;
   }
+  void SetRebin(int iReb) {
+	Rebin = iReb;
+  }
   ;
   
   void GetKayTeeWeights(const int& iPart, const int& Type, TH2F*& Weights, TH1F*& AvgKayTee);
@@ -63,6 +66,7 @@ class DreamKayTee {
   DreamCF** fSum;
   float fNormleft;
   float fNormright;
+  int Rebin;
   TH1F* fSEMEReweighting;
   TH1F* fSEMEReweightingMeV;
 };
