@@ -112,4 +112,7 @@ target_link_libraries(PotentialPlay tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(TestCats ${PROJECT_SOURCE_DIR}/Scripts/TestCats.C)
 target_link_libraries(TestCats tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(LambdaPars ${PROJECT_SOURCE_DIR}/Scripts/LambdaPars.C)
+target_link_libraries(LambdaPars tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_subdirectory(Test)
