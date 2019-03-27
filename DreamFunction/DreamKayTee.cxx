@@ -18,7 +18,7 @@ DreamKayTee::DreamKayTee()
       fSum(nullptr),
       fNormleft(0),
       fNormright(0),
-      Rebin(1),
+      fRebin(1),
       fSEMEReweighting(nullptr),
       fSEMEReweightingMeV(nullptr) {
   fSEkT[0] = nullptr;
@@ -139,7 +139,7 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
                                                 kTminBin + 1, kTmaxBin, "e"),
               "");
           fCFPart[iPart][ikT]->SetPair(kTDist);
-          if(Rebin>1) fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), Rebin);
+          if(fRebin>1) fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), fRebin);
         }
       }
       this->AveragekT(pair);

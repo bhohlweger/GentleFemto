@@ -44,7 +44,7 @@ class DreamKayTee {
     fNormright = right;
   }
   void SetRebin(int iReb) {
-	Rebin = iReb;
+	fRebin = iReb;
   }
   ;
   
@@ -66,7 +66,7 @@ class DreamKayTee {
   DreamCF** fSum;
   float fNormleft;
   float fNormright;
-  int Rebin;
+  int fRebin;
   TH1F* fSEMEReweighting;
   TH1F* fSEMEReweightingMeV;
 };
