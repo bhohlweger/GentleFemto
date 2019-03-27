@@ -3,6 +3,7 @@
 #include "TROOT.h"
 #include "TSystem.h"
 #include "TKey.h"
+#include "TClass.h"
 #include <iostream>
 void MakeOneFile(const char* outputFile, const char* outputName,
                  const char* inputFile) {
