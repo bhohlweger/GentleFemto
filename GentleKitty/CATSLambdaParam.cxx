@@ -62,7 +62,7 @@ void CATSLambdaParam::PrintLambdaParams() const {
     int start = (fIsSame) ? i : 0;
     for (unsigned int j = start; j < sec2; ++j) {
       printf("Sec1 (%i) - Sec2 (%i): %.2f\n", i, j,
-             GetLambdaParam(Fake, FeedDown, i, j) * 100.);
+             GetLambdaParam(FeedDown, FeedDown, i, j) * 100.);
     }
   }
 
@@ -142,7 +142,7 @@ double CATSLambdaParam::GetLambdaParam(const Type type1, const Type type2,
         * (1. - purity2) * primary2;
   } else if (type1 == FeedDown && type2 == FeedDown) {
     // Both particles are feed-down
-    const double scaling = (fIsSame) ? 2. : 1.;
+    const double scaling = (fIsSame && (sec1!=sec2)) ? 2. : 1.;
     return scaling * purity1 * fParticles[0].GetFeedDownFraction(sec1) * purity2
         * fParticles[1].GetFeedDownFraction(sec2);
   } else {
