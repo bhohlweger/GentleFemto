@@ -82,16 +82,16 @@ target_link_libraries(executeMiniJet DreamFunctions)
 add_executable(executeMiniJetEPOS ${PROJECT_SOURCE_DIR}/Scripts/ExecuteMiniJetEPOS.C)
 target_link_libraries(executeMiniJetEPOS DreamFunctions)
 
-add_executable(executeComparisonMC ${PROJECT_SOURCE_DIR}/Scripts/executeComparisonMC.C)
+add_executable(executeComparisonMC ${PROJECT_SOURCE_DIR}/Scripts/ExecuteComparisonMC.C)
 target_link_libraries(executeComparisonMC DreamFunctions)
 
-add_executable(executeCorrectBinCF ${PROJECT_SOURCE_DIR}/Scripts/executeCorrectBinCF.C)
+add_executable(executeCorrectBinCF ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCorrectBinCF.C)
 target_link_libraries(executeCorrectBinCF DreamFunctions)
 
-add_executable(executeQADream ${PROJECT_SOURCE_DIR}/Scripts/executeQADream.C)
+add_executable(executeQADream ${PROJECT_SOURCE_DIR}/Scripts/ExecuteQADream.C)
 target_link_libraries(executeQADream DreamFunctions)
 
-add_executable(executePurityDream ${PROJECT_SOURCE_DIR}/Scripts/executePurityDream.C)
+add_executable(executePurityDream ${PROJECT_SOURCE_DIR}/Scripts/ExecutePurityDream.C)
 target_link_libraries(executePurityDream DreamFunctions)
 
 add_executable(executeDPhiDEtaBBar ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEtaBBar.C)
