@@ -63,8 +63,9 @@ unsigned int DreamDist::GetFemtoPairs(float kMin, float kMax) {
 }
 
 void DreamDist::Calculate_CF(float normleft, float normright) {
-	bool Normalization = true;
-	if(normleft==normright) Normalization=false;
+	//if false, the normalization is performed over the total yield
+	bool NormInRange = (normleft!=normright);
+	
   if (!fCF) {
     TString CFname = fSE->GetName();
     CFname.Replace(CFname.Index("SE"), 2, "CF");
@@ -72,7 +73,7 @@ void DreamDist::Calculate_CF(float normleft, float normright) {
     Double_t norm_relK = 0;
     double IntegralSE;
     double IntegralME;
-    if(Normalization){
+    if(NormInRange){
 		IntegralSE = fSE->Integral(fSE->FindBin(normleft),
                                       fSE->FindBin(normright));
 		IntegralME = fME->Integral(fME->FindBin(normleft),
