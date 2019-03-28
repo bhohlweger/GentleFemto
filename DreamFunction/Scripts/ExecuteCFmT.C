@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
   DreamFile->ReadmTHistos(filename, prefix, addon);
   mTpXiDists = DreamFile->GetmTPairDistributions(0, 4, 1, 5);
 
-  std::vector<float> mTpXiBins = { 1.08, 4.5 };
+  std::vector<float> mTpXiBins = { 1.08, 1.68, 4.5 };
 
   TString CalibpXi = Form("%s/CFOutput_pXi.root",CalibName);
   mTpXiDists->SetSEMEReweightingRatio(CalibpXi, "pXi");
