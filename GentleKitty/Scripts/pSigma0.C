@@ -44,6 +44,14 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 }
 
 /// =====================================================================================
+void PrintVars(const std::vector<double> &vec) {
+  for(const auto &it :vec) {
+    std::cout << " " << it;
+  }
+  std::cout << "\n";
+}
+
+/// =====================================================================================
 void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
                TString suffix, TString OutputDir, const int potential,
                std::vector<double> params) {
@@ -157,9 +165,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   const double ppRadiusStatErr = 0.00437419;
   const double ppRadiusSystErrUp = 0.00385732;
   const double ppRadiusSystErrDown = 0.0123427;
+  const double ppRadiusSigma0Resonances = 1.12384;
+  const double ppRadiusVarDiff = ppRadius - ppRadiusSigma0Resonances;
   const double ppRadiusLower = ppRadius
       - std::sqrt(
           ppRadiusStatErr * ppRadiusStatErr
+              + ppRadiusVarDiff * ppRadiusVarDiff
               + ppRadiusSystErrDown * ppRadiusSystErrDown);
   const double ppRadiusUpper = ppRadius
       + std::sqrt(
@@ -244,14 +255,22 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
     std::cout << "\n\nStarting the systematic variations\n";
     std::cout << "Number of variations of the fit region: "
               << femtoFitRegionUp.size() << "\n";
+    PrintVars(femtoFitRegionUp);
     std::cout << "Number of variations of the baseline:   " << prefit_a.size()
               << "\n";
+    PrintVars(prefit_a);
+    PrintVars(prefit_b);
     std::cout << "Number of variations of the source size : "
               << sourceSize.size() << "\n";
+    PrintVars(sourceSize);
     std::cout << "Number of variations of the sideband normalization: "
               << sidebandNormDown.size() << "\n";
+    PrintVars(sidebandNormDown);
+    PrintVars(sidebandNormUp);
     std::cout << "Number of variations of the lambda param: "
-              << protonSecondary.size() << "\n\n";
+              << protonSecondary.size() << "\n";
+    PrintVars(protonSecondary);
+    std::cout << "\n";
   }
 
   // Set up the model, fitter, etc.
