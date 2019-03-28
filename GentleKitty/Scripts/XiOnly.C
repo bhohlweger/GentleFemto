@@ -23,7 +23,8 @@
 void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                     TString InputDir, TString ppFile, TString OutputDir) {
   bool FAST_PLOT = (NumIter == 0);
-
+  bool drawSource = (NumIter == 0);
+  bool fitRadius = true;
   double BlRegion[2];
   BlRegion[0] = 500;
   BlRegion[1] = 500;
@@ -141,8 +142,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   if (iSource == 0) {
     TheSource = TidyCats::sGaussian;
   } else if (iSource == 1) {
-    std::cout << "Resonance source is not implemented for pXi, Exiting \n";
-    return;
+    TheSource = TidyCats::sResonance;
   } else if (iSource == 2) {
     TheSource = TidyCats::sLevy;
   } else {
@@ -180,7 +180,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   const char *prefix;
   if (system == 0) {
     CATSinput->SetSigmaFileName("Sample3_MeV_compact.root");
-//    CATSinput->SetFixedkStarMinBin(true, 0.008);
+    CATSinput->SetFixedkStarMinBin(true, 0.008);
     kMinXiP = 8.;
     prefix = "MB";
   } else if (system == 1) {
@@ -300,7 +300,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 
   CATS AB_pXim1530;
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim, kMin_pXim,
-                                 kMax_pXim, TheSource);
+                                 kMax_pXim, TidyCats::sGaussian);
+  AB_pXim1530.SetAnaSource(1, 1);
   AB_pXim1530.KillTheCat();
   int tOutVars = 0;
   if (pot == TidyCats::pHALQCD || pot == TidyCats::pHALQCDGamow) {
@@ -334,6 +335,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               side->SetNormalizationRange(normvarCont[varSideNorm][0],
                                           normvarCont[varSideNorm][1]);
               double GaussSourceSize = ppRadii[ppRadius];
+
               //vary this
               side->SideBandCFs(false);
               TH1F* fitme = side->GetSideBands(5);
@@ -358,7 +360,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                   "pXiForNSigma");
               CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim);
 
-              const unsigned NumSourcePars = 1;
+              const unsigned NumSourcePars = AB_pXim.GetNumSourcePars();
+              std::cout << "Number of Source Parameters: " << NumSourcePars
+                        << std::endl;
               DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
               DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
               DLM_Ck* Ck_SideBand = new DLM_Ck(0, 4, NumMomBins_SideBand,
@@ -426,7 +430,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                 fitter->FixParameter("pXim", DLM_Fitter1::p_a, p_a_prefit[0]);
                 fitter->FixParameter("pXim", DLM_Fitter1::p_b, p_b_prefit[0]);
               }
-              fitter->AddSameSource("pXim1530", "pXim", 2);
+              fitter->AddSameSource("pXim1530", "pXim", 1);
 //              fitter->AddSameSource("pXiSideBand", "pXim", 1);
               //Global Fit default
               //Fit BL & Normalization
@@ -434,13 +438,23 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 
               fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -1.);
 
-              fitter->FixParameter("pXim", DLM_Fitter1::p_sor0,
-                                   GaussSourceSize);
               if (TheSource == TidyCats::sLevy) {
                 std::cout << "levy sor1 activated!!! \n";
                 fitter->SetParameter("pXim", DLM_Fitter1::p_sor1, 1.6, 1.0,
                                      2.0);
+              } else if (TheSource == TidyCats::sResonance) {
+                fitter->FixParameter("pXim", DLM_Fitter1::p_sor1, 2.0);
+                GaussSourceSize = 0.77;
               }
+              if (fitRadius) {
+                fitter->SetParameter("pXim", DLM_Fitter1::p_sor0,
+                                     GaussSourceSize, 0.4, 1.0);
+              } else {
+                fitter->FixParameter("pXim", DLM_Fitter1::p_sor0,
+                                     GaussSourceSize);
+              }
+              std::cout << "AB_pXim.GetCorrFun(0): " << AB_pXim.GetCorrFun(0)
+                        << std::endl;
               fitter->GoBabyGo();
               double p_a_strong = fitter->GetParameter("pXim",
                                                        DLM_Fitter1::p_a);
@@ -485,7 +499,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 
               double Chi2 = fitter->GetChi2();
               unsigned NDF = fitter->GetNdf();
-
+              std::cout << "AB_pXim.GetCorrFun(0): " << AB_pXim.GetCorrFun(0)
+                        << std::endl;
               double Chi2_pXim = 0;
               unsigned EffNumBins_pXim = 0;
               double Chi2_pXim_kSm60 = 0;
@@ -532,7 +547,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                                                 round(EffNumBins_pXim_kSm60));
               double nSigmaXi_kSm60 = TMath::Sqrt(2)
                   * TMath::ErfcInverse(pvalXi_kSm60);
-
+              std::cout << "radius: "
+                        << fitter->GetParameter("pXim", DLM_Fitter1::p_sor0)
+                        << std::endl;
               ntBuffer[0] = uIter;
               ntBuffer[1] = vFemReg_pXim;
               ntBuffer[2] = vFrac_pXim_pXi1530;
@@ -567,6 +584,20 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                   "SideBandStrongWithOutLambda");
               SideBandStrongWithOutLambda.Write();
               fitme->Write();
+              //draw Source
+              if (drawSource) {
+                double dRad = 0.;
+                TGraph* SourceDist = new TGraph();
+                int iCounter = 0;
+                while (dRad < 8.) {
+                  SourceDist->SetPoint(iCounter, dRad,
+                                       AB_pXim.EvaluateTheSource(0, dRad, 0));
+                  dRad += 0.01;
+                  iCounter++;
+                }
+                file->cd();
+                SourceDist->Write("SourceDist");
+              }
               file->Close();
               if (FAST_PLOT) {
                 TPaveText* info4 = new TPaveText(0.3, 0.7, 0.9, 0.95, "blNDC");  //lbrt
