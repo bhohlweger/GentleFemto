@@ -51,8 +51,10 @@ class TidyCats {
   static double ESC16_pXim_EXAMPLE(double* Parameters);
  private:
   DLM_CleverLevy* fppCleverLevy;
+  DLM_CleverMcLevyReso* fppCleverMcLevy;
   DLM_CleverLevy* fpLCleverLevy;
   DLM_CleverLevy* fpXimCleverLevy;
+  DLM_CleverMcLevyReso* fpXimCleverMcLevy;
   DLM_CleverLevy* fpXim1530CleverLevy;
 };
 

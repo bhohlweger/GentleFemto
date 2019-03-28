@@ -16,8 +16,10 @@
 #include "TGraph.h"
 TidyCats::TidyCats()
     : fppCleverLevy(nullptr),
+      fppCleverMcLevy(nullptr),
       fpLCleverLevy(nullptr),
       fpXimCleverLevy(nullptr),
+      fpXimCleverMcLevy(nullptr),
       fpXim1530CleverLevy(nullptr) {
 }
 
@@ -77,9 +79,21 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       AB_pp->SetAnaSource(GaussSource, *cPars);
       break;
     case TidyCats::sResonance:
-      cPars = new CATSparameters(CATSparameters::tSource, 6, true);
-      cPars->SetParameters(Pars_pp);
-      AB_pp->SetAnaSource(GaussExpTotIdenticalSimple_2body, *cPars);
+      fppCleverMcLevy = new DLM_CleverMcLevyReso();
+      fppCleverMcLevy->InitNumMcIter(1000000);
+      fppCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+      fppCleverMcLevy->InitScale(42, 0.1, 1.6);
+      fppCleverMcLevy->InitRad(512, 0, 64);
+      fppCleverMcLevy->InitType(2);
+      fppCleverMcLevy->InitReso(0, 1);  //number of p resonances
+      fppCleverMcLevy->InitReso(1,1);//number of Xi resonances
+      fppCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+                                   massPion);
+      fppCleverMcLevy->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+                                   massPion);
+      AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
+      AB_pp->SetAnaSource(0, 1.2);
+      AB_pp->SetAnaSource(1, 2.0);
       break;
     case TidyCats::sLevy:
       fppCleverLevy = new DLM_CleverLevy();
@@ -252,12 +266,29 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
       * 1000;
   const double Mass_Xim = TDatabasePDG::Instance()->GetParticle(3312)->Mass()
       * 1000;
+  double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
   CATSparameters* cPars = nullptr;
   switch (source) {
     case TidyCats::sGaussian:
       cPars = new CATSparameters(CATSparameters::tSource, 1, true);
       cPars->SetParameter(0, 1.2);
       AB_pXim->SetAnaSource(GaussSource, *cPars);
+      break;
+    case TidyCats::sResonance:
+      fpXimCleverMcLevy = new DLM_CleverMcLevyReso();
+      fpXimCleverMcLevy->InitNumMcIter(1000000);
+      fpXimCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+      fpXimCleverMcLevy->InitScale(42, 0.1, 1.6);
+      fpXimCleverMcLevy->InitRad(512, 0, 64);
+      fpXimCleverMcLevy->InitType(2);
+      fpXimCleverMcLevy->InitReso(0, 1);    //number of p resonances
+//      fpXimCleverMcLevy->InitReso(1,1);//number of Xi resonances
+      fpXimCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, Mass_p,
+                                   massPion);
+//      fpXimCleverMcLevy->SetUpReso(1,0,0,1361.52,1.65,Mass_p,massPion);
+      AB_pXim->SetAnaSource(CatsSourceForwarder, fpXimCleverMcLevy, 2);
+      AB_pXim->SetAnaSource(0, 1.2);
+      AB_pXim->SetAnaSource(1, 2.0);
       break;
     case TidyCats::sLevy:
       fpXimCleverLevy = new DLM_CleverLevy();
