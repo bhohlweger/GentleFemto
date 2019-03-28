@@ -44,30 +44,37 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
       TString PartName[2] = { "Part", "AntiPart" };
       for (int iPart = 0; iPart < 2; ++iPart) {
         fCFPart[iPart] = new DreamPair*[fNKayTeeBins];
-        for (int ikT = 0; ikT < fNKayTeeBins; ++ikT) {
+        for (int ikT = 0; ikT < fNKayTeeBins-1; ++ikT) {
           TString PairName = Form("%s_%s_%i", PartName[iPart].Data(), variable,
                                   ikT);
           fCFPart[iPart][ikT] = new DreamPair(PairName.Data(), fNormleft,
                                               fNormright);
-          int kTminBin = fSEkT[iPart]->GetYaxis()->FindBin(fKayTeeBins[ikT]);
+//          std::cout << "fKayTeeBins[ikT]: " << fKayTeeBins[ikT] << std::endl;
+//          std::cout << "fKayTeeBins[ikT+1]: " << fKayTeeBins[ikT+1] << std::endl;
+          //multiplications due in order not to hit the border of the bin!
+          int kTminBin = fSEkT[iPart]->GetYaxis()->FindBin(fKayTeeBins[ikT]*1.0001);
           int kTmaxBin = fSEkT[iPart]->GetYaxis()->FindBin(
-              fKayTeeBins[ikT + 1]);
-//        std::cout << kTminBin << '\t' << kTmaxBin << std::endl;
+              fKayTeeBins[ikT + 1]*0.9999);
+//          std::cout << "kTminBin: " << kTminBin << std::endl;
+//          std::cout << "kTmaxBin: " << kTmaxBin << std::endl;
+
           DreamDist* kTDist = new DreamDist();
           TString SEkTBinName = Form("SE%s", PairName.Data());
           kTDist->SetSEDist(
               (TH1F*) fSEkT[iPart]->ProjectionX(SEkTBinName.Data(),
-                                                kTminBin + 1, kTmaxBin, "e"),
+                                                kTminBin, kTmaxBin, "e"),
               "");
           TString MEkTBinName = Form("ME%s", PairName.Data());
           kTDist->SetMEDist(
               (TH1F*) fMEkT[iPart]->ProjectionX(MEkTBinName.Data(),
-                                                kTminBin + 1, kTmaxBin, "e"),
+                                                kTminBin, kTmaxBin, "e"),
               "");
           fCFPart[iPart][ikT]->SetPair(kTDist);
           fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), 2);
+          fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), 5);
         }
       }
+      std::cout << "done with initializing \n";
       this->AveragekT(pair);
       fSum = new DreamCF*[fNKayTeeBins];
       TString outname = outFolder;
