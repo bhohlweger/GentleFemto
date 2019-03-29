@@ -575,7 +575,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             fitter->AddSameSource("pXim", "pp", 1);
             fitter->AddSameSource("pXim1530", "pp", 1);
 
-            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 1.1, 1.5);
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.0, 0.5,1.5);
           }
           fitter->SetOutputDir(OutputDir.Data());
 
