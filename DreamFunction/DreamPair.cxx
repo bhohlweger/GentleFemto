@@ -154,7 +154,7 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
   } else {
     //we only need to do this in case this pair has a different starting bin.
     if (fFirstBin > kMin || fixedShift) {
-      TH1F* otherSE = otherDist->GetSEDist();
+      TH1F* otherSE = fixedShift?nullptr:otherDist->GetSEDist();
 
       TH1F* SE = pair->GetSEDist();
       TH2F* SEMult = pair->GetSEMultDist();
