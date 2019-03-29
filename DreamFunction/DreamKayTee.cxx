@@ -11,6 +11,8 @@
 #include <iostream>
 DreamKayTee::DreamKayTee()
     : fIskT(true),
+      fFixShift(false),
+      fFixShiftValue(0.),
       fKayTeeBins(),
       fNKayTeeBins(0),
       fAveragekT(0),
@@ -70,8 +72,14 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
                                                 kTminBin, kTmaxBin, "e"),
               "");
           fCFPart[iPart][ikT]->SetPair(kTDist);
-          fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), 2);
-          fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), 5);
+          if (fFixShift) {
+            fCFPart[iPart][ikT]->FixShift(fCFPart[iPart][ikT]->GetPair(), nullptr, fFixShiftValue, fFixShift);
+            fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetFixShifted().at(0), 2);
+            fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetFixShifted().at(0), 5);
+          } else {
+            fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), 2);
+            fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), 5);
+          }
         }
       }
       std::cout << "done with initializing \n";

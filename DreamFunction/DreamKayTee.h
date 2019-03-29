@@ -49,8 +49,13 @@ class DreamKayTee {
                                     const char* pair = "pp");
   void AveragekT(const char *pair);
   void SetSEMEReweightingRatio(const char* pathToFile, TString pair = "pp");
+  void FixShift(bool doIt, float value ) {
+    fFixShift = doIt; fFixShiftValue = value;
+  };
  private:
   bool fIskT;
+  bool fFixShift;
+  float fFixShiftValue;
   std::vector<float> fKayTeeBins;
   int fNKayTeeBins;
   TH2F* fSEkT[2];
