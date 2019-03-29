@@ -18,6 +18,7 @@ TidyCats::TidyCats()
     : fppCleverLevy(nullptr),
       fppCleverMcLevy(nullptr),
       fpLCleverLevy(nullptr),
+      fpLCleverMcLevy(nullptr),
       fpXimCleverLevy(nullptr),
       fpXimCleverMcLevy(nullptr),
       fpXim1530CleverLevy(nullptr) {
@@ -27,11 +28,20 @@ TidyCats::~TidyCats() {
   if (fppCleverLevy) {
     delete fppCleverLevy;
   }
+  if (fppCleverMcLevy) {
+    delete fppCleverMcLevy;
+  }
   if (fpLCleverLevy) {
     delete fpLCleverLevy;
   }
+  if (fpLCleverMcLevy) {
+    delete fpLCleverMcLevy;
+  }
   if (fpXimCleverLevy) {
     delete fpXimCleverLevy;
+  }
+  if (fpXimCleverMcLevy) {
+    delete fpXimCleverMcLevy;
   }
   if (fpXim1530CleverLevy) {
     delete fpXim1530CleverLevy;
@@ -86,11 +96,11 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       fppCleverMcLevy->InitRad(512, 0, 64);
       fppCleverMcLevy->InitType(2);
       fppCleverMcLevy->InitReso(0, 1);  //number of p resonances
-      fppCleverMcLevy->InitReso(1,1);//number of Xi resonances
+      fppCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
       fppCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-                                   massPion);
+                                 massPion);
       fppCleverMcLevy->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-                                   massPion);
+                                 massPion);
       AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
       AB_pp->SetAnaSource(0, 1.2);
       AB_pp->SetAnaSource(1, 2.0);
@@ -158,9 +168,22 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       AB_pL->SetAnaSource(GaussSource, *cPars);
       break;
     case TidyCats::sResonance:
-      cPars = new CATSparameters(CATSparameters::tSource, 11, true);
-      cPars->SetParameters(Pars_pL, true);
-      AB_pL->SetAnaSource(GaussExpTotSimple_2body, *cPars);
+      fpLCleverMcLevy = new DLM_CleverMcLevyReso();
+      fpLCleverMcLevy->InitNumMcIter(1000000);
+      fpLCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+      fpLCleverMcLevy->InitScale(42, 0.1, 1.6);
+      fpLCleverMcLevy->InitRad(512, 0, 64);
+      fpLCleverMcLevy->InitType(2);
+      fpLCleverMcLevy->InitReso(0, 1);  //number of p resonances
+      fpLCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
+      fpLCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+                                 massPion);
+      fpLCleverMcLevy->SetUpReso(1, 0,1.-0.3562,1462.93,4.69,massLambda,
+                                 massPion);
+      AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverMcLevy, 2);
+      AB_pL->SetAnaSource(0, 1.2);
+      AB_pL->SetAnaSource(1, 2.0);
+      break;
       break;
     case TidyCats::sLevy:
       fpLCleverLevy = new DLM_CleverLevy();

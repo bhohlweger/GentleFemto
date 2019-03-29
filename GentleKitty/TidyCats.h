@@ -53,6 +53,7 @@ class TidyCats {
   DLM_CleverLevy* fppCleverLevy;
   DLM_CleverMcLevyReso* fppCleverMcLevy;
   DLM_CleverLevy* fpLCleverLevy;
+  DLM_CleverMcLevyReso* fpLCleverMcLevy;
   DLM_CleverLevy* fpXimCleverLevy;
   DLM_CleverMcLevyReso* fpXimCleverMcLevy;
   DLM_CleverLevy* fpXim1530CleverLevy;
