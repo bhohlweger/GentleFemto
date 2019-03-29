@@ -326,8 +326,13 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   AB_pXim.KillTheCat();
 
   CATS AB_pXim1530;
-  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
-                                 TheSource);
+  if (TheSource != TidyCats::sResonance) {
+    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
+                                   TheSource);
+  } else {
+    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
+                                   TidyCats::sGaussian);
+  }
   AB_pXim1530.KillTheCat();
 
   for (vMod_pL = TheSource == TidyCats::sLevy ? 1 : 0; vMod_pL < 3; ++vMod_pL) {
@@ -605,7 +610,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           double Chi2 = fitter->GetChi2();
           unsigned NDF = fitter->GetNdf();
           double RadiusResult = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
-          double RadiusError =  fitter->GetParError("pp", DLM_Fitter1::p_sor0);
+          double RadiusError = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
           if (Chi2 / double(NDF) != fitter->GetChi2Ndf()) {
             printf("Oh boy...\n");
           }
@@ -708,10 +713,11 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                 TString::Format("R(%s)=%.3f#pm%.3f", SOURCE_NAME.Data(),
                                 RadiusResult, RadiusError));
             if (TheSource == TidyCats::sLevy) {
-            info1->AddText(
-                TString::Format("#alpha(%s)=%.3f#pm%.3f", SOURCE_NAME.Data(),
-                                fitter->GetParameter("pp", DLM_Fitter1::p_sor1),
-                                fitter->GetParError("pp", DLM_Fitter1::p_sor1)));
+              info1->AddText(
+                  TString::Format(
+                      "#alpha(%s)=%.3f#pm%.3f", SOURCE_NAME.Data(),
+                      fitter->GetParameter("pp", DLM_Fitter1::p_sor1),
+                      fitter->GetParError("pp", DLM_Fitter1::p_sor1)));
             }
             info1->AddText(
                 TString::Format("p_a = %.3f #pm %.5f",
