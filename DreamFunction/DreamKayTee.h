@@ -49,14 +49,21 @@ class DreamKayTee {
                                     const char* pair = "pp");
   void AveragekT(const char *pair);
   void SetSEMEReweightingRatio(const char* pathToFile, TString pair = "pp");
-  void FixShift(bool doIt, float value ) {
-    fFixShift = doIt; fFixShiftValue = value;
-  };
+  void FixShift(std::vector<bool> doIt, std::vector<float> value) {
+    fFixShift = doIt;
+    fFixShiftValue = value;
+  }
+  ;
+  void SetRebin(std::vector<int> rebin) {
+    fRebin = rebin;
+  }
+  ;
  private:
   bool fIskT;
-  bool fFixShift;
-  float fFixShiftValue;
+  std::vector<bool> fFixShift;
+  std::vector<float> fFixShiftValue;
   std::vector<float> fKayTeeBins;
+  std::vector<int> fRebin;
   int fNKayTeeBins;
   TH2F* fSEkT[2];
   TH2F* fMEkT[2];
