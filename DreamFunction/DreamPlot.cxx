@@ -426,7 +426,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
 
-void DreamPlot::DrawCorrelationFunctionSigma() {
+void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   SetStyle();
   const float right = 0.025;
   const float top = 0.025;
@@ -452,7 +452,7 @@ void DreamPlot::DrawCorrelationFunctionSigma() {
   fProtonSigma->DrawCorrelationPlot(c, 13);
   DrawSystemInfo(c, false, 0.46, true);
   c->cd();
-  c->SaveAs("CF_pSigma_prelim.pdf");
+  c->SaveAs(Form("%s/CF_pSigma_prelim.pdf", fitPath));
 }
 
 void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin, bool isPreliminary) {
