@@ -450,7 +450,7 @@ void DreamPlot::DrawCorrelationFunctionSigma() {
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
   fProtonSigma->DrawCorrelationPlot(c, 13);
-  DrawSystemInfo(c, false, 0.45, true);
+  DrawSystemInfo(c, false, 0.46, true);
   c->cd();
   c->SaveAs("CF_pSigma_prelim.pdf");
 }
