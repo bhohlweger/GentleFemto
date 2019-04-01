@@ -419,7 +419,7 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
   } else if (pot == pRikkenWF) {
     TString HomeDir = gSystem->GetHomeDirectory().c_str();
     ExternalWF = Init_pXi_ESC16_IS(
-        TString::Format("%s/cernbox/WaveFunctions/Tom/IsospinSpin_Channel/",
+        TString::Format("%s/cernbox/WaveFunctions/Tom/XN190401/",
                         HomeDir.Data()),
         AB_pXim);
     for (unsigned uCh = 0; uCh < AB_pXim->GetNumChannels(); uCh++) {
