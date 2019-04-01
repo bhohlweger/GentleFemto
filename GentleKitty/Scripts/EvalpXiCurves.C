@@ -204,6 +204,11 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder) {
             << std::endl;
   std::cout << "=============================================\n";
   std::cout << "=============================================\n";
+  TGraph SigmaGraph = TGraph();
+  SigmaGraph.SetPoint(0,0,nSigmaXiDown);
+  SigmaGraph.SetPoint(0,1,nSigmaXiDefault);
+  SigmaGraph.SetPoint(0,2,nSigmaXiUp);
+  SigmaGraph.SetName("pXiGraphSigma");
   output->cd();
   grUp.SetName("pXimGraphUpperLim");
   grUp.SetLineColor(3);
@@ -246,7 +251,6 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder) {
   Dummy->GetYaxis()->SetTitleOffset(0.4);
   Dummy->GetYaxis()->SetLabelOffset(0.02);
 
-
   Dummy->Draw("Y+");
   grChiPerPointDefault.Draw("L3SAME");
   grChiPerPointUp.Draw("L3SAME");
@@ -256,6 +260,7 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder) {
   grUp.Write();
   grDefault.Write();
   grLow.Write();
+  SigmaGraph.Write();
 
   grChiPerPointDefault.SetName("PerPointChiSqDefault");
   grChiPerPointUp.SetName("PerPointChiSqUp");
@@ -289,11 +294,11 @@ void SidebandCurves(const char* varFolder) {
   grSidebandDefault = (TGraph*) FileDefault->Get("SideBandStrongWithLambda");
   grSidebandDown = (TGraph*) FileDown->Get("SideBandStrongWithLambda");
   output->cd();
-  grSidebandUp->SetName("pXimGraphSidebandUp");
+  grSidebandUp->SetName("pXiSidebandUp");
   grSidebandUp->Write();
-  grSidebandDefault->SetName("pXimGraphSidebandDefault");
+  grSidebandDefault->SetName("pXiSidebandDefault");
   grSidebandDefault->Write();
-  grSidebandDown->SetName("pXimGraphSidebandDown");
+  grSidebandDown->SetName("pXiSidebandDown");
   grSidebandDown->Write();
   output->Close();
   FileUp->Close();
@@ -301,12 +306,12 @@ void SidebandCurves(const char* varFolder) {
   FileDown->Close();
 }
 
-void CombineIntoOneFile(const char* PathToppFolder,
-                        const char* PathTopXiFolder) {
+void CombineIntoOneFile(const char* PathTopXiFolder, const char* GraphName,
+                        const char* PathToCombinedFolder, bool sideBand) {
   TFile* pXi = TFile::Open(Form("%s/outfile.root", PathTopXiFolder), "READ");
   TFile* pp = TFile::Open(
       Form("%s/SYSTEMATICS_CutVarAdd_Global_Radius_Normal.root",
-           PathToppFolder),
+           PathToCombinedFolder),
       "update");
   TIter nextpXi(pXi->GetListOfKeys());
   TKey *keypXi;
@@ -315,12 +320,16 @@ void CombineIntoOneFile(const char* PathToppFolder,
     if (!clpXi->InheritsFrom("TGraph"))
       continue;
     TGraph *Graph = (TGraph*) keypXi->ReadObj();
-//    std::cout << Graph->GetName() << std::endl;
-    pp->cd();
-    Graph->Write(Graph->GetName());
+    TString graphName = Graph->GetName();
+    if (graphName.Contains("Graph")) {
+      pp->cd();
+      Graph->Write(TString::Format("%s%s", GraphName, Graph->GetName()));
+    }
   }
-  pp->cd(); 
-  ((TH1F*)pXi->Get("hCk_ReweightedpXiMeV_1"))->Write(); 
+  pp->cd();
+  if (sideBand != 0) {
+    ((TH1F*) pXi->Get("hCk_ReweightedpXiMeV_1"))->Write();
+  }
   pXi->Close();
   pp->Close();
 
@@ -330,7 +339,15 @@ int main(int argc, char *argv[]) {
   //argv[1] =  cfpath (without AnalysisResults.root)
   //argv[2] =  prefix
   //argv[3] =  varfolder
-  //argv[4] =  Path to pp file
+  //argv[4] =  GraphoutName
+  //argv[5] =  Path to the combined file
+  //argv[6] =  Store Sidebands & CK? > 0
+  bool sidebands = false;
+  if (argv[6] != "") {
+    sidebands = true;
+  } else {
+    sidebands = false;
+  }
   std::cout << "EvalpXiCurves \n";
   EvalpXiCurves(argv[1], argv[2], argv[3]);
   std::cout << "EvalError \n";
@@ -338,6 +355,6 @@ int main(int argc, char *argv[]) {
   std::cout << "SidebandCurves \n";
   SidebandCurves(argv[3]);
   std::cout << "CombineIntoOneFile \n";
-  CombineIntoOneFile(argv[4], argv[3]);
+  CombineIntoOneFile(argv[3], argv[4], argv[5], sidebands);
   return 0;
 }
