@@ -10,7 +10,8 @@ class CATSInputSigma0 : public CATSInput {
 
   void ReadSigma0CorrelationFile(const char* path, const char* trigger,
                                  const char* suffixChar);
-  void ObtainCFs(int rebin, float normleft, float normright, int rebinSyst = 1);
+  void ObtainCFs(int rebin, float normleft, float normright, int rebinSyst = 1,
+                 bool isAllCF = true);
   TH1F* GetCF(TString pair, TString hist);
  private:
   DreamCF* fCF_pSigma;

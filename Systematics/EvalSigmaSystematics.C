@@ -10,7 +10,7 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInputSigma0();
   CATSinput->ReadCorrelationFile(InputDir.Data(), trigger.Data(), "0");
-  CATSinput->ObtainCFs(10, 250, 400, rebin);
+  CATSinput->ObtainCFs(10, 250, 400, rebin, false);
   TString dataHistSigmaName = "hCk_ReweightedpSigma0MeV_0";
   auto dataHistSigma = CATSinput->GetCF("pSigma0", dataHistSigmaName.Data());
 
@@ -22,7 +22,7 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
     auto appendixVar = TString::Format("%i", i);
     CATSinputVar->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
                                             appendixVar.Data());
-    CATSinputVar->ObtainCFs(10, 250, 400, rebin);
+    CATSinputVar->ObtainCFs(10, 250, 400, rebin, false);
     protonsigma.SetVarHist(
         CATSinputVar->GetCF("pSigma0", dataHistSigmaName.Data()));
     delete CATSinputVar;
