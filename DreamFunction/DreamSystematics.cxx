@@ -184,7 +184,7 @@ void DreamSystematics::EvalDifference(std::vector<T> &CountsDefault,
     float def = CountsDefault[iVar];
     float var = CountsVar[iVar];
     AbsDiff.push_back(std::abs(def - var));
-    RelDiff.push_back((def > 0) ? std::abs(1 - var / def) : 0);
+    RelDiff.push_back((def > 0) ? std::abs(1 - var / def) * 100.f : 0);
   }
   return;
 }
@@ -197,6 +197,7 @@ TH1F* DreamSystematics::FillHisto(std::vector<float> Diff, const char* name) {
     outHisto->GetXaxis()->SetBinLabel(iBin, GetVariation(iBin - 1).Data());
     outHisto->SetBinContent(iBin, Diff[iBin - 1]);
   }
+  DreamPlot::SetStyleHisto(outHisto);
   outHisto->GetXaxis()->LabelsOption("v");
   return outHisto;
 }
@@ -208,7 +209,9 @@ void DreamSystematics::EvalDifferenceInPairs() {
   } else {
     EvalDifference(fnPairsDefault, fnPairsVar, fnPairsAbsDiff, fnPairsRelDiff);
     fHistPairsAbsDiff = FillHisto(fnPairsAbsDiff, "AbsDiffPair");
+    fHistPairsAbsDiff->GetYaxis()->SetTitle("Abs. variation");
     fHistPairsRelDiff = FillHisto(fnPairsRelDiff, "RelDiffPair");
+    fHistPairsRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
 }
 
@@ -220,7 +223,9 @@ void DreamSystematics::EvalDifferenceInParticles() {
     EvalDifference(fNPartOneDefault, fNPartOneVariations, fnPartOneAbsDiff,
                    fnPartOneRelDiff);
     fHistPartOneAbsDiff = FillHisto(fnPartOneAbsDiff, "AbsDiffPartOne");
+    fHistPartOneAbsDiff->GetYaxis()->SetTitle("Abs. variation");
     fHistPartOneRelDiff = FillHisto(fnPartOneRelDiff, "RelDiffPartOne");
+    fHistPartOneRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
   if (fNPartTwoDefault.size() == 0 || fNPartTwoVariations.size() == 0) {
     std::cout
@@ -229,7 +234,9 @@ void DreamSystematics::EvalDifferenceInParticles() {
     EvalDifference(fNPartTwoDefault, fNPartTwoVariations, fnPartTwoAbsDiff,
                    fnPartTwoRelDiff);
     fHistPartTwoAbsDiff = FillHisto(fnPartTwoAbsDiff, "AbsDiffPartTwo");
+    fHistPartTwoAbsDiff->GetYaxis()->SetTitle("Abs. variation");
     fHistPartTwoRelDiff = FillHisto(fnPartTwoRelDiff, "RelDiffPartTwo");
+    fHistPartTwoRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
 }
 
@@ -241,7 +248,9 @@ void DreamSystematics::EvalDifferenceInPurity() {
     EvalDifference(fPurityOneDefault, fPurityOneVariations, fPurityOneAbsDiff,
                    fPurityOneRelDiff);
     fHistPurityOneAbsDiff = FillHisto(fPurityOneAbsDiff, "AbsDiffPartOne");
+    fHistPurityOneAbsDiff->GetYaxis()->SetTitle("Abs. variation");
     fHistPurityOneRelDiff = FillHisto(fPurityOneRelDiff, "RelDiffPartOne");
+    fHistPurityOneRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
   if (fPurityTwoDefault.size() == 0 || fPurityTwoVariations.size() == 0) {
     std::cout
@@ -250,7 +259,9 @@ void DreamSystematics::EvalDifferenceInPurity() {
     EvalDifference(fPurityTwoDefault, fPurityTwoVariations, fPurityTwoAbsDiff,
                    fPurityTwoRelDiff);
     fHistPurityTwoAbsDiff = FillHisto(fPurityTwoAbsDiff, "AbsDiffPartTwo");
+    fHistPurityOneAbsDiff->GetYaxis()->SetTitle("Abs. variation");
     fHistPurityTwoRelDiff = FillHisto(fPurityTwoRelDiff, "RelDiffPartTwo");
+    fHistPurityTwoRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
 }
 
