@@ -207,7 +207,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     }
   }
 
-  if (!debugPlots) {
+  if (debugPlots) {
     if (potential == 0) {
       c1->Print(
           Form("%s/CF_pSigma_model_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
@@ -218,7 +218,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
                varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1,
                etap2));
     } else {
-      c1->Print(Form("%s/CF_pSigma_model.pdf", varFolder.Data()));
+      c1->Print(Form("%s/CF_pSigma_model_%i.pdf", varFolder.Data(), potential));
     }
     CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
     if (potential == 0) {
@@ -231,7 +231,8 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
                varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1,
                etap2));
     } else {
-      c1->Print(Form("%s/CF_pSigma_model_zoom.pdf", varFolder.Data()));
+      c1->Print(
+          Form("%s/CF_pSigma_model_zoom_%i.pdf", varFolder.Data(), potential));
     }
   }
 
@@ -366,7 +367,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     leg->Draw("same");
   }
 
-  if (!debugPlots) {
+  if (debugPlots) {
     if (potential == 0) {
       c->Print(
           Form("%s/CF_pSigma_fit_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
@@ -377,7 +378,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
                varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1,
                etap2));
     } else {
-      c->Print(Form("%s/CF_pSigma_fit.pdf", varFolder.Data()));
+      c->Print(Form("%s/CF_pSigma_fit_%i.pdf", varFolder.Data(), potential));
     }
   }
   c->Write();
