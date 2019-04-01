@@ -30,12 +30,22 @@ DreamSystematics::DreamSystematics()
       fNPartOneVariations(),
       fNPartTwoDefault(),
       fNPartTwoVariations(),
+      fPurityDefault(),
+      fPurityOneDefault(),
+      fPurityTwoDefault(),
+      fPurityVar(),
+      fPurityOneVariations(),
+      fPurityTwoVariations(),
       fHistPairsAbsDiff(nullptr),
-      fHistPairsRelDiff(nullptr),
       fHistPartOneAbsDiff(nullptr),
-      fHistPartOneRelDiff(nullptr),
       fHistPartTwoAbsDiff(nullptr),
-      fHistPartTwoRelDiff(nullptr) {
+      fHistPurityOneAbsDiff(nullptr),
+      fHistPurityTwoAbsDiff(nullptr),
+      fHistPairsRelDiff(nullptr),
+      fHistPartOneRelDiff(nullptr),
+      fHistPartTwoRelDiff(nullptr),
+      fHistPurityOneRelDiff(nullptr),
+      fHistPurityTwoRelDiff(nullptr) {
   DreamPlot::SetStyle();
 }
 
@@ -60,12 +70,22 @@ DreamSystematics::DreamSystematics(Pair pair)
       fNPartOneVariations(),
       fNPartTwoDefault(0),
       fNPartTwoVariations(),
+      fPurityDefault(),
+      fPurityOneDefault(),
+      fPurityTwoDefault(),
+      fPurityVar(),
+      fPurityOneVariations(),
+      fPurityTwoVariations(),
       fHistPairsAbsDiff(nullptr),
-      fHistPairsRelDiff(nullptr),
       fHistPartOneAbsDiff(nullptr),
-      fHistPartOneRelDiff(nullptr),
       fHistPartTwoAbsDiff(nullptr),
-      fHistPartTwoRelDiff(nullptr) {
+      fHistPurityOneAbsDiff(nullptr),
+      fHistPurityTwoAbsDiff(nullptr),
+      fHistPairsRelDiff(nullptr),
+      fHistPartOneRelDiff(nullptr),
+      fHistPartTwoRelDiff(nullptr),
+      fHistPurityOneRelDiff(nullptr),
+      fHistPurityTwoRelDiff(nullptr) {
   DreamPlot::SetStyle();
 }
 
@@ -154,20 +174,17 @@ void DreamSystematics::EvalSystematics() {
 
   ComputeUncertainty();
 }
-void DreamSystematics::EvalDifference(std::vector<unsigned int> &CountsDefault,
-                                      std::vector<unsigned int> &CountsVar,
+
+template<typename T>
+void DreamSystematics::EvalDifference(std::vector<T> &CountsDefault,
+                                      std::vector<T> &CountsVar,
                                       std::vector<float> &AbsDiff,
                                       std::vector<float> &RelDiff) {
-  size_t nVars = CountsVar.size();
-  for (unsigned int iVar = 0; iVar < nVars; ++iVar) {
-    AbsDiff.push_back(
-        std::abs(
-            (float) ((float) CountsDefault[iVar] - (float) CountsVar[iVar])));
-    RelDiff.push_back(
-        CountsDefault[iVar] > 0 ?
-            std::abs(
-                (float) (1 - (CountsVar[iVar] / (float) CountsDefault[iVar]))) :
-            0);
+  for (size_t iVar = 0; iVar < CountsVar.size(); ++iVar) {
+    float def = CountsDefault[iVar];
+    float var = CountsVar[iVar];
+    AbsDiff.push_back(std::abs(def - var));
+    RelDiff.push_back((def > 0) ? std::abs(1 - var / def) : 0);
   }
   return;
 }
@@ -213,6 +230,27 @@ void DreamSystematics::EvalDifferenceInParticles() {
                    fnPartTwoRelDiff);
     fHistPartTwoAbsDiff = FillHisto(fnPartTwoAbsDiff, "AbsDiffPartTwo");
     fHistPartTwoRelDiff = FillHisto(fnPartTwoRelDiff, "RelDiffPartTwo");
+  }
+}
+
+void DreamSystematics::EvalDifferenceInPurity() {
+  if (fPurityOneDefault.size() == 0 || fPurityOneVariations.size() == 0) {
+    std::cout
+        << "DreamSystematics::EvalDifferenceInPurity() : default or var not set for part one \n";
+  } else {
+    EvalDifference(fPurityOneDefault, fPurityOneVariations, fPurityOneAbsDiff,
+                   fPurityOneRelDiff);
+    fHistPurityOneAbsDiff = FillHisto(fPurityOneAbsDiff, "AbsDiffPartOne");
+    fHistPurityOneRelDiff = FillHisto(fPurityOneRelDiff, "RelDiffPartOne");
+  }
+  if (fPurityTwoDefault.size() == 0 || fPurityTwoVariations.size() == 0) {
+    std::cout
+        << "DreamSystematics::EvalDifferenceInPurity() : default or var not set for part two \n";
+  } else {
+    EvalDifference(fPurityTwoDefault, fPurityTwoVariations, fPurityTwoAbsDiff,
+                   fPurityTwoRelDiff);
+    fHistPurityTwoAbsDiff = FillHisto(fPurityTwoAbsDiff, "AbsDiffPartTwo");
+    fHistPurityTwoRelDiff = FillHisto(fPurityTwoRelDiff, "RelDiffPartTwo");
   }
 }
 
@@ -561,6 +599,18 @@ void DreamSystematics::WriteOutput() {
       fHistPartTwoAbsDiff->Write();
     if (fHistPartTwoRelDiff)
       fHistPartTwoRelDiff->Write();
+  }
+  if (fPurityOneDefault.size() > 0 || fPurityTwoDefault.size() > 0) {
+    file->mkdir("Purity");
+    file->cd("Purity");
+    if (fHistPurityOneAbsDiff)
+      fHistPurityOneAbsDiff->Write();
+    if (fHistPurityOneRelDiff)
+      fHistPurityOneRelDiff->Write();
+    if (fHistPurityTwoAbsDiff)
+      fHistPurityTwoAbsDiff->Write();
+    if (fHistPurityTwoRelDiff)
+      fHistPurityTwoRelDiff->Write();
   }
   file->Close();
 }

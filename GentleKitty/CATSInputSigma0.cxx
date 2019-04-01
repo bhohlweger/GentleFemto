@@ -1,10 +1,16 @@
 #include "CATSInputSigma0.h"
+#include "ForgivingReader.h"
+#include "DecayQA.h"
 #include <iostream>
 
 CATSInputSigma0::CATSInputSigma0()
     : fCF_pSigma(nullptr),
       fCF_SidebandUp(nullptr),
-      fCF_SidebandLow(nullptr) {
+      fCF_SidebandLow(nullptr),
+      fnProtons(0),
+      fnAntiProtons(0),
+      fnSigma0(0),
+      fPuritySigma0(0) {
 }
 
 CATSInputSigma0::~CATSInputSigma0() {
@@ -164,6 +170,48 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
   fnormalizationRight = normright;
 }
 
+void CATSInputSigma0::CountPairs(const char* path, const char* trigger,
+                                 const char* suffixChar) {
+  TString filename = Form("%s/AnalysisResults.root", path);
+  ForgivingReader* reader = new ForgivingReader(filename, trigger, suffixChar);
+
+  auto pTProton = (TH1F*) reader->Get1DHistInList(reader->GetTrackCuts(), {
+                                                      "pTDist_after" });
+  if (pTProton) {
+    fnProtons = pTProton->GetEntries();
+    delete pTProton;
+  } else {
+    pTProton = (TH1F*) reader->Get1DHistInList(
+        reader->GetListInList(reader->GetTrackCuts(), { { "after" } }), {
+            "pTDist_after" });
+    fnProtons = pTProton->GetEntries();
+    delete pTProton;
+  }
+
+  auto pTAntiProton = (TH1F*) reader->Get1DHistInList(
+      reader->GetAntiTrackCuts(), { "pTDist_after" });
+  if (pTAntiProton) {
+    fnAntiProtons = pTAntiProton->GetEntries();
+    delete pTAntiProton;
+  } else {
+    pTAntiProton = (TH1F*) reader->Get1DHistInList(
+        reader->GetListInList(reader->GetAntiTrackCuts(), { { "after" } }), {
+            "pTDist_after" });
+    fnAntiProtons = pTAntiProton->GetEntries();
+    delete pTAntiProton;
+  }
+
+  DecayQA* sigma0QA = new DecayQA("#Sigma", "#Lambda#gamma");
+  sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
+  sigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
+  sigma0QA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
+  sigma0QA->GetPeriodQASigma0(0.003, "Sigma0");
+  fPuritySigma0 = sigma0QA->GetPurity();
+  fnSigma0 = sigma0QA->GetSignalCounts() + sigma0QA->GetBackgroundCounts();
+  delete sigma0QA;
+  delete reader;
+}
+
 TH1F* CATSInputSigma0::GetCF(TString pair, TString hist) {
   TH1F* output = nullptr;
   if (pair == TString("pp")) {
@@ -202,4 +250,20 @@ TH1F* CATSInputSigma0::GetCF(TString pair, TString hist) {
               << " does not exist? \n";
   }
   return (TH1F*) output->Clone(Form("%sCloned", output->GetName()));
+}
+
+unsigned int CATSInputSigma0::GetFemtoPairs(float kMin, float kMax,
+                                            TString pair) {
+  if (pair == TString("pp")) {
+    return fCF_pp->GetFemtoPairs(kMin, kMax);
+  } else if (pair == TString("pSigma0")) {
+    return fCF_pSigma->GetFemtoPairs(kMin, kMax);
+  } else if (pair == TString("pSigmaSBUp")) {
+    return fCF_SidebandUp->GetFemtoPairs(kMin, kMax);
+  } else if (pair == TString("pSigmaSBLow")) {
+    return fCF_SidebandLow->GetFemtoPairs(kMin, kMax);
+  } else {
+    std::cout << pair << " does not exist\n";
+  }
+  return 0;
 }
