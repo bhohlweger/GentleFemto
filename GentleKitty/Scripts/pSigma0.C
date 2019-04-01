@@ -45,7 +45,7 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 
 /// =====================================================================================
 void PrintVars(const std::vector<double> &vec) {
-  for(const auto &it :vec) {
+  for (const auto &it : vec) {
     std::cout << " " << it;
   }
   std::cout << "\n";
@@ -56,6 +56,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
                TString suffix, TString OutputDir, const int potential,
                std::vector<double> params) {
   bool batchmode = true;
+  bool debugPlots = false;
   double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
 
   DreamPlot::SetStyle();
@@ -169,8 +170,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   const double ppRadiusVarDiff = ppRadius - ppRadiusSigma0Resonances;
   const double ppRadiusLower = ppRadius
       - std::sqrt(
-          ppRadiusStatErr * ppRadiusStatErr
-              + ppRadiusVarDiff * ppRadiusVarDiff
+          ppRadiusStatErr * ppRadiusStatErr + ppRadiusVarDiff * ppRadiusVarDiff
               + ppRadiusSystErrDown * ppRadiusSystErrDown);
   const double ppRadiusUpper = ppRadius
       + std::sqrt(
@@ -245,6 +245,23 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   std::cout << "Result of the prefit to constrain the baseline\n";
   for (size_t i = 0; i < prefit_a.size(); ++i) {
     std::cout << i << " a: " << prefit_a[i] << " b: " << prefit_b[i] << "\n";
+  }
+
+  if (debugPlots) {
+    auto c = new TCanvas();
+    DreamPlot::SetStyleGraph(grPrefitContour);
+    grPrefitContour->SetTitle("; #it{a}; #it{b}");
+    grPrefitContour->SetLineStyle(2);
+    auto grDots = new TGraph();
+    DreamPlot::SetStyleGraph(grDots, 20, kRed + 2);
+    for (size_t i = 0; i < prefit_a.size(); ++i) {
+      grDots->SetPoint(i, prefit_a[i], prefit_b[i]);
+    }
+    grPrefitContour->Draw("AL");
+    grDots->Draw("PEsame");
+    c->Print(Form("%s/Prefit_%i.pdf", OutputDir.Data(), potential));
+    delete grDots;
+    delete c;
   }
 
   delete funct_0;
@@ -530,14 +547,16 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             for (unsigned int i = 0; i < Ck_pSigma0->GetNbins(); ++i) {
               const float mom = Ck_pSigma0->GetBinCenter(0, i);
               const float baseline = bl_a + bl_b * mom;
-              grCFSigmaRaw.SetPoint(i, mom, CkDec_pSigma0.EvalCk(mom) * baseline);
+              grCFSigmaRaw.SetPoint(i, mom,
+                                    CkDec_pSigma0.EvalCk(mom) * baseline);
               grCFSigmaMain.SetPoint(
                   i,
                   mom,
                   (((CkDec_pSigma0.EvalMain(mom) - 1.)
                       * lambdaParams[lambdaIter].GetLambdaParam(
                           CATSLambdaParam::Primary)) + 1) * baseline);
-              grCFSigmaFeed.SetPoint(i, mom, CkDec_pSigma0.EvalMainFeed(mom) * baseline);
+              grCFSigmaFeed.SetPoint(
+                  i, mom, CkDec_pSigma0.EvalMainFeed(mom) * baseline);
               grCFSigmaSideband.SetPoint(
                   i,
                   mom,
@@ -623,7 +642,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 
               info->Draw("same");
               c->Write("CFplot");
-              if (!batchmode) {
+              if (debugPlots) {
                 if (potential == 0) {
                   c->Print(
                       Form("%s/CF_pSigma0_%.3f_%.3f_%.3f.pdf", OutputDir.Data(),
@@ -644,7 +663,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
               SBmerge->Draw();
               sideband->Draw("l3same");
               d->Write("CFsideband");
-              if (!batchmode) {
+              if (debugPlots) {
                 d->Print(Form("%s/CF_pSideband.pdf", OutputDir.Data()));
               }
 
@@ -662,7 +681,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
               leg->AddEntry(sideband, "Fit", "l");
               leg->Draw("same");
               e->Write("CFsideband");
-              if (!batchmode) {
+              if (debugPlots) {
                 e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
               }
 

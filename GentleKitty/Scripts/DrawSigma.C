@@ -53,7 +53,7 @@ void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
 // =========================================
 // Compute per k* bin the 68% variations
 void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
-               TGraphErrors *grOut) {
+               TGraphErrors *grOut, bool debugPlot, TString varFolder) {
   float kVal = histCF->GetBinCenter(iBranches);
   float CkExp = histCF->GetBinContent(iBranches);
 
@@ -66,6 +66,25 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
   double DeltaCoulomb = (binLow - binUp) / TMath::Sqrt(12);
   double CoulombdefVal = (binUp + binLow) / 2.;
 
+  if (debugPlot) {
+    auto gr = new TGraphErrors();
+    DreamPlot::SetStyleGraph(gr, 20, kRed + 2);
+    gr->SetLineWidth(2);
+    gr->SetPoint(0, CoulombdefVal, 1);
+    gr->SetPointError(0, std::abs(DeltaCoulomb), 0);
+    DreamPlot::SetStyleHisto(hist);
+    hist->SetTitle(
+        Form("#it{k}* = %.1f MeV/#it{c} ;#Delta C(#it{k}*); Entries", kVal));
+    auto c = new TCanvas();
+    hist->Draw();
+    gr->Draw("pez same");
+    c->SaveAs(
+        Form("%s/Delta_%s_%i.pdf", varFolder.Data(), tuple->GetName(),
+             iBranches));
+    delete gr;
+    delete c;
+  }
+
   //std::cout << CkExp - binLow << " " << CkExp - binUp << " " << CoulombdefVal << "\n";
   grOut->SetPoint(iBranches - 1, kVal, CkExp - CoulombdefVal);
   grOut->SetPointError(iBranches - 1, 0, DeltaCoulomb);
@@ -77,12 +96,11 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
 // Draw all systematic variations available
 void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
                std::vector<double> params) {
-
-  bool batchmode = true;
+  bool debugPlots = false;
   bool fancyPlot = false;
   double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
 
-  DreamPlot::SetStyle();
+  DreamPlot::SetStyle(false, true);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
   TH1F* CF_Histo;
 
@@ -189,7 +207,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     }
   }
 
-  if (!batchmode) {
+  if (!debugPlots) {
     if (potential == 0) {
       c1->Print(
           Form("%s/CF_pSigma_model_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
@@ -228,8 +246,9 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   grSidebands->SetName("CF_sidebands");
 
   for (int iBranches = 1; iBranches < tupleLength + 1; ++iBranches) {
-    EvalError(fit, iBranches, CF_Histo, grCF);
-    EvalError(sideband, iBranches, CF_Histo, grSidebands);
+    EvalError(fit, iBranches, CF_Histo, grCF, debugPlots, varFolder);
+    EvalError(sideband, iBranches, CF_Histo, grSidebands, debugPlots,
+              varFolder);
   }
 
   // in case we're running the exclusion task, we're interested in the best/worst chi2 for a given set of scattering parameters
@@ -347,7 +366,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     leg->Draw("same");
   }
 
-  if (!batchmode) {
+  if (!debugPlots) {
     if (potential == 0) {
       c->Print(
           Form("%s/CF_pSigma_fit_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
