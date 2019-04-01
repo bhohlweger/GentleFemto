@@ -154,16 +154,16 @@ void DreamSystematics::EvalSystematics() {
 
   ComputeUncertainty();
 }
-void DreamSystematics::EvalDifference(std::vector<unsigned int> CountsDefault,
-                                      std::vector<unsigned int> CountsVar,
-                                      std::vector<float> *AbsDiff,
-                                      std::vector<float> *RelDiff) {
+void DreamSystematics::EvalDifference(std::vector<unsigned int> &CountsDefault,
+                                      std::vector<unsigned int> &CountsVar,
+                                      std::vector<float> &AbsDiff,
+                                      std::vector<float> &RelDiff) {
   size_t nVars = CountsVar.size();
   for (unsigned int iVar = 0; iVar < nVars; ++iVar) {
-    AbsDiff->push_back(
+    AbsDiff.push_back(
         std::abs(
             (float) ((float) CountsDefault[iVar] - (float) CountsVar[iVar])));
-    RelDiff->push_back(
+    RelDiff.push_back(
         CountsDefault[iVar] > 0 ?
             std::abs(
                 (float) (1 - (CountsVar[iVar] / (float) CountsDefault[iVar]))) :
@@ -180,6 +180,7 @@ TH1F* DreamSystematics::FillHisto(std::vector<float> Diff, const char* name) {
     outHisto->GetXaxis()->SetBinLabel(iBin, GetVariation(iBin - 1).Data());
     outHisto->SetBinContent(iBin, Diff[iBin - 1]);
   }
+  outHisto->GetXaxis()->LabelsOption("v");
   return outHisto;
 }
 
@@ -188,8 +189,7 @@ void DreamSystematics::EvalDifferenceInPairs() {
     std::cout
         << "DreamSystematics::EvalDifferenceInPairs() : no variations set \n";
   } else {
-    EvalDifference(fnPairsDefault, fnPairsVar, &fnPairsAbsDiff,
-                   &fnPairsRelDiff);
+    EvalDifference(fnPairsDefault, fnPairsVar, fnPairsAbsDiff, fnPairsRelDiff);
     fHistPairsAbsDiff = FillHisto(fnPairsAbsDiff, "AbsDiffPair");
     fHistPairsRelDiff = FillHisto(fnPairsRelDiff, "RelDiffPair");
   }
@@ -200,8 +200,8 @@ void DreamSystematics::EvalDifferenceInParticles() {
     std::cout
         << "DreamSystematics::EvalDifferenceInParticles() : default or var not set for part one \n";
   } else {
-    EvalDifference(fNPartOneDefault, fNPartOneVariations, &fnPartOneAbsDiff,
-                   &fnPartOneRelDiff);
+    EvalDifference(fNPartOneDefault, fNPartOneVariations, fnPartOneAbsDiff,
+                   fnPartOneRelDiff);
     fHistPartOneAbsDiff = FillHisto(fnPartOneAbsDiff, "AbsDiffPartOne");
     fHistPartOneRelDiff = FillHisto(fnPartOneRelDiff, "RelDiffPartOne");
   }
@@ -209,8 +209,8 @@ void DreamSystematics::EvalDifferenceInParticles() {
     std::cout
         << "DreamSystematics::EvalDifferenceInParticles() : default or var not set for part two \n";
   } else {
-    EvalDifference(fNPartTwoDefault, fNPartTwoVariations, &fnPartTwoAbsDiff,
-                   &fnPartTwoRelDiff);
+    EvalDifference(fNPartTwoDefault, fNPartTwoVariations, fnPartTwoAbsDiff,
+                   fnPartTwoRelDiff);
     fHistPartTwoAbsDiff = FillHisto(fnPartTwoAbsDiff, "AbsDiffPartTwo");
     fHistPartTwoRelDiff = FillHisto(fnPartTwoRelDiff, "RelDiffPartTwo");
   }

@@ -75,9 +75,9 @@ class DreamSystematics {
   TH1F* GetBarlow(TH1F* histDefault, TH1F* histVar) const;
 
   void EvalSystematics();
-  void EvalDifference(std::vector<unsigned int> CountsDefault,
-                      std::vector<unsigned int> CountsVar,
-                      std::vector<float> *AbsDiff, std::vector<float> *RelDiff);
+  void EvalDifference(std::vector<unsigned int> &CountsDefault,
+                      std::vector<unsigned int> &CountsVar,
+                      std::vector<float> &AbsDiff, std::vector<float> &RelDiff);
   TH1F* FillHisto(std::vector<float> Diff, const char* name);
   void EvalDifferenceInPairs();
 //  void CountPairs();
@@ -149,7 +149,7 @@ class DreamSystematics {
       "Photon Daug TPC ncls finable up", "Photon Daug n#sigma down",
       "Photon Daug n#sigma up", "Photon q_{T} 1-D up", "Photon q_{T} 2-D down",
       "Photon #Psi_{Pair} 1-D up", "Photon #Psi_{Pair} 2-D down",
-      "Photon CPA down", "Photon CPA up"} };
+      "Photon CPA down", "Photon CPA up" } };
 
   const std::vector<TString> pXiVariations = {
       { "Proton #it{p}_{T} down", "Proton #it{p}_{T} up", "Proton #eta up",
