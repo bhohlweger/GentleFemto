@@ -22,9 +22,13 @@
 #include "TMinuit.h"
 void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                     TString InputDir, TString OutputDir, TString ppFile) {
+  //System: 0 = pPb, 1 = pp MB, 2 = pp HM
+  //Potential: 0 = Coulomb, 1 = Gamow, 2 = HAL + Coulomb, 3 = HAL + Gamow, 5 = RikkenWF , 6 = RikkenPot
+  //Source: 0 = Gauss, 1 = Resonances, 2 = Levy
+
   bool FAST_PLOT = (NumIter == 0);
   bool drawSource = (NumIter == 0);
-  bool fitRadius = true;
+  bool fitRadius = false;
   double BlRegion[2];
   BlRegion[0] = 500;
   BlRegion[1] = 500;
@@ -172,11 +176,14 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     pot = TidyCats::pHALQCD;
   } else if (iPot == 3) {
     pot = TidyCats::pHALQCDGamow;
+  } else if (iPot == 5) {
+    pot = TidyCats::pRikkenWF;
   } else if (iPot == 6) {
     pot = TidyCats::pRikkenPot;
   } else {
     std::cout << "iPot " << iPot << " not implemented ,exiting \n";
   }
+
   const int binwidth = 20;
   const int rebin = 5;
   const unsigned NumMomBins_pXim = 30;
@@ -341,7 +348,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               side->SetNormalizationRange(normvarCont[varSideNorm][0],
                                           normvarCont[varSideNorm][1]);
               double GaussSourceSize = ppRadii[ppRadius];
-
+              std::cout << "GaussSourceSize: " << GaussSourceSize << std::endl;
               //vary this
               side->SideBandCFs(false);
               TH1F* fitme = side->GetSideBands(5);
@@ -450,7 +457,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                                      2.0);
               } else if (TheSource == TidyCats::sResonance) {
                 fitter->FixParameter("pXim", DLM_Fitter1::p_sor1, 2.0);
-                GaussSourceSize = 0.77;
+                //GaussSourceSize = 0.77;
               }
               if (fitRadius) {
                 fitter->SetParameter("pXim", DLM_Fitter1::p_sor0,
