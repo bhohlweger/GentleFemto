@@ -345,6 +345,21 @@ void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->SetLineColor(color);
 }
 
+void DreamPlot::SetStyleGraph(TGraph *histo, int marker, int color) {
+  histo->GetXaxis()->SetLabelSize(0.045);
+  histo->GetXaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetLabelOffset(0.01);
+  histo->GetXaxis()->SetTitleOffset(1.2);
+  histo->GetXaxis()->SetLabelFont(42);
+  histo->GetYaxis()->SetLabelSize(0.045);
+  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetYaxis()->SetLabelOffset(0.01);
+  histo->GetYaxis()->SetTitleOffset(1.25);
+  histo->SetMarkerStyle(marker);
+  histo->SetMarkerColor(color);
+  histo->SetLineColor(color);
+}
+
 void DreamPlot::DrawCorrelationFunctions() {
   SetStyle();
   const float right = 0.025;
@@ -426,7 +441,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
 
-void DreamPlot::DrawCorrelationFunctionSigma() {
+void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   SetStyle();
   const float right = 0.025;
   const float top = 0.025;
@@ -450,9 +465,9 @@ void DreamPlot::DrawCorrelationFunctionSigma() {
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
   fProtonSigma->DrawCorrelationPlot(c, 13);
-  DrawSystemInfo(c, false, 0.45, true);
+  DrawSystemInfo(c, false, 0.46, true);
   c->cd();
-  c->SaveAs("CF_pSigma_prelim.pdf");
+  c->SaveAs(Form("%s/CF_pSigma_prelim.pdf", fitPath));
 }
 
 void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin, bool isPreliminary) {

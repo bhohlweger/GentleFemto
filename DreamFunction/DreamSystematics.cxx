@@ -12,8 +12,6 @@
 DreamSystematics::DreamSystematics()
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
-      fFemtoRangeLow(0.f),
-      fFemtoRangeUp(0.2),
       fParticlePairMode(DreamSystematics::pp),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
@@ -32,20 +30,28 @@ DreamSystematics::DreamSystematics()
       fNPartOneVariations(),
       fNPartTwoDefault(),
       fNPartTwoVariations(),
+      fPurityDefault(),
+      fPurityOneDefault(),
+      fPurityTwoDefault(),
+      fPurityVar(),
+      fPurityOneVariations(),
+      fPurityTwoVariations(),
       fHistPairsAbsDiff(nullptr),
-      fHistPairsRelDiff(nullptr),
       fHistPartOneAbsDiff(nullptr),
-      fHistPartOneRelDiff(nullptr),
       fHistPartTwoAbsDiff(nullptr),
-      fHistPartTwoRelDiff(nullptr) {
+      fHistPurityOneAbsDiff(nullptr),
+      fHistPurityTwoAbsDiff(nullptr),
+      fHistPairsRelDiff(nullptr),
+      fHistPartOneRelDiff(nullptr),
+      fHistPartTwoRelDiff(nullptr),
+      fHistPurityOneRelDiff(nullptr),
+      fHistPurityTwoRelDiff(nullptr) {
   DreamPlot::SetStyle();
 }
 
 DreamSystematics::DreamSystematics(Pair pair)
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
-      fFemtoRangeLow(0.f),
-      fFemtoRangeUp(0.2),
       fParticlePairMode(pair),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
@@ -64,12 +70,22 @@ DreamSystematics::DreamSystematics(Pair pair)
       fNPartOneVariations(),
       fNPartTwoDefault(0),
       fNPartTwoVariations(),
+      fPurityDefault(),
+      fPurityOneDefault(),
+      fPurityTwoDefault(),
+      fPurityVar(),
+      fPurityOneVariations(),
+      fPurityTwoVariations(),
       fHistPairsAbsDiff(nullptr),
-      fHistPairsRelDiff(nullptr),
       fHistPartOneAbsDiff(nullptr),
-      fHistPartOneRelDiff(nullptr),
       fHistPartTwoAbsDiff(nullptr),
-      fHistPartTwoRelDiff(nullptr) {
+      fHistPurityOneAbsDiff(nullptr),
+      fHistPurityTwoAbsDiff(nullptr),
+      fHistPairsRelDiff(nullptr),
+      fHistPartOneRelDiff(nullptr),
+      fHistPartTwoRelDiff(nullptr),
+      fHistPurityOneRelDiff(nullptr),
+      fHistPurityTwoRelDiff(nullptr) {
   DreamPlot::SetStyle();
 }
 
@@ -158,20 +174,17 @@ void DreamSystematics::EvalSystematics() {
 
   ComputeUncertainty();
 }
-void DreamSystematics::EvalDifference(std::vector<unsigned int> CountsDefault,
-                                      std::vector<unsigned int> CountsVar,
-                                      std::vector<float> *AbsDiff,
-                                      std::vector<float> *RelDiff) {
-  size_t nVars = CountsVar.size();
-  for (unsigned int iVar = 0; iVar < nVars; ++iVar) {
-    AbsDiff->push_back(
-        std::abs(
-            (float) ((float) CountsDefault[iVar] - (float) CountsVar[iVar])));
-    RelDiff->push_back(
-        CountsDefault[iVar] > 0 ?
-            std::abs(
-                (float) (1 - (CountsVar[iVar] / (float) CountsDefault[iVar]))) :
-            0);
+
+template<typename T>
+void DreamSystematics::EvalDifference(std::vector<T> &CountsDefault,
+                                      std::vector<T> &CountsVar,
+                                      std::vector<float> &AbsDiff,
+                                      std::vector<float> &RelDiff) {
+  for (size_t iVar = 0; iVar < CountsVar.size(); ++iVar) {
+    float def = CountsDefault[iVar];
+    float var = CountsVar[iVar];
+    AbsDiff.push_back(std::abs(def - var));
+    RelDiff.push_back((def > 0) ? std::abs(1 - var / def) * 100.f : 0);
   }
   return;
 }
@@ -184,18 +197,21 @@ TH1F* DreamSystematics::FillHisto(std::vector<float> Diff, const char* name) {
     outHisto->GetXaxis()->SetBinLabel(iBin, GetVariation(iBin - 1).Data());
     outHisto->SetBinContent(iBin, Diff[iBin - 1]);
   }
+  DreamPlot::SetStyleHisto(outHisto);
+  outHisto->GetXaxis()->LabelsOption("v");
   return outHisto;
 }
 
 void DreamSystematics::EvalDifferenceInPairs() {
-  if (fnPairsDefault.size() == 0 || fnPairsVar.size()) {
+  if (fnPairsDefault.size() == 0 || fnPairsVar.size() == 0) {
     std::cout
         << "DreamSystematics::EvalDifferenceInPairs() : no variations set \n";
   } else {
-    EvalDifference(fnPairsDefault, fnPairsVar, &fnPairsAbsDiff,
-                   &fnPairsRelDiff);
+    EvalDifference(fnPairsDefault, fnPairsVar, fnPairsAbsDiff, fnPairsRelDiff);
     fHistPairsAbsDiff = FillHisto(fnPairsAbsDiff, "AbsDiffPair");
+    fHistPairsAbsDiff->GetYaxis()->SetTitle("Abs. variation");
     fHistPairsRelDiff = FillHisto(fnPairsRelDiff, "RelDiffPair");
+    fHistPairsRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
 }
 
@@ -204,19 +220,48 @@ void DreamSystematics::EvalDifferenceInParticles() {
     std::cout
         << "DreamSystematics::EvalDifferenceInParticles() : default or var not set for part one \n";
   } else {
-    EvalDifference(fNPartOneDefault, fNPartOneVariations, &fnPartOneAbsDiff,
-                   &fnPartOneRelDiff);
+    EvalDifference(fNPartOneDefault, fNPartOneVariations, fnPartOneAbsDiff,
+                   fnPartOneRelDiff);
     fHistPartOneAbsDiff = FillHisto(fnPartOneAbsDiff, "AbsDiffPartOne");
+    fHistPartOneAbsDiff->GetYaxis()->SetTitle("Abs. variation");
     fHistPartOneRelDiff = FillHisto(fnPartOneRelDiff, "RelDiffPartOne");
+    fHistPartOneRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
   if (fNPartTwoDefault.size() == 0 || fNPartTwoVariations.size() == 0) {
     std::cout
         << "DreamSystematics::EvalDifferenceInParticles() : default or var not set for part two \n";
   } else {
-    EvalDifference(fNPartTwoDefault, fNPartTwoVariations, &fnPartTwoAbsDiff,
-                   &fnPartTwoRelDiff);
+    EvalDifference(fNPartTwoDefault, fNPartTwoVariations, fnPartTwoAbsDiff,
+                   fnPartTwoRelDiff);
     fHistPartTwoAbsDiff = FillHisto(fnPartTwoAbsDiff, "AbsDiffPartTwo");
+    fHistPartTwoAbsDiff->GetYaxis()->SetTitle("Abs. variation");
     fHistPartTwoRelDiff = FillHisto(fnPartTwoRelDiff, "RelDiffPartTwo");
+    fHistPartTwoRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
+  }
+}
+
+void DreamSystematics::EvalDifferenceInPurity() {
+  if (fPurityOneDefault.size() == 0 || fPurityOneVariations.size() == 0) {
+    std::cout
+        << "DreamSystematics::EvalDifferenceInPurity() : default or var not set for part one \n";
+  } else {
+    EvalDifference(fPurityOneDefault, fPurityOneVariations, fPurityOneAbsDiff,
+                   fPurityOneRelDiff);
+    fHistPurityOneAbsDiff = FillHisto(fPurityOneAbsDiff, "AbsDiffPartOne");
+    fHistPurityOneAbsDiff->GetYaxis()->SetTitle("Abs. variation");
+    fHistPurityOneRelDiff = FillHisto(fPurityOneRelDiff, "RelDiffPartOne");
+    fHistPurityOneRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
+  }
+  if (fPurityTwoDefault.size() == 0 || fPurityTwoVariations.size() == 0) {
+    std::cout
+        << "DreamSystematics::EvalDifferenceInPurity() : default or var not set for part two \n";
+  } else {
+    EvalDifference(fPurityTwoDefault, fPurityTwoVariations, fPurityTwoAbsDiff,
+                   fPurityTwoRelDiff);
+    fHistPurityTwoAbsDiff = FillHisto(fPurityTwoAbsDiff, "AbsDiffPartTwo");
+    fHistPurityOneAbsDiff->GetYaxis()->SetTitle("Abs. variation");
+    fHistPurityTwoRelDiff = FillHisto(fPurityTwoRelDiff, "RelDiffPartTwo");
+    fHistPurityTwoRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
 }
 
@@ -259,14 +304,16 @@ void DreamSystematics::ComputeUncertainty() {
       0,
       fHistSystErrRel->GetBinContent(
           fHistSystErrRel->FindBin(fSystematicFitRangeUp)));
-  float startExp = fHistSystErrRel->GetBinContent(1) - fHistSystErrRel->GetBinContent(
-      fHistSystErrRel->FindBin(fSystematicFitRangeUp));
+  float startExp = fHistSystErrRel->GetBinContent(1)
+      - fHistSystErrRel->GetBinContent(
+          fHistSystErrRel->FindBin(fSystematicFitRangeUp));
 
-  fRatio->SetParameter(
-        1,
-        TMath::Log(startExp));
-  std::cout << "Start Parameter 0: " << fHistSystErrRel->GetBinContent(
-      fHistSystErrRel->FindBin(fSystematicFitRangeUp)) << std::endl;
+  fRatio->SetParameter(1, TMath::Log(startExp));
+  std::cout
+      << "Start Parameter 0: "
+      << fHistSystErrRel->GetBinContent(
+          fHistSystErrRel->FindBin(fSystematicFitRangeUp))
+      << std::endl;
   std::cout << "difference: " << startExp << std::endl;
   std::cout << "Start Parameter 1: " << TMath::Log(startExp) << std::endl;
   fRatio->SetLineColor(kGreen + 2);
@@ -564,6 +611,18 @@ void DreamSystematics::WriteOutput() {
     if (fHistPartTwoRelDiff)
       fHistPartTwoRelDiff->Write();
   }
+  if (fPurityOneDefault.size() > 0 || fPurityTwoDefault.size() > 0) {
+    file->mkdir("Purity");
+    file->cd("Purity");
+    if (fHistPurityOneAbsDiff)
+      fHistPurityOneAbsDiff->Write();
+    if (fHistPurityOneRelDiff)
+      fHistPurityOneRelDiff->Write();
+    if (fHistPurityTwoAbsDiff)
+      fHistPurityTwoAbsDiff->Write();
+    if (fHistPurityTwoRelDiff)
+      fHistPurityTwoRelDiff->Write();
+  }
   file->Close();
 }
 
@@ -607,6 +666,11 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
             0.8,
             TString::Format("err. budget = %.2f %%",
                             fit->GetParameter(0) * 100.f));
+        text.DrawLatex(
+            0.35,
+            0.73,
+            TString::Format("low #it{k}* = %.2f %%",
+                            it->GetBinContent(1) * 100.f));
       }
     }
   }

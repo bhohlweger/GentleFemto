@@ -1,10 +1,16 @@
 #include "CATSInputSigma0.h"
+#include "ForgivingReader.h"
+#include "DecayQA.h"
 #include <iostream>
 
 CATSInputSigma0::CATSInputSigma0()
     : fCF_pSigma(nullptr),
       fCF_SidebandUp(nullptr),
-      fCF_SidebandLow(nullptr) {
+      fCF_SidebandLow(nullptr),
+      fnProtons(0),
+      fnAntiProtons(0),
+      fnSigma0(0),
+      fPuritySigma0(0) {
 }
 
 CATSInputSigma0::~CATSInputSigma0() {
@@ -23,7 +29,7 @@ void CATSInputSigma0::ReadSigma0CorrelationFile(const char* path,
 }
 
 void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
-                                int rebinSyst) {
+                                int rebinSyst, bool isAllCF) {
 //normleft & right in MeV!
   normleft /= 1000.;
   normright /= 1000.;
@@ -60,11 +66,13 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
   pSigma->SetPair(fDreamFile->GetPairDistributions(0, 2, ""));
   ApASigma->SetPair(fDreamFile->GetPairDistributions(1, 3, ""));
 
-  pSiSBup->SetPair(fDreamFile->GetPairDistributions(0, 4, ""));
-  ApaSiSBup->SetPair(fDreamFile->GetPairDistributions(1, 5, ""));
+  if (isAllCF) {
+    pSiSBup->SetPair(fDreamFile->GetPairDistributions(0, 4, ""));
+    ApaSiSBup->SetPair(fDreamFile->GetPairDistributions(1, 5, ""));
 
-  pSiSBlow->SetPair(fDreamFile->GetPairDistributions(0, 6, ""));
-  ApaSiSBlow->SetPair(fDreamFile->GetPairDistributions(1, 7, ""));
+    pSiSBlow->SetPair(fDreamFile->GetPairDistributions(0, 6, ""));
+    ApaSiSBlow->SetPair(fDreamFile->GetPairDistributions(1, 7, ""));
+  }
 
   pp->ShiftForEmpty(pp->GetPair());
   ApAp->ShiftForEmpty(ApAp->GetPair());
@@ -72,11 +80,13 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
   pSigma->ShiftForEmpty(pSigma->GetPair());
   ApASigma->ShiftForEmpty(ApASigma->GetPair());
 
-  pSiSBup->ShiftForEmpty(pSiSBup->GetPair());
-  ApaSiSBup->ShiftForEmpty(ApaSiSBup->GetPair());
+  if (isAllCF) {
+    pSiSBup->ShiftForEmpty(pSiSBup->GetPair());
+    ApaSiSBup->ShiftForEmpty(ApaSiSBup->GetPair());
 
-  pSiSBlow->ShiftForEmpty(pSiSBlow->GetPair());
-  ApaSiSBlow->ShiftForEmpty(ApaSiSBlow->GetPair());
+    pSiSBlow->ShiftForEmpty(pSiSBlow->GetPair());
+    ApaSiSBlow->ShiftForEmpty(ApaSiSBlow->GetPair());
+  }
 
   pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
                ApAp->GetFirstBin());
@@ -88,23 +98,25 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
   ApASigma->FixShift(ApASigma->GetPairShiftedEmpty(0),
                      pSigma->GetPairShiftedEmpty(0), pSigma->GetFirstBin());
 
-  pSiSBup->FixShift(pSiSBup->GetPairShiftedEmpty(0),
-                    pSigma->GetPairShiftedEmpty(0),
-                    ApASigma->GetPairShiftedEmpty(0), pSigma->GetFirstBin(),
-                    ApASigma->GetFirstBin());
-  ApaSiSBup->FixShift(ApaSiSBup->GetPairShiftedEmpty(0),
+  if (isAllCF) {
+    pSiSBup->FixShift(pSiSBup->GetPairShiftedEmpty(0),
                       pSigma->GetPairShiftedEmpty(0),
                       ApASigma->GetPairShiftedEmpty(0), pSigma->GetFirstBin(),
                       ApASigma->GetFirstBin());
+    ApaSiSBup->FixShift(ApaSiSBup->GetPairShiftedEmpty(0),
+                        pSigma->GetPairShiftedEmpty(0),
+                        ApASigma->GetPairShiftedEmpty(0), pSigma->GetFirstBin(),
+                        ApASigma->GetFirstBin());
 
-  pSiSBlow->FixShift(pSiSBlow->GetPairShiftedEmpty(0),
-                     pSigma->GetPairShiftedEmpty(0),
-                     ApASigma->GetPairShiftedEmpty(0), pSigma->GetFirstBin(),
-                     ApASigma->GetFirstBin());
-  ApaSiSBlow->FixShift(ApaSiSBlow->GetPairShiftedEmpty(0),
+    pSiSBlow->FixShift(pSiSBlow->GetPairShiftedEmpty(0),
                        pSigma->GetPairShiftedEmpty(0),
                        ApASigma->GetPairShiftedEmpty(0), pSigma->GetFirstBin(),
                        ApASigma->GetFirstBin());
+    ApaSiSBlow->FixShift(ApaSiSBlow->GetPairShiftedEmpty(0),
+                         pSigma->GetPairShiftedEmpty(0),
+                         ApASigma->GetPairShiftedEmpty(0),
+                         pSigma->GetFirstBin(), ApASigma->GetFirstBin());
+  }
 
   if (rebinSyst != 1) {
     pp->Rebin(pp->GetPairFixShifted(0), rebinSyst);
@@ -114,11 +126,13 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
   pSigma->Rebin(pSigma->GetPairFixShifted(0), rebin * rebinSyst);
   ApASigma->Rebin(ApASigma->GetPairFixShifted(0), rebin * rebinSyst);
 
-  pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), rebin * rebinSyst);
-  ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), rebin * rebinSyst);
+  if (isAllCF) {
+    pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), rebin * rebinSyst);
+    ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), rebin * rebinSyst);
 
-  pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), rebin * rebinSyst);
-  ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), rebin * rebinSyst);
+    pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), rebin * rebinSyst);
+    ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), rebin * rebinSyst);
+  }
 
   if (rebinSyst != 1) {
     pp->ReweightMixedEvent(pp->GetPairRebinned(0), 0.2, 0.9);
@@ -131,11 +145,13 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
   pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(0), 0.2, 0.9);
   ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(0), 0.2, 0.9);
 
-  pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(0), 0.2, 0.9);
-  ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(0), 0.2, 0.9);
+  if (isAllCF) {
+    pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(0), 0.2, 0.9);
+    ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(0), 0.2, 0.9);
 
-  pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(0), 0.2, 0.9);
-  ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(0), 0.2, 0.9);
+    pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(0), 0.2, 0.9);
+    ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(0), 0.2, 0.9);
+  }
 
   fCF_pp->SetPairs(pp, ApAp);
   fCF_pp->GetCorrelations("pp");
@@ -143,13 +159,57 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
   fCF_pSigma->SetPairs(pSigma, ApASigma);
   fCF_pSigma->GetCorrelations("pSigma0");
 
-  fCF_SidebandUp->SetPairs(pSiSBup, ApaSiSBup);
-  fCF_SidebandUp->GetCorrelations("pSigmaSBUp");
+  if (isAllCF) {
+    fCF_SidebandUp->SetPairs(pSiSBup, ApaSiSBup);
+    fCF_SidebandUp->GetCorrelations("pSigmaSBUp");
 
-  fCF_SidebandLow->SetPairs(pSiSBlow, ApaSiSBlow);
-  fCF_SidebandLow->GetCorrelations("pSigmaSBLow");
+    fCF_SidebandLow->SetPairs(pSiSBlow, ApaSiSBlow);
+    fCF_SidebandLow->GetCorrelations("pSigmaSBLow");
+  }
   fnormalizationLeft = normleft;
   fnormalizationRight = normright;
+}
+
+void CATSInputSigma0::CountPairs(const char* path, const char* trigger,
+                                 const char* suffixChar) {
+  TString filename = Form("%s/AnalysisResults.root", path);
+  ForgivingReader* reader = new ForgivingReader(filename, trigger, suffixChar);
+
+  auto pTProton = (TH1F*) reader->Get1DHistInList(reader->GetTrackCuts(), {
+                                                      "pTDist_after" });
+  if (pTProton) {
+    fnProtons = pTProton->GetEntries();
+    delete pTProton;
+  } else {
+    pTProton = (TH1F*) reader->Get1DHistInList(
+        reader->GetListInList(reader->GetTrackCuts(), { { "after" } }), {
+            "pTDist_after" });
+    fnProtons = pTProton->GetEntries();
+    delete pTProton;
+  }
+
+  auto pTAntiProton = (TH1F*) reader->Get1DHistInList(
+      reader->GetAntiTrackCuts(), { "pTDist_after" });
+  if (pTAntiProton) {
+    fnAntiProtons = pTAntiProton->GetEntries();
+    delete pTAntiProton;
+  } else {
+    pTAntiProton = (TH1F*) reader->Get1DHistInList(
+        reader->GetListInList(reader->GetAntiTrackCuts(), { { "after" } }), {
+            "pTDist_after" });
+    fnAntiProtons = pTAntiProton->GetEntries();
+    delete pTAntiProton;
+  }
+
+  DecayQA* sigma0QA = new DecayQA("#Sigma", "#Lambda#gamma");
+  sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
+  sigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
+  sigma0QA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
+  sigma0QA->GetPeriodQASigma0(0.003, "Sigma0");
+  fPuritySigma0 = sigma0QA->GetPurity();
+  fnSigma0 = sigma0QA->GetSignalCounts() + sigma0QA->GetBackgroundCounts();
+  delete sigma0QA;
+  delete reader;
 }
 
 TH1F* CATSInputSigma0::GetCF(TString pair, TString hist) {
@@ -190,4 +250,20 @@ TH1F* CATSInputSigma0::GetCF(TString pair, TString hist) {
               << " does not exist? \n";
   }
   return (TH1F*) output->Clone(Form("%sCloned", output->GetName()));
+}
+
+unsigned int CATSInputSigma0::GetFemtoPairs(float kMin, float kMax,
+                                            TString pair) {
+  if (pair == TString("pp")) {
+    return fCF_pp->GetFemtoPairs(kMin, kMax);
+  } else if (pair == TString("pSigma0")) {
+    return fCF_pSigma->GetFemtoPairs(kMin, kMax);
+  } else if (pair == TString("pSigmaSBUp")) {
+    return fCF_SidebandUp->GetFemtoPairs(kMin, kMax);
+  } else if (pair == TString("pSigmaSBLow")) {
+    return fCF_SidebandLow->GetFemtoPairs(kMin, kMax);
+  } else {
+    std::cout << pair << " does not exist\n";
+  }
+  return 0;
 }

@@ -15,6 +15,6 @@ int main(int argc, char* argv[]) {
                              globalEventGenerator);
   PlotMe->ReadDataSigma(expBaseDir, sysBaseDir);
   PlotMe->ReadFitSigma(catsBaseDir);
-  PlotMe->DrawCorrelationFunctionSigma();
+  PlotMe->DrawCorrelationFunctionSigma(catsBaseDir);
   return 0;
 }

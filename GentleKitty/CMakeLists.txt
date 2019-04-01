@@ -19,7 +19,7 @@ SET(CATS_INCLUDE "$ENV{CATS}/include")#where are all CATS related .h files
 SET(CATS_LIB "$ENV{CATS}/lib")#where are the CATS related .a files
 SET(DREAM_PATH "${CMAKE_SOURCE_DIR}/DreamFunction")#where are all CATS related .h files
 SET(DREAM_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/../DreamFunction")
-
+SET(FORGIVEN_PATH "${CMAKE_SOURCE_DIR}/ForgivingQA")#where are all CATS related .h files
 
 set(
     CMAKE_RUNTIME_OUTPUT_DIRECTORY
@@ -48,6 +48,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${CATS_INCLUDE})
 include_directories(${GSL_INCLUDE})
 include_directories(${DREAM_PATH})
+include_directories(${FORGIVEN_PATH})
 
 set(SRCS
   ${PROJECT_SOURCE_DIR}/TidyCats.cxx
@@ -71,7 +72,7 @@ set(HEADERS
 
 add_library(tidyCATS STATIC ${SRCS})
 set_target_properties(tidyCATS PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-target_link_libraries(tidyCATS -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
+target_link_libraries(tidyCATS ForgivingFnct -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
 
 add_executable(POnly ${PROJECT_SOURCE_DIR}/Scripts/POnly.C)
 target_link_libraries(POnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
@@ -99,6 +100,9 @@ target_link_libraries(pSigma0exclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunctio
 
 add_executable(PlotSigmaExclusion ${PROJECT_SOURCE_DIR}/Scripts/plotSigmaExclusion.C)
 target_link_libraries(PlotSigmaExclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/plotSigmaModels.C)
+target_link_libraries(PlotSigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(POnlymT ${PROJECT_SOURCE_DIR}/Scripts/POnlymT.C)
 target_link_libraries(POnlymT tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)

@@ -55,6 +55,13 @@ class DreamSystematics {
     fNPartTwoVariations.push_back(nPart2);
   }
   ;
+  void SetPurity(float purDef1, float purDef2, float purPart1,
+                    float purPart2) {
+    fPurityOneDefault.push_back(purDef1);
+    fPurityTwoDefault.push_back(purDef2);
+    fPurityOneVariations.push_back(purPart1);
+    fPurityTwoVariations.push_back(purPart2);
+  };
   int GetNumberOfVars() const {
     return vars[fParticlePairMode].size();
   }
@@ -75,13 +82,15 @@ class DreamSystematics {
   TH1F* GetBarlow(TH1F* histDefault, TH1F* histVar) const;
 
   void EvalSystematics();
-  void EvalDifference(std::vector<unsigned int> CountsDefault,
-                      std::vector<unsigned int> CountsVar,
-                      std::vector<float> *AbsDiff, std::vector<float> *RelDiff);
+  template <typename T>
+  void EvalDifference(std::vector<T> &CountsDefault,
+                      std::vector<T> &CountsVar,
+                      std::vector<float> &AbsDiff, std::vector<float> &RelDiff);
   TH1F* FillHisto(std::vector<float> Diff, const char* name);
   void EvalDifferenceInPairs();
 //  void CountPairs();
   void EvalDifferenceInParticles();
+  void EvalDifferenceInPurity();
 //  void CountParticles();
   void ComputeUncertainty();
   void EvalProtonProton(const int kstar);
@@ -96,8 +105,6 @@ class DreamSystematics {
  private:
   float fSystematicFitRangeLow;
   float fSystematicFitRangeUp;
-  float fFemtoRangeLow;
-  float fFemtoRangeUp;
   Pair fParticlePairMode;
   TH1F *fHistDefault;
   TH1F *fHistSystErrAbs;
@@ -117,21 +124,37 @@ class DreamSystematics {
   std::vector<unsigned int> fNPartOneVariations;
   std::vector<unsigned int> fNPartTwoVariations;
 
+  std::vector<float> fPurityDefault;
+  std::vector<float> fPurityOneDefault;
+  std::vector<float> fPurityTwoDefault;
+
+  std::vector<float> fPurityVar;
+  std::vector<float> fPurityOneVariations;
+  std::vector<float> fPurityTwoVariations;
+
   std::vector<float> fnPairsAbsDiff;
   std::vector<float> fnPartOneAbsDiff;
   std::vector<float> fnPartTwoAbsDiff;
+  std::vector<float> fPurityOneAbsDiff;
+  std::vector<float> fPurityTwoAbsDiff;
 
   std::vector<float> fnPairsRelDiff;
   std::vector<float> fnPartOneRelDiff;
   std::vector<float> fnPartTwoRelDiff;
+  std::vector<float> fPurityOneRelDiff;
+  std::vector<float> fPurityTwoRelDiff;
 
   TH1F* fHistPairsAbsDiff;
   TH1F* fHistPartOneAbsDiff;
   TH1F* fHistPartTwoAbsDiff;
+  TH1F* fHistPurityOneAbsDiff;
+  TH1F* fHistPurityTwoAbsDiff;
 
   TH1F* fHistPairsRelDiff;
   TH1F* fHistPartOneRelDiff;
   TH1F* fHistPartTwoRelDiff;
+  TH1F* fHistPurityOneRelDiff;
+  TH1F* fHistPurityTwoRelDiff;
 
   const std::vector<TString> ppVariations = { { "Proton #it{p}_{T} down",
       "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
@@ -151,7 +174,7 @@ class DreamSystematics {
       "Photon Daug TPC ncls finable up", "Photon Daug n#sigma down",
       "Photon Daug n#sigma up", "Photon q_{T} 1-D up", "Photon q_{T} 2-D down",
       "Photon #Psi_{Pair} 1-D up", "Photon #Psi_{Pair} 2-D down",
-      "Photon CPA down", "Photon CPA up"} };
+      "Photon CPA down", "Photon CPA up" } };
 
   const std::vector<TString> pXiVariations = {
       { "Proton #it{p}_{T} down", "Proton #it{p}_{T} up", "Proton #eta up",

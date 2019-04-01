@@ -48,8 +48,9 @@ class DreamPlot {
   }
   static void SetStyle(bool graypalette = false, bool title = false);
   static void SetStyleHisto(TH1 *histo, int marker = 20, int color = kBlue + 2);
+  static void SetStyleGraph(TGraph *histo, int marker = 20, int color = kBlue + 2);
   void DrawCorrelationFunctions();
-  void DrawCorrelationFunctionSigma();
+  void DrawCorrelationFunctionSigma(const char* fitPath);
   void DrawSystemInfo(TCanvas* c, bool plotRadius = true, float xMin = 0.35,
                       bool isPreliminary = false);
   DreamData* fProtonProton;

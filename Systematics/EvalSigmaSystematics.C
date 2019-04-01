@@ -5,29 +5,47 @@
 #include <iostream>
 
 void SigmaEvalSystematics(TString InputDir, TString trigger) {
-  const int rebin = 3;
+  const int rebin = 5;
 
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInputSigma0();
   CATSinput->ReadCorrelationFile(InputDir.Data(), trigger.Data(), "0");
-  CATSinput->ObtainCFs(10, 250, 400, rebin);
+  CATSinput->CountPairs(InputDir.Data(), trigger.Data(), "0");
+  CATSinput->ObtainCFs(10, 250, 400, rebin, false);
   TString dataHistSigmaName = "hCk_ReweightedpSigma0MeV_0";
   auto dataHistSigma = CATSinput->GetCF("pSigma0", dataHistSigmaName.Data());
+  const unsigned int pairCountsDefault = CATSinput->GetFemtoPairs(0, 0.2,
+                                                                  "pSigma0");
+  const int nProtonDefault = CATSinput->GetNProtonTotal();
+  const int nSigmaDefault = CATSinput->GetNSigma0();
+  const float puritySigmaDefault = CATSinput->GetSigma0Purity();
 
   DreamSystematics protonsigma(DreamSystematics::pSigma0);
   protonsigma.SetDefaultHist(dataHistSigma);
-  protonsigma.SetUpperFitRange(400);
+  protonsigma.SetUpperFitRange(500);
   for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
     auto appendixVar = TString::Format("%i", i);
     CATSinputVar->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
                                             appendixVar.Data());
-    CATSinputVar->ObtainCFs(10, 250, 400, rebin);
+    CATSinputVar->CountPairs(InputDir.Data(), trigger.Data(),
+                             appendixVar.Data());
+    CATSinputVar->ObtainCFs(10, 250, 400, rebin, false);
     protonsigma.SetVarHist(
         CATSinputVar->GetCF("pSigma0", dataHistSigmaName.Data()));
+    protonsigma.SetPair(pairCountsDefault,
+                        CATSinputVar->GetFemtoPairs(0, 0.2, "pSigma0"));
+    protonsigma.SetParticles(nProtonDefault, nSigmaDefault,
+                             CATSinputVar->GetNProtonTotal(),
+                             CATSinputVar->GetNSigma0());
+    protonsigma.SetPurity(0, puritySigmaDefault, 0,
+                          CATSinputVar->GetSigma0Purity());
     delete CATSinputVar;
   }
   protonsigma.EvalSystematics();
+  protonsigma.EvalDifferenceInPairs();
+  protonsigma.EvalDifferenceInParticles();
+  protonsigma.EvalDifferenceInPurity();
   protonsigma.WriteOutput();
 }
 
