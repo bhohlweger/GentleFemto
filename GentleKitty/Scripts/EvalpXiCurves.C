@@ -206,8 +206,8 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder) {
   std::cout << "=============================================\n";
   TGraph SigmaGraph = TGraph();
   SigmaGraph.SetPoint(0,0,nSigmaXiDown);
-  SigmaGraph.SetPoint(0,1,nSigmaXiDefault);
-  SigmaGraph.SetPoint(0,2,nSigmaXiUp);
+  SigmaGraph.SetPoint(1,1,nSigmaXiDefault);
+  SigmaGraph.SetPoint(2,2,nSigmaXiUp);
   SigmaGraph.SetName("pXiGraphSigma");
   output->cd();
   grUp.SetName("pXimGraphUpperLim");
@@ -327,8 +327,12 @@ void CombineIntoOneFile(const char* PathTopXiFolder, const char* GraphName,
     }
   }
   pp->cd();
-  if (sideBand != 0) {
+  if (sideBand) {
+    std::cout << "Sideband Time!!! \n";
     ((TH1F*) pXi->Get("hCk_ReweightedpXiMeV_1"))->Write();
+    ((TH1F*) pXi->Get("pXiSidebandDefault"))->Write();
+    ((TH1F*) pXi->Get("pXiSidebandDown"))->Write();
+    ((TH1F*) pXi->Get("pXiSidebandUp"))->Write();
   }
   pXi->Close();
   pp->Close();
@@ -343,10 +347,15 @@ int main(int argc, char *argv[]) {
   //argv[5] =  Path to the combined file
   //argv[6] =  Store Sidebands & CK? > 0
   bool sidebands = false;
-  if (argv[6] != "") {
+  const char* SideBandArg= argv[6];
+  TString Sidebandu = Form("%s", SideBandArg);
+  std::cout << "you said " << Sidebandu.Data();
+  if (Sidebandu != "") {
+    std::cout << " so I am doing the Sideband \n";
     sidebands = true;
   } else {
     sidebands = false;
+    std::cout << "so I am not doing the Sideband \n";
   }
   std::cout << "EvalpXiCurves \n";
   EvalpXiCurves(argv[1], argv[2], argv[3]);
