@@ -12,8 +12,6 @@
 DreamSystematics::DreamSystematics()
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
-      fFemtoRangeLow(0.f),
-      fFemtoRangeUp(0.2),
       fParticlePairMode(DreamSystematics::pp),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
@@ -44,8 +42,6 @@ DreamSystematics::DreamSystematics()
 DreamSystematics::DreamSystematics(Pair pair)
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
-      fFemtoRangeLow(0.f),
-      fFemtoRangeUp(0.2),
       fParticlePairMode(pair),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
@@ -188,7 +184,7 @@ TH1F* DreamSystematics::FillHisto(std::vector<float> Diff, const char* name) {
 }
 
 void DreamSystematics::EvalDifferenceInPairs() {
-  if (fnPairsDefault.size() == 0 || fnPairsVar.size()) {
+  if (fnPairsDefault.size() == 0 || fnPairsVar.size() == 0) {
     std::cout
         << "DreamSystematics::EvalDifferenceInPairs() : no variations set \n";
   } else {

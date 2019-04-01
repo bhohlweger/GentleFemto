@@ -96,8 +96,6 @@ class DreamSystematics {
  private:
   float fSystematicFitRangeLow;
   float fSystematicFitRangeUp;
-  float fFemtoRangeLow;
-  float fFemtoRangeUp;
   Pair fParticlePairMode;
   TH1F *fHistDefault;
   TH1F *fHistSystErrAbs;
