@@ -635,4 +635,36 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
       Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(etaDist, 0, 1);
   fHairyPlotter->DrawAndStore({etaDist}, Form("%s_eta", outname), "hist");
+
+  // Number of Sigma Candidates
+  auto* nSigma =
+      (fReader->Get1DHistInList(v0Cuts, "fHistNSigma"));
+  if (!nSigma) {
+    std::cerr << "Number of Sigma candidates distribution missing for " << outname << std::endl;
+  }
+  nSigma->GetXaxis()->SetTitle("Number of #Sigma^{0} candidates");
+  nSigma->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(nSigma, 0, 1);
+  fHairyPlotter->DrawLogYAndStore({nSigma}, Form("%s_nSigma", outname), "hist");
+
+
+  // Track cleaner Lambda
+  auto* nLambdaLabel =
+      (fReader->Get1DHistInList(v0Cuts, "fHistNLambdaLabel"));
+  if (!nLambdaLabel) {
+    std::cerr << "Number of Lambda candidates cleanup distribution missing for " << outname << std::endl;
+  }
+  nLambdaLabel->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(nLambdaLabel, 0, 1);
+  fHairyPlotter->DrawLogYAndStore({nLambdaLabel}, Form("%s_nLambdaLabel", outname), "hist");
+
+  // Track cleaner photon
+  auto* nPhotonLabel =
+      (fReader->Get1DHistInList(v0Cuts, "fHistNPhotonLabel"));
+  if (!nPhotonLabel) {
+    std::cerr << "Number of photon candidates cleanup distribution missing for " << outname << std::endl;
+  }
+  nPhotonLabel->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(nPhotonLabel, 0, 1);
+  fHairyPlotter->DrawLogYAndStore({nPhotonLabel}, Form("%s_nPhotonLabel", outname), "hist");
 }
