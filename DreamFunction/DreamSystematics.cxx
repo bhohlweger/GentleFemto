@@ -259,14 +259,16 @@ void DreamSystematics::ComputeUncertainty() {
       0,
       fHistSystErrRel->GetBinContent(
           fHistSystErrRel->FindBin(fSystematicFitRangeUp)));
-  float startExp = fHistSystErrRel->GetBinContent(1) - fHistSystErrRel->GetBinContent(
-      fHistSystErrRel->FindBin(fSystematicFitRangeUp));
+  float startExp = fHistSystErrRel->GetBinContent(1)
+      - fHistSystErrRel->GetBinContent(
+          fHistSystErrRel->FindBin(fSystematicFitRangeUp));
 
-  fRatio->SetParameter(
-        1,
-        TMath::Log(startExp));
-  std::cout << "Start Parameter 0: " << fHistSystErrRel->GetBinContent(
-      fHistSystErrRel->FindBin(fSystematicFitRangeUp)) << std::endl;
+  fRatio->SetParameter(1, TMath::Log(startExp));
+  std::cout
+      << "Start Parameter 0: "
+      << fHistSystErrRel->GetBinContent(
+          fHistSystErrRel->FindBin(fSystematicFitRangeUp))
+      << std::endl;
   std::cout << "difference: " << startExp << std::endl;
   std::cout << "Start Parameter 1: " << TMath::Log(startExp) << std::endl;
   fRatio->SetLineColor(kGreen + 2);
@@ -607,6 +609,11 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
             0.8,
             TString::Format("err. budget = %.2f %%",
                             fit->GetParameter(0) * 100.f));
+        text.DrawLatex(
+            0.35,
+            0.73,
+            TString::Format("low #it{k}* = %.2f %%",
+                            it->GetBinContent(1) * 100.f));
       }
     }
   }
