@@ -18,6 +18,7 @@ class DreamData {
  public:
   DreamData(const char* particlePair);
   void SetSystematics(TF1* parameters, float errorwidth);
+  void SetSystematics(TH1* parameters, float errorwidth);
   void SetCorrelationFunction(TH1F* CF) {
     fCorrelationFunction = CF;
   }

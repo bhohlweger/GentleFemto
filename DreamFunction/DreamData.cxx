@@ -123,6 +123,45 @@ void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
   return;
 }
 
+void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
+  if (parameters) {
+    if (fCorrelationFunction) {
+      int nBinsX = fCorrelationFunction->GetNbinsX();
+      float minX = fCorrelationFunction->GetXaxis()->GetXmin();
+      float maxX = fCorrelationFunction->GetXaxis()->GetXmax();
+      fSystematics = new TH1F(Form("Systematics%s", fName),
+                              Form("Systematics%s", fName), nBinsX, minX, maxX);
+      for (int iBin = 1; iBin < nBinsX; iBin++) {
+        const float x = fCorrelationFunction->GetBinCenter(iBin);
+        const float y = fCorrelationFunction->GetBinContent(iBin);
+        fSystematics->SetBinContent(
+            iBin, y * parameters->GetBinContent(parameters->FindBin(x)));
+      }
+      fSystematics->SetLineWidth(2.0);
+      fSysError = new TGraphErrors();
+
+      for (int i = 0; i < nBinsX; i++) {
+        fSysError->SetPoint(i, fCorrelationFunction->GetBinCenter(i + 1),
+                            fCorrelationFunction->GetBinContent(i + 1));
+        fSysError->SetPointError(i, errorwidth,
+                                 fSystematics->GetBinContent(i + 1));
+      }
+      TGraph *grFakeSys = new TGraph();
+      SetStyleGraph(grFakeSys, 2, 0);
+      grFakeSys->SetFillColor(fFillColors[0]);
+      grFakeSys->SetLineColor(fFillColors[0]);
+      grFakeSys->SetLineWidth(0);
+      fFakeGraph.push_back(grFakeSys);
+    } else {
+      std::cout << "For " << fName
+                << " set the CF before adding the systematics \n";
+    }
+  } else {
+    std::cout << "Paramters input missing for " << fName << std::endl;
+  }
+  return;
+}
+
 void DreamData::FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower,
                                    TGraph *grUpper, int color, int lineStyle,
                                    double lineWidth, int fillStyle,
