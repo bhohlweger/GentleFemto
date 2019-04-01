@@ -21,7 +21,7 @@
 #include "SideBandFit.h"
 #include "TMinuit.h"
 void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
-                    TString InputDir, TString ppFile, TString OutputDir) {
+                    TString InputDir, TString OutputDir, TString ppFile) {
   bool FAST_PLOT = (NumIter == 0);
   bool drawSource = (NumIter == 0);
   bool fitRadius = true;
@@ -121,13 +121,19 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     Fraction_Xim[uVar][3] = Omegam_to_Xim * OmegamXim_BR;
     Fraction_Xim[uVar][4] = 1.;
   }
-  TFile *ppVars = TFile::Open(ppFile, "READ");
-  TNtuple* ppTuple = (TNtuple*) ppVars->Get("outTuple");
   float ppRadii[3];
-  ppTuple->SetBranchAddress("Rad_pp", &ppRadii[0]);
-  ppTuple->SetBranchAddress("RadLow_pXi", &ppRadii[1]);
-  ppTuple->SetBranchAddress("RadUp_pXi", &ppRadii[2]);
-  ppTuple->GetEntry(0);
+  if (ppFile != "") {
+    TFile *ppVars = TFile::Open(ppFile, "READ");
+    TNtuple* ppTuple = (TNtuple*) ppVars->Get("outTuple");
+    ppTuple->SetBranchAddress("Rad_pp", &ppRadii[0]);
+    ppTuple->SetBranchAddress("RadLow_pXi", &ppRadii[1]);
+    ppTuple->SetBranchAddress("RadUp_pXi", &ppRadii[2]);
+    ppTuple->GetEntry(0);
+  } else {
+    ppRadii[0] = 0.70;
+    ppRadii[1] = 0.77;
+    ppRadii[2] = 0.84;
+  }
   std::cout << ppRadii[0] << '\t' << ppRadii[1] << '\t' << ppRadii[2]
             << std::endl;
   TString CalibBaseDir;
@@ -739,6 +745,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 }
 
 int main(int argc, char *argv[]) {
+  const char* addon = (argv[7]) ? argv[7] : "";
   GetXiForRadius(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
                  argv[5], argv[6], argv[7]);
   return 0;
