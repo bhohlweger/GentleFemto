@@ -225,7 +225,7 @@ void SourcePlay() {
   auto c = new TCanvas();
   grSource->Draw("AL");
   grSource->GetXaxis()->SetRangeUser(0, 12);
-  grSource->Fit(gaussFit, "", "R", 0, 6);
+  grSource->Fit(gaussFit, "", "RQ", 0, 6);
   auto leg = new TLegend(0.4, 0.7, 0.85, 0.85);
   leg->SetTextFont(42);
   leg->AddEntry(grSource,
@@ -243,7 +243,7 @@ void SourcePlay() {
 int main(int argc, char* argv[]) {
   DreamPlot::SetStyle();
   double* radius = new double[1];
-  radius[0] = 1.12;
+  radius[0] = 1.124;
 
   SourcePlay();
 
@@ -269,6 +269,14 @@ int main(int argc, char* argv[]) {
   Kitty.KillTheCat();
   auto Ck_Haidenbauer = new DLM_Ck(1, 0, Kitty);
 
+  // Haidenbauer with resonances
+  CATS ResonantKitty;
+  tidy->GetCatsProtonSigma0(&ResonantKitty, momBins, kmin, kmax,
+                            TidyCats::sResonance, TidyCats::pSigma0Haidenbauer);
+  ResonantKitty.KillTheCat();
+  auto Ck_ResonantHaidenbauer = new DLM_Ck(1, 0, ResonantKitty);
+  Ck_ResonantHaidenbauer->SetSourcePar(0, 0.72);
+  Ck_ResonantHaidenbauer->Update();
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Smearing
   auto grTotalHaidenbauerSmeared = new TGraph();
@@ -369,6 +377,11 @@ int main(int argc, char* argv[]) {
   auto grTotalHaidenbauer = new TGraph();
   grTotalHaidenbauer->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
   grTotalHaidenbauer->SetLineWidth(2);
+  DreamPlot::SetStyleGraph(grTotalHaidenbauer, 20, kBlack);
+  auto grTotalResonantHaidenbauer = new TGraph();
+  grTotalResonantHaidenbauer->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grTotalResonantHaidenbauer->SetLineWidth(2);
+  DreamPlot::SetStyleGraph(grTotalResonantHaidenbauer, 20, kGreen + 2);
   auto grSingletHaidenbauer = new TGraph();
   grSingletHaidenbauer->SetLineWidth(2);
   grSingletHaidenbauer->SetLineStyle(2);
@@ -418,6 +431,11 @@ int main(int argc, char* argv[]) {
                                    1 + 0.75 * (Kitty.GetCorrFun(i) - 1));
   }
 
+  for (unsigned int i = 0; i < Ck_ResonantHaidenbauer->GetNbins(); ++i) {
+    const float mom = ResonantKitty.GetMomentum(i);
+    grTotalResonantHaidenbauer->SetPoint(i, mom, ResonantKitty.GetCorrFun(i));
+  }
+
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Plotting
 
@@ -433,7 +451,7 @@ int main(int argc, char* argv[]) {
   auto leg = new TLegend(0.6, 0.6, 0.89, 0.84);
   leg->SetBorderSize(0);
   leg->SetTextFont(42);
-  leg->SetHeader(Form("#it{r}_{0} = %.2f fm", radius[0]));
+  leg->SetHeader(Form("#it{r}_{0} = %.3f fm", radius[0]));
   leg->AddEntry(grTotalLednicky, "Total", "l");
   leg->AddEntry(grSingletLednicky, "Singlet", "l");
   leg->AddEntry(grTripletLednicky, "Triplet", "l");
@@ -458,7 +476,7 @@ int main(int argc, char* argv[]) {
   auto leg2 = new TLegend(0.5, 0.6, 0.89, 0.84);
   leg2->SetBorderSize(0);
   leg2->SetTextFont(42);
-  leg2->SetHeader(Form("#it{r}_{0} = %.2f fm", radius[0]));
+  leg2->SetHeader(Form("#it{r}_{0} = %.3f fm", radius[0]));
   leg2->AddEntry(grTotalLednicky, "Model", "l");
   leg2->AddEntry(grTotalLednickySmeared, "Smeared", "l");
   leg2->AddEntry(grTotalLednickyLambda, "Lambda param", "l");
@@ -474,4 +492,17 @@ int main(int argc, char* argv[]) {
   leg2->Draw("same");
   f->Print("CF_Haidenbauer_smeared.pdf");
 
+  auto g = new TCanvas();
+  grTotalHaidenbauer->Draw("AL");
+  grTotalResonantHaidenbauer->Draw("Lsame");
+  auto leg3 = new TLegend(0.45, 0.72, 0.84, 0.84);
+  leg3->SetBorderSize(0);
+  leg3->SetTextFont(42);
+  leg3->AddEntry(grTotalHaidenbauer,
+                 Form("Gaussian source #it{r}_{0} = %.3f fm", radius[0]), "l");
+  leg3->AddEntry(grTotalResonantHaidenbauer,
+                 "p#minus#Sigma^{0} #LT #it{m}_{T} #GT = 2.07 GeV/#it{c}^{2}",
+                 "l");
+  leg3->Draw("same");
+  g->Print("CF_Haidenbauer_resonances.pdf");
 }
