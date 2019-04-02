@@ -21,7 +21,8 @@ TidyCats::TidyCats()
       fpLCleverMcLevy(nullptr),
       fpXimCleverLevy(nullptr),
       fpXimCleverMcLevy(nullptr),
-      fpXim1530CleverLevy(nullptr) {
+      fpXim1530CleverLevy(nullptr),
+      fpSigma0CleverMcLevy(nullptr) {
 }
 
 TidyCats::~TidyCats() {
@@ -45,6 +46,9 @@ TidyCats::~TidyCats() {
   }
   if (fpXim1530CleverLevy) {
     delete fpXim1530CleverLevy;
+  }
+  if (fpSigma0CleverMcLevy) {
+    delete fpSigma0CleverMcLevy;
   }
 }
 
@@ -587,6 +591,70 @@ void TidyCats::GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins,
   AB_pXim1530->SetRedMass((Mass_p * Mass_Xim1530) / (Mass_p + Mass_Xim1530));
 
   return;
+}
+
+void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
+                                   double kMax, TidyCats::Sources source,
+                                   TidyCats::pSigma0Pot pot) {
+  const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
+      * 1000;
+  const double massSigma0 = TDatabasePDG::Instance()->GetParticle(3212)->Mass()
+      * 1000;
+  double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
+  CATSparameters* cPars = nullptr;
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.3);
+      AB_pSigma0->SetAnaSource(GaussSource, *cPars);
+      break;
+    case TidyCats::sResonance:
+      fpSigma0CleverMcLevy = new DLM_CleverMcLevyReso();
+      fpSigma0CleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+      fpSigma0CleverMcLevy->InitScale(35, 0.25, 2.0);
+      fpSigma0CleverMcLevy->InitRad(512, 0, 64);
+      fpSigma0CleverMcLevy->InitType(2);
+      fpSigma0CleverMcLevy->InitReso(0, 1);
+      fpSigma0CleverMcLevy->InitReso(1, 1);
+      fpSigma0CleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65,
+                                      massProton, massPion);
+      fpSigma0CleverMcLevy->SetUpReso(1, 0, 1. - 0.3735, 1581.73, 4.28,
+                                      massSigma0, massPion);
+      fpSigma0CleverMcLevy->InitNumMcIter(1000000);
+      AB_pSigma0->SetAnaSource(CatsSourceForwarder, fpSigma0CleverMcLevy, 2);
+      AB_pSigma0->SetAnaSource(0, 0.72);  //r0
+      AB_pSigma0->SetAnaSource(1, 2.0);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
+      break;
+    default:
+      std::cout << "Source not implemented \n";
+      break;
+  }
+
+  AB_pSigma0->SetMomBins(momBins, kMin, kMax);
+  AB_pSigma0->SetUseAnalyticSource(true);
+  AB_pSigma0->SetMomentumDependentSource(false);
+  AB_pSigma0->SetThetaDependentSource(false);
+  AB_pSigma0->SetExcludeFailedBins(false);
+  DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+  switch (pot) {
+    case TidyCats::pSigma0Haidenbauer:
+#ifdef __APPLE__
+      ExternalWF = Init_pSigma0_Haidenbauer(
+          "/Users/amathis/CERNHome/Sigma0/HaidenbauerWF/", AB_pSigma0);
+#else
+      ExternalWF = Init_pSigma0_Haidenbauer(
+          "/home/amathis/CERNhome/Sigma0/HaidenbauerWF/", AB_pSigma0);
+#endif
+      for (unsigned uCh = 0; uCh < AB_pSigma0->GetNumChannels(); uCh++) {
+        AB_pSigma0->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
+                                            ExternalWF[1][uCh][0]);
+      }
+      CleanUpWfHisto(AB_pSigma0->GetNumChannels(), ExternalWF);
+      break;
+    default:
+      std::cout << "Potential not implemented \n";
+      break;
+  }
 }
 
 double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {

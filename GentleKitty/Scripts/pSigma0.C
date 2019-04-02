@@ -319,31 +319,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
       kMax_pSigma_Haidenbauer += binwidth;
       ++NumMomBins_pSigma_Haidenbauer;
     }
-    AB_pSigma0.SetMomBins(NumMomBins_pSigma_Haidenbauer, kMin_pSigma,
-                          kMax_pSigma_Haidenbauer);
-    CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1,
-                                               true);
-    cPars->SetParameter(0, ppRadius);
-    AB_pSigma0.SetAnaSource(GaussSource, *cPars);
-    AB_pSigma0.SetUseAnalyticSource(true);
-    AB_pSigma0.SetMomentumDependentSource(false);
-    AB_pSigma0.SetThetaDependentSource(false);
-    AB_pSigma0.SetExcludeFailedBins(false);
-    DLM_Histo<complex<double>>*** ExternalWF = nullptr;
-#ifdef __APPLE__
-    ExternalWF = Init_pSigma0_Haidenbauer(
-        "/Users/amathis/CERNHome/Sigma0/HaidenbauerWF/", AB_pSigma0);
-#else
-    ExternalWF = Init_pSigma0_Haidenbauer(
-        "/home/amathis/CERNhome/Sigma0/HaidenbauerWF/", AB_pSigma0);
-#endif
-    for (unsigned uCh = 0; uCh < AB_pSigma0.GetNumChannels(); uCh++) {
-      AB_pSigma0.SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
-                                         ExternalWF[1][uCh][0]);
-    }
+    tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_Haidenbauer,
+                              kMin_pSigma, kMax_pSigma_Haidenbauer,
+                              TidyCats::sGaussian,
+                              TidyCats::pSigma0Haidenbauer);
     AB_pSigma0.KillTheCat();
     Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
-    CleanUpWfHisto(AB_pSigma0.GetNumChannels(), ExternalWF);
   }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

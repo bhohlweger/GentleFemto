@@ -34,6 +34,9 @@ class TidyCats {
     pLOLed,
     pLOWF
   };
+  enum pSigma0Pot {
+    pSigma0Haidenbauer
+  };
   TidyCats();
   virtual ~TidyCats();
   void GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin, double kMax,
@@ -48,6 +51,9 @@ class TidyCats {
                                   double cutOff);
   void GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins, double kMin,
                                 double kMax, TidyCats::Sources source);
+  void GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
+                           double kMax, TidyCats::Sources source,
+                           TidyCats::pSigma0Pot pot);
   static double ESC16_pXim_EXAMPLE(double* Parameters);
  private:
   DLM_CleverLevy* fppCleverLevy;
@@ -57,6 +63,7 @@ class TidyCats {
   DLM_CleverLevy* fpXimCleverLevy;
   DLM_CleverMcLevyReso* fpXimCleverMcLevy;
   DLM_CleverLevy* fpXim1530CleverLevy;
+  DLM_CleverMcLevyReso* fpSigma0CleverMcLevy;
 };
 
 #endif /* GENTLEKITTY_TIDYCATS_H_ */
