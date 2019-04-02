@@ -111,13 +111,10 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
 
 void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
   auto histPurityLambda = PeriodQAHist("histQALambda", "Purity #Lambda (%)");
-  auto histNLambda = PeriodQAHist("histNLambda", "#Lambda/Event");
   auto histPurityAntiLambda = PeriodQAHist("histQAAntiLambda",
                                            "Purity #bar{#Lambda} (%)");
-  auto histNAntiLambda = PeriodQAHist("histNAntiLambda", "#bar{#Lambda}/Event");
   auto histPuritySigma = PeriodQAHist("histQASigma",
                                            "Purity #Sigma^{0} #oplus #bar{#Sigma^{0}} (%)");
-  auto histNSigma = PeriodQAHist("histNSigma", "(#Sigma^{0} #oplus #bar{#Sigma^{0}})/Event");
 
   int i = 0;
   for (auto it : fPeriods) {
@@ -149,8 +146,6 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
       histPurityLambda->SetBinContent(i + 1, purity * 100.f);
       histPurityLambda->SetBinError(i + 1, purityErr * 100.f);
     }
-    histNLambda->SetBinContent(i+1, float(v0QA->GetSignalCounts()) / nEvents);
-    histNLambda->SetBinError(i+1, GetErrorNPart(nEvents, v0QA->GetSignalCounts(), v0QA->GetSignalCountsErr()));
     delete v0QA;
 
     DecayQA* antiv0QA = new DecayQA("#bar{#Lambda}", "p#pi");
@@ -165,8 +160,6 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
       histPurityAntiLambda->SetBinContent(i + 1, purity * 100.f);
       histPurityAntiLambda->SetBinError(i + 1, purityErr * 100.f);
     }
-    histNAntiLambda->SetBinContent(i+1, float(antiv0QA->GetSignalCounts()) / nEvents);
-    histNAntiLambda->SetBinError(i+1, GetErrorNPart(nEvents, antiv0QA->GetSignalCounts(), antiv0QA->GetSignalCountsErr()));
     delete antiv0QA;
 
     DecayQA* sigma0QA = new DecayQA("#Sigma", "#Lambda#gamma");
@@ -180,8 +173,6 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
       histPuritySigma->SetBinContent(i + 1, purity * 100.f);
       histPuritySigma->SetBinError(i + 1, purityErr * 100.f);
     }
-    histNSigma->SetBinContent(i+1, float(sigma0QA->GetSignalCounts()) / nEvents);
-    histNSigma->SetBinError(i+1, GetErrorNPart(nEvents, sigma0QA->GetSignalCounts(), sigma0QA->GetSignalCountsErr()));
 
     delete sigma0QA;
     delete reader;
@@ -191,26 +182,14 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
   histPurityLambda->Draw("PE");
   histPurityLambda->Fit("pol0");
   c->Print("PeriodQALambda.pdf");
-  auto c2 = new TCanvas();
-  histNLambda->Draw("PE");
-  histNLambda->Fit("pol0");
-  c2->Print("PeriodQANLambda.pdf");
   auto d = new TCanvas();
   histPurityAntiLambda->Draw("PE");
   histPurityAntiLambda->Fit("pol0");
   d->Print("PeriodQAAntiLambda.pdf");
-  auto d2 = new TCanvas();
-  histNAntiLambda->Draw("PE");
-  histNAntiLambda->Fit("pol0");
-  d2->Print("PeriodQANAntiLambda.pdf");
   auto e = new TCanvas();
   histPuritySigma->Draw("PE");
   histPuritySigma->Fit("pol0");
   e->Print("PeriodQASigma.pdf");
-  auto e2 = new TCanvas();
-  histNSigma->Draw("PE");
-  histNSigma->Fit("pol0");
-  e2->Print("PeriodQANSigma.pdf");
 }
 
 TH1F* PeriodQA::PeriodQAHist(const char* name, const char* title) {
