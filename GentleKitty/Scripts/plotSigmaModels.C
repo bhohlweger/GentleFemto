@@ -14,6 +14,8 @@
 #include "CATSInputSigma0.h"
 #include "DLM_CkDecomposition.h"
 #include "CATSLambdaParam.h"
+#include "TDatabasePDG.h"
+#include "TidyCats.h"
 
 /// =====================================================================================
 double Lednicky_gauss_Sigma0(const double& Momentum, const double* SourcePar,
@@ -172,10 +174,78 @@ double Lednicky_gauss_Sigma0(const double& Momentum, const double* SourcePar,
 }
 
 /// =====================================================================================
+void SourcePlay() {
+  const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
+      * 1000;
+  const double massSigma0 = TDatabasePDG::Instance()->GetParticle(3212)->Mass()
+      * 1000;
+  double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
+
+  DLM_CleverMcLevyReso* CleverMcLevyReso = new DLM_CleverMcLevyReso();
+  CleverMcLevyReso->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+  CleverMcLevyReso->InitScale(35, 0.25, 2.0);
+  CleverMcLevyReso->InitRad(512, 0, 64);
+  CleverMcLevyReso->InitType(2);
+  CleverMcLevyReso->InitReso(0, 1);
+  CleverMcLevyReso->InitReso(1, 1);
+  CleverMcLevyReso->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+                              massPion);
+  CleverMcLevyReso->SetUpReso(1, 0, 1. - 0.3735, 1581.73, 4.28, massSigma0,
+                              massPion);
+  CleverMcLevyReso->InitNumMcIter(1000000);
+
+  CATS cats;
+  cats.SetAnaSource(CatsSourceForwarder, CleverMcLevyReso, 2);
+  cats.SetAnaSource(0, 0.72);  // this is the radius for this mT
+  cats.SetAnaSource(1, 2.0);
+
+  auto grSource = new TGraph();
+  DreamPlot::SetStyleGraph(grSource, 20, kBlue + 3);
+  grSource->SetLineWidth(2);
+  grSource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
+
+  for (double i = 0; i < 150; ++i) {
+    grSource->SetPoint(i, i * 0.1, cats.EvaluateTheSource(0, i * 0.1, 0));
+  }
+
+  auto gaussFit =
+      new TF1(
+          "gaus",
+          [&](double *x, double *p) {return
+            4. * TMath::Pi() * x[0] * x[0] / std::pow((4. * TMath::Pi() * p[0] * p[0]), 1.5) *
+            std::exp(-x[0] * x[0] / (4. * p[0] * p[0]));
+          },
+          0, 10, 1);
+  gaussFit->SetParameter(0, 1.3);
+  gaussFit->SetNpx(1000);
+  gaussFit->SetLineColor(kBlue + 2);
+  gaussFit->SetLineWidth(2);
+  gaussFit->SetLineStyle(2);
+
+  auto c = new TCanvas();
+  grSource->Draw("AL");
+  grSource->GetXaxis()->SetRangeUser(0, 12);
+  grSource->Fit(gaussFit, "", "R", 0, 6);
+  auto leg = new TLegend(0.4, 0.7, 0.85, 0.85);
+  leg->SetTextFont(42);
+  leg->AddEntry(grSource,
+                "p#minus#Sigma^{0} #LT #it{m}_{T} #GT = 2.07 GeV/#it{c}^{2}",
+                "l");
+  leg->AddEntry(
+      gaussFit,
+      Form("Gauss fit #it{r}_{G, eff} = %.3f fm", gaussFit->GetParameter(0)),
+      "l");
+  leg->Draw("same");
+  c->Print("ResonanceSource.pdf");
+}
+
+/// =====================================================================================
 int main(int argc, char* argv[]) {
   DreamPlot::SetStyle();
   double* radius = new double[1];
   radius[0] = 1.12;
+
+  SourcePlay();
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Calibration
@@ -192,30 +262,12 @@ int main(int argc, char* argv[]) {
   int momBins = 40;
   int kmin = 1;
   int kmax = 320;
+  TidyCats* tidy = new TidyCats();
   CATS Kitty;
-  Kitty.SetMomBins(momBins, kmin, kmax);
-  CATSparameters* cPars = new CATSparameters(CATSparameters::tSource, 1, true);
-  cPars->SetParameter(0, radius[0]);
-  Kitty.SetAnaSource(GaussSource, *cPars);
-  Kitty.SetUseAnalyticSource(true);
-  Kitty.SetMomentumDependentSource(false);
-  Kitty.SetThetaDependentSource(false);
-  Kitty.SetExcludeFailedBins(false);
-  DLM_Histo<complex<double>>*** ExternalWF = NULL;
-#ifdef __APPLE__
-  ExternalWF = Init_pSigma0_Haidenbauer(
-      "/Users/amathis/CERNHome/Sigma0/HaidenbauerWF/", Kitty);
-#else
-  ExternalWF = Init_pSigma0_Haidenbauer(
-      "/home/amathis/CERNhome/Sigma0/HaidenbauerWF/", Kitty);
-#endif
-  for (unsigned uCh = 0; uCh < Kitty.GetNumChannels(); uCh++) {
-    Kitty.SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
-                                  ExternalWF[1][uCh][0]);
-  }
+  tidy->GetCatsProtonSigma0(&Kitty, momBins, kmin, kmax, TidyCats::sGaussian,
+                            TidyCats::pSigma0Haidenbauer);
   Kitty.KillTheCat();
   auto Ck_Haidenbauer = new DLM_Ck(1, 0, Kitty);
-  CleanUpWfHisto(Kitty.GetNumChannels(), ExternalWF);
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Smearing
