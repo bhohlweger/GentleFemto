@@ -85,7 +85,7 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
     anticascQA->GetPeriodQA(1.317, 1.327, { "Cascade" }, "InvMassXi");
     purity = anticascQA->GetPurity();
     if (purity > 1E-6) {
-      histPurityXi->SetBinContent(i + 1, purity * 100.f);
+      histPurityAntiXi->SetBinContent(i + 1, purity * 100.f);
     }
 
     delete v0QA;
