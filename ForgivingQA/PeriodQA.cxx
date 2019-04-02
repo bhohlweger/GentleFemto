@@ -34,11 +34,14 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
   auto histPurityLambda = PeriodQAHist("histQALambda", "Purity #Lambda (%)");
   auto histPurityAntiLambda = PeriodQAHist("histQAAntiLambda",
                                            "Purity #bar{#Lambda} (%)");
+  auto histPurityXi = PeriodQAHist("histQAXi", "Purity #Xi (%)");
+  auto histPurityAntiXi = PeriodQAHist("histQAAntiXi",
+                                           "Purity #bar{#Xi} (%)");
 
   int i = 0;
   for (auto it : fPeriods) {
     TString filename = fDirectory.Data();
-    filename += "AnalysisResults_";
+    filename += "/AnalysisResults_";
     filename += it;
     filename += ".root";
     ForgivingReader* reader = new ForgivingReader(filename.Data(), prefix,
@@ -48,7 +51,7 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
     v0QA->SetCanvasDivisions(5, 2);
     v0QA->SetIMHistoScale(1.75, 0.8, 0.35);
     v0QA->SetRangesFitting(1.109, 1.121, 1.09, 1.15);
-    v0QA->GetPeriodQA(1.112, 1.120, it.Data());
+    v0QA->GetPeriodQA(1.112, 1.120, { "v0Cuts" }, "InvMassPt");
     float purity = v0QA->GetPurity();
     if (purity > 1E-6) {
       histPurityLambda->SetBinContent(i + 1, purity * 100.f);
@@ -59,13 +62,36 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
     antiv0QA->SetCanvasDivisions(5, 2);
     antiv0QA->SetIMHistoScale(1.75, 0.8, 0.35);
     antiv0QA->SetRangesFitting(1.109, 1.121, 1.09, 1.15);
-    antiv0QA->GetPeriodQA(1.112, 1.120, it.Data());
+    antiv0QA->GetPeriodQA(1.112, 1.120, { "v0Cuts" }, "InvMassPt");
     purity = antiv0QA->GetPurity();
     if (purity > 1E-6) {
       histPurityAntiLambda->SetBinContent(i + 1, purity * 100.f);
     }
+    DecayQA* cascQA = new DecayQA("#Xi^{-}","#pi#Lambda");
+    cascQA->SetDecayCuts(reader->GetCascadeCuts());
+    cascQA->SetCanvasDivisions(4, 3);
+    cascQA->SetIMHistoScale(2.5,0.8,0.45);
+    cascQA->SetRangesFitting(1.31, 1.33, 1.3, 1.35);
+    cascQA->GetPeriodQA(1.317, 1.327, { "Cascade" }, "InvMassXi");
+    purity = cascQA->GetPurity();
+    if (purity > 1E-6) {
+      histPurityXi->SetBinContent(i + 1, purity * 100.f);
+    }
+    DecayQA* anticascQA = new DecayQA("#Xi^{-}","#pi#Lambda");
+    anticascQA->SetDecayCuts(reader->GetCascadeCuts());
+    anticascQA->SetCanvasDivisions(4, 3);
+    anticascQA->SetIMHistoScale(2.5,0.8,0.45);
+    anticascQA->SetRangesFitting(1.31, 1.33, 1.3, 1.35);
+    anticascQA->GetPeriodQA(1.317, 1.327, { "Cascade" }, "InvMassXi");
+    purity = anticascQA->GetPurity();
+    if (purity > 1E-6) {
+      histPurityXi->SetBinContent(i + 1, purity * 100.f);
+    }
+
     delete v0QA;
     delete antiv0QA;
+    delete cascQA;
+    delete anticascQA;
     delete reader;
     ++i;
   }
@@ -75,6 +101,12 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
   auto d = new TCanvas();
   histPurityAntiLambda->Draw();
   d->Print("PeriodQAAntiLambda.pdf");
+  auto e = new TCanvas();
+  histPurityXi->Draw();
+  e->Print("PeriodQAXi.pdf");
+  auto f = new TCanvas();
+  histPurityAntiXi->Draw();
+  f->Print("PeriodQAAntiXi.pdf");
 }
 
 void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {

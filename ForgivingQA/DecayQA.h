@@ -15,7 +15,7 @@
 
 class DecayQA {
  public:
-  DecayQA(const char* partLatex,const char* latexProducts);
+  DecayQA(const char* partLatex, const char* latexProducts);
   virtual ~DecayQA();
   void SetDecayCuts(TList* DecayCuts) {
     fDecayCuts = DecayCuts;
@@ -28,7 +28,8 @@ class DecayQA {
   void InvariantMassLambda(float CutMin, float CutMax);
   void InvariantMassLambdaSigma0(float CutMin, float CutMax);
   void InvariantMassSigma0(float massCuts);
-  void GetPeriodQA(float CutMin, float CutMax, const char* period);
+  void GetPeriodQA(float CutMin, float CutMax,
+                   std::vector<const char*> pathToList, const char* histname);
   void GetPeriodQASigma(float CutMin, float CutMax, const char* period);
   void GetPeriodQASigma0(float massCuts, const char* period);
   void InvariantMassXi(float CutMin, float CutMax);
@@ -43,7 +44,8 @@ class DecayQA {
                         float bkgMax);
   void SetInvMasspTStartBin(unsigned int start) {
     fInvMassPtStartBin = start;
-  };
+  }
+  ;
   void PlotQATopologyLambda();
   void PlotQATopologyLambda(TList *v0Cuts, const char* outname);
   void PlotQATopologySigma0Daughter(TList *v0Cuts, const char* outname);
@@ -53,13 +55,26 @@ class DecayQA {
     fScaleMax = scaleMaximum;
     fTexOffX = TexOffX;
     fTexOffY = TexOffY;
-  };
-  double GetSignalCounts() const { return fFitter->GetSignalCounts(); }
-  double GetSignalCountsErr() const { return fFitter->GetSignalCountsErr(); }
-  double GetBackgroundCounts() const { return fFitter->GetBackgroundCounts(); }
-  double GetBackgroundCountsErr() const { return fFitter->GetBackgroundCountsErr(); }
-  double GetPurity() const { return fFitter->GetPurity(); }
-  double GetPurityErr() const { return fFitter->GetPurityErr(); }
+  }
+  ;
+  double GetSignalCounts() const {
+    return fFitter->GetSignalCounts();
+  }
+  double GetSignalCountsErr() const {
+    return fFitter->GetSignalCountsErr();
+  }
+  double GetBackgroundCounts() const {
+    return fFitter->GetBackgroundCounts();
+  }
+  double GetBackgroundCountsErr() const {
+    return fFitter->GetBackgroundCountsErr();
+  }
+  double GetPurity() const {
+    return fFitter->GetPurity();
+  }
+  double GetPurityErr() const {
+    return fFitter->GetPurityErr();
+  }
  private:
   void FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                         const char* outname);

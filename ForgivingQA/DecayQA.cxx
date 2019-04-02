@@ -52,33 +52,37 @@ void DecayQA::InvariantMassLambda(float CutMin, float CutMax) {
 }
 
 void DecayQA::InvariantMassLambdaSigma0(float CutMin, float CutMax) {
-  auto invMassPart = (TH2F*)fReader->Get2DHistInList(fDecayCuts, "InvMassPt");
+  auto invMassPart = (TH2F*) fReader->Get2DHistInList(fDecayCuts, "InvMassPt");
   invMassPart->RebinX(10);
   FitInvariantMass(invMassPart, CutMin, CutMax, "Lambda");
   PlotKaonRejection(
-      (TH1F*)fReader->Get1DHistInList(fDecayCuts, "fHistK0MassAfter"),
+      (TH1F*) fReader->Get1DHistInList(fDecayCuts, "fHistK0MassAfter"),
       "Lambda");
 
-  auto invMassAntiPart =
-      (TH2F*)fReader->Get2DHistInList(fAntiDecayCuts, "InvMassPt");
+  auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(fAntiDecayCuts,
+                                                          "InvMassPt");
   invMassAntiPart->RebinX(10);
   FitInvariantMass(invMassAntiPart, CutMin, CutMax, "AntiLambda");
   PlotKaonRejection(
-      (TH1F*)fReader->Get1DHistInList(fAntiDecayCuts, "fHistK0MassAfter"),
+      (TH1F*) fReader->Get1DHistInList(fAntiDecayCuts, "fHistK0MassAfter"),
       "AntiLambda");
 }
 
 void DecayQA::InvariantMassSigma0(float massCuts) {
-  auto invMassPart = (TH2F*)fReader->Get2DHistInList(fDecayCuts, "fHistInvMassPtRaw");
-  auto invMassAntiPart = (TH2F*)fReader->Get2DHistInList(fAntiDecayCuts, "fHistInvMassPtRaw");
+  auto invMassPart = (TH2F*) fReader->Get2DHistInList(fDecayCuts,
+                                                      "fHistInvMassPtRaw");
+  auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(fAntiDecayCuts,
+                                                          "fHistInvMassPtRaw");
   invMassPart->Add(invMassAntiPart);
   invMassPart->RebinX(20);
   FitInvariantMassSigma0(invMassPart, massCuts, "Sigma0");
 }
 
-void DecayQA::GetPeriodQA(float CutMin, float CutMax, const char* period) {
+void DecayQA::GetPeriodQA(float CutMin, float CutMax,
+                          std::vector<const char*> pathToList,
+                          const char* histname) {
   auto invMassPart = (TH2F*) fReader->Get2DHistInList(
-      fReader->GetListInList(fDecayCuts, { "v0Cuts" }), "InvMassPt");
+      fReader->GetListInList(fDecayCuts, pathToList), histname);
   auto* invMass = (TH1F*) invMassPart->ProjectionY("InvMassClone", 0, -1, "e");
   fFitter->FitInvariantMass(invMass, CutMin, CutMax);
 }
@@ -91,8 +95,10 @@ void DecayQA::GetPeriodQASigma(float CutMin, float CutMax, const char* period) {
 }
 
 void DecayQA::GetPeriodQASigma0(float massCuts, const char* period) {
-  auto invMasspT = (TH2F*) fReader->Get2DHistInList(fDecayCuts, "fHistInvMassPtRaw");
-  auto invMassAntiPart = (TH2F*)fReader->Get2DHistInList(fAntiDecayCuts, "fHistInvMassPtRaw");
+  auto invMasspT = (TH2F*) fReader->Get2DHistInList(fDecayCuts,
+                                                    "fHistInvMassPtRaw");
+  auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(fAntiDecayCuts,
+                                                          "fHistInvMassPtRaw");
   invMasspT->Add(invMassAntiPart);
   auto invMass = (TH1F*) invMasspT->ProjectionY("InvMassClone", 0, -1, "e");
   fFitter->FitInvariantMassSigma(invMass, massCuts);
@@ -126,9 +132,11 @@ void DecayQA::IvariantMassXiLambda() {
   fFitter->ShittyInvariantMass(invMassAntiLa, cInvALa, 0.2, 6.3, "#Lambda");
   cInvALa->SaveAs("InvariantMassAXiALa.pdf");
 
-  auto cInvLapT = new TCanvas("InvMassXiLaPT", "InvMassXiLaPT", 0, 0, 2000, 1500);
+  auto cInvLapT = new TCanvas("InvMassXiLaPT", "InvMassXiLaPT", 0, 0, 2000,
+                              1500);
   cInvLapT->Divide(4, 3);
-  auto cInvALapT = new TCanvas("InvMassAXiALaPT", "InvMassAXiALaPT", 0, 0, 2000, 1500);
+  auto cInvALapT = new TCanvas("InvMassAXiALaPT", "InvMassAXiALaPT", 0, 0, 2000,
+                               1500);
   cInvALapT->Divide(4, 3);
   for (int iPt = 1; iPt <= invMassXiLa->GetXaxis()->GetNbins(); ++iPt) {
     TPad* tmppadLa = (TPad*) cInvLapT->cd(iPt);
@@ -144,7 +152,8 @@ void DecayQA::IvariantMassXiLambda() {
         Form("invMassALaPt_%u", iPt + 1), iPt + 1, iPt + 1, "e");
     fHairyPlotter->FormatSmallHistogram(invMassALapT, 0, 0);
     fFitter->ShittyInvariantMass(
-        invMassALapT, tmppadALa, invMassAntiXiLa->GetXaxis()->GetBinLowEdge(iPt + 1),
+        invMassALapT, tmppadALa,
+        invMassAntiXiLa->GetXaxis()->GetBinLowEdge(iPt + 1),
         invMassAntiXiLa->GetXaxis()->GetBinUpEdge(iPt + 1), "#Lambda");
   }
   cInvLapT->SaveAs("InvMassXiLaPt.pdf");
@@ -235,8 +244,8 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
 
-
-void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts, const char* outname) {
+void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
+                                     const char* outname) {
   //First project the whole thing into one bin
   auto* cMassIntegrated = new TCanvas(Form("cInt%s", outname),
                                       Form("cInt%s", outname));
@@ -263,61 +272,61 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts, const char
                           invMass->GetMaximum() * 0.5);
   cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
   auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname));
-    cMassBins->Divide(fDivCanX, fDivCanY);
-    if (invMasspT->GetXaxis()->GetNbins() > fDivCanX * fDivCanY) {
-      std::cerr << "FitInvariantMass: Number of divisions not sufficient"
-                " to plot all pT bins: \n"
-                << "pT Bins: " << invMasspT->GetXaxis()->GetNbins() << '\n';
+  cMassBins->Divide(fDivCanX, fDivCanY);
+  if (invMasspT->GetXaxis()->GetNbins() > fDivCanX * fDivCanY) {
+    std::cerr << "FitInvariantMass: Number of divisions not sufficient"
+              " to plot all pT bins: \n"
+              << "pT Bins: " << invMasspT->GetXaxis()->GetNbins() << '\n';
+  }
+  auto* Purity = new TH1F(Form("%sPurity", outname), Form("%sPurity", outname),
+                          invMasspT->GetXaxis()->GetNbins(),
+                          invMasspT->GetXaxis()->GetXmin(),
+                          invMasspT->GetXaxis()->GetXmax());
+  Purity->GetXaxis()->SetTitle("p_{T} (GeV/#it{c})");
+  Purity->GetYaxis()->SetTitle(
+      Form("Purity / %.1f (GeV/#it{c})^{-1}", Purity->GetBinWidth(1)));
+  for (int ipT = fInvMassPtStartBin;
+      ipT < invMasspT->GetXaxis()->GetNbins() + 1; ++ipT) {
+    unsigned int iPad = 0;
+    if (fInvMassPtStartBin != 1) {
+      iPad = ipT - fInvMassPtStartBin + 1;
+    } else {
+      iPad = ipT;
     }
-    auto* Purity = new TH1F(Form("%sPurity", outname), Form("%sPurity", outname),
-                            invMasspT->GetXaxis()->GetNbins(),
-                            invMasspT->GetXaxis()->GetXmin(),
-                            invMasspT->GetXaxis()->GetXmax());
-    Purity->GetXaxis()->SetTitle("p_{T} (GeV/#it{c})");
-    Purity->GetYaxis()->SetTitle(
-        Form("Purity / %.1f (GeV/#it{c})^{-1}", Purity->GetBinWidth(1)));
-    for (int ipT = fInvMassPtStartBin;
-        ipT < invMasspT->GetXaxis()->GetNbins() + 1; ++ipT) {
-      unsigned int iPad = 0;
-      if (fInvMassPtStartBin != 1) {
-        iPad = ipT - fInvMassPtStartBin + 1;
-      } else {
-        iPad = ipT;
-      }
-      TPad* CurrentPad = (TPad*) cMassBins->cd(iPad);
-      CurrentPad->SetTopMargin(0.08);
-      CurrentPad->SetRightMargin(0.03);
-      auto invMasspTBin = (TH1F*) invMasspT->ProjectionY(
-          Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
-      fFitter->FitInvariantMassSigma(invMasspTBin, massCuts);
-      invMasspTBin->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
-      invMasspTBin->GetYaxis()->SetRangeUser(
-          0, invMasspTBin->GetMaximum() * fScaleMax);
-      invMasspTBin->GetXaxis()->SetTitle(
-          Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
-      invMasspTBin->GetXaxis()->SetNdivisions(420);
-      invMasspTBin->GetXaxis()->SetMaxDigits(2);
-      invMasspTBin->GetYaxis()->SetMaxDigits(2);
-      invMasspTBin->GetYaxis()->SetNdivisions(210);
-      fHairyPlotter->FormatSmallHistogram(invMasspTBin, 0, 0, 0.7);
-      fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad, "");
-      fHairyPlotter->DrawLatexLabel(invMasspT->GetXaxis()->GetBinLowEdge(ipT),
-                                    invMasspT->GetXaxis()->GetBinUpEdge(ipT),
-                                    fFitter, CurrentPad, fPartLatex, fTexOffX,
-                                    fTexOffY);
-      fHairyPlotter->DrawLine(CurrentPad, CutMin, CutMin, 0,
-                              invMasspTBin->GetMaximum() * 0.5);
-      fHairyPlotter->DrawLine(CurrentPad, CutMax, CutMax, 0,
-                              invMasspTBin->GetMaximum() * 0.5);
-      float signal = (float) fFitter->GetSignalCounts();
-      float background = (float) fFitter->GetBackgroundCounts();
-      Purity->SetBinContent(ipT, fFitter->GetPurity());
-      Purity->SetBinError(ipT, fFitter->GetPurityErr());
-    }
-    Purity->GetYaxis()->SetRangeUser(0.1, 0.7);
-    cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
-    fHairyPlotter->FormatHistogram(Purity, 0, 0, 1.5);
-    fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
+    TPad* CurrentPad = (TPad*) cMassBins->cd(iPad);
+    CurrentPad->SetTopMargin(0.08);
+    CurrentPad->SetRightMargin(0.03);
+    auto invMasspTBin = (TH1F*) invMasspT->ProjectionY(
+        Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
+    fFitter->FitInvariantMassSigma(invMasspTBin, massCuts);
+    invMasspTBin->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
+    invMasspTBin->GetYaxis()->SetRangeUser(
+        0, invMasspTBin->GetMaximum() * fScaleMax);
+    invMasspTBin->GetXaxis()->SetTitle(
+        Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
+    invMasspTBin->GetXaxis()->SetNdivisions(420);
+    invMasspTBin->GetXaxis()->SetMaxDigits(2);
+    invMasspTBin->GetYaxis()->SetMaxDigits(2);
+    invMasspTBin->GetYaxis()->SetNdivisions(210);
+    fHairyPlotter->FormatSmallHistogram(invMasspTBin, 0, 0, 0.7);
+    fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad, "");
+    fHairyPlotter->DrawLatexLabel(invMasspT->GetXaxis()->GetBinLowEdge(ipT),
+                                  invMasspT->GetXaxis()->GetBinUpEdge(ipT),
+                                  fFitter, CurrentPad, fPartLatex, fTexOffX,
+                                  fTexOffY);
+    fHairyPlotter->DrawLine(CurrentPad, CutMin, CutMin, 0,
+                            invMasspTBin->GetMaximum() * 0.5);
+    fHairyPlotter->DrawLine(CurrentPad, CutMax, CutMax, 0,
+                            invMasspTBin->GetMaximum() * 0.5);
+    float signal = (float) fFitter->GetSignalCounts();
+    float background = (float) fFitter->GetBackgroundCounts();
+    Purity->SetBinContent(ipT, fFitter->GetPurity());
+    Purity->SetBinError(ipT, fFitter->GetPurityErr());
+  }
+  Purity->GetYaxis()->SetRangeUser(0.1, 0.7);
+  cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
+  fHairyPlotter->FormatHistogram(Purity, 0, 0, 1.5);
+  fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
 
 void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname) {
@@ -445,10 +454,9 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
 
 void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   // DCA daughters at the decay vertex
-  auto dcaDaugVtx = (TH1F*)(fReader->Get2DHistInList(
-                                fReader->GetListInList(v0Cuts, {"After"}),
-                                "fHistDCADaughtersAfter"))
-                        ->ProjectionY();
+  auto dcaDaugVtx = (TH1F*) (fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "After" }), "fHistDCADaughtersAfter"))
+      ->ProjectionY();
   if (!dcaDaugVtx) {
     std::cerr << "dcaDaugter To Vtx is missing for " << outname << std::endl;
   }
@@ -456,13 +464,14 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   dcaDaugVtx->GetXaxis()->SetTitle("DCA(daughters at decay vtx) (cm)");
   dcaDaugVtx->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(dcaDaugVtx, 0, 1);
-  fHairyPlotter->DrawAndStore({dcaDaugVtx}, Form("%sdcaDaugDecVtx", outname));
+  fHairyPlotter->DrawAndStore( { dcaDaugVtx },
+                              Form("%sdcaDaugDecVtx", outname));
 
   // Transverse radius
-  auto v0TRad = (TH1F*)(fReader->Get2DHistInList(
-                            fReader->GetListInList(v0Cuts, {"After"}),
-                            "fHistTransverseRadiusAfter"))
-                    ->ProjectionY();
+  auto v0TRad =
+      (TH1F*) (fReader->Get2DHistInList(
+          fReader->GetListInList(v0Cuts, { "After" }),
+          "fHistTransverseRadiusAfter"))->ProjectionY();
   if (!v0TRad) {
     std::cerr << "Transverse Radius Distribution is missing for " << outname
               << std::endl;
@@ -471,13 +480,12 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   v0TRad->GetXaxis()->SetTitle("r_{xy} (cm)");
   v0TRad->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(v0TRad, 0, 1);
-  fHairyPlotter->DrawAndStore({v0TRad}, Form("%sTransRad", outname));
+  fHairyPlotter->DrawAndStore( { v0TRad }, Form("%sTransRad", outname));
 
   // DCA pos daughter to PV
-  auto DCAPos = (TH1F*)(fReader->Get2DHistInList(
-                            fReader->GetListInList(v0Cuts, {"V0_PosDaughter"}),
-                            "fHistSingleParticleDCAtoPVAfter_pos"))
-                    ->ProjectionY();
+  auto DCAPos = (TH1F*) (fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "V0_PosDaughter" }),
+      "fHistSingleParticleDCAtoPVAfter_pos"))->ProjectionY();
   if (!DCAPos) {
     std::cerr << "DCA Pos Daug Distribution is missing for " << outname
               << std::endl;
@@ -486,13 +494,12 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   DCAPos->GetXaxis()->SetTitle("DCA(Pos Daug,PV) (cm)");
   DCAPos->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(DCAPos, 0, 1);
-  fHairyPlotter->DrawLogYAndStore({DCAPos}, Form("%sDCAPVPosDaug", outname));
+  fHairyPlotter->DrawLogYAndStore( { DCAPos }, Form("%sDCAPVPosDaug", outname));
 
   // DCA neg daughter to PV
-  auto DCANeg = (TH1F*)(fReader->Get2DHistInList(
-                            fReader->GetListInList(v0Cuts, {"V0_NegDaughter"}),
-                            "fHistSingleParticleDCAtoPVAfter_neg"))
-                    ->ProjectionY();
+  auto DCANeg = (TH1F*) (fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "V0_NegDaughter" }),
+      "fHistSingleParticleDCAtoPVAfter_neg"))->ProjectionY();
   if (!DCANeg) {
     std::cerr << "DCA Pos Daug Distribution is missing for " << outname
               << std::endl;
@@ -501,11 +508,11 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   DCANeg->GetXaxis()->SetTitle("DCA(Neg Daug,PV) (cm)");
   DCANeg->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(DCANeg, 0, 1);
-  fHairyPlotter->DrawLogYAndStore({DCANeg}, Form("%sDCAPVNegDaug", outname));
+  fHairyPlotter->DrawLogYAndStore( { DCANeg }, Form("%sDCAPVNegDaug", outname));
 
   // pT
-  auto pTDist =
-      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "InvMassPt"))->ProjectionX();
+  auto pTDist = (TH1F*) (fReader->Get2DHistInList(v0Cuts, "InvMassPt"))
+      ->ProjectionX();
   if (!pTDist) {
     std::cerr << "pT Distribution missing for " << outname << std::endl;
   }
@@ -513,11 +520,11 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   pTDist->GetYaxis()->SetTitle(
       Form("Entries/ %.1f GeV/#it{c}", pTDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(pTDist, 0, 1);
-  fHairyPlotter->DrawLogYAndStore({pTDist}, Form("%spT", outname), "PE");
+  fHairyPlotter->DrawLogYAndStore( { pTDist }, Form("%spT", outname), "PE");
 
   // Phi
-  auto* phiDist =
-      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))->ProjectionY();
+  auto* phiDist = (TH1F*) (fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))
+      ->ProjectionY();
   if (!phiDist) {
     std::cerr << "phi Distribution missing for " << outname << std::endl;
   }
@@ -526,11 +533,11 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(phiDist, 0, 1);
-  fHairyPlotter->DrawAndStore({phiDist}, Form("%s_phi", outname));
+  fHairyPlotter->DrawAndStore( { phiDist }, Form("%s_phi", outname));
 
   // Eta
-  auto* etaDist =
-      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))->ProjectionX();
+  auto* etaDist = (TH1F*) (fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))
+      ->ProjectionX();
   if (!etaDist) {
     std::cerr << "eta Distribution missing for " << outname << std::endl;
   }
@@ -540,13 +547,12 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   etaDist->GetYaxis()->SetTitle(
       Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(etaDist, 0, 1);
-  fHairyPlotter->DrawAndStore({etaDist}, Form("%s_eta", outname), "hist");
+  fHairyPlotter->DrawAndStore( { etaDist }, Form("%s_eta", outname), "hist");
 
   // Cosine pointing angle
-  auto* cpa =
-      (TH1F*)(fReader->Get2DHistInList(
-                  fReader->GetListInList(v0Cuts, {"After"}), "fHistCosPAAfter"))
-          ->ProjectionY();
+  auto* cpa = (TH1F*) (fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "After" }), "fHistCosPAAfter"))
+      ->ProjectionY();
   if (!cpa) {
     std::cerr << "CPA is missing for " << outname << std::endl;
   }
@@ -554,25 +560,25 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   cpa->GetXaxis()->SetRangeUser(0.99, 1.);
   cpa->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(cpa, 0, 1);
-  fHairyPlotter->DrawAndStore({cpa}, Form("%sCPA", outname));
+  fHairyPlotter->DrawAndStore( { cpa }, Form("%sCPA", outname));
 }
 
 void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
   // Armenteros
-  TH2F* armenteros = (TH2F*)fReader->Get2DHistInList(
-      fReader->GetListInList(v0Cuts, {"After"}), "fHistArmenterosAfter");
+  TH2F* armenteros = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "After" }), "fHistArmenterosAfter");
   if (!armenteros) {
     std::cerr << "Armenteros is missing for " << outname << std::endl;
   }
   armenteros->SetTitle("Armenteros-Podolandski");
   fHairyPlotter->FormatHistogram(armenteros, 0, 1);
-  std::vector<TH2*> drawVecTPC = {armenteros};
+  std::vector<TH2*> drawVecTPC = { armenteros };
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
                                   "colz");
 
   // dE/dc pos daughter
-  TH2F* posPID = (TH2F*)fReader->Get2DHistInList(
-      fReader->GetListInList(v0Cuts, {"V0_PosDaughter"}),
+  TH2F* posPID = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "V0_PosDaughter" }),
       "fHistSingleParticlePID_pos");
   if (!posPID) {
     std::cerr << "Pos PID is missing for " << outname << std::endl;
@@ -583,8 +589,8 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
                                   "colz");
 
   // Armenteros
-  TH2F* negPID = (TH2F*)fReader->Get2DHistInList(
-      fReader->GetListInList(v0Cuts, {"V0_NegDaughter"}),
+  TH2F* negPID = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "V0_NegDaughter" }),
       "fHistSingleParticlePID_neg");
   if (!negPID) {
     std::cerr << "Neg PID is missing for " << outname << std::endl;
@@ -598,8 +604,8 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
 void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
 
   // pT
-  auto pTDist =
-      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistInvMassPt"))->ProjectionX();
+  auto pTDist = (TH1F*) (fReader->Get2DHistInList(v0Cuts, "fHistInvMassPt"))
+      ->ProjectionX();
   if (!pTDist) {
     std::cerr << "pT Distribution missing for " << outname << std::endl;
   }
@@ -607,11 +613,11 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   pTDist->GetYaxis()->SetTitle(
       Form("Entries/ %.1f GeV/#it{c}", pTDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(pTDist, 0, 1);
-  fHairyPlotter->DrawLogYAndStore({pTDist}, Form("%spT", outname), "PE");
+  fHairyPlotter->DrawLogYAndStore( { pTDist }, Form("%spT", outname), "PE");
 
   // Phi
-  auto* phiDist =
-      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))->ProjectionY();
+  auto* phiDist = (TH1F*) (fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))
+      ->ProjectionY();
   if (!phiDist) {
     std::cerr << "phi Distribution missing for " << outname << std::endl;
   }
@@ -620,11 +626,11 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(phiDist, 0, 1);
-  fHairyPlotter->DrawAndStore({phiDist}, Form("%s_phi", outname));
+  fHairyPlotter->DrawAndStore( { phiDist }, Form("%s_phi", outname));
 
   // Eta
-  auto* etaDist =
-      (TH1F*)(fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))->ProjectionX();
+  auto* etaDist = (TH1F*) (fReader->Get2DHistInList(v0Cuts, "fHistEtaPhi"))
+      ->ProjectionX();
   if (!etaDist) {
     std::cerr << "eta Distribution missing for " << outname << std::endl;
   }
@@ -634,37 +640,39 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   etaDist->GetYaxis()->SetTitle(
       Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(etaDist, 0, 1);
-  fHairyPlotter->DrawAndStore({etaDist}, Form("%s_eta", outname), "hist");
+  fHairyPlotter->DrawAndStore( { etaDist }, Form("%s_eta", outname), "hist");
 
   // Number of Sigma Candidates
-  auto* nSigma =
-      (fReader->Get1DHistInList(v0Cuts, "fHistNSigma"));
+  auto* nSigma = (fReader->Get1DHistInList(v0Cuts, "fHistNSigma"));
   if (!nSigma) {
-    std::cerr << "Number of Sigma candidates distribution missing for " << outname << std::endl;
+    std::cerr << "Number of Sigma candidates distribution missing for "
+              << outname << std::endl;
   }
   nSigma->GetXaxis()->SetTitle("Number of #Sigma^{0} candidates");
   nSigma->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(nSigma, 0, 1);
-  fHairyPlotter->DrawLogYAndStore({nSigma}, Form("%s_nSigma", outname), "hist");
-
+  fHairyPlotter->DrawLogYAndStore( { nSigma }, Form("%s_nSigma", outname),
+                                  "hist");
 
   // Track cleaner Lambda
-  auto* nLambdaLabel =
-      (fReader->Get1DHistInList(v0Cuts, "fHistNLambdaLabel"));
+  auto* nLambdaLabel = (fReader->Get1DHistInList(v0Cuts, "fHistNLambdaLabel"));
   if (!nLambdaLabel) {
-    std::cerr << "Number of Lambda candidates cleanup distribution missing for " << outname << std::endl;
+    std::cerr << "Number of Lambda candidates cleanup distribution missing for "
+              << outname << std::endl;
   }
   nLambdaLabel->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(nLambdaLabel, 0, 1);
-  fHairyPlotter->DrawLogYAndStore({nLambdaLabel}, Form("%s_nLambdaLabel", outname), "hist");
+  fHairyPlotter->DrawLogYAndStore( { nLambdaLabel },
+                                  Form("%s_nLambdaLabel", outname), "hist");
 
   // Track cleaner photon
-  auto* nPhotonLabel =
-      (fReader->Get1DHistInList(v0Cuts, "fHistNPhotonLabel"));
+  auto* nPhotonLabel = (fReader->Get1DHistInList(v0Cuts, "fHistNPhotonLabel"));
   if (!nPhotonLabel) {
-    std::cerr << "Number of photon candidates cleanup distribution missing for " << outname << std::endl;
+    std::cerr << "Number of photon candidates cleanup distribution missing for "
+              << outname << std::endl;
   }
   nPhotonLabel->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(nPhotonLabel, 0, 1);
-  fHairyPlotter->DrawLogYAndStore({nPhotonLabel}, Form("%s_nPhotonLabel", outname), "hist");
+  fHairyPlotter->DrawLogYAndStore( { nPhotonLabel },
+                                  Form("%s_nPhotonLabel", outname), "hist");
 }
