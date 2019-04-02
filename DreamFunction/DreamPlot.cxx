@@ -435,7 +435,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_pXi->SetTopMargin(top);
   fProtonXi->SetLegendName("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+}", "fpe");
   fProtonXi->SetLegendName("Coulomb + HAL-QCD", "fl");
-  fProtonXi->SetLegendName("Coulomb + ESC19", "fl");
+  fProtonXi->SetLegendName("Coulomb + ESC 16", "fl");
   fProtonXi->SetLegendName("Coulomb", "l");
   fProtonXi->SetLegendName("p-#Xi^{-} sideband background", "l");
   fProtonXi->SetNDivisions(505);
