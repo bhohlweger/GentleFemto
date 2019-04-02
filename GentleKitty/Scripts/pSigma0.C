@@ -162,22 +162,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   std::cout << "NumMomBins_pSigma: " << NumMomBins_pSigma << std::endl;
 
   // pp radius systematic variations
-  const double ppRadius = 1.30796;
-  const double ppRadiusStatErr = 0.00437419;
-  const double ppRadiusSystErrUp = 0.00385732;
-  const double ppRadiusSystErrDown = 0.0123427;
-  const double ppRadiusSigma0Resonances = 1.12384;
-  const double ppRadiusVarDiff = ppRadius - ppRadiusSigma0Resonances;
-  const double ppRadiusLower = ppRadius
-      - std::sqrt(
-          ppRadiusStatErr * ppRadiusStatErr + ppRadiusVarDiff * ppRadiusVarDiff
-              + ppRadiusSystErrDown * ppRadiusSystErrDown);
-  const double ppRadiusUpper = ppRadius
-      + std::sqrt(
-          ppRadiusStatErr * ppRadiusStatErr
-              + ppRadiusSystErrUp * ppRadiusSystErrUp);
-  const std::vector<double> sourceSize = { { ppRadius, ppRadiusLower,
-      ppRadiusUpper } };
+  const double resonancesRadius = 1.124;
+  const double radiusLower = 0.9 * resonancesRadius; // for now assume +/- 10 %
+  const double radiusUpper = 1.1 * resonancesRadius; // for now assume +/- 10 %
+  const std::vector<double> sourceSize = { { resonancesRadius, radiusLower,
+      radiusUpper } };
 
   // femto fit region systematic variations
   const std::vector<double> femtoFitRegionUp = { { 550, 500, 600 } };
