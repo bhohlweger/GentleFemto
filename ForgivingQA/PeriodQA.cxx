@@ -78,7 +78,7 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
       histPurityXi->SetBinContent(i + 1, purity * 100.f);
     }
     DecayQA* anticascQA = new DecayQA("#Xi^{-}","#pi#Lambda");
-    anticascQA->SetDecayCuts(reader->GetCascadeCuts());
+    anticascQA->SetDecayCuts(reader->GetAntiCascadeCuts());
     anticascQA->SetCanvasDivisions(4, 3);
     anticascQA->SetIMHistoScale(2.5,0.8,0.45);
     anticascQA->SetRangesFitting(1.31, 1.33, 1.3, 1.35);
