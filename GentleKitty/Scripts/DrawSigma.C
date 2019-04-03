@@ -19,7 +19,7 @@
 const int tupleLength = 14;
 
 void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
-                 double &defaultChi2, double &worstChi2) {
+                 double &defaultChi2, double &worstChi2, int &nBins) {
   double theoryX, theoryY, theoryErr;
   double dataY, dataErr, dataErrSq;
   double chi2Down = 0.;
@@ -43,6 +43,7 @@ void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
     chi2Def += (dataY - theoryY) * (dataY - theoryY) / dataErrSq;
     chi2Down += (dataY - (theoryY - theoryErr))
         * (dataY - (theoryY - theoryErr)) / dataErrSq;
+    ++nBins;
   }
   worstChi2 = (chi2Up > chi2Down) ? chi2Up : chi2Down;
   defaultChi2 = chi2Def;
@@ -254,7 +255,24 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 
   // in case we're running the exclusion task, we're interested in the best/worst chi2 for a given set of scattering parameters
   double bestChi2, defaultChi2, worstChi2;
-  ComputeChi2(CF_Histo, grCF, bestChi2, defaultChi2, worstChi2);
+  int nBins = 0;
+  ComputeChi2(CF_Histo, grCF, bestChi2, defaultChi2, worstChi2, nBins);
+  double pvalBest = TMath::Prob(bestChi2, round(nBins));
+  double nSigmaBest = TMath::Sqrt(2) * TMath::ErfcInverse(pvalBest);
+  double pvalDefault= TMath::Prob(defaultChi2, round(nBins));
+  double nSigmaDefault = TMath::Sqrt(2) * TMath::ErfcInverse(pvalDefault);
+  double pvalWorst = TMath::Prob(worstChi2, round(nBins));
+  double nSigmaWorst = TMath::Sqrt(2) * TMath::ErfcInverse(pvalWorst);
+
+  std::cout << "=============\n";
+  std::cout << "nSigma maker for p-Sigma0 speaks \n";
+  std::cout << "  best nSigma  " << nSigmaBest << "\n";
+  std::cout << "  def nSigma   " << nSigmaDefault << "\n";
+  std::cout << "  worst nSigma " << nSigmaWorst << "\n";
+  std::cout << "Thanks for your input - well done!\n";
+  std::cout << "=============\n";
+
+
   if (potential == 0) {
     auto fitTuple = (TNtuple*) file->Get("fitResult");
 

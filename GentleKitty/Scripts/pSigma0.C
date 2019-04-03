@@ -172,9 +172,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   const std::vector<double> femtoFitRegionUp = { { 550, 500, 600 } };
 
   /// Lambda parameters
-  const double protonPurity = 0.991213;
-  const double protonPrimary = 0.874808;
-  const double protonLambda = 0.0876342;
+  const double protonPurity = 0.9943;
+  const double protonPrimary = 0.877;
+  const double protonLambda = 0.089;
 
   // proton secondary contribution systematic variations
   const std::vector<double> protonSecondary = { { protonLambda
