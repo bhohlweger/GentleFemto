@@ -212,7 +212,7 @@ void DreamSystematics::FixStyle(TH1F* histCF) const {
   histCF->GetXaxis()->SetRangeUser(fSystematicFitRangeLow,
                                    fSystematicFitRangeUp);
   DreamPlot::SetStyleHisto(histCF);
-  histCF->GetXaxis()->SetTitle("#it{k}* (GeV/#it{c})");
+  histCF->GetXaxis()->SetTitle("#it{k}* (MeV/#it{c})");
   histCF->GetYaxis()->SetTitle("C(#it{k}*)");
 }
 
