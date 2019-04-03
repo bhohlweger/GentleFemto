@@ -163,8 +163,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 
   // pp radius systematic variations
   const double resonancesRadius = 1.124;
-  const double radiusLower = 0.9 * resonancesRadius; // for now assume +/- 10 %
-  const double radiusUpper = 1.1 * resonancesRadius; // for now assume +/- 10 %
+  const double radiusLower = 0.9 * resonancesRadius;  // for now assume +/- 10 %
+  const double radiusUpper = 1.1 * resonancesRadius;  // for now assume +/- 10 %
   const std::vector<double> sourceSize = { { resonancesRadius, radiusLower,
       radiusUpper } };
 
@@ -182,7 +182,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
       protonLambda / (1. - protonPrimary) * 1.2 } };
   std::vector<CATSLambdaParam> lambdaParams;
 
-  const double sigmaPurity = 0.289;
+  const double sigmaPurity = 0.288;
   const double sigmaPrimary = 1.;
   const Particle sigma0(sigmaPurity, sigmaPrimary, { { 0 } });
 
@@ -196,6 +196,18 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 
     lambdaParams.push_back( { proton, sigma0 });
   }
+
+  const float lambdaParamDefaultPrimary = lambdaParams[0].GetLambdaParam(
+      CATSLambdaParam::Primary);
+  const float lambdaParamDefaultSideband = lambdaParams[0].GetLambdaParam(
+      CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
+
+  std::cout << "Lambda parameters for the default case\n";
+  std::cout << " Primary  " << lambdaParamDefaultPrimary << "\n";
+  std::cout << " Sideband " << lambdaParamDefaultSideband << "\n";
+  std::cout << " Flat     "
+            << 1 - lambdaParamDefaultPrimary - lambdaParamDefaultSideband
+            << "\n";
 
   // sideband fit normalization range systematic variation
   const std::vector<double> sidebandNormDown = { { 300, 250, 350 } };
@@ -379,18 +391,22 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
             Ck_pSigma0->SetSourcePar(0, sourceSize[sizeIter]);
             Ck_pSigma0->Update();
 
-            DLM_CkDecomposition CkDec_pSigma0("pSigma0", 1, *Ck_pSigma0,
+            DLM_CkDecomposition CkDec_pSigma0("pSigma0", 2, *Ck_pSigma0,
                                               CATSinput->GetSigmaFile(1));
 
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
             DLM_CkDecomposition CkDec_SideBand("pSigma0SideBand", 0,
                                                *Ck_SideBand, nullptr);
-            CkDec_pSigma0.AddContribution(
-                0,
-                lambdaParams[lambdaIter].GetLambdaParam(
-                    CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0),
-                DLM_CkDecomposition::cFake, &CkDec_SideBand);
+            const float sidebandContr = lambdaParams[lambdaIter].GetLambdaParam(
+                CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
+            const float primaryContr = lambdaParams[lambdaIter].GetLambdaParam(
+                CATSLambdaParam::Primary);
+            CkDec_pSigma0.AddContribution(0, sidebandContr,
+                                          DLM_CkDecomposition::cFake,
+                                          &CkDec_SideBand);
+            CkDec_pSigma0.AddContribution(1, 1.f - sidebandContr - primaryContr,
+                                          DLM_CkDecomposition::cFeedDown);
             CkDec_pSigma0.Update();
 
             /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -522,18 +538,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
               grCFSigmaMain.SetPoint(
                   i,
                   mom,
-                  (((CkDec_pSigma0.EvalMain(mom) - 1.)
-                      * lambdaParams[lambdaIter].GetLambdaParam(
-                          CATSLambdaParam::Primary)) + 1) * baseline);
+                  (((CkDec_pSigma0.EvalMain(mom) - 1.) * primaryContr) + 1)
+                      * baseline);
               grCFSigmaFeed.SetPoint(
                   i, mom, CkDec_pSigma0.EvalMainFeed(mom) * baseline);
               grCFSigmaSideband.SetPoint(
                   i,
                   mom,
-                  (((Ck_SideBand->Eval(mom) - 1.)
-                      * lambdaParams[lambdaIter].GetLambdaParam(
-                          CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0))
-                      + 1) * baseline);
+                  (((Ck_SideBand->Eval(mom) - 1.) * sidebandContr) + 1)
+                      * baseline);
             }
 
             param->cd();
