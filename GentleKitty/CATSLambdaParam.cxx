@@ -68,6 +68,9 @@ void CATSLambdaParam::PrintLambdaParams() const {
 
   std::cout << "\n----------------- \n";
   std::cout << "Fake fraction: " << GetLambdaParam(Fake) *100.f << "\n";
+  std::cout << "Fake 1: " << GetLambdaParam(Fake, Primary, 0, 0) *100.f << "\n";
+  std::cout << "Fake 2: " << GetLambdaParam(Primary, Fake, 0, 0) *100.f << "\n";
+  std::cout << "Both  : " << GetLambdaParam(Fake, Fake, 0, 0) *100.f << "\n";
   std::cout << "----------------- \n";
 }
 
@@ -116,10 +119,10 @@ double CATSLambdaParam::GetLambdaParam(const Type type1, const Type type2,
     return GetLambdaParam(Fake);
   } else if (type1 == Primary && type2 == Fake) {
     // First particle is primary, second is fake
-    return purity1 * (1.f - purity2);
+    return purity1 * primary1 * (1.f - purity2);
   } else if (type1 == Fake && type2 == Primary) {
     // First particle is fake, second is primary
-    return (1.f - purity1) * purity2;
+    return (1.f - purity1) * primary2 * purity2;
   } else if (type1 == Primary && type2 == FeedDown) {
     // First particle is primary, second is feed-down
     const double scaling = (fIsSame) ? 2. : 1.;
