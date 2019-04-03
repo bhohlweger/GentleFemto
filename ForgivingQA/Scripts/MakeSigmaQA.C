@@ -19,11 +19,12 @@ int main(int argc, char* argv[]) {
   evtQA->PlotEventProperties(200);
   evtQA->PlotPileUpRejection();
   evtQA->SetTightMargin();
-  evtQA->PlotStatsTrackCleaner(
-      {"p-#Sigma^{0}", "#bar{p}-#bar{#Sigma^{0}}", "p-#Lambda#gamma (up)",
-       "#bar{p}-#bar{#Lambda}#gamma (up)", "p-#Lambda#gamma (down)",
-       "#bar{p}-#bar{#Lambda}#gamma (down)"},
-      {}, 6);
+  evtQA->PlotStatsTrackCleaner( { "p-#Sigma^{0}", "#bar{p}-#bar{#Sigma^{0}}",
+                                   "p-#Lambda#gamma (up)",
+                                   "#bar{p}-#bar{#Lambda}#gamma (up)",
+                                   "p-#Lambda#gamma (down)",
+                                   "#bar{p}-#bar{#Lambda}#gamma (down)" },
+                               { }, 6);
 
   TrackQA* trkQA = new TrackQA();
   trkQA->SetTrackCuts(reader->GetTrackCuts());
@@ -44,15 +45,40 @@ int main(int argc, char* argv[]) {
   v0QA->PlotPIDSigma0Daughter(reader->GetAntiv0Cuts(), "AntiLambda");
 
   DecayQA* gammaQA = new DecayQA("#gamma", "e^{+}e^{-}");
-  gammaQA->PlotQATopologySigma0Daughter(reader->GetOtherCuts("PhotonCuts"), "Photon");
+  gammaQA->PlotQATopologySigma0Daughter(reader->GetOtherCuts("PhotonCuts"),
+                                        "Photon");
   gammaQA->PlotPIDSigma0Daughter(reader->GetOtherCuts("PhotonCuts"), "Photon");
 
-  DecayQA* sigma0QA = new DecayQA("#Sigma", "#Lambda#gamma");
+  DecayQA* sigma0QA = new DecayQA("#Sigma^{0}", "#Lambda#gamma");
   sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
-  sigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   sigma0QA->SetCanvasDivisions(3, 2);
   sigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
-  sigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"), "Sigma0");
+  sigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
+                                 "Sigma0part");
   sigma0QA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
-  sigma0QA->InvariantMassSigma0(0.003);
+  sigma0QA->InvariantMassSigma0(0.003, "Sigma0part", false);
+  delete sigma0QA;
+
+  DecayQA* antiSigma0QA = new DecayQA("#bar{#Sigma^{0}}",
+                                      "#bar{#Lambda}#gamma");
+  antiSigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
+  antiSigma0QA->SetCanvasDivisions(3, 2);
+  antiSigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
+  antiSigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
+                                     "Sigma0antiPart");
+  antiSigma0QA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
+  antiSigma0QA->InvariantMassSigma0(0.003, "Sigma0antiPart", false);
+  delete antiSigma0QA;
+
+  DecayQA* sigmaSumQA = new DecayQA("#Sigma^{0} #oplus #bar{#Sigma^{0}}",
+                                    "#Lambda#gamma #oplus #bar{#Lambda}#gamma");
+  sigmaSumQA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
+  sigmaSumQA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
+  sigmaSumQA->SetCanvasDivisions(3, 2);
+  sigmaSumQA->SetIMHistoScale(1.75, 0.8, 0.35);
+  sigmaSumQA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
+                                   "SigmaSum");
+  sigmaSumQA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
+  sigmaSumQA->InvariantMassSigma0(0.003);
+  delete sigmaSumQA;
 }

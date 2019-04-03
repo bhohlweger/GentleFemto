@@ -27,7 +27,8 @@ class DecayQA {
   ;
   void InvariantMassLambda(float CutMin, float CutMax);
   void InvariantMassLambdaSigma0(float CutMin, float CutMax);
-  void InvariantMassSigma0(float massCuts);
+  void InvariantMassSigma0(float massCuts, const char* name = "Sigma0",
+                           bool isSum = true);
   void GetPeriodQA(float CutMin, float CutMax,
                    std::vector<const char*> pathToList, const char* histname);
   void GetPeriodQASigma(float CutMin, float CutMax, const char* period);

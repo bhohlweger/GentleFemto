@@ -68,14 +68,29 @@ void DecayQA::InvariantMassLambdaSigma0(float CutMin, float CutMax) {
       "AntiLambda");
 }
 
-void DecayQA::InvariantMassSigma0(float massCuts) {
-  auto invMassPart = (TH2F*) fReader->Get2DHistInList(fDecayCuts,
-                                                      "fHistInvMassPtRaw");
-  auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(fAntiDecayCuts,
-                                                          "fHistInvMassPtRaw");
-  invMassPart->Add(invMassAntiPart);
+void DecayQA::InvariantMassSigma0(float massCuts, const char* name, bool isSum) {
+  TH2F* invMassPart;
+  if (!isSum) {
+    if (fDecayCuts) {
+      invMassPart = (TH2F*) fReader->Get2DHistInList(fDecayCuts,
+                                                     "fHistInvMassPtRaw");
+    } else if (fAntiDecayCuts) {
+      invMassPart = (TH2F*) fReader->Get2DHistInList(fAntiDecayCuts,
+                                                     "fHistInvMassPtRaw");
+
+    } else {
+      std::cout << "No cuts set\n";
+      return;
+    }
+  } else {
+    invMassPart = (TH2F*) fReader->Get2DHistInList(fDecayCuts,
+                                                   "fHistInvMassPtRaw");
+    auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(
+        fAntiDecayCuts, "fHistInvMassPtRaw");
+    invMassPart->Add(invMassAntiPart);
+  }
   invMassPart->RebinX(20);
-  FitInvariantMassSigma0(invMassPart, massCuts, "Sigma0");
+  FitInvariantMassSigma0(invMassPart, massCuts, name);
 }
 
 void DecayQA::GetPeriodQA(float CutMin, float CutMax,
