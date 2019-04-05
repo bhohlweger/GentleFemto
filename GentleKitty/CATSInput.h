@@ -54,7 +54,7 @@ class CATSInput {
                         DreamDist* ApApDist, DreamDist* ppFake = nullptr,
                         DreamDist* ApApFake = nullptr);
   TH1F* GetCF(TString pair, TString hist);
-  void AddSystematics(TString SysFile, TH1F* hist);
+  void AddSystematics(TString SysFile, TH1F* hist, TString pair = "");
   void SetNormalization(float normleft, float normright) {
     fnormalizationLeft = normleft;
     fnormalizationRight = normright;

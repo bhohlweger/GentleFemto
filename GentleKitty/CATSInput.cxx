@@ -398,16 +398,21 @@ TH1F* CATSInput::GetCF(TString pair, TString hist) {
   return (TH1F*) output->Clone(Form("%sCloned", output->GetName()));
 }
 
-void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {
+void CATSInput::AddSystematics(TString SysFile, TH1F* Hist, TString pair) {
 //!CHANGE PATH HERE
   TString SystErrFileName = TString::Format("%s%s", fNameBasedir.Data(),
                                             SysFile.Data());
   TFile* SystErrFile =
       SystErrFileName != "" ? new TFile(SystErrFileName, "read") : nullptr;
   if (SystErrFile) {
-    TString sysName = SysFile;
-    sysName.Replace(0, 10, "");
-    sysName.Replace(2, 6, "");
+    TString sysName;
+    if (pair == TString("")) {
+      sysName = SysFile;
+      sysName.Replace(0, 10, "");
+      sysName.Replace(2, 6, "");
+    } else {
+      sysName = pair;
+    }
     TH1F* outputParam = (TH1F*) SystErrFile->Get(
         Form("SysParam%s", sysName.Data()));
     if (outputParam) {
@@ -428,6 +433,8 @@ void CATSInput::AddSystematics(TString SysFile, TH1F* Hist) {
                     + pow(y * RelSyst->Eval(x / 1000.), 2.)));
       }
       delete RelSyst;
+    } else {
+      std::cout << "no outputParam for " << sysName.Data() << std::endl;
     }
     SystErrFile->Close();
   } else {
