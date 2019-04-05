@@ -433,6 +433,19 @@ void CATSInput::AddSystematics(TString SysFile, TH1F* Hist, TString pair) {
                     + pow(y * RelSyst->Eval(x / 1000.), 2.)));
       }
       delete RelSyst;
+    } else if (SystErrFile->Get("SystError")) {
+      auto RelSyst = (TF1*) SystErrFile->Get("SystError");
+      int NumSEB = (RelSyst) ? Hist->FindBin(1000) : 0;
+      for (int iBin = 0; iBin < NumSEB; iBin++) {
+        const float x = Hist->GetBinCenter(iBin + 1);
+        const float y = Hist->GetBinContent(iBin + 1);
+        Hist->SetBinError(
+            iBin + 1,
+            std::sqrt(
+                std::pow(Hist->GetBinError(iBin + 1), 2.)
+                    + std::pow(y * RelSyst->Eval(x), 2.)));
+      }
+      delete RelSyst;
     } else {
       std::cout << "no outputParam for " << sysName.Data() << std::endl;
     }
