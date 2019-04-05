@@ -167,8 +167,13 @@ double Lednicky_gauss_Sigma0(const double& Momentum, const double* SourcePar,
   Double_t corr_fin = 1. + corr_1s0 + corr_3s1 + corr_1s0_inel + corr_3s1_inel
       + corr_1s0_distort + corr_3s1_distort;
 
-  singlet = 1 + corr_1s0 + corr_1s0_inel + corr_1s0_distort;
-  triplet = 1 + corr_3s1 + corr_3s1_inel + corr_3s1_distort;
+  const float scaleSinglet = 1. / 0.25;
+  const float scaleTriplet = 1. / 0.75;
+
+  singlet = 1 + scaleSinglet * corr_1s0 + scaleSinglet * corr_1s0_inel
+      + scaleSinglet * corr_1s0_distort;
+  triplet = 1 + scaleTriplet * corr_3s1 + scaleTriplet * corr_3s1_inel
+      + scaleTriplet * corr_3s1_distort;
 
   return corr_fin;
 }
@@ -414,8 +419,7 @@ int main(int argc, char* argv[]) {
   Kitty.KillTheCat();
   for (unsigned int i = 0; i < Ck_Haidenbauer->GetNbins(); ++i) {
     const float mom = Kitty.GetMomentum(i);
-    grSingletHaidenbauer->SetPoint(i, mom,
-                                   1 + 0.25 * (Kitty.GetCorrFun(i) - 1));
+    grSingletHaidenbauer->SetPoint(i, mom, Kitty.GetCorrFun(i));
   }
   Kitty.SetChannelWeight(0, 0);
   Kitty.SetChannelWeight(1, 0);
@@ -427,8 +431,7 @@ int main(int argc, char* argv[]) {
   Kitty.KillTheCat();
   for (unsigned int i = 0; i < Ck_Haidenbauer->GetNbins(); ++i) {
     const float mom = Kitty.GetMomentum(i);
-    grTripletHaidenbauer->SetPoint(i, mom,
-                                   1 + 0.75 * (Kitty.GetCorrFun(i) - 1));
+    grTripletHaidenbauer->SetPoint(i, mom, Kitty.GetCorrFun(i));
   }
 
   for (unsigned int i = 0; i < Ck_ResonantHaidenbauer->GetNbins(); ++i) {
@@ -439,8 +442,8 @@ int main(int argc, char* argv[]) {
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Plotting
 
-  const float ylow = 0.55;
-  const float yup = 2;
+  const float ylow = 0.5;
+  const float yup = 3;
 
   auto c = new TCanvas();
   grTotalLednicky->Draw("AL");
