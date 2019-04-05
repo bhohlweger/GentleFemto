@@ -14,10 +14,10 @@
 static const int tupleLength = 18;
 //ONLY WORKS FOR 20 MEV BINNING
 void EvalpXiCurves(const char* cfpath, const char* prefix,
-                   const char* varFolder) {
-  CATSInput *CATSinput = new CATSInput();
+                   const char* varFolder,float kStarMin) {
+  CATSInput *CATSinput = new CATSInput("PXi");
   CATSinput->SetNormalization(0.240, 0.340);
-//  CATSinput->SetFixedkStarMinBin(true, 0.008);
+  CATSinput->SetFixedkStarMinBin(true, kStarMin);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   TString InputFile = TString::Format("%s/AnalysisResults.root", cfpath);
   DreamFile->SetAnalysisFile(InputFile.Data(), prefix);
@@ -31,7 +31,7 @@ void EvalpXiCurves(const char* cfpath, const char* prefix,
 //  TH1F* CF_Histo = CATSinput->GetCF(pair, HistName);
   TH1F* CF_Histo = CFpXi->FindCorrelationFunction(HistpXiName.Data());
   CF_Histo->GetYaxis()->SetRangeUser(0.9, 2.5);
-  CF_Histo->GetXaxis()->SetRangeUser(0, 500);
+  CF_Histo->GetXaxis()->SetRangeUser(kStarMin*1000, 500);
   CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   CF_Histo->SetStats(false);
   DreamPlot::SetStyle();
@@ -98,10 +98,12 @@ void EvalpXiCurves(const char* cfpath, const char* prefix,
   delete CATSinput;
 }
 
-void EvalError(const char* cfpath, const char* prefix, const char* varFolder) {
-  CATSInput *CATSinput = new CATSInput();
+void EvalError(const char* cfpath, const char* prefix, const char* varFolder, const char* sysPath, float kStarMin) {
+  CATSInput *CATSinput = new CATSInput("PXi");
   CATSinput->SetNormalization(0.240, 0.340);
-//  CATSinput->SetFixedkStarMinBin(true, 0.008);
+  CATSinput->SetFixedkStarMinBin(true, kStarMin);
+  CATSinput->SetCalibBaseDir(sysPath);
+  std::cout << "sysPath: " << sysPath << std::endl;
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   TString InputFile = TString::Format("%s/AnalysisResults.root", cfpath);
   DreamFile->SetAnalysisFile(InputFile.Data(), prefix);
@@ -120,7 +122,9 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder) {
   Dummy->Reset();
   DreamPlot::SetStyle();
   DreamPlot::SetStyleHisto(CF_Histo);
-
+  std::cout << "Error Before: " << CF_Histo->GetBinError(1) << std::endl;
+  CATSinput->AddSystematics("C2totalsysPXi.root",CF_Histo);
+  std::cout << "Error After: " << CF_Histo->GetBinError(1) << std::endl;
   TFile* output = TFile::Open(Form("%s/outfile.root", varFolder), "update");
   TNtuple* outFit = (TNtuple*) output->Get("pXiFit");
   TGraph grUp;
@@ -162,14 +166,15 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder) {
     double kVal = CF_Histo->GetBinCenter(iBin);
     double CkVal = CF_Histo->GetBinContent(iBin);
     double CkErrStat = CF_Histo->GetBinError(iBin);
-
-    double chiDefault = (CkVal - grDefault.Eval(kVal)) / CkErrStat;
+    double CkErrSyst = 0;
+    double CkErr = TMath::Sqrt(CkErrStat*CkErrStat+CkErrSyst*CkErrSyst);
+    double chiDefault = (CkVal - grDefault.Eval(kVal)) / CkErr;
     chisqDefault += chiDefault * chiDefault;
 
-    double chiUp = (CkVal - grUp.Eval(kVal)) / CkErrStat;
+    double chiUp = (CkVal - grUp.Eval(kVal)) / CkErr;
     chisqUp += chiUp * chiUp;
 
-    double chiDown = (CkVal - grLow.Eval(kVal)) / CkErrStat;
+    double chiDown = (CkVal - grLow.Eval(kVal)) / CkErr;
     chisqDown += chiDown * chiDown;
 
     grChiPerPointDefault.SetPoint(iBin - 1, kVal, chiDefault);
@@ -181,7 +186,6 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder) {
   std::cout << "Chisq Up " << chisqUp << std::endl;
   std::cout << "Chisq Down " << chisqDown << std::endl;
   std::cout << std::endl;
-
   double pvalXiDefault = TMath::Prob(chisqDefault, round(ndf));
   double nSigmaXiDefault = TMath::Sqrt(2) * TMath::ErfcInverse(pvalXiDefault);
 
@@ -342,12 +346,13 @@ void CombineIntoOneFile(const char* PathTopXiFolder, const char* GraphName,
 int main(int argc, char *argv[]) {
   //argv[1] =  cfpath (without AnalysisResults.root)
   //argv[2] =  prefix
-  //argv[3] =  varfolder
-  //argv[4] =  GraphoutName
-  //argv[5] =  Path to the combined file
-  //argv[6] =  Store Sidebands & CK? > 0
+  //argv[3] =  System (0 = pPb, 1 = pp MB, 2 = pp HM)
+  //argv[4] =  varfolder
+  //argv[5] =  GraphoutName
+  //argv[6] =  Path to the combined file
+  //argv[7] =  Store Sidebands & CK? > 0
   bool sidebands = false;
-  const char* SideBandArg= argv[6];
+  const char* SideBandArg= argv[7];
   TString Sidebandu = Form("%s", SideBandArg);
   std::cout << "you said " << Sidebandu.Data();
   if (Sidebandu != "") {
@@ -357,13 +362,25 @@ int main(int argc, char *argv[]) {
     sidebands = false;
     std::cout << "so I am not doing the Sideband \n";
   }
+  int system = atoi(argv[3]);
+  TString CalibBaseDir;
+  double kStarMin;
+  if (system == 0) {
+    CalibBaseDir = "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
+    kStarMin = 0.008;
+  } else if (system == 1) {
+    CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_MB/";
+  } else if (system == 2) {
+    CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
+    kStarMin = 0.;
+  }
   std::cout << "EvalpXiCurves \n";
-  EvalpXiCurves(argv[1], argv[2], argv[3]);
+  EvalpXiCurves(argv[1], argv[2], argv[4],kStarMin);
   std::cout << "EvalError \n";
-  EvalError(argv[1], argv[2], argv[3]);
+  EvalError(argv[1], argv[2], argv[4],CalibBaseDir.Data(),kStarMin);
   std::cout << "SidebandCurves \n";
-  SidebandCurves(argv[3]);
+  SidebandCurves(argv[4]);
   std::cout << "CombineIntoOneFile \n";
-  CombineIntoOneFile(argv[3], argv[4], argv[5], sidebands);
+  CombineIntoOneFile(argv[4], argv[5], argv[6], sidebands);
   return 0;
 }
