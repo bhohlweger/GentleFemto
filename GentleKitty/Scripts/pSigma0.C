@@ -140,6 +140,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
     std::cerr << "ERROR pSigma0 fitter: p-Sigma0 histogram missing\n";
     return;
   }
+  // Quadratically add the uncertainties
+  CATSinput->AddSystematics("/Systematics_pSigma0.root", dataHist, "pSigma0");
+
   auto sidebandHistUp = CATSinput->GetCF("pSigmaSBUp",
                                          "hCk_ReweightedpSigmaSBUpMeV_0");
   auto sidebandHistLow = CATSinput->GetCF("pSigmaSBLow",

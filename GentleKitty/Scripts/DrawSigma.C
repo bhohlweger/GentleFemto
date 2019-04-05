@@ -19,13 +19,14 @@
 const int tupleLength = 14;
 
 void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
-                 double &defaultChi2, double &worstChi2, int &nBins) {
+                 double &defaultChi2, double &worstChi2, int &nBins,
+                 int upperBoundary) {
   double theoryX, theoryY, theoryErr;
   double dataY, dataErr, dataErrSq;
   double chi2Down = 0.;
   double chi2Def = 0.;
   double chi2Up = 0.;
-  int maxkStarBinChi2 = dataHist->FindBin(250);
+  int maxkStarBinChi2 = dataHist->FindBin(upperBoundary);
   for (unsigned uBin = 1; uBin <= maxkStarBinChi2; uBin++) {
     double mom = dataHist->GetBinCenter(uBin);
     grFit->GetPoint(uBin - 1, theoryX, theoryY);
@@ -256,10 +257,10 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   // in case we're running the exclusion task, we're interested in the best/worst chi2 for a given set of scattering parameters
   double bestChi2, defaultChi2, worstChi2;
   int nBins = 0;
-  ComputeChi2(CF_Histo, grCF, bestChi2, defaultChi2, worstChi2, nBins);
+  ComputeChi2(CF_Histo, grCF, bestChi2, defaultChi2, worstChi2, nBins, 250);
   double pvalBest = TMath::Prob(bestChi2, round(nBins));
   double nSigmaBest = TMath::Sqrt(2) * TMath::ErfcInverse(pvalBest);
-  double pvalDefault= TMath::Prob(defaultChi2, round(nBins));
+  double pvalDefault = TMath::Prob(defaultChi2, round(nBins));
   double nSigmaDefault = TMath::Sqrt(2) * TMath::ErfcInverse(pvalDefault);
   double pvalWorst = TMath::Prob(worstChi2, round(nBins));
   double nSigmaWorst = TMath::Sqrt(2) * TMath::ErfcInverse(pvalWorst);
@@ -274,13 +275,19 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 
   double bestChi2Sideband, defaultChi2Sideband, worstChi2Sideband;
   int nBinsSideband = 0;
-  ComputeChi2(CF_Histo, grSidebands, bestChi2Sideband, defaultChi2Sideband, worstChi2Sideband, nBinsSideband);
+  ComputeChi2(CF_Histo, grSidebands, bestChi2Sideband, defaultChi2Sideband,
+              worstChi2Sideband, nBinsSideband, 250);
   double pvalBestSideband = TMath::Prob(bestChi2Sideband, round(nBinsSideband));
-  double nSigmaBestSideband = TMath::Sqrt(2) * TMath::ErfcInverse(pvalBestSideband);
-  double pvalDefaultSideband = TMath::Prob(defaultChi2Sideband, round(nBinsSideband));
-  double nSigmaDefaultSideband = TMath::Sqrt(2) * TMath::ErfcInverse(pvalDefaultSideband);
-  double pvalWorstSideband = TMath::Prob(worstChi2Sideband, round(nBinsSideband));
-  double nSigmaWorstSideband = TMath::Sqrt(2) * TMath::ErfcInverse(pvalWorstSideband);
+  double nSigmaBestSideband = TMath::Sqrt(2)
+      * TMath::ErfcInverse(pvalBestSideband);
+  double pvalDefaultSideband = TMath::Prob(defaultChi2Sideband,
+                                           round(nBinsSideband));
+  double nSigmaDefaultSideband = TMath::Sqrt(2)
+      * TMath::ErfcInverse(pvalDefaultSideband);
+  double pvalWorstSideband = TMath::Prob(worstChi2Sideband,
+                                         round(nBinsSideband));
+  double nSigmaWorstSideband = TMath::Sqrt(2)
+      * TMath::ErfcInverse(pvalWorstSideband);
 
   std::cout << "Your sideband fits even better! \n";
   std::cout << "  best nSigma  " << nSigmaBestSideband << "\n";
@@ -288,7 +295,6 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   std::cout << "  worst nSigma " << nSigmaWorstSideband << "\n";
   std::cout << "Thanks for your input - well done!\n";
   std::cout << "=============\n";
-
 
   if (potential == 0) {
     auto fitTuple = (TNtuple*) file->Get("fitResult");
