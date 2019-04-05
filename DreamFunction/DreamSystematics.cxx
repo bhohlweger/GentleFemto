@@ -23,6 +23,7 @@ DreamSystematics::DreamSystematics()
       fHistAbsErr(),
       fHistErrBudget(),
       fHistBarlow(),
+      fBarlowLabel(),
       fnPairsVar(),
       fnPairsAbsDiff(),
       fnPairsRelDiff(),
@@ -63,6 +64,7 @@ DreamSystematics::DreamSystematics(Pair pair)
       fHistAbsErr(),
       fHistErrBudget(),
       fHistBarlow(),
+      fBarlowLabel(),
       fnPairsVar(),
       fnPairsAbsDiff(),
       fnPairsRelDiff(),
@@ -136,23 +138,39 @@ TH1F* DreamSystematics::GetErrorBudget(TH1F* histDefault, TH1F* histVar) const {
   return histNew;
 }
 
-TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) const {
+TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) {
   auto histNew = (TH1F*) histVar->Clone(Form("%s_Barlow", histVar->GetName()));
   histNew->SetTitle(Form("Barlow %s", histVar->GetTitle()));
   histNew->GetYaxis()->SetTitle("n#sigma");
-
+  int nSigBel2 = 0;
+  int nSigBel3 = 0;
+  int nSigAb3 = 0;
+  int sigBins = 0;
   float binContDef, binContVar, binErrDef, binErrVar, statErrVariation;
   for (int i = 1; i < histVar->GetNbinsX() + 1; ++i) {
     binContDef = histDefault->GetBinContent(i);
     binErrDef = histDefault->GetBinError(i);
     binContVar = histVar->GetBinContent(i);
     binErrVar = histVar->GetBinError(i);
-    statErrVariation = std::sqrt(binErrVar * binErrVar + binErrDef * binErrDef);
-
-    histNew->SetBinContent(
-        i, std::abs(binContVar - binContDef) / statErrVariation);
+    statErrVariation = std::sqrt(
+        TMath::Abs(binErrVar * binErrVar - binErrDef * binErrDef));
+    float nSigma = std::abs(binContVar - binContDef) / statErrVariation;
+    histNew->SetBinContent(i, nSigma);
     histNew->SetBinError(i, 0);
+    if (nSigma < 2) {
+      nSigBel2++;
+    } else if (nSigma >= 2 && nSigma < 3) {
+      nSigBel3++;
+    } else if (nSigma >= 3) {
+      nSigAb3++;
+    }
+    sigBins++;
   }
+  TString label = TString::Format(
+      "#splitline{#splitline{Below 2: %.2f (%%)}{Between 2 - 3: %.2f (%%)}}{Above 3: %.2f (%%)}",
+      nSigBel2*100 / (float) sigBins, nSigBel3*100 / (float) sigBins,
+      nSigAb3*100 / (float) sigBins);
+  fBarlowLabel.push_back(label);
   return histNew;
 }
 
@@ -657,6 +675,7 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
   for (auto &it : histvec) {
     it->Write(Form("histVar_%i", iVar++));
     c->cd(iVar);
+    it->GetYaxis()->SetRangeUser(0,it->GetMaximum()*2.0);
     it->Draw("pe");
     if (name == TString("ErrBudget")) {
       auto fit = it->GetFunction(Form("%s_fit", it->GetName()));
@@ -672,6 +691,10 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
             TString::Format("low #it{k}* = %.2f %%",
                             it->GetBinContent(1) * 100.f));
       }
+    } else if (name == TString("Barlow")) {
+      c->cd(iVar);
+      text.DrawLatex(
+          gPad->GetUxmax()-0.8,gPad->GetUymax()-0.3,fBarlowLabel.at(iVar-1));
     }
   }
   c->Write();

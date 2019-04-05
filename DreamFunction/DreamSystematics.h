@@ -79,7 +79,7 @@ class DreamSystematics {
 
   TH1F* GetAbsError(TH1F* histDefault, TH1F* histVar) const;
   TH1F* GetErrorBudget(TH1F* histDefault, TH1F* histVar) const;
-  TH1F* GetBarlow(TH1F* histDefault, TH1F* histVar) const;
+  TH1F* GetBarlow(TH1F* histDefault, TH1F* histVar);
 
   void EvalSystematics();
   template <typename T>
@@ -115,6 +115,7 @@ class DreamSystematics {
   std::vector<TH1F*> fHistAbsErr;
   std::vector<TH1F*> fHistErrBudget;
   std::vector<TH1F*> fHistBarlow;
+  std::vector<TString> fBarlowLabel;
 
   std::vector<unsigned int> fnPairsDefault;
   std::vector<unsigned int> fNPartOneDefault;
