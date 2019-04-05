@@ -23,6 +23,7 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
   DreamSystematics protonsigma(DreamSystematics::pSigma0);
   protonsigma.SetDefaultHist(dataHistSigma);
   protonsigma.SetUpperFitRange(500);
+  protonsigma.SetBarlowUpperRange(400);
   for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
     auto appendixVar = TString::Format("%i", i);

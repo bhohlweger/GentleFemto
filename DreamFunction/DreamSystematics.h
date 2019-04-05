@@ -30,6 +30,9 @@ class DreamSystematics {
   void SetUpperFitRange(float fitRange) {
     fSystematicFitRangeUp = fitRange;
   }
+  void SetBarlowUpperRange(float upperRange) {
+    fBarlowUpperRange = upperRange;
+  }
 
   void SetDefaultHist(TH1F* histDef) {
     fHistDefault = histDef;
@@ -105,6 +108,7 @@ class DreamSystematics {
  private:
   float fSystematicFitRangeLow;
   float fSystematicFitRangeUp;
+  float fBarlowUpperRange;
   Pair fParticlePairMode;
   TH1F *fHistDefault;
   TH1F *fHistSystErrAbs;

@@ -12,6 +12,7 @@
 DreamSystematics::DreamSystematics()
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
+      fBarlowUpperRange(600.f),
       fParticlePairMode(DreamSystematics::pp),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
@@ -53,6 +54,7 @@ DreamSystematics::DreamSystematics()
 DreamSystematics::DreamSystematics(Pair pair)
     : fSystematicFitRangeLow(0.f),
       fSystematicFitRangeUp(600.f),
+      fBarlowUpperRange(600.f),
       fParticlePairMode(pair),
       fHistDefault(nullptr),
       fHistSystErrAbs(nullptr),
@@ -157,6 +159,10 @@ TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) {
     float nSigma = std::abs(binContVar - binContDef) / statErrVariation;
     histNew->SetBinContent(i, nSigma);
     histNew->SetBinError(i, 0);
+  }
+  for (int i = 1; i < histNew->GetNbinsX() + 1; ++i) {
+    const float nSigma = histNew->GetBinContent(i);
+    if(histNew->GetBinCenter(i) > fBarlowUpperRange) continue;
     if (nSigma < 2) {
       nSigBel2++;
     } else if (nSigma >= 2 && nSigma < 3) {
@@ -166,6 +172,7 @@ TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) {
     }
     sigBins++;
   }
+
   TString label = TString::Format(
       "#splitline{#splitline{Below 2: %.2f (%%)}{Between 2 - 3: %.2f (%%)}}{Above 3: %.2f (%%)}",
       nSigBel2*100 / (float) sigBins, nSigBel3*100 / (float) sigBins,
