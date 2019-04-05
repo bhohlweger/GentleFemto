@@ -6,19 +6,20 @@
 #include "TCanvas.h"
 #include <iostream>
 
-void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange) {
+void EvalDreamSystematics(TString InputDir, TString prefix,
+                          float upperFitRange) {
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
-  const int rebin = 5;
+  const int rebin = 1;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   DreamFile->SetAnalysisFile(filename.Data(), prefix, "0");
 
-  ForgivingReader* ForgivingFileDef = new ForgivingReader(filename.Data(), prefix,
-                                                       "0");
+  ForgivingReader* ForgivingFileDef = new ForgivingReader(filename.Data(),
+                                                          prefix, "0");
   counter->SetNumberOfCandidates(ForgivingFileDef);
   const int nTracks = counter->GetNumberOfTracks();
   counter->ResetCounter();
@@ -32,7 +33,11 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   DreamCF* CFppDef = CATSinput->ObtainCFSyst(rebin, "ppDef", pp, ApAp);
   DreamSystematics protonproton(DreamSystematics::pp);
 //  protonproton.SetUpperFitRange(44);
-  protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppDefMeV_1");
+  if (rebin != 1) {
+    protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppDefMeV_1");
+  } else {
+    protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppDefMeV_0");
+  }
   protonproton.SetUpperFitRange(upperFitRange);
   protonproton.SetBarlowUpperRange(400);
   const int protonVarStart = 1;
@@ -44,8 +49,13 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
     DreamCF* CFppVar = CATSinput->ObtainCFSyst(
         rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 0, ""),
         DreamVarFile->GetPairDistributions(1, 1, ""));
-    protonproton.SetVarHist(
-        CFppVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+    if (rebin != 1) {
+      protonproton.SetVarHist(
+          CFppVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+    } else {
+      protonproton.SetVarHist(
+          CFppVar, TString::Format("Reweighted%sMeV_0", VarName.Data()));
+    }
     TString VarString = TString::Format("%u", i);
     ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
                                                          prefix,
@@ -62,8 +72,13 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
     DreamCF* CFppVar = CATSinput->ObtainCFSyst(
         rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 0, ""),
         DreamVarFile->GetPairDistributions(1, 1, ""));
-    protonproton.SetVarHist(
-        CFppVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+    if (rebin != 1) {
+      protonproton.SetVarHist(
+          CFppVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+    } else {
+      protonproton.SetVarHist(
+          CFppVar, TString::Format("Reweighted%sMeV_0", VarName.Data()));
+    }
     TString VarString = TString::Format("%u", i);
     ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
                                                          prefix,
