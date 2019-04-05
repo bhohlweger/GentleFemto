@@ -162,7 +162,7 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder, co
   float chisqUp = 0;
   float chisqDown = 0;
   int ndf = -1;
-  for (int iBin = 1; iBin < CF_Histo->GetXaxis()->FindBin(100); ++iBin) {
+  for (int iBin = 1; iBin < CF_Histo->GetXaxis()->FindBin(150); ++iBin) {
     ndf++;
     double kVal = CF_Histo->GetBinCenter(iBin);
     double CkVal = CF_Histo->GetBinContent(iBin);
