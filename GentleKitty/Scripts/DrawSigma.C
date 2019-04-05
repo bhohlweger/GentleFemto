@@ -266,7 +266,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 
   std::cout << "=============\n";
   std::cout << "nSigma maker for p-Sigma0 speaks \n";
-  std::cout << "You have a nice potential, Sir!\n"
+  std::cout << "You have a nice potential, Sir!\n";
   std::cout << "  best nSigma  " << nSigmaBest << "\n";
   std::cout << "  def nSigma   " << nSigmaDefault << "\n";
   std::cout << "  worst nSigma " << nSigmaWorst << "\n";
