@@ -266,9 +266,26 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 
   std::cout << "=============\n";
   std::cout << "nSigma maker for p-Sigma0 speaks \n";
+  std::cout << "You have a nice potential, Sir!\n"
   std::cout << "  best nSigma  " << nSigmaBest << "\n";
   std::cout << "  def nSigma   " << nSigmaDefault << "\n";
   std::cout << "  worst nSigma " << nSigmaWorst << "\n";
+  std::cout << "=============\n";
+
+  double bestChi2Sideband, defaultChi2Sideband, worstChi2Sideband;
+  int nBinsSideband = 0;
+  ComputeChi2(CF_Histo, grSidebands, bestChi2Sideband, defaultChi2Sideband, worstChi2Sideband, nBinsSideband);
+  double pvalBestSideband = TMath::Prob(bestChi2Sideband, round(nBinsSideband));
+  double nSigmaBestSideband = TMath::Sqrt(2) * TMath::ErfcInverse(pvalBestSideband);
+  double pvalDefaultSideband = TMath::Prob(defaultChi2Sideband, round(nBinsSideband));
+  double nSigmaDefaultSideband = TMath::Sqrt(2) * TMath::ErfcInverse(pvalDefaultSideband);
+  double pvalWorstSideband = TMath::Prob(worstChi2Sideband, round(nBinsSideband));
+  double nSigmaWorstSideband = TMath::Sqrt(2) * TMath::ErfcInverse(pvalWorstSideband);
+
+  std::cout << "Your sideband fits even better! \n";
+  std::cout << "  best nSigma  " << nSigmaBestSideband << "\n";
+  std::cout << "  def nSigma   " << nSigmaDefaultSideband << "\n";
+  std::cout << "  worst nSigma " << nSigmaWorstSideband << "\n";
   std::cout << "Thanks for your input - well done!\n";
   std::cout << "=============\n";
 
