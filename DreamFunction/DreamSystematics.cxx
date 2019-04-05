@@ -156,7 +156,12 @@ TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) {
     binErrVar = histVar->GetBinError(i);
     statErrVariation = std::sqrt(
         TMath::Abs(binErrVar * binErrVar - binErrDef * binErrDef));
-    float nSigma = std::abs(binContVar - binContDef) / statErrVariation;
+    float nSigma =0;
+    if (statErrVariation > 1e-6) {
+      nSigma = std::abs(binContVar - binContDef) / statErrVariation;
+    } else {
+      nSigma = 99;
+    }
     histNew->SetBinContent(i, nSigma);
     histNew->SetBinError(i, 0);
   }
@@ -682,7 +687,6 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
   for (auto &it : histvec) {
     it->Write(Form("histVar_%i", iVar++));
     c->cd(iVar);
-    it->GetYaxis()->SetRangeUser(0,it->GetMaximum()*2.0);
     it->Draw("pe");
     if (name == TString("ErrBudget")) {
       auto fit = it->GetFunction(Form("%s_fit", it->GetName()));
@@ -699,6 +703,7 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
                             it->GetBinContent(1) * 100.f));
       }
     } else if (name == TString("Barlow")) {
+      it->GetYaxis()->SetRangeUser(0,it->GetMaximum()*2.0);
       c->cd(iVar);
       text.DrawLatex(
           gPad->GetUxmax()-0.8,gPad->GetUymax()-0.3,fBarlowLabel.at(iVar-1));

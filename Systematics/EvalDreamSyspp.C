@@ -11,7 +11,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
-  const int rebin = 10;
+  const int rebin = 5;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
@@ -34,6 +34,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
 //  protonproton.SetUpperFitRange(44);
   protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppDefMeV_1");
   protonproton.SetUpperFitRange(upperFitRange);
+  protonproton.SetBarlowUpperRange(400);
   const int protonVarStart = 1;
   for (int i = protonVarStart;
       i < protonVarStart + protonproton.GetNumberOfVars() - 2; ++i) {

@@ -12,7 +12,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
   CATSinput->SetFixedkStarMinBin(true, 0.);
-  const int rebin = 20;
+  const int rebin = 5;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
@@ -35,6 +35,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   DreamCF* CFpXiDef = CATSinput->ObtainCFSyst(rebin, "ppDef", pXi, ApAXi);
   DreamSystematics protonXi(DreamSystematics::pXi);
   protonXi.SetUpperFitRange(upperFitRange);
+  protonXi.SetBarlowUpperRange(400);
   protonXi.SetDefaultHist(CFpXiDef, "hCk_ReweightedppDefMeV_1");
   int iPXICounter = 0;
   for (int i = protonVarStart;
