@@ -73,8 +73,9 @@ void EvalpXiCurves(const char* cfpath, const char* prefix,
         float tupler[tupleLength];
         if (graphName.Contains(MygraphName.Data())) {
           for (int iPnt = 0; iPnt < tupleLength; ++iPnt) {
-            tupler[iPnt] = CF_Histo->GetBinContent(iPnt + 1)
-                - Graph->Eval(CF_Histo->GetBinCenter(iPnt + 1));
+            tupler[iPnt] = Graph->Eval(CF_Histo->GetBinCenter(iPnt + 1));
+//            tupler[iPnt] = CF_Histo->GetBinContent(iPnt + 1)
+//                - Graph->Eval(CF_Histo->GetBinCenter(iPnt + 1));
             if (iPnt == tupleLength - 1) {
               Graph->SetLineColor(3);
               outFit->Fill(tupler);
@@ -123,7 +124,7 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder, co
   DreamPlot::SetStyle();
   DreamPlot::SetStyleHisto(CF_Histo);
   std::cout << "Error Before: " << CF_Histo->GetBinError(1) << std::endl;
-  CATSinput->AddSystematics("C2totalsysPXi.root",CF_Histo);
+  CATSinput->AddSystematics("C2totalsysPXi.root",CF_Histo, "PXi");
   std::cout << "Error After: " << CF_Histo->GetBinError(1) << std::endl;
   TFile* output = TFile::Open(Form("%s/outfile.root", varFolder), "update");
   TNtuple* outFit = (TNtuple*) output->Get("pXiFit");
@@ -150,9 +151,9 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder, co
 
     double CoulombdefVal = (binLimUp + binLimLow) / 2.;
 
-    grDefault.SetPoint(iBranches - 1, kVal, CkExp - CoulombdefVal);
-    grUp.SetPoint(iBranches - 1, kVal, CkExp - CoulombdefVal + Delta);
-    grLow.SetPoint(iBranches - 1, kVal, CkExp - CoulombdefVal - Delta);
+    grDefault.SetPoint(iBranches - 1, kVal, CoulombdefVal);
+    grUp.SetPoint(iBranches - 1, kVal, CoulombdefVal + Delta);
+    grLow.SetPoint(iBranches - 1, kVal, CoulombdefVal - Delta);
 
     delete hist;
 
@@ -161,7 +162,7 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder, co
   float chisqUp = 0;
   float chisqDown = 0;
   int ndf = -1;
-  for (int iBin = 1; iBin < CF_Histo->GetXaxis()->FindBin(200); ++iBin) {
+  for (int iBin = 1; iBin < CF_Histo->GetXaxis()->FindBin(100); ++iBin) {
     ndf++;
     double kVal = CF_Histo->GetBinCenter(iBin);
     double CkVal = CF_Histo->GetBinContent(iBin);
