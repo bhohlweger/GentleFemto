@@ -15,7 +15,7 @@ static const int tupleLength = 18;
 //ONLY WORKS FOR 20 MEV BINNING
 void EvalpXiCurves(const char* cfpath, const char* prefix,
                    const char* varFolder,float kStarMin) {
-  CATSInput *CATSinput = new CATSInput("PXi");
+  CATSInput *CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
   CATSinput->SetFixedkStarMinBin(true, kStarMin);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
@@ -99,7 +99,7 @@ void EvalpXiCurves(const char* cfpath, const char* prefix,
 }
 
 void EvalError(const char* cfpath, const char* prefix, const char* varFolder, const char* sysPath, float kStarMin) {
-  CATSInput *CATSinput = new CATSInput("PXi");
+  CATSInput *CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
   CATSinput->SetFixedkStarMinBin(true, kStarMin);
   CATSinput->SetCalibBaseDir(sysPath);
