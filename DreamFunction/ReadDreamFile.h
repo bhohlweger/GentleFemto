@@ -43,9 +43,11 @@ class ReadDreamFile {
                                               int iAPart1, int iAPart2,
                                               int iMix2, int iRad,
                                               bool smallkStar);
+  void SetQuite() { fQuiet = true;}
   const int fNPart1;
   const int fNPart2;
  private:
+  bool fQuiet;
   TH1F*** fSE;
   TH2F*** fSEMult;
   TH2F*** fSEkT;

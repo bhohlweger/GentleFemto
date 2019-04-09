@@ -10,7 +10,8 @@
 #include "stdlib.h"
 
 ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
-    : fNPart1(nPart1),
+    : fQuiet(false),
+      fNPart1(nPart1),
       fNPart2(nPart2),
       fSE(nullptr),
       fSEMult(nullptr),
@@ -102,7 +103,7 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       auto hist1D = (TH1F*) PartList->FindObject(
           Form("SEDist_%s", FolderName.Data()));
       if (!hist1D) {
-        std::cout << "SE Histogramm missing from " << FolderName.Data()
+        if (!fQuiet) std::cout << "SE Histogramm missing from " << FolderName.Data()
                   << std::endl;
       } else {
         fSE[iPart1][iPart2] = (TH1F*) hist1D->Clone(
@@ -113,7 +114,7 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       auto hist2D = (TH2F*) PartList->FindObject(
           Form("SEMultDist_%s", FolderName.Data()));
       if (!hist2D) {
-        std::cout << "SEMult Histogramm missing from " << FolderName.Data()
+        if (!fQuiet) std::cout << "SEMult Histogramm missing from " << FolderName.Data()
                   << std::endl;
       } else {
         fSEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
@@ -132,7 +133,7 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       hist1D = (TH1F*) PartList->FindObject(
           Form("MEDist_%s", FolderName.Data()));
       if (!hist1D) {
-        std::cout << "ME Histogramm missing from " << FolderName.Data()
+        if (!fQuiet) std::cout << "ME Histogramm missing from " << FolderName.Data()
                   << std::endl;
       } else {
         fME[iPart1][iPart2] = (TH1F*) hist1D->Clone(
@@ -144,7 +145,7 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       hist2D = (TH2F*) PartList->FindObject(
           Form("MEMultDist_%s", FolderName.Data()));
       if (!hist2D) {
-        std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
+        if (!fQuiet) std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
                   << std::endl;
       } else {
         fMEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
