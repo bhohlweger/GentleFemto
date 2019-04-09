@@ -22,6 +22,7 @@
 #include "TPaveText.h"
 #include "DreamPlot.h"
 #include "TNtuple.h"
+#include "DreamSystematics.h"
 
 /// Number of parameters for the sideband fit
 const int nSidebandPars = 6;
@@ -52,9 +53,9 @@ void PrintVars(const std::vector<double> &vec) {
 }
 
 /// =====================================================================================
-void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
-               TString suffix, TString OutputDir, const int potential,
-               std::vector<double> params) {
+void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
+               TString trigger, TString suffix, TString OutputDir,
+               const int potential, std::vector<double> params) {
   bool batchmode = true;
   bool debugPlots = false;
   double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
@@ -124,6 +125,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input
+  std::vector<TH1F*> histSysVar;
+
   TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
   CATSInputSigma0 *CATSinput = new CATSInputSigma0();
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
@@ -140,8 +143,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
     std::cerr << "ERROR pSigma0 fitter: p-Sigma0 histogram missing\n";
     return;
   }
-  // Quadratically add the uncertainties
-  CATSinput->AddSystematics("/Systematics_pSigma0.root", dataHist, "pSigma0");
+  histSysVar.push_back(dataHist);
 
   auto sidebandHistUp = CATSinput->GetCF("pSigmaSBUp",
                                          "hCk_ReweightedpSigmaSBUpMeV_0");
@@ -150,6 +152,21 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   if (!sidebandHistLow || !sidebandHistUp) {
     std::cerr << "ERROR pSigma0 fitter: p-pSigmaSB histogram missing\n";
     return;
+  }
+
+  /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  /// CATS input for the systematic variations
+
+  DreamSystematics protonsigma(DreamSystematics::pSigma0);
+  for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
+    auto CATSinputVar = new CATSInputSigma0();
+    auto appendixVar = TString::Format("%i", i);
+    CATSinputVar->ReadSigma0CorrelationFile(SystInputDir.Data(), trigger.Data(),
+                                            appendixVar.Data());
+    CATSinputVar->ObtainCFs(10, 250, 400);
+    auto dataHistVar = CATSinputVar->GetCF("pSigma0", dataHistName.Data());
+    histSysVar.push_back(dataHistVar);
+    delete CATSinputVar;
   }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -274,6 +291,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 
   if (NumIter != 0) {
     std::cout << "\n\nStarting the systematic variations\n";
+    std::cout << "Number of systematic variations of the data: "
+              << histSysVar.size() << "\n";
     std::cout << "Number of variations of the fit region: "
               << femtoFitRegionUp.size() << "\n";
     PrintVars(femtoFitRegionUp);
@@ -332,412 +351,433 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
   }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  /// "Systematic" variations
+  /// Systematic variations
+  float counter = 0;
+  float total = histSysVar.size() * femtoFitRegionUp.size() * prefit_a.size()
+      * sidebandNormDown.size() * sourceSize.size();
+  // 1. Systematic variations of the data
+  for (size_t systDataIter = 0; systDataIter < histSysVar.size();
+      ++systDataIter) {
+    auto currentHist = histSysVar[systDataIter];
+    currentHist->Draw("same");
 
-  // 1. Femto fit range
-  for (size_t femtoFitIter = 0; femtoFitIter < femtoFitRegionUp.size();
-      ++femtoFitIter) {
+    // 2. Femto fit range
+    for (size_t femtoFitIter = 0; femtoFitIter < femtoFitRegionUp.size();
+        ++femtoFitIter) {
 
-    // 2. Baseline treatment
-    for (size_t blIter = 0; blIter < prefit_a.size(); ++blIter) {
+      // 3. Baseline treatment
+      for (size_t blIter = 0; blIter < prefit_a.size(); ++blIter) {
 
-      if (blIter == 0) {
-        useBaseline = false;  //use baseline
-      } else {
-        useBaseline = true;  // no baseline
-      }
-
-      // 3. Sideband normalization
-      for (size_t sbNormIter = 0; sbNormIter < sidebandNormDown.size();
-          ++sbNormIter) {
-
-        side->SetNormalizationRange(sidebandNormDown[sbNormIter],
-                                    sidebandNormUp[sbNormIter]);
-
-        side->SideBandCFs();
-        auto SBmerge = side->GetSideBands(5);
-        auto sideband = new TF1(Form("sideband_%i", iterID), sidebandFit, 0,
-                                650, nSidebandPars);
-        sideband->SetParameter(0, -1.5);
-        sideband->SetParameter(1, 0.);
-        sideband->SetParameter(2, 0);
-        sideband->SetParameter(3, 0.1);
-        sideband->SetParameter(4, 1);
-        sideband->SetParameter(5, 0);
-        SBmerge->Fit(sideband, "FSNRMQ");
-
-        DLM_Ck* Ck_SideBand = new DLM_Ck(0, nSidebandPars, NumMomBins_pSigma,
-                                         kMin_pSigma, kMax_pSigma,
-                                         sidebandFitCATS);
-
-        for (unsigned i = 0; i < sideband->GetNumberFreeParameters(); ++i) {
-          if (!batchmode) {
-            std::cout << i << " " << sideband->GetParameter(i) << std::endl;
-          }
-          Ck_SideBand->SetPotPar(i, sideband->GetParameter(i));
+        if (blIter == 0) {
+          useBaseline = false;  //use baseline
+        } else {
+          useBaseline = true;  // no baseline
         }
-        Ck_SideBand->Update();
 
-        // 4. Source size
-        for (size_t sizeIter = 0; sizeIter < sourceSize.size(); ++sizeIter) {
+        // 4. Sideband normalization
+        for (size_t sbNormIter = 0; sbNormIter < sidebandNormDown.size();
+            ++sbNormIter) {
 
-          // 5. Lambda parameters
-          for (size_t lambdaIter = 0; lambdaIter < lambdaParams.size();
-              ++lambdaIter) {
+          side->SetNormalizationRange(sidebandNormDown[sbNormIter],
+                                      sidebandNormUp[sbNormIter]);
 
+          side->SideBandCFs();
+          auto SBmerge = side->GetSideBands(5);
+          auto sideband = new TF1(Form("sideband_%i", iterID), sidebandFit, 0,
+                                  650, nSidebandPars);
+          sideband->SetParameter(0, -1.5);
+          sideband->SetParameter(1, 0.);
+          sideband->SetParameter(2, 0);
+          sideband->SetParameter(3, 0.1);
+          sideband->SetParameter(4, 1);
+          sideband->SetParameter(5, 0);
+          SBmerge->Fit(sideband, "FSNRMQ");
+
+          DLM_Ck* Ck_SideBand = new DLM_Ck(0, nSidebandPars, NumMomBins_pSigma,
+                                           kMin_pSigma, kMax_pSigma,
+                                           sidebandFitCATS);
+
+          for (unsigned i = 0; i < sideband->GetNumberFreeParameters(); ++i) {
             if (!batchmode) {
-              std::cout << "Processing iteration " << iterID << "\n";
+              std::cout << i << " " << sideband->GetParameter(i) << std::endl;
             }
+            Ck_SideBand->SetPotPar(i, sideband->GetParameter(i));
+          }
+          Ck_SideBand->Update();
 
-            /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            /// Correlation function
-            Ck_pSigma0->SetSourcePar(0, sourceSize[sizeIter]);
-            Ck_pSigma0->Update();
+          // 5. Source size
+          for (size_t sizeIter = 0; sizeIter < sourceSize.size(); ++sizeIter) {
+            std::cout
+                << "\r Processing progress: "
+                << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
+                << std::flush;
 
-            DLM_CkDecomposition CkDec_pSigma0("pSigma0", 2, *Ck_pSigma0,
-                                              CATSinput->GetSigmaFile(1));
+            // 6. Lambda parameters
+            for (size_t lambdaIter = 0; lambdaIter < lambdaParams.size();
+                ++lambdaIter) {
 
-            /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              /// Correlation function
+              Ck_pSigma0->SetSourcePar(0, sourceSize[sizeIter]);
+              Ck_pSigma0->Update();
 
-            DLM_CkDecomposition CkDec_SideBand("pSigma0SideBand", 0,
-                                               *Ck_SideBand, nullptr);
-            const float sidebandContr = lambdaParams[lambdaIter].GetLambdaParam(
-                CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
-            const float primaryContr = lambdaParams[lambdaIter].GetLambdaParam(
-                CATSLambdaParam::Primary);
-            CkDec_pSigma0.AddContribution(0, sidebandContr,
-                                          DLM_CkDecomposition::cFake,
-                                          &CkDec_SideBand);
-            CkDec_pSigma0.AddContribution(1, 1.f - sidebandContr - primaryContr,
-                                          DLM_CkDecomposition::cFeedDown);
-            CkDec_pSigma0.Update();
+              DLM_CkDecomposition CkDec_pSigma0("pSigma0", 2, *Ck_pSigma0,
+                                                CATSinput->GetSigmaFile(1));
 
-            /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            /// Fitter
-            DLM_Fitter1* fitter = new DLM_Fitter1(1);
-            fitter->SetSystem(0, *dataHist, 1, CkDec_pSigma0, kMin_pSigma,
-                              femtoFitRegionUp[femtoFitIter], 1000, 1000);
-            fitter->SetSeparateBL(0, false);              //Simultaneous BL
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_a, prefit_a[blIter]);
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_b, prefit_b[blIter]);
-            fitter->AddSameSource("pSigma0SideBand", "pSigma0", 1);
+              /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-            //Fit BL & Normalization
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_c, 0);
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_Cl, -1.);
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_sor0,
-                                 sourceSize[sizeIter]);
+              DLM_CkDecomposition CkDec_SideBand("pSigma0SideBand", 0,
+                                                 *Ck_SideBand, nullptr);
+              const float sidebandContr = lambdaParams[lambdaIter]
+                  .GetLambdaParam(CATSLambdaParam::Primary,
+                                  CATSLambdaParam::Fake, 0, 0);
+              const float primaryContr =
+                  lambdaParams[lambdaIter].GetLambdaParam(
+                      CATSLambdaParam::Primary);
+              CkDec_pSigma0.AddContribution(0, sidebandContr,
+                                            DLM_CkDecomposition::cFake,
+                                            &CkDec_SideBand);
+              CkDec_pSigma0.AddContribution(1,
+                                            1.f - sidebandContr - primaryContr,
+                                            DLM_CkDecomposition::cFeedDown);
+              CkDec_pSigma0.Update();
 
-            // Suppress warnings from ROOT
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, 0);
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, 0);
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, 0);
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot3, 0);
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot4, 0);
-            fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot5, 0);
-            if (potential == 0) {
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, REf0inv);
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, IMf0inv);
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, d0);
-            } else if (potential == 1) {
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, deltap0);
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, deltap1);
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, deltap2);
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot3, etap0);
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot4, etap1);
-              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot5, etap2);
-            }
+              /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              /// Fitter
+              DLM_Fitter1* fitter = new DLM_Fitter1(1);
+              fitter->SetSystem(0, *currentHist, 1, CkDec_pSigma0, kMin_pSigma,
+                                femtoFitRegionUp[femtoFitIter], 900, 900);
+              fitter->SetSeparateBL(0, false);              //Simultaneous BL
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_a,
+                                   prefit_a[blIter]);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_b,
+                                   prefit_b[blIter]);
+              fitter->AddSameSource("pSigma0SideBand", "pSigma0", 1);
 
-            fitter->GoBabyGo();
+              //Fit BL & Normalization
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_c, 0);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_Cl, -1.);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_sor0,
+                                   sourceSize[sizeIter]);
 
-            /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            /// Get the parameters from the fit
-            const double bl_a = fitter->GetParameter("pSigma0",
-                                                     DLM_Fitter1::p_a);
-            const double bl_a_err = fitter->GetParError("pSigma0",
-                                                        DLM_Fitter1::p_a);
-            const double bl_b = fitter->GetParameter("pSigma0",
-                                                     DLM_Fitter1::p_b);
-            const double bl_b_err = fitter->GetParError("pSigma0",
-                                                        DLM_Fitter1::p_b);
-            const double Cl = fitter->GetParameter("pSigma0", DLM_Fitter1::p_c);
-            const double chi2 = fitter->GetChi2Ndf();
-            const double pval = fitter->GetPval();
-            const bool isCFneg = fitter->CheckNegativeCk();
-
-            TGraph FitResult_pSigma0;
-            FitResult_pSigma0.SetName(
-                TString::Format("pSigma0Graph_%i", iterID));
-            FitResult_pSigma0.SetTitle(
-                TString::Format("pSigma0Graph_%i", iterID));
-            fitter->GetFitGraph(0, FitResult_pSigma0);
-
-            double Chi2_pSigma0 = 0;
-            double EffNumBins_pSigma0 = 0;
-            int maxkStarBin = dataHist->FindBin(250);
-            for (unsigned uBin = 1; uBin <= maxkStarBin; uBin++) {
-
-              double mom = dataHist->GetBinCenter(uBin);
-              //double dataX;
-              double dataY;
-              double dataErr;
-              double theoryX;
-              double theoryY;
-
-              if (mom > femtoFitRegionUp[femtoFitIter]) {
-                continue;
+              // Suppress warnings from ROOT
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, 0);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, 0);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, 0);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot3, 0);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot4, 0);
+              fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot5, 0);
+              if (potential == 0) {
+                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, REf0inv);
+                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, IMf0inv);
+                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, d0);
+              } else if (potential == 1) {
+                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, deltap0);
+                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, deltap1);
+                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, deltap2);
+                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot3, etap0);
+                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot4, etap1);
+                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot5, etap2);
               }
 
-              FitResult_pSigma0.GetPoint(uBin - 1, theoryX, theoryY);
-              if (mom != theoryX) {
-                std::cerr << "PROBLEM Sigma0 " << mom << '\t' << theoryX
-                          << std::endl;
-              }
-              dataY = dataHist->GetBinContent(uBin);
-              dataErr = dataHist->GetBinError(uBin);
-              Chi2_pSigma0 += (dataY - theoryY) * (dataY - theoryY)
-                  / (dataErr * dataErr);
-              ++EffNumBins_pSigma0;
-            }
-            double pvalpSigma0 = TMath::Prob(Chi2_pSigma0,
-                                             round(EffNumBins_pSigma0));
-            double nSigmapSigma0 = TMath::Sqrt(2)
-                * TMath::ErfcInverse(pvalpSigma0);
+              fitter->GoBabyGo();
 
-            if (iterID == 0) {
-              std::cout << "=============\n";
-              std::cout << "Fitter output\n";
-              std::cout << "BL a  " << bl_a << " " << bl_a_err << "\n";
-              std::cout << "BL b  " << bl_b << " " << bl_b_err << "\n";
-              std::cout << "Cl    " << Cl << "\n";
-              std::cout << "Chi2\n";
-              std::cout << " glob " << chi2 << "\n";
-              std::cout << " loc  " << Chi2_pSigma0 / round(EffNumBins_pSigma0)
-                        << "\n";
-              std::cout << "p-val\n";
-              std::cout << " glob " << pval << "\n";
-              std::cout << " loc  " << pvalpSigma0 << "\n";
-              std::cout << "Neg?  " << isCFneg << "\n";
-              std::cout << "=============\n";
-            }
+              /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              /// Get the parameters from the fit
+              const double bl_a = fitter->GetParameter("pSigma0",
+                                                       DLM_Fitter1::p_a);
+              const double bl_a_err = fitter->GetParError("pSigma0",
+                                                          DLM_Fitter1::p_a);
+              const double bl_b = fitter->GetParameter("pSigma0",
+                                                       DLM_Fitter1::p_b);
+              const double bl_b_err = fitter->GetParError("pSigma0",
+                                                          DLM_Fitter1::p_b);
+              const double Cl = fitter->GetParameter("pSigma0",
+                                                     DLM_Fitter1::p_c);
+              const double chi2 = fitter->GetChi2Ndf();
+              const double pval = fitter->GetPval();
+              const bool isCFneg = fitter->CheckNegativeCk();
 
-            /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            /// Write out all the stuff
+              TGraph FitResult_pSigma0;
+              FitResult_pSigma0.SetName(
+                  TString::Format("pSigma0Graph_%i", iterID));
+              FitResult_pSigma0.SetTitle(
+                  TString::Format("pSigma0Graph_%i", iterID));
+              fitter->GetFitGraph(0, FitResult_pSigma0);
 
-            TGraph grCFSigmaRaw;
-            grCFSigmaRaw.SetName(Form("Sigma0Raw_%i", iterID));
-            TGraph grCFSigmaMain;
-            grCFSigmaMain.SetName(Form("Sigma0Main_%i", iterID));
-            TGraph grCFSigmaFeed;
-            grCFSigmaFeed.SetName(Form("Sigma0Feed_%i", iterID));
-            TGraph grCFSigmaSideband;
-            grCFSigmaSideband.SetName(Form("Sigma0Sideband_%i", iterID));
+              double Chi2_pSigma0 = 0;
+              double EffNumBins_pSigma0 = 0;
+              int maxkStarBin = currentHist->FindBin(250);
+              for (unsigned uBin = 1; uBin <= maxkStarBin; uBin++) {
 
-            for (unsigned int i = 0; i < Ck_pSigma0->GetNbins(); ++i) {
-              const float mom = Ck_pSigma0->GetBinCenter(0, i);
-              const float baseline = bl_a + bl_b * mom;
-              grCFSigmaRaw.SetPoint(i, mom,
-                                    CkDec_pSigma0.EvalCk(mom) * baseline);
-              grCFSigmaMain.SetPoint(
-                  i,
-                  mom,
-                  (((CkDec_pSigma0.EvalMain(mom) - 1.) * primaryContr) + 1)
-                      * baseline);
-              grCFSigmaFeed.SetPoint(
-                  i, mom, CkDec_pSigma0.EvalMainFeed(mom) * baseline);
-              grCFSigmaSideband.SetPoint(
-                  i,
-                  mom,
-                  (((Ck_SideBand->Eval(mom) - 1.) * sidebandContr) + 1)
-                      * baseline);
-            }
+                double mom = currentHist->GetBinCenter(uBin);
+                //double dataX;
+                double dataY;
+                double dataErr;
+                double theoryX;
+                double theoryY;
 
-            param->cd();
-            param->mkdir(TString::Format("Graph_%i", iterID));
-            param->cd(TString::Format("Graph_%i", iterID));
-
-            /// beautification
-            DreamPlot::SetStyleHisto(dataHist, 24, kBlack);
-            dataHist->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
-            DreamPlot::SetStyleHisto(SBmerge, 20, kRed + 2);
-            SBmerge->SetTitle(";#it{k}* (MeV/#it{c}); C_{sideband}(#it{k}*)");
-            DreamPlot::SetStyleHisto(sidebandHistLow, 26, kGreen + 2);
-            sidebandHistLow->SetTitle(
-                ";#it{k}* (MeV/#it{c}); C_{sideband, low}(#it{k}*)");
-            DreamPlot::SetStyleHisto(sidebandHistUp, 26, kCyan + 2);
-            sidebandHistUp->SetTitle(
-                ";#it{k}* (MeV/#it{c}); C_{sideband, up}(#it{k}*)");
-            sideband->SetLineWidth(2);
-            sideband->SetLineStyle(2);
-            sideband->SetLineColor(kGray + 1);
-            FitResult_pSigma0.SetLineWidth(2);
-            FitResult_pSigma0.SetLineColor(kRed + 2);
-            grCFSigmaSideband.SetLineWidth(2);
-            grCFSigmaSideband.SetLineStyle(2);
-            grCFSigmaSideband.SetLineColor(kGray + 1);
-
-            grPrefitContour->Write("fitContour");
-            grCFSigmaRaw.Write();
-            grCFSigmaMain.Write();
-            grCFSigmaFeed.Write();
-            grCFSigmaSideband.Write();
-            sideband->Write(Form("SidebandFitNotScaled_%i", iterID));
-            SBmerge->Write(Form("SidebandMerged_%i", iterID));
-            FitResult_pSigma0.Write(Form("Fit_%i", iterID));
-
-            if (fastPlot || iterID == 0) {
-              dataHist->Write("CF");
-              sidebandHistLow->Write("SidebandLow");
-              sidebandHistUp->Write("SidebandUp");
-
-              auto c = new TCanvas("DefaultFit", "DefaultFit");
-              dataHist->GetXaxis()->SetRangeUser(0., 600);
-              dataHist->GetYaxis()->SetRangeUser(0.8, 1.6);
-              dataHist->Draw();
-              FitResult_pSigma0.Draw("l3same");
-              grCFSigmaSideband.Draw("l3same");
-
-              auto info = new TPaveText(0.5, useBaseline ? 0.505 : 0.58, 0.88,
-                                        0.85, "blNDC");
-              info->SetBorderSize(0);
-              info->SetTextSize(0.04);
-              info->SetFillColor(kWhite);
-              info->SetTextFont(42);
-              TString SOURCE_NAME = "Gauss";
-              double Yoffset = 1.2;
-              info->AddText(
-                  TString::Format(
-                      "#it{r}_{%s} = %.3f #pm %.3f fm", SOURCE_NAME.Data(),
-                      fitter->GetParameter("pSigma0", DLM_Fitter1::p_sor0),
-                      fitter->GetParError("pSigma0", DLM_Fitter1::p_sor0)));
-              info->AddText(
-                  TString::Format("#it{a} = %.3f #pm %.3f", bl_a, bl_a_err));
-
-              if (useBaseline) {
-                info->AddText(
-                    TString::Format("#it{b} = (%.3f #pm %.3f ) #times 10^{-4}",
-                                    bl_b * 1e4, bl_b_err * 1e4));
-              }
-              info->AddText(
-                  TString::Format("#chi_{loc}^{2}/ndf=%.1f/%.0f = %.3f",
-                                  Chi2_pSigma0, EffNumBins_pSigma0,
-                                  Chi2_pSigma0 / double(EffNumBins_pSigma0)));
-              info->AddText(
-                  TString::Format("#it{p}_{val}=%.3f, n_{#sigma}=%.3f",
-                                  pvalpSigma0, nSigmapSigma0));
-
-              info->Draw("same");
-              c->Write("CFplot");
-              if (debugPlots) {
-                if (potential == 0) {
-                  c->Print(
-                      Form("%s/CF_pSigma0_%.3f_%.3f_%.3f.pdf", OutputDir.Data(),
-                           d0, REf0inv, IMf0inv));
-                } else if (potential == 1) {
-                  c->Print(
-                      Form("%s/CF_pSigma0_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
-                           OutputDir.Data(), deltap0, deltap1, deltap2, etap0,
-                           etap1, etap2));
-                } else {
-                  c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
+                if (mom > femtoFitRegionUp[femtoFitIter]) {
+                  continue;
                 }
+
+                FitResult_pSigma0.GetPoint(uBin - 1, theoryX, theoryY);
+                if (mom != theoryX) {
+                  std::cerr << "PROBLEM Sigma0 " << mom << '\t' << theoryX
+                            << std::endl;
+                }
+                dataY = currentHist->GetBinContent(uBin);
+                dataErr = currentHist->GetBinError(uBin);
+                Chi2_pSigma0 += (dataY - theoryY) * (dataY - theoryY)
+                    / (dataErr * dataErr);
+                ++EffNumBins_pSigma0;
+              }
+              double pvalpSigma0 = TMath::Prob(Chi2_pSigma0,
+                                               round(EffNumBins_pSigma0));
+              double nSigmapSigma0 = TMath::Sqrt(2)
+                  * TMath::ErfcInverse(pvalpSigma0);
+
+              if (iterID == 0) {
+                std::cout << "=============\n";
+                std::cout << "Fitter output\n";
+                std::cout << "BL a  " << bl_a << " " << bl_a_err << "\n";
+                std::cout << "BL b  " << bl_b << " " << bl_b_err << "\n";
+                std::cout << "Cl    " << Cl << "\n";
+                std::cout << "Chi2\n";
+                std::cout << " glob " << chi2 << "\n";
+                std::cout << " loc  "
+                          << Chi2_pSigma0 / round(EffNumBins_pSigma0) << "\n";
+                std::cout << "p-val\n";
+                std::cout << " glob " << pval << "\n";
+                std::cout << " loc  " << pvalpSigma0 << "\n";
+                std::cout << "Neg?  " << isCFneg << "\n";
+                std::cout << "=============\n";
               }
 
-              auto d = new TCanvas("SidebandFit", "SidebandFit");
-              SBmerge->GetXaxis()->SetRangeUser(0., 600);
-              SBmerge->GetYaxis()->SetRangeUser(0.8, 1.6);
-              SBmerge->Draw();
-              sideband->Draw("l3same");
-              d->Write("CFsideband");
-              if (debugPlots) {
-                d->Print(Form("%s/CF_pSideband.pdf", OutputDir.Data()));
+              /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              /// Write out all the stuff
+
+              TGraph grCFSigmaRaw;
+              grCFSigmaRaw.SetName(Form("Sigma0Raw_%i", iterID));
+              TGraph grCFSigmaMain;
+              grCFSigmaMain.SetName(Form("Sigma0Main_%i", iterID));
+              TGraph grCFSigmaFeed;
+              grCFSigmaFeed.SetName(Form("Sigma0Feed_%i", iterID));
+              TGraph grCFSigmaSideband;
+              grCFSigmaSideband.SetName(Form("Sigma0Sideband_%i", iterID));
+
+              for (unsigned int i = 0; i < Ck_pSigma0->GetNbins(); ++i) {
+                const float mom = Ck_pSigma0->GetBinCenter(0, i);
+                const float baseline = bl_a + bl_b * mom;
+                grCFSigmaRaw.SetPoint(i, mom,
+                                      CkDec_pSigma0.EvalCk(mom) * baseline);
+                grCFSigmaMain.SetPoint(
+                    i,
+                    mom,
+                    (((CkDec_pSigma0.EvalMain(mom) - 1.) * primaryContr) + 1)
+                        * baseline);
+                grCFSigmaFeed.SetPoint(
+                    i, mom, CkDec_pSigma0.EvalMainFeed(mom) * baseline);
+                grCFSigmaSideband.SetPoint(
+                    i,
+                    mom,
+                    (((Ck_SideBand->Eval(mom) - 1.) * sidebandContr) + 1)
+                        * baseline);
               }
 
-              auto e = new TCanvas("Sidebands", "Sidebands");
-              SBmerge->Draw();
-              sideband->Draw("l3same");
-              sidebandHistLow->Draw("same");
-              sidebandHistUp->Draw("same");
-              auto leg = new TLegend(0.5, 0.6, 0.88, 0.85);
-              leg->SetTextFont(42);
-              leg->SetTextSize(0.05);
-              leg->AddEntry(sidebandHistLow, "Sideband low", "pe");
-              leg->AddEntry(sidebandHistUp, "Sideband up", "pe");
-              leg->AddEntry(SBmerge, "Sideband merged", "pe");
-              leg->AddEntry(sideband, "Fit", "l");
-              leg->Draw("same");
-              e->Write("CFsideband");
-              if (debugPlots) {
-                e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
+              param->cd();
+              param->mkdir(TString::Format("Graph_%i", iterID));
+              param->cd(TString::Format("Graph_%i", iterID));
+
+              /// beautification
+              DreamPlot::SetStyleHisto(currentHist, 24, kBlack);
+              currentHist->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+              DreamPlot::SetStyleHisto(SBmerge, 20, kRed + 2);
+              SBmerge->SetTitle(";#it{k}* (MeV/#it{c}); C_{sideband}(#it{k}*)");
+              DreamPlot::SetStyleHisto(sidebandHistLow, 26, kGreen + 2);
+              sidebandHistLow->SetTitle(
+                  ";#it{k}* (MeV/#it{c}); C_{sideband, low}(#it{k}*)");
+              DreamPlot::SetStyleHisto(sidebandHistUp, 26, kCyan + 2);
+              sidebandHistUp->SetTitle(
+                  ";#it{k}* (MeV/#it{c}); C_{sideband, up}(#it{k}*)");
+              sideband->SetLineWidth(2);
+              sideband->SetLineStyle(2);
+              sideband->SetLineColor(kGray + 1);
+              FitResult_pSigma0.SetLineWidth(2);
+              FitResult_pSigma0.SetLineColor(kRed + 2);
+              grCFSigmaSideband.SetLineWidth(2);
+              grCFSigmaSideband.SetLineStyle(2);
+              grCFSigmaSideband.SetLineColor(kGray + 1);
+
+              if (fastPlot || iterID == 0) {
+                dataHist->Write();
               }
 
-              delete c;
-              delete info;
-              delete d;
-              delete e;
-            }
+              grCFSigmaSideband.Write();
+              FitResult_pSigma0.Write(Form("Fit_%i", iterID));
+              currentHist->SetName(TString::Format("HistCF_Var_%i", systDataIter));
+              currentHist->Write();
 
-            param->cd();
-            ntBuffer[0] = iterID;
-            ntBuffer[1] = femtoFitRegionUp[femtoFitIter];
-            ntBuffer[2] = (float) blIter;
-            ntBuffer[3] = sourceSize[sizeIter];
-            ntBuffer[4] = bl_a;
-            ntBuffer[5] = bl_a_err;
-            ntBuffer[6] = bl_b;
-            ntBuffer[7] = bl_b_err;
-            ntBuffer[8] = sideband->GetParameter(0);
-            ntBuffer[9] = sideband->GetParError(0);
-            ntBuffer[10] = sideband->GetParameter(1);
-            ntBuffer[11] = sideband->GetParError(1);
-            ntBuffer[12] = sideband->GetParameter(2);
-            ntBuffer[13] = sideband->GetParError(2);
-            ntBuffer[14] = sideband->GetParameter(3);
-            ntBuffer[15] = sideband->GetParError(3);
-            ntBuffer[16] = sideband->GetParameter(4);
-            ntBuffer[17] = sideband->GetParError(4);
-            ntBuffer[18] = sideband->GetParameter(5);
-            ntBuffer[19] = sideband->GetParError(5);
-            ntBuffer[20] = lambdaParams[lambdaIter].GetLambdaParam(
-                CATSLambdaParam::Primary);
-            ntBuffer[21] = lambdaParams[lambdaIter].GetLambdaParam(
-                CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
-            ntBuffer[22] = sidebandNormDown[sbNormIter];
-            ntBuffer[23] = sidebandNormUp[sbNormIter];
-            ntBuffer[24] = chi2;
-            ntBuffer[25] = pval;
-            ntBuffer[26] = Chi2_pSigma0;
-            ntBuffer[27] = (float) EffNumBins_pSigma0;
-            ntBuffer[28] = Chi2_pSigma0 / double(EffNumBins_pSigma0);
-            ntBuffer[29] = pvalpSigma0;
-            ntBuffer[30] = nSigmapSigma0;
-            ntBuffer[31] = (float) isCFneg;
-            if (potential == 0) {
-              ntBuffer[32] = d0;
-              ntBuffer[33] = REf0inv;
-              ntBuffer[34] = IMf0inv;
-            } else if (potential == 1) {
-              ntBuffer[32] = deltap0;
-              ntBuffer[33] = deltap1;
-              ntBuffer[34] = deltap2;
-              ntBuffer[35] = etap0;
-              ntBuffer[36] = etap1;
-              ntBuffer[37] = etap2;
-            }
+              if (fastPlot || iterID == 0) {
+                grCFSigmaRaw.Write();
+                grCFSigmaMain.Write();
+                grCFSigmaFeed.Write();
+                grPrefitContour->Write("fitContour");
+                sideband->Write(Form("SidebandFitNotScaled_%i", iterID));
+                SBmerge->Write(Form("SidebandMerged_%i", iterID));
+                sidebandHistLow->Write("SidebandLow");
+                sidebandHistUp->Write("SidebandUp");
 
-            ntResult->Fill(ntBuffer);
-            ++iterID;
+                auto c = new TCanvas("DefaultFit", "DefaultFit");
+                currentHist->GetXaxis()->SetRangeUser(0., 600);
+                currentHist->GetYaxis()->SetRangeUser(0.8, 1.6);
+                currentHist->Draw();
+                FitResult_pSigma0.Draw("l3same");
+                grCFSigmaSideband.Draw("l3same");
 
-            delete fitter;
+                auto info = new TPaveText(0.5, useBaseline ? 0.505 : 0.58, 0.88,
+                                          0.85, "blNDC");
+                info->SetBorderSize(0);
+                info->SetTextSize(0.04);
+                info->SetFillColor(kWhite);
+                info->SetTextFont(42);
+                TString SOURCE_NAME = "Gauss";
+                double Yoffset = 1.2;
+                info->AddText(
+                    TString::Format(
+                        "#it{r}_{%s} = %.3f #pm %.3f fm", SOURCE_NAME.Data(),
+                        fitter->GetParameter("pSigma0", DLM_Fitter1::p_sor0),
+                        fitter->GetParError("pSigma0", DLM_Fitter1::p_sor0)));
+                info->AddText(
+                    TString::Format("#it{a} = %.3f #pm %.3f", bl_a, bl_a_err));
 
-            if (NumIter == 0) {
-              std::cout << "Skipping all systematic variations \n";
-              goto exitThroughTheGiftShop;
+                if (useBaseline) {
+                  info->AddText(
+                      TString::Format(
+                          "#it{b} = (%.3f #pm %.3f ) #times 10^{-4}",
+                          bl_b * 1e4, bl_b_err * 1e4));
+                }
+                info->AddText(
+                    TString::Format("#chi_{loc}^{2}/ndf=%.1f/%.0f = %.3f",
+                                    Chi2_pSigma0, EffNumBins_pSigma0,
+                                    Chi2_pSigma0 / double(EffNumBins_pSigma0)));
+                info->AddText(
+                    TString::Format("#it{p}_{val}=%.3f, n_{#sigma}=%.3f",
+                                    pvalpSigma0, nSigmapSigma0));
+
+                info->Draw("same");
+                c->Write("CFplot");
+                if (debugPlots) {
+                  if (potential == 0) {
+                    c->Print(
+                        Form("%s/CF_pSigma0_%.3f_%.3f_%.3f.pdf",
+                             OutputDir.Data(), d0, REf0inv, IMf0inv));
+                  } else if (potential == 1) {
+                    c->Print(
+                        Form("%s/CF_pSigma0_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
+                             OutputDir.Data(), deltap0, deltap1, deltap2, etap0,
+                             etap1, etap2));
+                  } else {
+                    c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
+                  }
+                }
+
+                auto d = new TCanvas("SidebandFit", "SidebandFit");
+                SBmerge->GetXaxis()->SetRangeUser(0., 600);
+                SBmerge->GetYaxis()->SetRangeUser(0.8, 1.6);
+                SBmerge->Draw();
+                sideband->Draw("l3same");
+                d->Write("CFsideband");
+                if (debugPlots) {
+                  d->Print(Form("%s/CF_pSideband.pdf", OutputDir.Data()));
+                }
+
+                auto e = new TCanvas("Sidebands", "Sidebands");
+                SBmerge->Draw();
+                sideband->Draw("l3same");
+                sidebandHistLow->Draw("same");
+                sidebandHistUp->Draw("same");
+                auto leg = new TLegend(0.5, 0.6, 0.88, 0.85);
+                leg->SetTextFont(42);
+                leg->SetTextSize(0.05);
+                leg->AddEntry(sidebandHistLow, "Sideband low", "pe");
+                leg->AddEntry(sidebandHistUp, "Sideband up", "pe");
+                leg->AddEntry(SBmerge, "Sideband merged", "pe");
+                leg->AddEntry(sideband, "Fit", "l");
+                leg->Draw("same");
+                e->Write("CFsideband");
+                if (debugPlots) {
+                  e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
+                }
+
+                delete c;
+                delete info;
+                delete d;
+                delete e;
+              }
+
+              param->cd();
+              ntBuffer[0] = iterID;
+              ntBuffer[1] = femtoFitRegionUp[femtoFitIter];
+              ntBuffer[2] = (float) blIter;
+              ntBuffer[3] = sourceSize[sizeIter];
+              ntBuffer[4] = bl_a;
+              ntBuffer[5] = bl_a_err;
+              ntBuffer[6] = bl_b;
+              ntBuffer[7] = bl_b_err;
+              ntBuffer[8] = sideband->GetParameter(0);
+              ntBuffer[9] = sideband->GetParError(0);
+              ntBuffer[10] = sideband->GetParameter(1);
+              ntBuffer[11] = sideband->GetParError(1);
+              ntBuffer[12] = sideband->GetParameter(2);
+              ntBuffer[13] = sideband->GetParError(2);
+              ntBuffer[14] = sideband->GetParameter(3);
+              ntBuffer[15] = sideband->GetParError(3);
+              ntBuffer[16] = sideband->GetParameter(4);
+              ntBuffer[17] = sideband->GetParError(4);
+              ntBuffer[18] = sideband->GetParameter(5);
+              ntBuffer[19] = sideband->GetParError(5);
+              ntBuffer[20] = lambdaParams[lambdaIter].GetLambdaParam(
+                  CATSLambdaParam::Primary);
+              ntBuffer[21] = lambdaParams[lambdaIter].GetLambdaParam(
+                  CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
+              ntBuffer[22] = sidebandNormDown[sbNormIter];
+              ntBuffer[23] = sidebandNormUp[sbNormIter];
+              ntBuffer[24] = chi2;
+              ntBuffer[25] = pval;
+              ntBuffer[26] = Chi2_pSigma0;
+              ntBuffer[27] = (float) EffNumBins_pSigma0;
+              ntBuffer[28] = Chi2_pSigma0 / double(EffNumBins_pSigma0);
+              ntBuffer[29] = pvalpSigma0;
+              ntBuffer[30] = nSigmapSigma0;
+              ntBuffer[31] = (float) isCFneg;
+              if (potential == 0) {
+                ntBuffer[32] = d0;
+                ntBuffer[33] = REf0inv;
+                ntBuffer[34] = IMf0inv;
+              } else if (potential == 1) {
+                ntBuffer[32] = deltap0;
+                ntBuffer[33] = deltap1;
+                ntBuffer[34] = deltap2;
+                ntBuffer[35] = etap0;
+                ntBuffer[36] = etap1;
+                ntBuffer[37] = etap2;
+              }
+
+              ntResult->Fill(ntBuffer);
+              ++iterID;
+
+              delete fitter;
+
+              if (NumIter == 0) {
+                std::cout << "Skipping all systematic variations \n";
+                goto exitThroughTheGiftShop;
+              }
             }
           }
+          delete sideband;
+          delete Ck_SideBand;
         }
-        delete sideband;
-        delete Ck_SideBand;
       }
     }
   }
@@ -758,31 +798,33 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString trigger,
 void FitSigma0(char *argv[]) {
   const unsigned& NumIter = atoi(argv[1]);
   TString InputDir = argv[2];
-  TString trigger = argv[3];
-  TString suffix = argv[4];
-  TString OutputDir = argv[5];
-  const int potential = atoi(argv[6]);
+  TString SystDir = argv[3];
+  TString trigger = argv[4];
+  TString suffix = argv[5];
+  TString OutputDir = argv[6];
+  const int potential = atoi(argv[7]);
   std::vector<double> params;
   if (potential == 0) {
-    if (!argv[7] || !argv[8] || !argv[9]) {
+    if (!argv[8] || !argv[9] || !argv[10]) {
       std::cout << "ERROR: Missing the scattering parameters\n";
       return;
     }
-    params.push_back(atof(argv[7]));  // d0
-    params.push_back(atof(argv[8]));  // REf0inv
-    params.push_back(atof(argv[9]));  // IMf0inv
+    params.push_back(atof(argv[8]));  // d0
+    params.push_back(atof(argv[9]));  // REf0inv
+    params.push_back(atof(argv[10]));  // IMf0inv
   } else if (potential == 1) {
-    if (!argv[7] || !argv[8] || !argv[9] || !argv[10] || !argv[11]
-        || !argv[12]) {
+    if (!argv[8] || !argv[9] || !argv[10] || !argv[11] || !argv[12]
+        || !argv[13]) {
       std::cout << "ERROR: Missing the parameters for delta/eta\n";
       return;
     }
-    params.push_back(atof(argv[7]));   // deltap0
-    params.push_back(atof(argv[8]));   // deltap1
-    params.push_back(atof(argv[9]));   // deltap2
-    params.push_back(atof(argv[10]));  // etap0
-    params.push_back(atof(argv[11]));  // etap1
-    params.push_back(atof(argv[12]));  // etap2
+    params.push_back(atof(argv[8]));   // deltap0
+    params.push_back(atof(argv[9]));   // deltap1
+    params.push_back(atof(argv[10]));   // deltap2
+    params.push_back(atof(argv[11]));  // etap0
+    params.push_back(atof(argv[12]));  // etap1
+    params.push_back(atof(argv[13]));  // etap2
   }
-  FitSigma0(NumIter, InputDir, trigger, suffix, OutputDir, potential, params);
+  FitSigma0(NumIter, InputDir, SystDir, trigger, suffix, OutputDir, potential,
+            params);
 }

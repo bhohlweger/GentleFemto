@@ -169,6 +169,10 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       TString histName = Form("%s", hist->GetName());
       if (histName.Contains(dataHistName)) {
         CF_Histo = hist;
+        if(!CF_Histo) {
+          std::cout << "ERROR: No default histogram found!\n";
+          return;
+        }
         c1->cd();
         CF_Histo->GetXaxis()->SetRangeUser(0, 600);
         CF_Histo->GetYaxis()->SetRangeUser(0.8, 1.6);
@@ -440,29 +444,29 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 // Draw all systematic variations available
 void DrawSigma(char *argv[]) {
   const unsigned& NumIter = atoi(argv[1]);
-  TString varFolder = argv[5];
-  const int potential = atoi(argv[6]);
+  TString varFolder = argv[6];
+  const int potential = atoi(argv[7]);
   std::vector<double> params;
   if (potential == 0) {
-    if (!argv[7] || !argv[8] || !argv[9]) {
+    if (!argv[8] || !argv[9] || !argv[10]) {
       std::cout << "ERROR: Missing the scattering parameters\n";
       return;
     }
-    params.push_back(atof(argv[7]));  // d0
-    params.push_back(atof(argv[8]));  // REf0inv
-    params.push_back(atof(argv[9]));  // IMf0inv
+    params.push_back(atof(argv[8]));  // d0
+    params.push_back(atof(argv[9]));  // REf0inv
+    params.push_back(atof(argv[10]));  // IMf0inv
   } else if (potential == 1) {
-    if (!argv[7] || !argv[8] || !argv[9] || !argv[10] || !argv[11]
-        || !argv[12]) {
+    if (!argv[8] || !argv[9] || !argv[10] || !argv[11] || !argv[12]
+        || !argv[13]) {
       std::cout << "ERROR: Missing the parameters for delta/eta\n";
       return;
     }
-    params.push_back(atof(argv[7]));   // deltap0
-    params.push_back(atof(argv[8]));   // deltap1
-    params.push_back(atof(argv[9]));   // deltap2
-    params.push_back(atof(argv[10]));  // etap0
-    params.push_back(atof(argv[11]));  // etap1
-    params.push_back(atof(argv[12]));  // etap2
+    params.push_back(atof(argv[8]));   // deltap0
+    params.push_back(atof(argv[9]));   // deltap1
+    params.push_back(atof(argv[10]));   // deltap2
+    params.push_back(atof(argv[11]));  // etap0
+    params.push_back(atof(argv[12]));  // etap1
+    params.push_back(atof(argv[13]));  // etap2
   }
   DrawSigma(NumIter, varFolder, potential, params);
 }
