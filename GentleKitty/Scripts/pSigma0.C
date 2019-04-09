@@ -65,13 +65,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   TRandom3 rangen(0);
   TidyCats* tidy = new TidyCats();  // for some reason we need this for the thing to compile
 
-  int nArguments = 32;
+  int nArguments = 34;
   TString varList =
       TString::Format(
           "IterID:femtoFitRange:BLSlope:ppRadius:bl_a:bl_a_err:bl_b:bl_b_err:"
           "sb_p0:sb_p0_err:sb_p1:sb_p1_err:sb_p2:sb_p2_err:sb_p3:sb_p3_err:sb_p4:sb_p4_err:sb_p5:sb_p5_err:"
           "primaryContrib:fakeContrib:SBnormDown:SBnormUp:"
-          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma:CFneg")
+          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma250:nSigma200:nSigma150:CFneg")
           .Data();
   if (potential == 0) {
     varList += ":d0:REf0inv:IMf0inv";
@@ -505,8 +505,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                   TString::Format("pSigma0Graph_%i", iterID));
               fitter->GetFitGraph(0, FitResult_pSigma0);
 
-              double Chi2_pSigma0 = 0;
-              double EffNumBins_pSigma0 = 0;
+              double Chi2_pSigma0_250 = 0;
+              double EffNumBins_pSigma0_250 = 0;
+              double Chi2_pSigma0_200 = 0;
+              double EffNumBins_pSigma0_200 = 0;
+              double Chi2_pSigma0_150 = 0;
+              double EffNumBins_pSigma0_150 = 0;
               int maxkStarBin = currentHist->FindBin(250);
               for (unsigned uBin = 1; uBin <= maxkStarBin; uBin++) {
 
@@ -528,14 +532,37 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 }
                 dataY = currentHist->GetBinContent(uBin);
                 dataErr = currentHist->GetBinError(uBin);
-                Chi2_pSigma0 += (dataY - theoryY) * (dataY - theoryY)
-                    / (dataErr * dataErr);
-                ++EffNumBins_pSigma0;
+                if (mom < 250) {
+                  Chi2_pSigma0_250 += (dataY - theoryY) * (dataY - theoryY)
+                      / (dataErr * dataErr);
+                  ++EffNumBins_pSigma0_250;
+                  if (mom < 200) {
+                    Chi2_pSigma0_200 += (dataY - theoryY) * (dataY - theoryY)
+                        / (dataErr * dataErr);
+                    ++EffNumBins_pSigma0_200;
+                    if (mom < 150) {
+                      Chi2_pSigma0_150 += (dataY - theoryY) * (dataY - theoryY)
+                          / (dataErr * dataErr);
+                      ++EffNumBins_pSigma0_150;
+
+                    }
+                  }
+                }
               }
-              double pvalpSigma0 = TMath::Prob(Chi2_pSigma0,
-                                               round(EffNumBins_pSigma0));
-              double nSigmapSigma0 = TMath::Sqrt(2)
-                  * TMath::ErfcInverse(pvalpSigma0);
+              double pvalpSigma0_250 = TMath::Prob(
+                  Chi2_pSigma0_250, round(EffNumBins_pSigma0_250));
+              double nSigmapSigma0_250 = TMath::Sqrt(2)
+                  * TMath::ErfcInverse(pvalpSigma0_250);
+
+              double pvalpSigma0_200 = TMath::Prob(
+                  Chi2_pSigma0_200, round(EffNumBins_pSigma0_200));
+              double nSigmapSigma0_200 = TMath::Sqrt(2)
+                  * TMath::ErfcInverse(pvalpSigma0_200);
+
+              double pvalpSigma0_150 = TMath::Prob(
+                  Chi2_pSigma0_150, round(EffNumBins_pSigma0_150));
+              double nSigmapSigma0_150 = TMath::Sqrt(2)
+                  * TMath::ErfcInverse(pvalpSigma0_150);
 
               if (iterID == 0) {
                 std::cout << "=============\n";
@@ -546,10 +573,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 std::cout << "Chi2\n";
                 std::cout << " glob " << chi2 << "\n";
                 std::cout << " loc  "
-                          << Chi2_pSigma0 / round(EffNumBins_pSigma0) << "\n";
+                          << Chi2_pSigma0_250 / round(EffNumBins_pSigma0_250)
+                          << "\n";
                 std::cout << "p-val\n";
                 std::cout << " glob " << pval << "\n";
-                std::cout << " loc  " << pvalpSigma0 << "\n";
+                std::cout << " loc  " << nSigmapSigma0_250 << "\n";
                 std::cout << "Neg?  " << isCFneg << "\n";
                 std::cout << "=============\n";
               }
@@ -615,7 +643,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
               grCFSigmaSideband.Write();
               FitResult_pSigma0.Write(Form("Fit_%i", iterID));
-              currentHist->SetName(TString::Format("HistCF_Var_%i", systDataIter));
+              currentHist->SetName(
+                  TString::Format("HistCF_Var_%i", systDataIter));
               currentHist->Write();
 
               if (fastPlot || iterID == 0) {
@@ -658,12 +687,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                           bl_b * 1e4, bl_b_err * 1e4));
                 }
                 info->AddText(
-                    TString::Format("#chi_{loc}^{2}/ndf=%.1f/%.0f = %.3f",
-                                    Chi2_pSigma0, EffNumBins_pSigma0,
-                                    Chi2_pSigma0 / double(EffNumBins_pSigma0)));
+                    TString::Format(
+                        "#chi_{loc}^{2}/ndf=%.1f/%.0f = %.3f", Chi2_pSigma0_250,
+                        EffNumBins_pSigma0_250,
+                        Chi2_pSigma0_250 / double(EffNumBins_pSigma0_250)));
                 info->AddText(
                     TString::Format("#it{p}_{val}=%.3f, n_{#sigma}=%.3f",
-                                    pvalpSigma0, nSigmapSigma0));
+                                    pvalpSigma0_250, nSigmapSigma0_250));
 
                 info->Draw("same");
                 c->Write("CFplot");
@@ -745,23 +775,25 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               ntBuffer[23] = sidebandNormUp[sbNormIter];
               ntBuffer[24] = chi2;
               ntBuffer[25] = pval;
-              ntBuffer[26] = Chi2_pSigma0;
-              ntBuffer[27] = (float) EffNumBins_pSigma0;
-              ntBuffer[28] = Chi2_pSigma0 / double(EffNumBins_pSigma0);
-              ntBuffer[29] = pvalpSigma0;
-              ntBuffer[30] = nSigmapSigma0;
-              ntBuffer[31] = (float) isCFneg;
+              ntBuffer[26] = Chi2_pSigma0_250;
+              ntBuffer[27] = (float) EffNumBins_pSigma0_250;
+              ntBuffer[28] = Chi2_pSigma0_250 / double(EffNumBins_pSigma0_250);
+              ntBuffer[29] = pvalpSigma0_250;
+              ntBuffer[30] = nSigmapSigma0_250;
+              ntBuffer[31] = nSigmapSigma0_200;
+              ntBuffer[32] = nSigmapSigma0_150;
+              ntBuffer[33] = (float) isCFneg;
               if (potential == 0) {
-                ntBuffer[32] = d0;
-                ntBuffer[33] = REf0inv;
-                ntBuffer[34] = IMf0inv;
+                ntBuffer[34] = d0;
+                ntBuffer[35] = REf0inv;
+                ntBuffer[36] = IMf0inv;
               } else if (potential == 1) {
-                ntBuffer[32] = deltap0;
-                ntBuffer[33] = deltap1;
-                ntBuffer[34] = deltap2;
-                ntBuffer[35] = etap0;
-                ntBuffer[36] = etap1;
-                ntBuffer[37] = etap2;
+                ntBuffer[34] = deltap0;
+                ntBuffer[35] = deltap1;
+                ntBuffer[36] = deltap2;
+                ntBuffer[37] = etap0;
+                ntBuffer[38] = etap1;
+                ntBuffer[39] = etap2;
               }
 
               ntResult->Fill(ntBuffer);
