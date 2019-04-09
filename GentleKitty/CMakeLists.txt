@@ -47,6 +47,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${CATS_INCLUDE})
 include_directories(${GSL_INCLUDE})
+include_directories(${GSL_INCLUDE}/gsl)
 include_directories(${DREAM_PATH})
 include_directories(${FORGIVEN_PATH})
 
