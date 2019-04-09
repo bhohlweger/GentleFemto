@@ -96,3 +96,6 @@ target_link_libraries(executePurityDream DreamFunctions)
 
 add_executable(executeDPhiDEtaBBar ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEtaBBar.C)
 target_link_libraries(executeDPhiDEtaBBar DreamFunctions)
+
+add_executable(executePXi ${PROJECT_SOURCE_DIR}/Scripts/GetpXiVariations.C)
+target_link_libraries(executePXi DreamFunctions)
