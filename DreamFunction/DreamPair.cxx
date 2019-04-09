@@ -148,7 +148,7 @@ void DreamPair::ShiftForEmpty(DreamDist* pair) {
 
 void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
                          const bool fixedShift) {
-  if ((fFirstBin == -99) || kMin == -99) {
+  if (!fixedShift && ((fFirstBin == -99) || kMin == -99)) {
     std::cout << "Internal kStar=" << fFirstBin << " and external one kStar="
               << kMin << ". Check if you ran ShiftForEmpty!" << std::endl;
   } else {
