@@ -60,8 +60,13 @@ void AddFakeReweighting(DreamPair* Pair, DreamPair* aPair) {
   }
 }
 
-void ReweightManually(DreamPair* Pair, DreamPair aPair) {
-
+void ReweightManually(TH1F* CF) {
+  TFile* inFake = TFile::Open(
+      "~/cernbox/pPb/v0offlineFix/woDetadPhi/CFOutput_pXi.root");
+  TH1F* noRew = (TH1F*)inFake->Get("hCk_RebinnedMeV_1");
+  TH1F* Rew = (TH1F*)inFake->Get("hCk_ReweightedMeV_1");
+  Rew->Divide(noRew);
+  CF->Multiply(Rew);
 }
 
 void ProcessVariation(ReadDreamFile* DreamFile, TCanvas* c1) {
@@ -79,16 +84,20 @@ void ProcessVariation(ReadDreamFile* DreamFile, TCanvas* c1) {
   pXi->Rebin(pXi->GetPairFixShifted(0), 5);
   ApAXi->Rebin(ApAXi->GetPairFixShifted(0), 5);
 
+  pXi->Rebin(pXi->GetPairFixShifted(0), 5);
+  ApAXi->Rebin(ApAXi->GetPairFixShifted(0), 5);
+
 //  pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
 //  ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
 
   CF_pXi->SetPairs(pXi,ApAXi);
   CF_pXi->GetCorrelations();
   c1->cd();
-  TH1F* CFDraw = CF_pXi->FindCorrelationFunction("hCk_ReweightedMeV_0");
+  TH1F* CFDraw = CF_pXi->FindCorrelationFunction("hCk_RebinnedMeV_1");
+  ReweightManually(CFDraw);
   CFDraw->SetStats(false);
-  CFDraw->GetXaxis()->SetRangeUser(200,700);
-  CFDraw->GetYaxis()->SetRangeUser(0.8,1.2);
+  CFDraw->GetXaxis()->SetRangeUser(0,800);
+  CFDraw->GetYaxis()->SetRangeUser(0.8,3.);
   if (outNum == 1) CFDraw->DrawCopy();
   else CFDraw->DrawCopy("SAME");
   CF_pXi->WriteOutput(TString::Format("%s/CFpXiVariations_%u.root",gSystem->pwd(),outNum++));
@@ -112,7 +121,7 @@ int main(int argc, char* argv[]) {
   }
   TFile* inFake = TFile::Open(
         "~/cernbox/pPb/v0offlineFix/woDetadPhi/HEP/CFOutput_pXi.root");
-  TH1F* cfDef = (TH1F*)(inFake->Get("hCk_ReweightedMeV_1"))->Clone("hCk_ReweightedMeV_0");
+  TH1F* cfDef = (TH1F*)(inFake->Get("hCk_ReweightedMeV_1"))->Clone("hCk_RebinnedMeV_1");
   cfDef->SetLineWidth(3);
   cfDef->SetLineColor(2);
   c1->cd();
