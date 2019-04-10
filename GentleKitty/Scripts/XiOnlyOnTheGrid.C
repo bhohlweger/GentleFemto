@@ -232,11 +232,13 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   std::cout << "Read Sigma File \n";
   TFile* OutFile = new TFile(
       TString::Format("%s/OutFileVarpXi_%u.root", OutputDir.Data(), NumIter),
-      "recreate");
+      "RECREATE");
   TList* CollOut = new TList();
-  CollOut->SetName(TString::Format("OutList_Var_%u",NumIter));
   CollOut->SetOwner();
-
+  CollOut->SetName(TString::Format("Out%u",NumIter));
+//  TFile* OutGraphFile = new TFile(
+//      TString::Format("%s/OutGraphFileVarpXi_%u.root", OutputDir.Data(), NumIter),
+//      "recreate");
   //you save a lot of stuff in an NTuple
   TNtuple* ntResult = new TNtuple(
       "ntResult", "ntResult", "IterID:vFemReg_pXim:vFrac_pXim_pXi1530:"
@@ -265,21 +267,26 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   }
 
   int uIter = 1;
-  TString HistpXiDefaultName = "hCk_ReweightedMeV_0";
+//  TString HistpXiDefaultName = "hCk_ReweightedMeV_0";
+  TString HistpXiDefaultName = "hCk_RebinnedMeV_1";
   TFile* inFile = TFile::Open(
       TString::Format("%s/CFpXiVariations_%u.root", DataDir.Data(), NumIter),
       "READ");
   TH1F* Prefit = (TH1F*) inFile->Get(HistpXiDefaultName.Data());
   TH1F* StoreHist = (TH1F*) Prefit->Clone("Ck_Input");
+//  float p_a_prefit[4] = {0.983778, 1.00007, 1.0160844,0.9840556};
+//  float p_b_prefit[4] = {0, -3.56168e-05, -1.3894000e-06, -6.9844200e-05};
   float p_a_prefit[4];
   float p_b_prefit[4];
-  TF1* funct_0 = new TF1("myPol0", "pol0", 250, 700);
+  TF1* funct_0 = new TF1("myPol0", "pol0", 250, 600);
+  TF1* funct_1 = new TF1("myPol1", "pol1", 250, 600);
+//  funct_0->SetParameter(0,p_a_prefit[0]);
+//  funct_1->SetParameters(p_a_prefit[1],p_b_prefit[1]);
 
   Prefit->Fit(funct_0, "SNR");
   p_a_prefit[0] = funct_0->GetParameter(0);
   p_b_prefit[0] = 0;
 
-  TF1* funct_1 = new TF1("myPol1", "pol1", 250, 700);
   Prefit->Fit(funct_1, "FNR");
 
   p_a_prefit[1] = funct_1->GetParameter(0);
@@ -293,8 +300,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 
   p_a_prefit[3] = TMath::MaxElement(gr12->GetN(), gr12->GetX());
   p_b_prefit[3] = gr12->Eval(p_a_prefit[3]);
-
-  funct_0->SetParameters(p_a_prefit[1],p_b_prefit[1]);
 
   for (int i = 0; i < 4; ++i) {
     std::cout << i << " pa: " << p_a_prefit[i] << " pb: " << p_b_prefit[i]
@@ -321,6 +326,15 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     total = 324;
   }
   std::vector<bool> SaveSideBands = { true, true, true };
+  TCanvas* c1 = new TCanvas(TString::Format("out%u",NumIter)) ;
+  c1->SetCanvasSize(1920, 1280);
+  StoreHist->SetLineWidth(3);
+  StoreHist->SetLineColor(1);
+  StoreHist->GetXaxis()->SetRangeUser(0,400);
+  c1->cd();
+  StoreHist->DrawCopy();
+  StoreHist->GetXaxis()->SetRangeUser(0,1000);
+
   for (tOut = 0; tOut < tOutVars; ++tOut) {
     tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin_pXim, kMax_pXim,
                                TheSource, pot, tQCDVars[tOut]);
@@ -422,7 +436,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                                      p_a_prefit[BaselineSlope]);
                 fitter->FixParameter("pXim", DLM_Fitter1::p_b,
                                      p_b_prefit[BaselineSlope]);
-//                std::cout << "Fitting ranges for BL set \n";
               } else {
                 fitter->FixParameter("pXim", DLM_Fitter1::p_a, p_a_prefit[0]);
                 fitter->FixParameter("pXim", DLM_Fitter1::p_b, p_b_prefit[0]);
@@ -433,12 +446,10 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               fitter->FixParameter("pXim", DLM_Fitter1::p_Cl, -1.);
 
               if (TheSource == TidyCats::sLevy) {
-//                std::cout << "levy sor1 activated!!! \n";
                 fitter->SetParameter("pXim", DLM_Fitter1::p_sor1, 1.6, 1.0,
                                      2.0);
               } else if (TheSource == TidyCats::sResonance) {
                 fitter->FixParameter("pXim", DLM_Fitter1::p_sor1, 2.0);
-                //GaussSourceSize = 0.77;
               }
               if (fitRadius) {
                 fitter->SetParameter("pXim", DLM_Fitter1::p_sor0,
@@ -464,7 +475,14 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 
               FitResult_pXim.SetName(TString::Format("pXimGraph"));
               fitter->GetFitGraph(0, FitResult_pXim);
-
+              c1->cd();
+              TGraph *pointerFitRes = new TGraph(FitResult_pXim);
+              pointerFitRes->SetLineWidth(2);
+              pointerFitRes->SetLineColor(kRed);
+              pointerFitRes->SetMarkerStyle(24);
+              pointerFitRes->SetMarkerColor(kRed);
+              pointerFitRes->SetMarkerSize(1);
+              pointerFitRes->Draw("CP, same");
               TGraph SideBandStrongWithLambda;
               TGraph SideBandStrongWithOutLambda;
               DLM_Histo<double>* StrongWithLambda = CkDec_pXim
@@ -563,15 +581,57 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               outList->SetOwner();
               outList->SetName(
                   TString::Format("Graph_Var_%u_iter_%u", NumIter, uIter));
-
-              outList->Add(OliHisto_pXim);
-              FitResult_pXim.SetLineWidth(2);
-              FitResult_pXim.SetLineColor(kRed);
-              FitResult_pXim.SetMarkerStyle(24);
-              FitResult_pXim.SetMarkerColor(kRed);
-              FitResult_pXim.SetMarkerSize(1);
-              outList->Add(&FitResult_pXim);
+              outList->Add(pointerFitRes);
               CollOut->Add(outList);
+
+              delete fitter;
+              delete Ck_pXim;
+              delete Ck_pXim1530;
+              delete Ck_SideBand;
+              delete StrongWithOutLambda;
+              delete StrongWithLambda;
+              uIter++;
+            }
+          }
+        }
+      }
+    }
+  }
+  std::cout << "\n";
+  OutFile->cd();
+  c1->Write(TString::Format("%s",c1->GetName())) ;
+  ntResult->Write();
+  CollOut->Write(CollOut->GetName(),1);
+  OutFile->Close();
+  return;
+}
+
+int main(int argc, char *argv[]) {
+  const char* addon = (argv[7]) ? argv[7] : "";
+  GetXiForRadius(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
+                 argv[5]);
+  return 0;
+}
+
+//  OutGraphFile->Close();
+//  TList* InputList = new TList();
+//  InputList->SetOwner();
+//  InputList->SetName(TString::Format("Inputs_%u", NumIter));
+//
+//  gr12->SetName("ContourBaseline");
+//  InputList->Add(gr12);
+//  InputList->Add(funct_0);
+//  InputList->Add(funct_1);
+//  InputList->Add(StoreHist);
+//  InputList->Write(InputList->GetName(), 1);
+//
+//              outList->Add(OliHisto_pXim);
+//              FitResult_pXim.SetLineWidth(2);
+//              FitResult_pXim.SetLineColor(kRed);
+//              FitResult_pXim.SetMarkerStyle(24);
+//              FitResult_pXim.SetMarkerColor(kRed);
+//              FitResult_pXim.SetMarkerSize(1);
+//              outList->Write(outList->GetName(),1);
 //              outList->Write(outList->GetName(), 1);
 //              if (NumIter == 1 && SaveSideBands[varSideNorm]) {
 //                TList* SideList;
@@ -589,42 +649,3 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 //
 //                SaveSideBands[varSideNorm] = false;
 //              }
-              delete fitter;
-              delete Ck_pXim;
-              delete Ck_pXim1530;
-              delete Ck_SideBand;
-              delete StrongWithOutLambda;
-              delete StrongWithLambda;
-              uIter++;
-            }
-          }
-        }
-      }
-    }
-  }
-  std::cout << "\n";
-  TList* InputList = new TList();
-  InputList->SetOwner();
-  InputList->SetName(TString::Format("Inputs_%u", NumIter));
-
-  gr12->SetName("ContourBaseline");
-  InputList->Add(gr12);
-  InputList->Add(funct_0);
-  InputList->Add(funct_1);
-  InputList->Add(StoreHist);
-  OutFile->cd();
-  InputList->Write(InputList->GetName(), 1);
-  CollOut->Write(CollOut->GetName(),1);
-  ntResult->Write();
-  OutFile->Close();
-
-  return;
-}
-
-int main(int argc, char *argv[]) {
-  const char* addon = (argv[7]) ? argv[7] : "";
-  GetXiForRadius(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                 argv[5]);
-  return 0;
-}
-
