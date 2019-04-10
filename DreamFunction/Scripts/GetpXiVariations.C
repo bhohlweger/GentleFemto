@@ -60,6 +60,10 @@ void AddFakeReweighting(DreamPair* Pair, DreamPair* aPair) {
   }
 }
 
+void ReweightManually(DreamPair* Pair, DreamPair aPair) {
+
+}
+
 void ProcessVariation(ReadDreamFile* DreamFile, TCanvas* c1) {
   static int outNum = 1;
   DreamCF* CF_pXi = new DreamCF();
@@ -75,21 +79,23 @@ void ProcessVariation(ReadDreamFile* DreamFile, TCanvas* c1) {
   pXi->Rebin(pXi->GetPairFixShifted(0), 5);
   ApAXi->Rebin(ApAXi->GetPairFixShifted(0), 5);
 
-  pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
-  ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
+//  pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
+//  ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
 
   CF_pXi->SetPairs(pXi,ApAXi);
   CF_pXi->GetCorrelations();
   c1->cd();
   TH1F* CFDraw = CF_pXi->FindCorrelationFunction("hCk_ReweightedMeV_0");
-  CFDraw->GetXaxis()->SetRangeUser(0,350);
-  CFDraw->GetYaxis()->SetRangeUser(0.8,3.);
+  CFDraw->SetStats(false);
+  CFDraw->GetXaxis()->SetRangeUser(200,700);
+  CFDraw->GetYaxis()->SetRangeUser(0.8,1.2);
   if (outNum == 1) CFDraw->DrawCopy();
   else CFDraw->DrawCopy("SAME");
   CF_pXi->WriteOutput(TString::Format("%s/CFpXiVariations_%u.root",gSystem->pwd(),outNum++));
 }
 
 int main(int argc, char* argv[]) {
+  gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   const char* filename = argv[1];
   const char* prefix = argv[2];
 //  std::vector<int> varsNumbers = { 1 };
@@ -105,7 +111,7 @@ int main(int argc, char* argv[]) {
     ProcessVariation(DreamFile,c1);
   }
   TFile* inFake = TFile::Open(
-        "~/cernbox/pPb/v0offlineFix/woDetadPhi/CFOutput_pXi.root");
+        "~/cernbox/pPb/v0offlineFix/woDetadPhi/HEP/CFOutput_pXi.root");
   TH1F* cfDef = (TH1F*)(inFake->Get("hCk_ReweightedMeV_1"))->Clone("hCk_ReweightedMeV_0");
   cfDef->SetLineWidth(3);
   cfDef->SetLineColor(2);
