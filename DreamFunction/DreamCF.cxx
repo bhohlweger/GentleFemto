@@ -158,10 +158,14 @@ void DreamCF::WriteOutput(TFile* output, bool closeFile) {
     it->Write();
     delete it;
   }
-
-  for (auto& it : fRatio) {
-    it->Write();
-    delete it;
+  if (fRatio.size()>0) {
+    TList *RatioList = new TList();
+    RatioList->SetOwner();
+    RatioList->SetName("Ratios");
+    for (auto& it : fRatio) {
+      RatioList->Add(it);
+    }
+    RatioList->Write("RatioList",1);
   }
   if (fPairOne) {
     TList *PairDist = new TList();
