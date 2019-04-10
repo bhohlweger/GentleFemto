@@ -1,6 +1,7 @@
 #include "TROOT.h"
 #include "TSystem.h"
 #include "ReadDreamFile.h"
+#include "TCanvas.h"
 #include <iostream>
 #include <vector>
 void AddFakeReweighting(DreamPair* Pair, DreamPair* aPair) {
@@ -59,7 +60,7 @@ void AddFakeReweighting(DreamPair* Pair, DreamPair* aPair) {
   }
 }
 
-void ProcessVariation(ReadDreamFile* DreamFile) {
+void ProcessVariation(ReadDreamFile* DreamFile, TCanvas* c1) {
   static int outNum = 1;
   DreamCF* CF_pXi = new DreamCF();
   DreamPair* pXi = new DreamPair("Part", 0.24, 0.34);
@@ -79,21 +80,41 @@ void ProcessVariation(ReadDreamFile* DreamFile) {
 
   CF_pXi->SetPairs(pXi,ApAXi);
   CF_pXi->GetCorrelations();
+  c1->cd();
+  TH1F* CFDraw = CF_pXi->FindCorrelationFunction("hCk_ReweightedMeV_0");
+  CFDraw->GetXaxis()->SetRangeUser(0,350);
+  CFDraw->GetYaxis()->SetRangeUser(0.8,3.);
+  if (outNum == 1) CFDraw->DrawCopy();
+  else CFDraw->DrawCopy("SAME");
   CF_pXi->WriteOutput(TString::Format("%s/CFpXiVariations_%u.root",gSystem->pwd(),outNum++));
 }
 
 int main(int argc, char* argv[]) {
   const char* filename = argv[1];
   const char* prefix = argv[2];
-  std::vector<int> varsNumbers = { 1 };
-//  std::vector<int> varsNumbers =
-//      { 1, 2, 3, 4, 5, 6, 7, 8, 9, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-//          30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41 };
+//  std::vector<int> varsNumbers = { 1 };
+  std::vector<int> varsNumbers =
+      { 1, 2, 3, 4, 5, 6, 7, 8, 9, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+          30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41 };
+  auto c1 = new TCanvas();
   for (auto it : varsNumbers) {
     ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
     DreamFile->SetQuite();
     DreamFile->SetAnalysisFile(filename, prefix, TString::Format("%u", it));
     std::cout << "All fine, dont worry! \n";
-    ProcessVariation(DreamFile);
+    ProcessVariation(DreamFile,c1);
   }
+  TFile* inFake = TFile::Open(
+        "~/cernbox/pPb/v0offlineFix/woDetadPhi/CFOutput_pXi.root");
+  TH1F* cfDef = (TH1F*)(inFake->Get("hCk_ReweightedMeV_1"))->Clone("hCk_ReweightedMeV_0");
+  cfDef->SetLineWidth(3);
+  cfDef->SetLineColor(2);
+  c1->cd();
+  cfDef->DrawCopy("SAME");
+  TFile* defFile = TFile::Open(TString::Format("%s/CFpXiVariations_33.root",gSystem->pwd()), "RECREATE");
+  defFile->cd();
+  cfDef->Write();
+  defFile->Close();
+  c1->SaveAs("CFVars.pdf");
+
 }
