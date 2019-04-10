@@ -459,7 +459,7 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     AB_pXim->SetShortRangePotential(2, 0, ESC16_pXim_EXAMPLE, *PotParsI1S0);
     AB_pXim->SetShortRangePotential(3, 0, ESC16_pXim_EXAMPLE, *PotParsI1S1);
   } else if (pot == pCoulomb) {
-    std::cout << "Setting no potential at all!";
+    std::cout << "Coulomb only! \n";
   } else if (pot == pGamow) {
     AB_pXim->SetQ1Q2(0);
     AB_pXim->SetGamow(true);
