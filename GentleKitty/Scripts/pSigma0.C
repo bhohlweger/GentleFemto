@@ -126,6 +126,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input
   std::vector<TH1F*> histSysVar;
+  std::vector<float> puritySigma0;
 
   TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
   CATSInputSigma0 *CATSinput = new CATSInputSigma0();
@@ -136,6 +137,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   CATSinput->ReadSigmaFile();
   CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
                                        suffix.Data());
+  CATSinput->CountPairs(InputDir.Data(), trigger.Data(), suffix.Data());
   CATSinput->ObtainCFs(10, 250, 400);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
   auto dataHist = CATSinput->GetCF("pSigma0", dataHistName.Data());
@@ -144,6 +146,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     return;
   }
   histSysVar.push_back(dataHist);
+  puritySigma0.push_back(CATSinput->GetSigma0Purity());
 
   auto sidebandHistUp = CATSinput->GetCF("pSigmaSBUp",
                                          "hCk_ReweightedpSigmaSBUpMeV_0");
@@ -163,10 +166,18 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     auto appendixVar = TString::Format("%i", i);
     CATSinputVar->ReadSigma0CorrelationFile(SystInputDir.Data(), trigger.Data(),
                                             appendixVar.Data());
+    CATSinputVar->CountPairs(SystInputDir.Data(), trigger.Data(),
+                             appendixVar.Data());
+    puritySigma0.push_back(CATSinputVar->GetSigma0Purity());
     CATSinputVar->ObtainCFs(10, 250, 400);
     auto dataHistVar = CATSinputVar->GetCF("pSigma0", dataHistName.Data());
     histSysVar.push_back(dataHistVar);
     delete CATSinputVar;
+  }
+
+  if (puritySigma0.size() != histSysVar.size()) {
+    std::cout << "ERROR: No matching hist/purity found \n";
+    return;
   }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -202,24 +213,19 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
       protonLambda / (1. - protonPrimary) * 1.2 } };
   std::vector<CATSLambdaParam> lambdaParams;
 
-  const double sigmaPurity = 0.288;
   const double sigmaPrimary = 1.;
-  const Particle sigma0(sigmaPurity, sigmaPrimary, { { 0 } });
+  const Particle sigma0default(puritySigma0[0], sigmaPrimary, { { 0 } });
+  const Particle protondefault(
+      protonPurity,
+      protonPrimary,
+      { { (1. - protonPrimary) * protonSecondary[0], (1. - protonPrimary)
+          * (1 - protonSecondary[0]) } });
 
-  for (size_t lambdaIter = 0; lambdaIter < protonSecondary.size();
-      ++lambdaIter) {
-    const Particle proton(
-        protonPurity,
-        protonPrimary,
-        { { (1. - protonPrimary) * protonSecondary[lambdaIter], (1.
-            - protonPrimary) * (1 - protonSecondary[lambdaIter]) } });
+  const CATSLambdaParam lambdaParamDefault(sigma0default, protondefault);
 
-    lambdaParams.push_back( { proton, sigma0 });
-  }
-
-  const float lambdaParamDefaultPrimary = lambdaParams[0].GetLambdaParam(
+  const float lambdaParamDefaultPrimary = lambdaParamDefault.GetLambdaParam(
       CATSLambdaParam::Primary);
-  const float lambdaParamDefaultSideband = lambdaParams[0].GetLambdaParam(
+  const float lambdaParamDefaultSideband = lambdaParamDefault.GetLambdaParam(
       CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
 
   std::cout << "Lambda parameters for the default case\n";
@@ -359,7 +365,23 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   for (size_t systDataIter = 0; systDataIter < histSysVar.size();
       ++systDataIter) {
     auto currentHist = histSysVar[systDataIter];
-    currentHist->Draw("same");
+
+    /// Lambda parameters
+    std::vector<CATSLambdaParam> lambdaParams;
+
+    const double sigmaPurity = puritySigma0[systDataIter];
+    const Particle sigma0(sigmaPurity, sigmaPrimary, { { 0 } });
+
+    for (size_t lambdaIter = 0; lambdaIter < protonSecondary.size();
+        ++lambdaIter) {
+      const Particle proton(
+          protonPurity,
+          protonPrimary,
+          { { (1. - protonPrimary) * protonSecondary[lambdaIter], (1.
+              - protonPrimary) * (1 - protonSecondary[lambdaIter]) } });
+
+      lambdaParams.push_back( { proton, sigma0 });
+    }
 
     // 2. Femto fit range
     for (size_t femtoFitIter = 0; femtoFitIter < femtoFitRegionUp.size();
