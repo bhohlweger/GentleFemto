@@ -118,18 +118,18 @@ void GetCorrelations(const float fixShift, const char* filename,
   pp->ReweightMixedEvent(pp->GetPairFixShifted(1), 0.2, 0.9);
   ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(1), 0.2, 0.9);
 
-  pL->Rebin(pL->GetPair(), 4);
-  pL->Rebin(pL->GetPair(), 5);
-  ApAL->Rebin(ApAL->GetPair(), 4);
-  ApAL->Rebin(ApAL->GetPair(), 5);
-  LL->Rebin(LL->GetPair(), 4);
-  LL->Rebin(LL->GetPair(), 5);
-  ALAL->Rebin(ALAL->GetPair(), 4);
-  ALAL->Rebin(ALAL->GetPair(), 5);
-  pXi->Rebin(pXi->GetPair(), 4);
-  pXi->Rebin(pXi->GetPair(), 5);
-  ApAXi->Rebin(ApAXi->GetPair(), 4);
-  ApAXi->Rebin(ApAXi->GetPair(), 5);
+//  pL->Rebin(pL->GetPair(), 4);
+//  pL->Rebin(pL->GetPair(), 5);
+//  ApAL->Rebin(ApAL->GetPair(), 4);
+//  ApAL->Rebin(ApAL->GetPair(), 5);
+//  LL->Rebin(LL->GetPair(), 4);
+//  LL->Rebin(LL->GetPair(), 5);
+//  ALAL->Rebin(ALAL->GetPair(), 4);
+//  ALAL->Rebin(ALAL->GetPair(), 5);
+//  pXi->Rebin(pXi->GetPair(), 4);
+//  pXi->Rebin(pXi->GetPair(), 5);
+//  ApAXi->Rebin(ApAXi->GetPair(), 4);
+//  ApAXi->Rebin(ApAXi->GetPair(), 5);
 
   std::cout << "=========================" << std::endl;
   std::cout << "=========CFs=============" << std::endl;
