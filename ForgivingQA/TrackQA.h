@@ -19,6 +19,7 @@ class TrackQA {
   void PlotKinematic(TList *cuts, const char* outname);
   void PlotPID();
   void PlotPID(TList* cuts, const char* outname);
+  int GetNumberOfTracks() const;
   void SetTrackCuts(TList* trkCuts) {
     fTrackCuts = trkCuts;
   }

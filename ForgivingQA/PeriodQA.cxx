@@ -1,6 +1,7 @@
 #include "PeriodQA.h"
 #include "DecayQA.h"
 #include "EventQA.h"
+#include "TrackQA.h"
 #include "TSystemDirectory.h"
 
 PeriodQA::PeriodQA()
@@ -35,8 +36,14 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
   auto histPurityAntiLambda = PeriodQAHist("histQAAntiLambda",
                                            "Purity #bar{#Lambda} (%)");
   auto histPurityXi = PeriodQAHist("histQAXi", "Purity #Xi (%)");
-  auto histPurityAntiXi = PeriodQAHist("histQAAntiXi",
-                                           "Purity #bar{#Xi} (%)");
+  auto histPurityAntiXi = PeriodQAHist("histQAAntiXi", "Purity #bar{#Xi} (%)");
+
+  auto histNProton = PeriodQAHist("histNProton", "p/Event");
+  auto histNAntiProton = PeriodQAHist("histNAntiProton", "#bar{p}/Event");
+  auto histNLambda = PeriodQAHist("histNLambda", "#Lambda/Event");
+  auto histNAntiLambda = PeriodQAHist("histNAntiLambda", "#bar{#Lambda}/Event");
+  auto histNXi = PeriodQAHist("histNXi", "#Xi/Event");
+  auto histNAntiXi = PeriodQAHist("histNAntiXi", "#bar{#Xi}/Event");
 
   int i = 0;
   for (auto it : fPeriods) {
@@ -46,6 +53,25 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
     filename += ".root";
     ForgivingReader* reader = new ForgivingReader(filename.Data(), prefix,
                                                   addon);
+    EventQA* evtQA = new EventQA();
+    evtQA->SetEventCuts(reader->GetEventCuts());
+    float nEvents = evtQA->GetNumberOfEvents();
+    delete evtQA;
+    if (nEvents < 1E-6) {
+      delete reader;
+      continue;
+    }
+
+    TrackQA* trkQA = new TrackQA();
+    trkQA->SetTrackCuts(reader->GetTrackCuts());
+    histNProton->SetBinContent(i + 1,
+                               float(trkQA->GetNumberOfTracks()) / nEvents);
+
+    TrackQA* antiTrkQA = new TrackQA();
+    antiTrkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
+    histNAntiProton->SetBinContent(
+        i + 1, float(antiTrkQA->GetNumberOfTracks()) / nEvents);
+
     DecayQA* v0QA = new DecayQA("#Lambda", "p#pi");
     v0QA->SetDecayCuts(reader->Getv0Cuts());
     v0QA->SetCanvasDivisions(5, 2);
@@ -56,6 +82,7 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
     if (purity > 1E-6) {
       histPurityLambda->SetBinContent(i + 1, purity * 100.f);
     }
+    histNLambda->SetBinContent(i + 1, v0QA->GetSignalCounts() / nEvents);
 
     DecayQA* antiv0QA = new DecayQA("#bar{#Lambda}", "p#pi");
     antiv0QA->SetDecayCuts(reader->GetAntiv0Cuts());
@@ -67,27 +94,35 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
     if (purity > 1E-6) {
       histPurityAntiLambda->SetBinContent(i + 1, purity * 100.f);
     }
-    DecayQA* cascQA = new DecayQA("#Xi^{-}","#pi#Lambda");
+    histNAntiLambda->SetBinContent(i + 1,
+                                   antiv0QA->GetSignalCounts() / nEvents);
+
+    DecayQA* cascQA = new DecayQA("#Xi^{-}", "#pi#Lambda");
     cascQA->SetDecayCuts(reader->GetCascadeCuts());
     cascQA->SetCanvasDivisions(4, 3);
-    cascQA->SetIMHistoScale(2.5,0.8,0.45);
+    cascQA->SetIMHistoScale(2.5, 0.8, 0.45);
     cascQA->SetRangesFitting(1.31, 1.33, 1.3, 1.35);
     cascQA->GetPeriodQA(1.317, 1.327, { "Cascade" }, "InvMassXi");
     purity = cascQA->GetPurity();
     if (purity > 1E-6) {
       histPurityXi->SetBinContent(i + 1, purity * 100.f);
     }
-    DecayQA* anticascQA = new DecayQA("#Xi^{-}","#pi#Lambda");
+    histNXi->SetBinContent(i + 1, cascQA->GetSignalCounts() / nEvents);
+
+    DecayQA* anticascQA = new DecayQA("#Xi^{-}", "#pi#Lambda");
     anticascQA->SetDecayCuts(reader->GetAntiCascadeCuts());
     anticascQA->SetCanvasDivisions(4, 3);
-    anticascQA->SetIMHistoScale(2.5,0.8,0.45);
+    anticascQA->SetIMHistoScale(2.5, 0.8, 0.45);
     anticascQA->SetRangesFitting(1.31, 1.33, 1.3, 1.35);
     anticascQA->GetPeriodQA(1.317, 1.327, { "Cascade" }, "InvMassXi");
     purity = anticascQA->GetPurity();
     if (purity > 1E-6) {
       histPurityAntiXi->SetBinContent(i + 1, purity * 100.f);
     }
+    histNAntiXi->SetBinContent(i + 1, anticascQA->GetSignalCounts() / nEvents);
 
+    delete trkQA;
+    delete antiTrkQA;
     delete v0QA;
     delete antiv0QA;
     delete cascQA;
@@ -107,14 +142,41 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
   auto f = new TCanvas();
   histPurityAntiXi->Draw();
   f->Print("PeriodQAAntiXi.pdf");
+
+  auto a1 = new TCanvas();
+  histNProton->Draw();
+  a1->Print("PeriodQANProton.pdf");
+  auto b1 = new TCanvas();
+  histNAntiProton->Draw();
+  b1->Print("PeriodQANAntiProton.pdf");
+  auto c1 = new TCanvas();
+  histNLambda->Draw();
+  c1->Print("PeriodQANLambda.pdf");
+  auto d1 = new TCanvas();
+  histNAntiLambda->Draw();
+  d1->Print("PeriodQANAntiLambda.pdf");
+  auto e1 = new TCanvas();
+  histNXi->Draw();
+  e1->Print("PeriodQANXi.pdf");
+  auto f1 = new TCanvas();
+  histNAntiXi->Draw();
+  f1->Print("PeriodQANAntiXi.pdf");
+
 }
 
 void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
   auto histPurityLambda = PeriodQAHist("histQALambda", "Purity #Lambda (%)");
   auto histPurityAntiLambda = PeriodQAHist("histQAAntiLambda",
                                            "Purity #bar{#Lambda} (%)");
-  auto histPuritySigma = PeriodQAHist("histQASigma",
-                                           "Purity #Sigma^{0} #oplus #bar{#Sigma^{0}} (%)");
+  auto histPuritySigma = PeriodQAHist(
+      "histQASigma", "Purity #Sigma^{0} #oplus #bar{#Sigma^{0}} (%)");
+
+  auto histNProton = PeriodQAHist("histNProton", "p/Event");
+  auto histNAntiProton = PeriodQAHist("histNAntiProton", "#bar{p}/Event");
+  auto histNLambda = PeriodQAHist("histNLambda", "#Lambda/Event");
+  auto histNAntiLambda = PeriodQAHist("histNAntiLambda", "#bar{#Lambda}/Event");
+  auto histNSigma = PeriodQAHist("histNSigma",
+                                 "(#Sigma^{0} #oplus #bar{#Sigma^{0}})/Event");
 
   int i = 0;
   for (auto it : fPeriods) {
@@ -134,6 +196,18 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
       continue;
     }
 
+    TrackQA* trkQA = new TrackQA();
+    trkQA->SetTrackCuts(reader->GetTrackCuts());
+    histNProton->SetBinContent(i + 1,
+                               float(trkQA->GetNumberOfTracks()) / nEvents);
+    delete trkQA;
+
+    TrackQA* antiTrkQA = new TrackQA();
+    antiTrkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
+    histNAntiProton->SetBinContent(
+        i + 1, float(antiTrkQA->GetNumberOfTracks()) / nEvents);
+    delete antiTrkQA;
+
     DecayQA* v0QA = new DecayQA("#Lambda", "p#pi");
     v0QA->SetDecayCuts(reader->Getv0Cuts());
     v0QA->SetCanvasDivisions(5, 2);
@@ -146,6 +220,7 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
       histPurityLambda->SetBinContent(i + 1, purity * 100.f);
       histPurityLambda->SetBinError(i + 1, purityErr * 100.f);
     }
+    histNLambda->SetBinContent(i + 1, v0QA->GetSignalCounts() / nEvents);
     delete v0QA;
 
     DecayQA* antiv0QA = new DecayQA("#bar{#Lambda}", "p#pi");
@@ -160,6 +235,8 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
       histPurityAntiLambda->SetBinContent(i + 1, purity * 100.f);
       histPurityAntiLambda->SetBinError(i + 1, purityErr * 100.f);
     }
+    histNAntiLambda->SetBinContent(i + 1,
+                                   antiv0QA->GetSignalCounts() / nEvents);
     delete antiv0QA;
 
     DecayQA* sigma0QA = new DecayQA("#Sigma", "#Lambda#gamma");
@@ -173,6 +250,8 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
       histPuritySigma->SetBinContent(i + 1, purity * 100.f);
       histPuritySigma->SetBinError(i + 1, purityErr * 100.f);
     }
+    histNSigma->SetBinContent(i + 1, sigma0QA->GetSignalCounts() / nEvents);
+    histNSigma->SetBinError(i + 1, sigma0QA->GetSignalCountsErr() / nEvents);
 
     delete sigma0QA;
     delete reader;
@@ -190,6 +269,22 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
   histPuritySigma->Draw("PE");
   histPuritySigma->Fit("pol0");
   e->Print("PeriodQASigma.pdf");
+
+  auto a1 = new TCanvas();
+  histNProton->Draw();
+  a1->Print("PeriodQANProton.pdf");
+  auto b1 = new TCanvas();
+  histNAntiProton->Draw();
+  b1->Print("PeriodQANAntiProton.pdf");
+  auto c1 = new TCanvas();
+  histNLambda->Draw();
+  c1->Print("PeriodQANLambda.pdf");
+  auto d1 = new TCanvas();
+  histNAntiLambda->Draw();
+  d1->Print("PeriodQANAntiLambda.pdf");
+  auto e1 = new TCanvas();
+  histNSigma->Draw("PE");
+  e1->Print("PeriodQANSigma.pdf");
 }
 
 TH1F* PeriodQA::PeriodQAHist(const char* name, const char* title) {

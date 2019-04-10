@@ -27,6 +27,29 @@ void TrackQA::PlotKinematic() {
   PlotKinematic(fAntiTrackCuts, "AntiProton");
 }
 
+int TrackQA::GetNumberOfTracks() const {
+  TH1F* counter = nullptr;
+  if (fTrackCuts && fAntiTrackCuts) {
+    std::cerr
+        << "ERROR: You set both track and anti-track cuts - not defined (yet ;) )\n";
+    return -1;
+  } else if (!fTrackCuts && !fAntiTrackCuts) {
+    std::cerr << "ERROR: No Track List set - can't count\n";
+    return -1;
+  }
+
+  if (fTrackCuts) {
+    auto* pTDist = (TH1F*) fReader->Get1DHistInList(
+        fReader->GetListInList(fTrackCuts, { "after" }), "pTDist_after");
+    counter = pTDist;
+  } else if (fAntiTrackCuts) {
+    auto* pTDist = (TH1F*) fReader->Get1DHistInList(
+        fReader->GetListInList(fAntiTrackCuts, { "after" }), "pTDist_after");
+    counter = pTDist;
+  }
+  return counter->GetEntries();
+}
+
 void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   auto* pTDist = (TH1F*) fReader->Get1DHistInList(
       fReader->GetListInList(cuts, { "after" }), "pTDist_after");
