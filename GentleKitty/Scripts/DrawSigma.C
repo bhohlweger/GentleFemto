@@ -18,6 +18,23 @@
 
 const int tupleLength = 14;
 
+void nSigmaMaker(TNtuple* resultTuple, int upperRange) {
+
+  resultTuple->Draw(Form("nSigma%i >> hist250", upperRange));
+  TH1F* hist = (TH1F*) gROOT->FindObject("hist250");
+
+  const float binLow = hist->GetXaxis()->GetBinLowEdge(
+      hist->FindFirstBinAbove(1, 1));
+  const float binUp = hist->GetXaxis()->GetBinUpEdge(
+      hist->FindLastBinAbove(1, 1));
+  const float Delta = std::abs((binLow - binUp) / std::sqrt(12));
+  const float nSigmaDefault = (binUp + binLow) / 2.;
+  const float nSigmaBest = nSigmaDefault - Delta;
+  const float nSigmaWorst = nSigmaDefault + Delta;
+  std::cout << " - " << upperRange << " MeV/c cut-off: " << nSigmaBest
+            << " / " << nSigmaDefault << " / " << nSigmaWorst << "\n";
+}
+
 void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
                  double &defaultChi2, double &worstChi2, int &nBins,
                  int upperBoundary) {
@@ -169,7 +186,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       TString histName = Form("%s", hist->GetName());
       if (histName.Contains(dataHistName)) {
         CF_Histo = hist;
-        if(!CF_Histo) {
+        if (!CF_Histo) {
           std::cout << "ERROR: No default histogram found!\n";
           return;
         }
@@ -212,6 +229,18 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       }
     }
   }
+
+  auto resultTuple = (TNtuple*) file->Get("fitResult");
+
+  std::cout << "=============\n";
+  std::cout << "This is nSigma maker for p-Sigma0 speaking\n";
+  std::cout << "I gracefully acknowledge your input\n";
+  std::cout << "You have a nice potential, Sir!\n";
+  nSigmaMaker(resultTuple, 250);
+  nSigmaMaker(resultTuple, 200);
+  nSigmaMaker(resultTuple, 150);
+  std::cout << "Thanks for your interest\n";
+  std::cout << "=============\n";
 
   if (debugPlots) {
     if (potential == 0) {
@@ -262,43 +291,6 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   double bestChi2, defaultChi2, worstChi2;
   int nBins = 0;
   ComputeChi2(CF_Histo, grCF, bestChi2, defaultChi2, worstChi2, nBins, 250);
-  double pvalBest = TMath::Prob(bestChi2, round(nBins));
-  double nSigmaBest = TMath::Sqrt(2) * TMath::ErfcInverse(pvalBest);
-  double pvalDefault = TMath::Prob(defaultChi2, round(nBins));
-  double nSigmaDefault = TMath::Sqrt(2) * TMath::ErfcInverse(pvalDefault);
-  double pvalWorst = TMath::Prob(worstChi2, round(nBins));
-  double nSigmaWorst = TMath::Sqrt(2) * TMath::ErfcInverse(pvalWorst);
-
-  std::cout << "=============\n";
-  std::cout << "nSigma maker for p-Sigma0 speaks \n";
-  std::cout << "You have a nice potential, Sir!\n";
-  std::cout << "  best nSigma  " << nSigmaBest << "\n";
-  std::cout << "  def nSigma   " << nSigmaDefault << "\n";
-  std::cout << "  worst nSigma " << nSigmaWorst << "\n";
-  std::cout << "=============\n";
-
-  double bestChi2Sideband, defaultChi2Sideband, worstChi2Sideband;
-  int nBinsSideband = 0;
-  ComputeChi2(CF_Histo, grSidebands, bestChi2Sideband, defaultChi2Sideband,
-              worstChi2Sideband, nBinsSideband, 250);
-  double pvalBestSideband = TMath::Prob(bestChi2Sideband, round(nBinsSideband));
-  double nSigmaBestSideband = TMath::Sqrt(2)
-      * TMath::ErfcInverse(pvalBestSideband);
-  double pvalDefaultSideband = TMath::Prob(defaultChi2Sideband,
-                                           round(nBinsSideband));
-  double nSigmaDefaultSideband = TMath::Sqrt(2)
-      * TMath::ErfcInverse(pvalDefaultSideband);
-  double pvalWorstSideband = TMath::Prob(worstChi2Sideband,
-                                         round(nBinsSideband));
-  double nSigmaWorstSideband = TMath::Sqrt(2)
-      * TMath::ErfcInverse(pvalWorstSideband);
-
-  std::cout << "Your sideband fits even better! \n";
-  std::cout << "  best nSigma  " << nSigmaBestSideband << "\n";
-  std::cout << "  def nSigma   " << nSigmaDefaultSideband << "\n";
-  std::cout << "  worst nSigma " << nSigmaWorstSideband << "\n";
-  std::cout << "Thanks for your input - well done!\n";
-  std::cout << "=============\n";
 
   if (potential == 0) {
     auto fitTuple = (TNtuple*) file->Get("fitResult");
