@@ -81,7 +81,7 @@ target_link_libraries(POnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(XiOnly ${PROJECT_SOURCE_DIR}/Scripts/XiOnly.C)
 target_link_libraries(XiOnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(XiOnlyOnTheGrid ${PROJECT_SOURCE_DIR}/Scripts/XiOnlyOnTheGrid)
+add_executable(XiOnlyOnTheGrid ${PROJECT_SOURCE_DIR}/Scripts/XiOnlyOnTheGrid.C)
 target_link_libraries(XiOnlyOnTheGrid tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(SideBand ${PROJECT_SOURCE_DIR}/Scripts/SideBand.C)
@@ -105,8 +105,8 @@ target_link_libraries(pSigma0exclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunctio
 add_executable(PlotSigmaExclusion ${PROJECT_SOURCE_DIR}/Scripts/plotSigmaExclusion.C)
 target_link_libraries(PlotSigmaExclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/plotSigmaModels.C)
-target_link_libraries(PlotSigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+#add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/plotSigmaModels.C)
+#target_link_libraries(PlotSigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(POnlymT ${PROJECT_SOURCE_DIR}/Scripts/POnlymT.C)
 target_link_libraries(POnlymT tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
