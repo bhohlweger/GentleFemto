@@ -52,43 +52,63 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
   TFile* CFFile_pp = TFile::Open(Form("%s/CFOutput_pp.root", PathToDataFolder));
   TFile* CFFile_ppSys = TFile::Open(
       Form("%s/Systematics_pp.root", PathToSysFolder));
+  if (!CFFile_ppSys) {
+    CFFile_ppSys = TFile::Open(Form("%s/C2totalsysPP.root", PathToSysFolder));
+  }
   fProtonProton->SetCorrelationFunction(
       (TH1F*) CFFile_pp->Get("hCk_ReweightedMeV_0"));
 
-//  TF1 *pPbSys = new TF1("pPbSyst", [&](double *x, double *p) {
-//    if (x[0] > 0 && x[0] < 0.04) {return 0.051;}
-//    else {return p[0] + p[1]*x[0] + p[2]*x[0]*x[0];}},
-//                        0, 3.0, 3);
-//  TF1 *systematics = (TF1*) CFFile_ppSys->Get("RelSysPPUnbinned");
-//  pPbSys->SetParameter(0, systematics->GetParameter(0));
-//  pPbSys->SetParameter(1, systematics->GetParameter(1));
-//  pPbSys->SetParameter(2, systematics->GetParameter(2));
-
-  fProtonProton->SetSystematics((TF1*) CFFile_ppSys->Get("SystError"), 2);
-
+  TF1* systErr = nullptr;
+  if (systErr) {
+    fProtonProton->SetSystematics((TF1*) CFFile_ppSys->Get("SystError"), 2);
+  } else {
+    fProtonProton->SetSystematics((TH1*) CFFile_ppSys->Get("SysParamPP"), 2);
+  }
   TFile* CFFile_pL = TFile::Open(Form("%s/CFOutput_pL.root", PathToDataFolder));
   TFile* CFFile_pLSys = TFile::Open(
       Form("%s/Systematics_pL.root", PathToSysFolder));
+  if (!CFFile_pLSys) {
+    CFFile_pLSys = TFile::Open(Form("%s/C2totalsysPL.root", PathToSysFolder));
+  }
   fProtonLambda->SetCorrelationFunction(
       (TH1F*) CFFile_pL->Get(HistName.Data()));
-  fProtonLambda->SetSystematics((TF1*) CFFile_pLSys->Get("SystError"),
-                                sysWidth);
-
+  if (CFFile_pLSys->Get("SystError")) {
+    fProtonLambda->SetSystematics((TF1*) CFFile_pLSys->Get("SystError"),
+                                  sysWidth);
+  } else {
+    fProtonLambda->SetSystematics((TH1*) CFFile_pLSys->Get("SysParamPL"),
+                                  sysWidth);
+  }
   TFile* CFFile_LL = TFile::Open(Form("%s/CFOutput_LL.root", PathToDataFolder));
   TFile* CFFile_LLSys = TFile::Open(
       Form("%s/Systematics_LL.root", PathToSysFolder));
+  if (!CFFile_LLSys) {
+    CFFile_LLSys = TFile::Open(Form("%s/C2totalsysLL.root", PathToSysFolder));
+  }
   fLambdaLambda->SetCorrelationFunction(
       (TH1F*) CFFile_LL->Get(HistName.Data()));
-  fLambdaLambda->SetSystematics((TF1*) CFFile_LLSys->Get("SystError"),
-                                sysWidth);
+  if (CFFile_LLSys->Get("SystError")) {
+    fLambdaLambda->SetSystematics((TF1*) CFFile_LLSys->Get("SystError"),
+                                  sysWidth);
+  } else {
+    fLambdaLambda->SetSystematics((TH1*) CFFile_LLSys->Get("SysParamLL"),
+                                  sysWidth);
+  }
 
   TFile* CFFile_pXi = TFile::Open(
       Form("%s/CFOutput_pXi.root", PathToDataFolder));
   TFile* CFFile_pXiSys = TFile::Open(
       Form("%s/Systematics_pXi.root", PathToSysFolder));
+  if (!CFFile_pXiSys) {
+    CFFile_pXiSys = TFile::Open(Form("%s/C2totalsysPXi.root", PathToSysFolder));
+  }
   fProtonXi->SetCorrelationFunction((TH1F*) CFFile_pXi->Get(HistName.Data()));
-  fProtonXi->SetSystematics((TF1*) CFFile_pXiSys->Get("SystError"), sysWidth);
-
+  if (CFFile_pXiSys->Get("SystError")) {
+    fProtonXi->SetSystematics((TF1*) CFFile_pXiSys->Get("SystError"), sysWidth);
+  } else {
+    fProtonXi->SetSystematics((TH1*) CFFile_pXiSys->Get("SysParamPXi"),
+                              sysWidth);
+  }
   return;
 }
 
@@ -202,8 +222,8 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
     } else if (!grpXiHALUpper) {
       std::cout << "no pXi upper file \n";
     } else {
-      fProtonXi->FemtoModelFitBands(grpXiHALDefault, grpXiHALLower, grpXiHALUpper, 10,
-                                    10, 0, 3252);
+      fProtonXi->FemtoModelFitBands(grpXiHALDefault, grpXiHALLower,
+                                    grpXiHALUpper, 10, 10, 0, 3252);
     }
     TGraph* grpXiTomDefault = (TGraph*) systFit->Get("RikkenpXimGraphDefault");
     TGraph* grpXiTomLower = (TGraph*) systFit->Get("RikkenpXimGraphLowerLim");
@@ -215,8 +235,8 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
     } else if (!grpXiTomUpper) {
       std::cout << "no pXi upper file \n";
     } else {
-      fProtonXi->FemtoModelFitBands(grpXiTomDefault, grpXiTomLower, grpXiTomUpper, 11,
-                                    8, 0, 3225);
+      fProtonXi->FemtoModelFitBands(grpXiTomDefault, grpXiTomLower,
+                                    grpXiTomUpper, 11, 8, 0, 3225);
     }
     TGraph* grpXiDefaultCoulomb = (TGraph*) systFit->Get(
         "CoulombpXimGraphDefault");
