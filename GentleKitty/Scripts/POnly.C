@@ -349,7 +349,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     }
     for (vFemReg_pp = 0; vFemReg_pp < 3; ++vFemReg_pp) {
       for (vFrac_pp_pL = 0; vFrac_pp_pL < 3; ++vFrac_pp_pL) {
-        for (int BaselineSlope = 0; BaselineSlope < 2; ++BaselineSlope) {
+        for (int BaselineSlope = 0; BaselineSlope < 3; ++BaselineSlope) {
           if (BaselineSlope == 0) {
             HaveWeABaseLine = true;  //use baseline
           } else {
@@ -581,13 +581,18 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 
           fitter->SetSeparateBL(0, false);
           fitter->SetParameter("pp", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
-          if (HaveWeABaseLine) {
+          if (BaselineSlope == 1) {
             fitter->SetParameter("pp", DLM_Fitter1::p_b, 1e-4, -2e-3, 2e-3);
             std::cout << "Fitting ranges for BL set \n";
+          } else if (BaselineSlope == 2){
+            fitter->SetParameter("pp", DLM_Fitter1::p_b, 1e-4, -2e-3, 2e-3);
+            fitter->SetParameter("pp", DLM_Fitter1::p_c, 0, -1e-4, 1e-4);
+            std::cout << "Fitting ranges for Quadratic BL set \n";
           } else {
             fitter->FixParameter("pp", DLM_Fitter1::p_b, 0);
+            fitter->FixParameter("pp", DLM_Fitter1::p_c, 0);
           }
-          fitter->FixParameter("pp", DLM_Fitter1::p_c, 0);
+
           fitter->FixParameter("pp", DLM_Fitter1::p_Cl, -1);
           std::cout << "CL Fixed \n";
 
@@ -724,13 +729,22 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                                 fitter->GetParameter("pp", DLM_Fitter1::p_a),
                                 fitter->GetParError("pp", DLM_Fitter1::p_a)));
 
-            if (HaveWeABaseLine) {
+            if (BaselineSlope == 1) {
               info1->AddText(
                   TString::Format(
                       "p_b = (%.2f #pm %.2f )1e-4",
                       fitter->GetParameter("pp", DLM_Fitter1::p_b) * 1e4,
                       fitter->GetParError("pp", DLM_Fitter1::p_b) * 1e4));
             }
+
+            if (BaselineSlope == 2) {
+              info1->AddText(
+                  TString::Format(
+                      "p_c = (%.2f #pm %.2f )1e-4",
+                      fitter->GetParameter("pp", DLM_Fitter1::p_c) * 1e4,
+                      fitter->GetParError("pp", DLM_Fitter1::p_c) * 1e4));
+            }
+
             info1->AddText(
                 TString::Format(
                     "Global #chi^{2}_{ndf}=%.0f/%u=%.2f, p_{val}=%.3f", Chi2,

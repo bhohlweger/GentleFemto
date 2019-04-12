@@ -226,8 +226,8 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
 
   for (int iEntry = 0; iEntry < sysVarTree->GetEntries(); iEntry++) {
     sysVarTree->GetEntry(iEntry);
-    if (vFemReg_pp == 1 && vFrac_pp_pL == 1 && vFrac_pL_pSigma0 == 1
-        && vFrac_pL_pXim == 1 && vModpL == 3
+    if (vFemReg_pp == 0 && vFrac_pp_pL == 1 && vFrac_pL_pSigma0 == 1
+        && vFrac_pL_pXim == 1 && vModpL == 2
         && HaveWeABaseLine == (int) false) {
       std::cout << "Default Chi2: " << ChiSqNDF << std::endl;
       break;
