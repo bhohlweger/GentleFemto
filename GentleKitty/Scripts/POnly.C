@@ -300,7 +300,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
       "ntResult", "ntResult",
       "IterID:vFemReg_pp:vFrac_pp_pL:vModpL:vFrac_pL_pSigma0:"
       "vFrac_pL_pXim:BLSlope:Radius_pp:RadiusErr_pp:AlphaLev:AlphaLevErr:"
-      "pa_pp:paErr_pp:pb_pp:pbErr_pp:pCl_pp:pClErr_pp:iNorm:"
+      "pa_pp:paErr_pp:pb_pp:pbErr_pp:pc_pp:pcErr_pp:iNorm:"
       "Chi2NdfGlobal:pval:Chi2NdfLocal");
 
   Float_t ntBuffer[21];
@@ -586,7 +586,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             std::cout << "Fitting ranges for BL set \n";
           } else if (BaselineSlope == 2){
             fitter->SetParameter("pp", DLM_Fitter1::p_b, 1e-4, -2e-3, 2e-3);
-            fitter->SetParameter("pp", DLM_Fitter1::p_c, 0, -1e-4, 1e-4);
+            fitter->SetParameter("pp", DLM_Fitter1::p_c, 1e-4, -1e-3, 1e-3);
             std::cout << "Fitting ranges for Quadratic BL set \n";
           } else {
             fitter->FixParameter("pp", DLM_Fitter1::p_b, 0);
@@ -664,8 +664,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           ntBuffer[12] = fitter->GetParError("pp", DLM_Fitter1::p_a);
           ntBuffer[13] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
           ntBuffer[14] = fitter->GetParError("pp", DLM_Fitter1::p_b);
-          ntBuffer[15] = fitter->GetParameter("pp", DLM_Fitter1::p_Cl);
-          ntBuffer[16] = fitter->GetParError("pp", DLM_Fitter1::p_Cl);
+          ntBuffer[15] = fitter->GetParameter("pp", DLM_Fitter1::p_c);
+          ntBuffer[16] = fitter->GetParError("pp", DLM_Fitter1::p_c);
           ntBuffer[17] = iNorm;
           ntBuffer[18] = fitter->GetChi2Ndf();
           ntBuffer[19] = fitter->GetPval();
@@ -729,7 +729,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                                 fitter->GetParameter("pp", DLM_Fitter1::p_a),
                                 fitter->GetParError("pp", DLM_Fitter1::p_a)));
 
-            if (BaselineSlope == 1) {
+            if (BaselineSlope >0) {
               info1->AddText(
                   TString::Format(
                       "p_b = (%.2f #pm %.2f )1e-4",
