@@ -246,54 +246,60 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   side->SetSideBandFile(InputDir.Data(), trigger.Data(), suffix.Data());
 
   /// Prefit for the baseline
-  auto Prefit = (TH1F*) dataHist->Clone(Form("%s_prefit", dataHist->GetName()));
-  auto funct_0 = new TF1("myPol0", "pol0", 250, 750);
-  Prefit->Fit(funct_0, "FSNRMQ");
+  auto PrefitDefault = (TH1F*) dataHist->Clone(
+      Form("%s_prefit", dataHist->GetName()));
+  auto funct_0_Default = new TF1("myPol0", "pol0", 250, 750);
+  Prefit->Fit(funct_0_Default, "FSNRMQ");
 
-  TF1* funct_1 = new TF1("myPol1", "pol1", 250, 750);
-  Prefit->Fit(funct_1, "FSNRMQ");
+  TF1* funct_1_Default = new TF1("myPol1", "pol1", 250, 750);
+  PrefitDefault->Fit(funct_1_Default, "FSNRMQ");
   gMinuit->SetErrorDef(1);  // 1 corresponds to 1 sigma contour, 4 to 2 sigma
-  auto grPrefitContour = (TGraph*) gMinuit->Contour(40, 0, 1);
+  auto grPrefitContour_Default = (TGraph*) gMinuit->Contour(40, 0, 1);
 
-  std::vector<double> prefit_a;
-  prefit_a.emplace_back(funct_0->GetParameter(0));
-  prefit_a.emplace_back(funct_1->GetParameter(0));
-  prefit_a.emplace_back(
-      TMath::MinElement(grPrefitContour->GetN(), grPrefitContour->GetX()));
-  prefit_a.emplace_back(
-      TMath::MaxElement(grPrefitContour->GetN(), grPrefitContour->GetX()));
+  std::vector<double> prefit_a_Default;
+  prefit_a_Default.emplace_back(funct_0_Default->GetParameter(0));
+  prefit_a_Default.emplace_back(funct_1_Default->GetParameter(0));
+  prefit_a_Default.emplace_back(
+      TMath::MinElement(grPrefitContour_Default->GetN(),
+                        grPrefitContour_Default->GetX()));
+  prefit_a_Default.emplace_back(
+      TMath::MaxElement(grPrefitContour_Default->GetN(),
+                        grPrefitContour_Default->GetX()));
 
-  std::vector<double> prefit_b;
-  prefit_b.emplace_back(0);
-  prefit_b.emplace_back(funct_1->GetParameter(1));
-  prefit_b.emplace_back(grPrefitContour->Eval(prefit_a[2]));
-  prefit_b.emplace_back(grPrefitContour->Eval(prefit_a[3]));
+  std::vector<double> prefit_b_Default;
+  prefit_b_Default.emplace_back(0);
+  prefit_b_Default.emplace_back(funct_1_Default->GetParameter(1));
+  prefit_b_Default.emplace_back(
+      grPrefitContour_Default->Eval(prefit_a_Default[2]));
+  prefit_b_Default.emplace_back(
+      grPrefitContour_Default->Eval(prefit_a_Default[3]));
 
   std::cout << "Result of the prefit to constrain the baseline\n";
-  for (size_t i = 0; i < prefit_a.size(); ++i) {
-    std::cout << i << " a: " << prefit_a[i] << " b: " << prefit_b[i] << "\n";
+  for (size_t i = 0; i < prefit_a_Default.size(); ++i) {
+    std::cout << i << " a: " << prefit_a_Default[i] << " b: "
+              << prefit_b_Default[i] << "\n";
   }
 
   if (debugPlots) {
     auto c = new TCanvas();
-    DreamPlot::SetStyleGraph(grPrefitContour);
-    grPrefitContour->SetTitle("; #it{a}; #it{b}");
-    grPrefitContour->SetLineStyle(2);
+    DreamPlot::SetStyleGraph(grPrefitContour_Default);
+    grPrefitContour_Default->SetTitle("; #it{a}; #it{b}");
+    grPrefitContour_Default->SetLineStyle(2);
     auto grDots = new TGraph();
     DreamPlot::SetStyleGraph(grDots, 20, kRed + 2);
-    for (size_t i = 0; i < prefit_a.size(); ++i) {
-      grDots->SetPoint(i, prefit_a[i], prefit_b[i]);
+    for (size_t i = 0; i < prefit_a_Default.size(); ++i) {
+      grDots->SetPoint(i, prefit_a_Default[i], prefit_b_Default[i]);
     }
-    grPrefitContour->Draw("AL");
+    grPrefitContour_Default->Draw("AL");
     grDots->Draw("PEsame");
     c->Print(Form("%s/Prefit_%i.pdf", OutputDir.Data(), potential));
     delete grDots;
     delete c;
   }
 
-  delete funct_0;
-  delete funct_1;
-  delete Prefit;
+  delete funct_0_Default;
+  delete funct_1_Default;
+  delete Prefit_Default;
 
   if (NumIter != 0) {
     std::cout << "\n\nStarting the systematic variations\n";
@@ -302,10 +308,10 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     std::cout << "Number of variations of the fit region: "
               << femtoFitRegionUp.size() << "\n";
     PrintVars(femtoFitRegionUp);
-    std::cout << "Number of variations of the baseline:   " << prefit_a.size()
-              << "\n";
-    PrintVars(prefit_a);
-    PrintVars(prefit_b);
+    std::cout << "Number of variations of the baseline:   " << prefit_a_Default.size()
+        << "\n";
+    PrintVars (prefit_a_Default);
+    PrintVars (prefit_b_Default);
     std::cout << "Number of variations of the source size : "
               << sourceSize.size() << "\n";
     PrintVars(sourceSize);
@@ -356,15 +362,45 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
   }
 
-  /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  /// Systematic variations
   float counter = 0;
   float total = histSysVar.size() * femtoFitRegionUp.size() * prefit_a.size()
       * sidebandNormDown.size() * sourceSize.size();
+  /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  /// Systematic variations
+
   // 1. Systematic variations of the data
   for (size_t systDataIter = 0; systDataIter < histSysVar.size();
       ++systDataIter) {
     auto currentHist = histSysVar[systDataIter];
+
+    /// Prefit for the baseline
+    auto Prefit = (TH1F*) currentHist->Clone(
+        Form("%s_%i_prefit", systDataIter, currentHist->GetName()));
+    auto funct_0 = new TF1("myPol0", "pol0", 250, 750);
+    Prefit->Fit(funct_0, "FSNRMQ");
+
+    TF1* funct_1 = new TF1("myPol1", "pol1", 250, 750);
+    Prefit->Fit(funct_1, "FSNRMQ");
+    gMinuit->SetErrorDef(1);  // 1 corresponds to 1 sigma contour, 4 to 2 sigma
+    auto grPrefitContour = (TGraph*) gMinuit->Contour(40, 0, 1);
+
+    std::vector<double> prefit_a;
+    prefit_a.emplace_back(funct_0->GetParameter(0));
+    prefit_a.emplace_back(funct_1->GetParameter(0));
+    prefit_a.emplace_back(
+        TMath::MinElement(grPrefitContour->GetN(), grPrefitContour->GetX()));
+    prefit_a.emplace_back(
+        TMath::MaxElement(grPrefitContour->GetN(), grPrefitContour->GetX()));
+
+    std::vector<double> prefit_b;
+    prefit_b.emplace_back(0);
+    prefit_b.emplace_back(funct_1->GetParameter(1));
+    prefit_b.emplace_back(grPrefitContour->Eval(prefit_a[2]));
+    prefit_b.emplace_back(grPrefitContour->Eval(prefit_a[3]));
+
+    delete funct_0;
+    delete funct_1;
+    delete Prefit;
 
     /// Lambda parameters
     std::vector<CATSLambdaParam> lambdaParams;
