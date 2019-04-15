@@ -586,7 +586,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             std::cout << "Fitting ranges for BL set \n";
           } else if (BaselineSlope == 2){
             fitter->SetParameter("pp", DLM_Fitter1::p_b, 1e-4, -2e-3, 2e-3);
-            fitter->SetParameter("pp", DLM_Fitter1::p_c, 1e-4, -1e-3, 1e-3);
+            fitter->SetParameter("pp", DLM_Fitter1::p_c, 1e-5, -1e-4, 1e-4);
             std::cout << "Fitting ranges for Quadratic BL set \n";
           } else {
             fitter->FixParameter("pp", DLM_Fitter1::p_b, 0);
