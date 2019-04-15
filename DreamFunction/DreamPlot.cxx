@@ -62,7 +62,7 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
   if (systErr) {
     fProtonProton->SetSystematics((TF1*) CFFile_ppSys->Get("SystError"), 2);
   } else {
-    fProtonProton->SetSystematics((TH1*) CFFile_ppSys->Get("SysParamPP"), 2);
+    fProtonProton->SetSystematics((TF1*) CFFile_ppSys->Get("RelSysPPUnbinned"), 2);
   }
   TFile* CFFile_pL = TFile::Open(Form("%s/CFOutput_pL.root", PathToDataFolder));
   TFile* CFFile_pLSys = TFile::Open(
@@ -76,7 +76,7 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
     fProtonLambda->SetSystematics((TF1*) CFFile_pLSys->Get("SystError"),
                                   sysWidth);
   } else {
-    fProtonLambda->SetSystematics((TH1*) CFFile_pLSys->Get("SysParamPL"),
+    fProtonLambda->SetSystematics((TF1*) CFFile_pLSys->Get("RelSysPLUnbinned"),
                                   sysWidth);
   }
   TFile* CFFile_LL = TFile::Open(Form("%s/CFOutput_LL.root", PathToDataFolder));
@@ -91,7 +91,7 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
     fLambdaLambda->SetSystematics((TF1*) CFFile_LLSys->Get("SystError"),
                                   sysWidth);
   } else {
-    fLambdaLambda->SetSystematics((TH1*) CFFile_LLSys->Get("SysParamLL"),
+    fLambdaLambda->SetSystematics((TF1*) CFFile_LLSys->Get("RelSysLLUnbinned"),
                                   sysWidth);
   }
 
@@ -106,7 +106,7 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
   if (CFFile_pXiSys->Get("SystError")) {
     fProtonXi->SetSystematics((TF1*) CFFile_pXiSys->Get("SystError"), sysWidth);
   } else {
-    fProtonXi->SetSystematics((TH1*) CFFile_pXiSys->Get("SysParamPXi"),
+    fProtonXi->SetSystematics((TF1*) CFFile_pXiSys->Get("RelSysPXiUnbinned"),
                               sysWidth);
   }
   return;
@@ -212,9 +212,12 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       fLambdaLambda->FemtoModelFitBands(grLLDefault, grLLLow, grLLUp, 5, 1, 3,
                                         3000);
     }
-    TGraph* grpXiHALDefault = (TGraph*) systFit->Get("HALQCDpXimGraphDefault");
-    TGraph* grpXiHALLower = (TGraph*) systFit->Get("HALQCDpXimGraphLowerLim");
-    TGraph* grpXiHALUpper = (TGraph*) systFit->Get("HALQCDpXimGraphUpperLim");
+    TGraph* grpXiHALDefault = (TGraph*) systFit->Get("pXimGraphDefault");
+    TGraph* grpXiHALLower = (TGraph*) systFit->Get("pXimGraphLowerLim");
+    TGraph* grpXiHALUpper = (TGraph*) systFit->Get("pXimGraphUpperLim");
+//    TGraph* grpXiHALDefault = (TGraph*) systFit->Get("HALQCDpXimGraphDefault");
+//    TGraph* grpXiHALLower = (TGraph*) systFit->Get("HALQCDpXimGraphLowerLim");
+//    TGraph* grpXiHALUpper = (TGraph*) systFit->Get("HALQCDpXimGraphUpperLim");
     if (!grpXiHALDefault) {
       std::cout << "no pXi Default file \n";
     } else if (!grpXiHALLower) {
@@ -225,25 +228,25 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       fProtonXi->FemtoModelFitBands(grpXiHALDefault, grpXiHALLower,
                                     grpXiHALUpper, 10, 10, 0, 3252);
     }
-    TGraph* grpXiTomDefault = (TGraph*) systFit->Get("RikkenpXimGraphDefault");
-    TGraph* grpXiTomLower = (TGraph*) systFit->Get("RikkenpXimGraphLowerLim");
-    TGraph* grpXiTomUpper = (TGraph*) systFit->Get("RikkenpXimGraphUpperLim");
-    if (!grpXiTomDefault) {
-      std::cout << "no pXi Default file \n";
-    } else if (!grpXiTomLower) {
-      std::cout << "no pXi lower file \n";
-    } else if (!grpXiTomUpper) {
-      std::cout << "no pXi upper file \n";
-    } else {
-      fProtonXi->FemtoModelFitBands(grpXiTomDefault, grpXiTomLower,
-                                    grpXiTomUpper, 11, 8, 0, 3225);
-    }
+//    TGraph* grpXiTomDefault = (TGraph*) systFit->Get("RikkenpXimGraphDefault");
+//    TGraph* grpXiTomLower = (TGraph*) systFit->Get("RikkenpXimGraphLowerLim");
+//    TGraph* grpXiTomUpper = (TGraph*) systFit->Get("RikkenpXimGraphUpperLim");
+//    if (!grpXiTomDefault) {
+//      std::cout << "no pXi Default file \n";
+//    } else if (!grpXiTomLower) {
+//      std::cout << "no pXi lower file \n";
+//    } else if (!grpXiTomUpper) {
+//      std::cout << "no pXi upper file \n";
+//    } else {
+//      fProtonXi->FemtoModelFitBands(grpXiTomDefault, grpXiTomLower,
+//                                    grpXiTomUpper, 11, 8, 0, 3225);
+//    }
     TGraph* grpXiDefaultCoulomb = (TGraph*) systFit->Get(
-        "CoulombpXimGraphDefault");
+        "pXimGraphDefault_COULOMB");
     TGraph* grpXiLowerCoulomb = (TGraph*) systFit->Get(
-        "CoulombpXimGraphLowerLim");
+        "pXimGraphLowerLim_COULOMB");
     TGraph* grpXiUpperCoulomb = (TGraph*) systFit->Get(
-        "CoulombpXimGraphUpperLim");
+        "pXimGraphUpperLim_COULOMB");
     if (!grpXiDefaultCoulomb) {
       std::cout << "no pXi Coulomb Default file \n";
     } else if (!grpXiLowerCoulomb) {
@@ -254,9 +257,12 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       fProtonXi->FemtoModelFitBands(grpXiDefaultCoulomb, grpXiLowerCoulomb,
                                     grpXiUpperCoulomb, 12, 1, 3, 4000);
     }
-    TGraph* grpXiDefaultSideband = (TGraph*) systFit->Get("pXiSidebandDefault");
-    TGraph* grpXiLowerSideband = (TGraph*) systFit->Get("pXiSidebandDown");
-    TGraph* grpXiUpperSideband = (TGraph*) systFit->Get("pXiSidebandUp");
+    TGraph* grpXiDefaultSideband = (TGraph*) systFit->Get("pXimGraphSidebandDefault");
+    TGraph* grpXiLowerSideband = (TGraph*) systFit->Get("pXimGraphSidebandDown");
+    TGraph* grpXiUpperSideband = (TGraph*) systFit->Get("pXimGraphSidebandUp");
+//    TGraph* grpXiDefaultSideband = (TGraph*) systFit->Get("pXiSidebandDefault");
+//    TGraph* grpXiLowerSideband = (TGraph*) systFit->Get("pXiSidebandDown");
+//    TGraph* grpXiUpperSideband = (TGraph*) systFit->Get("pXiSidebandUp");
     if (!grpXiDefaultSideband) {
       std::cout << "no pXi Sideband Default file \n";
     } else if (!grpXiLowerSideband) {
@@ -406,16 +412,16 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_PP->SetTopMargin(top);
   fProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p}", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
-  fProtonProton->SetRangePlotting(0, 200, 0.7, 3.5);
+  fProtonProton->SetRangePlotting(0, 200, 0.8, 3.2);
   fProtonProton->SetInletRangePlotting(50, 200, 0.94, 1.06);
-  fProtonProton->SetInletCoordinates(0.35, 0.27, 0.95, 0.61);
+  fProtonProton->SetInletCoordinates(0.27, 0.22, 0.95, 0.61);
   fProtonProton->SetNDivisions(505);
   fProtonProton->SetLegendCoordinates(
-      0.37, 0.71 - 0.09 * fProtonProton->GetNumberOfModels(), 0.7, 0.8);
+      0.30, 0.71 - 0.09 * fProtonProton->GetNumberOfModels(), 0.7, 0.8);
   fProtonProton->DrawCorrelationPlot(c_PP);
-  DrawSystemInfo(c_PP, true, 0.39);
+  DrawSystemInfo(c_PP, true, 0.32);
   c_PP->cd();
-//  Numbering.DrawLatex(0.3, 0.9, "#bf{a)}");
+  Numbering.DrawLatex(0.19, 0.9, "#bf{a)}");
   c_PP->SaveAs("CF_pp_Gauss_prelim.pdf");
 
   TCanvas* c_PL = new TCanvas("CFpL", "CFpL", 0, 0, 650, 550);
@@ -455,17 +461,17 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_pXi->SetTopMargin(top);
   fProtonXi->SetLegendName("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+}", "fpe");
   fProtonXi->SetLegendName("Coulomb + HAL-QCD", "fl");
-  fProtonXi->SetLegendName("Coulomb + ESC 16", "fl");
+//  fProtonXi->SetLegendName("Coulomb + ESC 16", "fl");
   fProtonXi->SetLegendName("Coulomb", "l");
   fProtonXi->SetLegendName("p-#Xi^{-} sideband background", "l");
   fProtonXi->SetNDivisions(505);
-  fProtonXi->SetRangePlotting(0, 300, 0.8, 2.8);
-  fProtonXi->SetLegendCoordinates(0.35,
+  fProtonXi->SetRangePlotting(0, 300, 0.8, 2.6);
+  fProtonXi->SetLegendCoordinates(0.3,
                                   0.785 - 0.09 * fProtonXi->GetNumberOfModels(),
                                   0.7, 0.875);
   fProtonXi->DrawCorrelationPlot(c_pXi);
-  DrawSystemInfo(c_pXi, false, 0.37);
-//  Numbering.DrawLatex(0.3, 0.9, "#bf{b)}");
+  DrawSystemInfo(c_pXi, false, 0.32);
+  Numbering.DrawLatex(0.19, 0.9, "#bf{b)}");
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
 
@@ -504,7 +510,7 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin,
   c->cd();
   TLatex BeamText;
   TLatex text;
-  BeamText.SetTextSize(gStyle->GetTextSize() * 0.95);
+  BeamText.SetTextSize(gStyle->GetTextSize() * .96);
   BeamText.SetNDC(kTRUE);
 //  BeamText.DrawLatex(0.5, 0.875, "ALICE");
   TString CollisionSystem = Form("%s", fCollisionSystem);
@@ -538,7 +544,7 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin,
   if (plotRadius) {
     text.SetNDC();
     text.SetTextColor(1);
-    text.SetTextSize(gStyle->GetTextSize() * 0.83);
+    text.SetTextSize(gStyle->GetTextSize() * 0.96);
     text.DrawLatex(
         xMin,
         0.825,
