@@ -239,7 +239,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   nSigmaMaker(resultTuple, 250);
   nSigmaMaker(resultTuple, 200);
   nSigmaMaker(resultTuple, 150);
-  std::cout << "Thanks for your interest\n";
+  std::cout << "Thanks for your interest in potential " << potential << "\n";
   std::cout << "=============\n";
 
   if (debugPlots) {

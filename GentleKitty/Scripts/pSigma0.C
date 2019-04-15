@@ -363,8 +363,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   }
 
   float counter = 0;
-  float total = histSysVar.size() * femtoFitRegionUp.size() * prefit_a_Default.size()
-      * sidebandNormDown.size() * sourceSize.size();
+  float total = histSysVar.size() * femtoFitRegionUp.size()
+      * prefit_a_Default.size() * sidebandNormDown.size();
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Systematic variations
 
@@ -375,7 +375,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
     /// Prefit for the baseline
     auto Prefit = (TH1F*) currentHist->Clone(
-        Form("%s_%i_prefit", systDataIter, currentHist->GetName()));
+        Form("%i_%s_prefit", int(systDataIter), currentHist->GetName()));
     auto funct_0 = new TF1("myPol0", "pol0", 250, 750);
     Prefit->Fit(funct_0, "FSNRMQ");
 
@@ -384,7 +384,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     gMinuit->SetErrorDef(1);  // 1 corresponds to 1 sigma contour, 4 to 2 sigma
     auto grPrefitContour = (TGraph*) gMinuit->Contour(40, 0, 1);
 
-    std::vector<double> prefit_a;
+    static std::vector<double> prefit_a;
+    prefit_a.clear();
     prefit_a.emplace_back(funct_0->GetParameter(0));
     prefit_a.emplace_back(funct_1->GetParameter(0));
     prefit_a.emplace_back(
@@ -392,7 +393,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     prefit_a.emplace_back(
         TMath::MaxElement(grPrefitContour->GetN(), grPrefitContour->GetX()));
 
-    std::vector<double> prefit_b;
+    static std::vector<double> prefit_b;
+    prefit_b.clear();
     prefit_b.emplace_back(0);
     prefit_b.emplace_back(funct_1->GetParameter(1));
     prefit_b.emplace_back(grPrefitContour->Eval(prefit_a[2]));
@@ -463,12 +465,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
           }
           Ck_SideBand->Update();
 
+          std::cout
+              << "\r Processing progress: "
+              << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
+              << std::flush;
+
           // 5. Source size
           for (size_t sizeIter = 0; sizeIter < sourceSize.size(); ++sizeIter) {
-            std::cout
-                << "\r Processing progress: "
-                << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
-                << std::flush;
 
             // 6. Lambda parameters
             for (size_t lambdaIter = 0; lambdaIter < lambdaParams.size();
@@ -702,7 +705,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               grCFSigmaSideband.Write();
               FitResult_pSigma0.Write(Form("Fit_%i", iterID));
               currentHist->SetName(
-                  TString::Format("HistCF_Var_%i", systDataIter));
+                  TString::Format("HistCF_Var_%i", int(systDataIter)));
               currentHist->Write();
 
               if (fastPlot || iterID == 0) {
