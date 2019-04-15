@@ -78,6 +78,9 @@ target_link_libraries(tidyCATS ForgivingFnct -L${CATS_LIB} -lCATSbasic -lCATSext
 add_executable(POnly ${PROJECT_SOURCE_DIR}/Scripts/POnly.C)
 target_link_libraries(POnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(POnlyOnTheGrid ${PROJECT_SOURCE_DIR}/Scripts/POnlyOnTheGrid.C)
+target_link_libraries(POnlyOnTheGrid tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(XiOnly ${PROJECT_SOURCE_DIR}/Scripts/XiOnly.C)
 target_link_libraries(XiOnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
