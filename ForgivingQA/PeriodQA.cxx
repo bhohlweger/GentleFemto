@@ -32,6 +32,8 @@ void PeriodQA::SetDirectory(const char *dir) {
 }
 
 void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
+  auto histnEvents = PeriodQAHist("histQAnEvts", "Number of Events");
+
   auto histPurityLambda = PeriodQAHist("histQALambda", "Purity #Lambda (%)");
   auto histPurityAntiLambda = PeriodQAHist("histQAAntiLambda",
                                            "Purity #bar{#Lambda} (%)");
@@ -53,15 +55,23 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
     filename += ".root";
     ForgivingReader* reader = new ForgivingReader(filename.Data(), prefix,
                                                   addon);
+    auto* multiplicity = (TH2F*) reader->Get1DHistInList(
+        reader->GetListInList(reader->GetEventCuts(), { { "after" } }),
+        "MultiplicityRef08_after");
     EventQA* evtQA = new EventQA();
     evtQA->SetEventCuts(reader->GetEventCuts());
     float nEvents = evtQA->GetNumberOfEvents();
     delete evtQA;
     if (nEvents < 1E-6) {
       delete reader;
+      ++i;
       continue;
     }
-
+    nEvents*=multiplicity->GetMean();
+    histnEvents->SetBinContent(
+        i + 1, float(multiplicity->GetMean()));
+    histnEvents->SetBinError(
+        i + 1, float(multiplicity->GetMeanError()));
     TrackQA* trkQA = new TrackQA();
     trkQA->SetTrackCuts(reader->GetTrackCuts());
     histNProton->SetBinContent(i + 1,
@@ -130,6 +140,9 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
     delete reader;
     ++i;
   }
+  auto aEvt = new TCanvas();
+  histnEvents->Draw();
+  aEvt->Print("PeriodMeanMult.pdf");
   auto c = new TCanvas();
   histPurityLambda->Draw();
   c->Print("PeriodQALambda.pdf");
