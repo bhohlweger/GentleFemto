@@ -124,10 +124,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   }
   std::vector<double> Variation = {0.8,1.0,1.2};
   CATSLambdaParam ppLam[3];
+  int iVar = 0;
   for (auto it : Variation) {
     double SecFracSigma = 1.-PrimProton-it*SecLamProton;
     const Particle p1(PurityProton, PrimProton, {it*SecLamProton,SecFracSigma});
     const Particle p2 = p1;
+    ppLam[iVar++] = CATSLambdaParam(p1,p2,true);
   }
   std::cout << "LAMBDA PP \n";
   ppLam[0].PrintLambdaParams();
