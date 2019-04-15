@@ -46,29 +46,35 @@ static std::vector<int> fMarkers = { kFullCircle, kFullSquare, kOpenCircle,
     kOpenStar };
 
 void SetStyleHisto(TH1 *histo) {
-  histo->GetXaxis()->SetLabelSize(0.07);
-  histo->GetXaxis()->SetTitleSize(0.07);
-  histo->GetXaxis()->SetLabelOffset(0.01);
-  histo->GetXaxis()->SetTitleOffset(0.95);
+
   histo->GetXaxis()->SetLabelFont(42);
-  histo->GetYaxis()->SetLabelSize(0.07);
-  histo->GetYaxis()->SetTitleSize(0.07);
+
+  histo->GetXaxis()->SetLabelSize(0.11);
+  histo->GetYaxis()->SetLabelSize(0.11);
+  histo->GetXaxis()->SetTitleSize(0.11);
+  histo->GetYaxis()->SetTitleSize(0.11);
+
+  histo->GetXaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetLabelOffset(0.01);
-  histo->GetYaxis()->SetTitleOffset(0.95);
+  histo->GetXaxis()->SetTitleOffset(0.95);
+  histo->GetYaxis()->SetTitleOffset(0.6);
+
   histo->SetMarkerSize(1.2);
   histo->SetLineWidth(3);
 }
 
 void SetStyleGraph(TGraph *histo) {
-  histo->GetXaxis()->SetLabelSize(0.045);
-  histo->GetXaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetLabelFont(42);
+
+  histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetXaxis()->SetLabelOffset(0.01);
   histo->GetXaxis()->SetTitleOffset(1.0);
-  histo->GetXaxis()->SetLabelFont(42);
-  histo->GetYaxis()->SetLabelSize(0.045);
-  histo->GetYaxis()->SetTitleSize(0.05);
-  histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.0);
+
+  histo->GetXaxis()->SetLabelSize(0.06);
+  histo->GetYaxis()->SetLabelSize(0.06);
+  histo->GetXaxis()->SetTitleSize(0.06);
+  histo->GetYaxis()->SetTitleSize(0.06);
 }
 
 void PlotPotentials() {
@@ -104,15 +110,15 @@ void PlotPotentials() {
   ListI1S1->SetOwner();
   ListI1S1->SetName("I1S1");
 
-  TLegend leg(0.65, 0.65, 0.95, 0.95);
+  TLegend leg(0.55, 0.65, 0.95, 0.95);
   leg.SetLineColor(kWhite);
   leg.SetFillStyle(4000);
-  leg.SetTextSize(0.06);
+  leg.SetTextSize(0.07);
 
   TLegend leg2(0.55, 0.65, 0.95, 0.95);
   leg2.SetLineColor(kWhite);
   leg2.SetFillStyle(4000);
-  leg2.SetTextSize(0.06);
+  leg2.SetTextSize(0.07);
 
   int nRadBins = 600;
   double dRad = 0.005;
@@ -137,14 +143,14 @@ void PlotPotentials() {
                            dRad / 2., radMax + dRad / 2.);
 
     for (int iRad = 1; iRad < nRadBins; ++iRad) {
-      double pXimPotParsI0S0[11] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 0,
-          -1, 1, 0, 0, 0, radCutoff };
-      double pXimPotParsI0S1[11] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 0,
-          -1, 1, 1, 0, 1, radCutoff };
-      double pXimPotParsI1S0[11] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 1,
-          1, 1, 0, 0, 0, radCutoff };
-      double pXimPotParsI1S1[11] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 1,
-          1, 1, 1, 0, 1, radCutoff };
+      double pXimPotParsI0S0[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 0,
+          -1, 1, 0, 0, 0};
+      double pXimPotParsI0S1[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 0,
+          -1, 1, 1, 0, 1};
+      double pXimPotParsI1S0[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 1,
+          1, 1, 0, 0, 0 };
+      double pXimPotParsI1S1[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 1,
+          1, 1, 1, 0, 1 };
       I0S0[iTime]->SetBinContent(I0S0[iTime]->FindBin(iRad * dRad),
                                  fDlmPot(pXimPotParsI0S0));
 
@@ -233,9 +239,10 @@ void PlotPotentials() {
   }
   grI0S0->SetName("grI0S0");
   grI0S0->GetXaxis()->SetTitle("#it{r} (fm)");
-  grI0S0->GetYaxis()->SetRangeUser(-70, 50);
+  grI0S0->GetYaxis()->SetRangeUser(-75, 59);
   grI0S0->GetXaxis()->SetRangeUser(0, 3);
   grI0S0->GetYaxis()->SetTitle("#it{V(r)} (MeV)");
+//  grI0S0->GetYaxis()->CenterTitle(true);
 
   grI0S0->SetFillColor(fColors[1]);
   grI0S0->SetLineColor(fColors[1]);
@@ -305,10 +312,10 @@ void PlotPotentials() {
   ListI1S1->Write("I1S1", 1);
 
   auto *c2 = new TCanvas("c2", "c2");
-  c2->SetLeftMargin(0.11);
+  c2->SetLeftMargin(0.15);
   c2->SetRightMargin(0.01);
   c2->SetTopMargin(0.01);
-  c2->SetBottomMargin(0.12);
+  c2->SetBottomMargin(0.15);
   c2->cd();
   leg.AddEntry(grI0S0, "I = 0, S = 0", "f");
   leg.AddEntry(grI0S1, "I = 0, S = 1", "f");
@@ -350,10 +357,12 @@ void PlotPotentials() {
   TLine lineOne = TLine(0, 0, 3., 0);
   lineOne.Draw("SAME");
 
-  TLine lineTwo = TLine(0, 1., 200, 1.);
+  TLine lineTwo = TLine(0, 1., 175, 1.);
   lineOne.Draw("SAME");
-  TPad *inset_pad = new TPad("inset", "inset", 0.47, 0.13, 0.97, 0.59);
+  TPad *inset_pad = new TPad("inset", "inset", 0.5, 0.13, 0.97, 0.63);
   inset_pad->SetRightMargin(0.05);
+  inset_pad->SetLeftMargin(0.15);
+  inset_pad->SetBottomMargin(0.3);
   inset_pad->SetFillStyle(4000);
   inset_pad->Draw();
   inset_pad->cd();
@@ -363,8 +372,11 @@ void PlotPotentials() {
   SetStyleHisto(CF_I1S0);
   SetStyleHisto(CF_I1S1);
   CF_I0S0->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  CF_I0S0->GetYaxis()->CenterTitle(true);
+  CF_I0S0->GetXaxis()->SetRangeUser(0, 175);
   CF_I0S0->GetYaxis()->SetRangeUser(0.8, 3.5);
   CF_I0S0->SetNdivisions(505);
+  CF_I0S0->GetYaxis()->SetNdivisions(203);
   CF_I0S0->Draw("l");
   lineTwo.Draw("same");
   CF_I0S1->Draw("lsame");
@@ -373,7 +385,7 @@ void PlotPotentials() {
   TLatex Numbering;
   Numbering.SetTextSize(gStyle->GetTextSize() * 2.0);
   Numbering.SetNDC(kTRUE);
-  Numbering.DrawLatex(0.5, 0.7, "#it{r}_{0} = 1.4 fm");
+  Numbering.DrawLatex(0.6, 0.8, "#it{r}_{0} = 1.4 fm");
   leg2.AddEntry(CF_I0S0, " ", "l");
   leg2.AddEntry(CF_I0S1, " ", "l");
   leg2.AddEntry(CF_I1S0, " ", "l");
@@ -393,24 +405,21 @@ void PlotCF(double GaussSourceSize = 1.4) {
   double QCDTime = 11;
   //4th argument is the t parameter and can be:
   // 9, 10, 11, 12
-  double pXimPotParsI0S0[9] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0,
-      radCutoff };
-  double pXimPotParsI0S1[9] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1,
-      radCutoff };
-  double pXimPotParsI1S0[9] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0,
-      radCutoff };
-  double pXimPotParsI1S1[9] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1,
-      radCutoff };
-  CATSparameters cPotParsI0S0(CATSparameters::tPotential, 9, true);
+  double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };
+  double pXimPotParsI0S1[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1};
+  double pXimPotParsI1S0[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0};
+  double pXimPotParsI1S1[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1};
+
+  CATSparameters cPotParsI0S0(CATSparameters::tPotential, 8, true);
   cPotParsI0S0.SetParameters(pXimPotParsI0S0);
 
-  CATSparameters cPotParsI0S1(CATSparameters::tPotential, 9, true);
+  CATSparameters cPotParsI0S1(CATSparameters::tPotential, 8, true);
   cPotParsI0S1.SetParameters(pXimPotParsI0S1);
 
-  CATSparameters cPotParsI1S0(CATSparameters::tPotential, 9, true);
+  CATSparameters cPotParsI1S0(CATSparameters::tPotential, 8, true);
   cPotParsI1S0.SetParameters(pXimPotParsI1S0);
 
-  CATSparameters cPotParsI1S1(CATSparameters::tPotential, 9, true);
+  CATSparameters cPotParsI1S1(CATSparameters::tPotential, 8, true);
   cPotParsI1S1.SetParameters(pXimPotParsI1S1);
   const double Mass_p = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
@@ -438,7 +447,7 @@ void PlotCF(double GaussSourceSize = 1.4) {
 
   CATS AB_pXim_I0S0;
   CATSparameters cParsI0S0(CATSparameters::tSource, 1, true);
-  cParsI0S0.SetParameter(0, 1.2);
+  cParsI0S0.SetParameter(0, GaussSourceSize);
   AB_pXim_I0S0.SetAnaSource(GaussSource, cParsI0S0);
   AB_pXim_I0S0.SetUseAnalyticSource(true);
   AB_pXim_I0S0.SetThetaDependentSource(false);
@@ -462,7 +471,7 @@ void PlotCF(double GaussSourceSize = 1.4) {
 
   CATS AB_pXim_I0S1;
   CATSparameters cParsI0S1(CATSparameters::tSource, 1, true);
-  cParsI0S1.SetParameter(0, 1.2);
+  cParsI0S1.SetParameter(0, GaussSourceSize);
   AB_pXim_I0S1.SetAnaSource(GaussSource, cParsI0S1);
   AB_pXim_I0S1.SetUseAnalyticSource(true);
   AB_pXim_I0S1.SetThetaDependentSource(false);
@@ -485,7 +494,7 @@ void PlotCF(double GaussSourceSize = 1.4) {
 
   CATS AB_pXim_I1S0;
   CATSparameters cParsI1S0(CATSparameters::tSource, 1, true);
-  cParsI1S0.SetParameter(0, 1.2);
+  cParsI1S0.SetParameter(0, GaussSourceSize);
   AB_pXim_I1S0.SetAnaSource(GaussSource, cParsI1S0);
   AB_pXim_I1S0.SetUseAnalyticSource(true);
   AB_pXim_I1S0.SetThetaDependentSource(false);
@@ -508,7 +517,7 @@ void PlotCF(double GaussSourceSize = 1.4) {
 
   CATS AB_pXim_I1S1;
   CATSparameters cParsI1S1(CATSparameters::tSource, 1, true);
-  cParsI1S1.SetParameter(0, 1.2);
+  cParsI1S1.SetParameter(0, GaussSourceSize);
   AB_pXim_I1S1.SetAnaSource(GaussSource, cParsI1S1);
   AB_pXim_I1S1.SetUseAnalyticSource(true);
   AB_pXim_I1S1.SetThetaDependentSource(false);
