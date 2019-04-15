@@ -249,7 +249,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   auto PrefitDefault = (TH1F*) dataHist->Clone(
       Form("%s_prefit", dataHist->GetName()));
   auto funct_0_Default = new TF1("myPol0", "pol0", 250, 750);
-  Prefit->Fit(funct_0_Default, "FSNRMQ");
+  PrefitDefault->Fit(funct_0_Default, "FSNRMQ");
 
   TF1* funct_1_Default = new TF1("myPol1", "pol1", 250, 750);
   PrefitDefault->Fit(funct_1_Default, "FSNRMQ");
@@ -299,7 +299,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
   delete funct_0_Default;
   delete funct_1_Default;
-  delete Prefit_Default;
+  delete PrefitDefault;
 
   if (NumIter != 0) {
     std::cout << "\n\nStarting the systematic variations\n";
@@ -363,7 +363,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   }
 
   float counter = 0;
-  float total = histSysVar.size() * femtoFitRegionUp.size() * prefit_a.size()
+  float total = histSysVar.size() * femtoFitRegionUp.size() * prefit_a_Default.size()
       * sidebandNormDown.size() * sourceSize.size();
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Systematic variations
