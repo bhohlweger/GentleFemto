@@ -29,7 +29,6 @@
 #include "stdlib.h"
 #include "CATSLambdaParam.h"
 
-
 void FitPPVariations(const unsigned& NumIter, int system, int source,
                      TString InputDir, TString OutputDir) {
 //	TRandom3 rangen(1 + JobID);
@@ -93,7 +92,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   BlRegion[0] = 420;
   BlRegion[1] = 420;
 
-
   double PurityProton;
   double PrimProton;
   double SecLamProton;
@@ -101,7 +99,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   double PurityLambda;
   double PrimLambdaAndSigma;
   double SecLambda;
-
 
   double PurityXi;
   //pPb
@@ -125,7 +122,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     SecLambda = 0.194;  //fraction of weak decay Lambdas
 
     PurityXi = 0.915;
-  } else if (system == 2) { // pp HM
+  } else if (system == 2) {  // pp HM
     PurityProton = 0.9943;
     PrimProton = 0.873;
     SecLamProton = 0.089;  //Fraction of Lambdas
@@ -140,77 +137,81 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     return;
   }
 
-  // for every 10 Xi- one Omega is produced (insignificant variations)
-  const double OmegamXimProdFraction = 1/11.;   // Fraction varies between 5 - 13%
-  const double OmegamXim_BR = 0.086;  // Value given by PDG, 8.6 pm 0.4 %
+  // Xi01530 Production: dN/dy = 2.6e-3 (https://link.springer.com/content/pdf/10.1140%2Fepjc%2Fs10052-014-3191-x.pdf)
+  // Xim1530 Production = Xi01530 Production
+  // Xim Production: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // -> Production Ratio ~ 1/2
 
-  // for every three Xi- one Xi0(1530) is produced
-  // for every three Xi- one Xi-(1530) is produced
-  // for every three Xi- either one Xi0(1530) or one Xi-(1530) is produced?
-  // Produce 1000 Xi's -> Produce:
-  // 1 ) 100 Omegas -> See 8.5 more Xi's
-  // 2)  333 Xi0_1530 -> See 222 more Xi's
-  // 3)  333 Xim_1530 -> See 111 more Xi's
-  // Total Sample: 342 secondaries + 1000 Primaries
-  // -> Secondary fraction: 342/1342 = 0,2548435171
-
-  // 11 & 4 -> 44
-  // 1/4 -> 11/44 th
-  // 1/11 -> 4/44 th
-  // 11/44*1/3 + 11/44*2/3 + 4/44*0.085 = 0,2577272727
-
-  const double Xi01530XimProdFraction = 11/44.;
-  const double Xim1530XimProdFraction = 11/44.;
+  const double Xi01530XimProdFraction = 1 / 2.;
+  const double Xim1530XimProdFraction = 1 / 2.;
 
   // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
-  const double Xi01530Xim_BR = 2/3.;
+  const double Xi01530Xim_BR = 2 / 3.;
   // 1/3 of Xi-(1530) decays via Xi- + pi0 (Isospin considerations)
-  const double Xim1530Xim_BR = 1/3.;
+  const double Xim1530Xim_BR = 1 / 3.;
 
+  // Omega production: dN/dy = 0.67e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // Xim Production: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // -> Production Ratio ~ 1/10
+  const double OmegamXimProdFraction = 1 / 10.;
+  const double OmegamXim_BR = 0.086;  // Value given by PDG, 8.6 pm 0.4 %
 
+  // Produce N Xi's -> Produce:
+  // 1 ) N* 1/10 Omegas -> See N* 1/10 * 8.6% more Xi's
+  // 2)  N* 1/2 Xi0_1530 -> See N*1/2*2/3 = N* 1/3 more Xi's
+  // 3)  N* 1/2 Xim_1530 -> See N*1/2*1/3 = N* 1/6 more Xi's
+  // Total Sample:  N(1+0.0086+1/3+1/6) ->
+  // Primary Fraction = N / N(1+0.0086+1/3+1/6)
+  // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
+  // etc.
 
-  double SecOmegaXim = OmegamXimProdFraction*OmegamXim_BR;
-  double SecXi01530Xim = Xi01530XimProdFraction*Xi01530Xim_BR;
-  double SecXim1530Xim = Xim1530XimProdFraction*Xim1530Xim_BR;
-  double PrimXim = 1.-SecOmegaXim-SecXi01530Xim-SecXim1530Xim;
-
-  std::vector<double> Variation = {0.8,1.0,1.2};
-  Particle Protons[3]; // 1) variation of the Secondary Comp.
-  Particle Lambdas[3][3]; // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
-  Particle Xi[3][3]; //1) variation of the Omega Contribution, 2) variation of the XiResonance contribution
+  std::vector<double> Variation = { 0.8, 1.0, 1.2 };
+  Particle Proton[3];  // 1) variation of the Secondary Comp.
+  Particle Lambda[3][3];  // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
+  Particle Xi[3][3];  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
 
   int iVar1 = 0;
   for (auto it : Variation) {
-    double SecFracSigma = 1.-PrimProton-it*SecLamProton;
-    Protons[iVar1] = Particle(PurityProton, PrimProton, {it*SecLamProton,SecFracSigma});
+    double SecFracSigma = 1. - PrimProton - it * SecLamProton;
+    Proton[iVar1] = Particle(PurityProton, PrimProton, { it * SecLamProton,
+                                  SecFracSigma });
 
-    double LamSigProdFraction = 3*it/4. <1 ? 3*it/4. : 1;
-    double PrimLambda = LamSigProdFraction*PrimLambdaAndSigma;
-    double SecSigLambda = (1.-LamSigProdFraction)*PrimLambdaAndSigma; // decay probability = 100%!
+    double LamSigProdFraction = 3 * it / 4. < 1 ? 3 * it / 4. : 1;
+    double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma;
+    double SecSigLambda = (1. - LamSigProdFraction) * PrimLambdaAndSigma;  // decay probability = 100%!
     int iVar2 = 0;
     for (auto itXim : Variation) {
-      double SecXimLambda = itXim*SecLambda/2.;
-      double SecXi0Lambda0 = (1-itXim
-          /2.)*SecLambda;
-      Lambdas[iVar1][iVar2] = Particle(PurityLambda, PrimLambda, {SecSigLambda, SecXimLambda,SecXi0Lambda0});
+      double SecXimLambda = itXim * SecLambda / 2.;
+      double SecXi0Lambda0 = (1 - itXim / 2.) * SecLambda;
+      Lambda[iVar1][iVar2] = Particle(PurityLambda, PrimLambda, { SecSigLambda,
+                                           SecXimLambda, SecXi0Lambda0 });
+
+      double XiNormalization = 1 + it*OmegamXimProdFraction * OmegamXim_BR
+          + itXim* (Xi01530XimProdFraction * Xi01530Xim_BR
+          + Xim1530XimProdFraction * Xim1530Xim_BR);
+      double SecOmegaXim = it* OmegamXimProdFraction * OmegamXim_BR
+          / (double) XiNormalization;
+      double SecXi01530Xim = itXim*Xi01530XimProdFraction * Xi01530Xim_BR
+          / (double) XiNormalization;
+      double SecXim1530Xim = itXim*Xim1530XimProdFraction * Xim1530Xim_BR
+          / (double) XiNormalization;
+      double PrimXim = 1. / (double) XiNormalization;
+      Xi[iVar1][iVar2] = Particle(PurityXi, PrimXim, { SecOmegaXim,
+                                     SecXi01530Xim, SecXim1530Xim });
       iVar2++;
     }
     iVar1++;
   }
 
-
-  CATSLambdaParam pp(Protons[1], Protons[1], true);
-  CATSLambdaParam pp1(Protons[0], Protons[0], true);
+  CATSLambdaParam pp(Proton[1], Proton[1], true);
   std::cout << "LAMBDA PP \n";
   pp.PrintLambdaParams();
-  std::cout << "LAMBDA PP \n";
-  pp1.PrintLambdaParams();
   std::cout << "LAMBDA PL \n";
-  CATSLambdaParam pL(Protons[1], Lambdas[1][1]);
+  CATSLambdaParam pL(Proton[1], Lambda[1][1]);
   pL.PrintLambdaParams();
-  std::cout << "LAMBDA PL \n";
-  CATSLambdaParam pL1(Protons[0], Lambdas[1][0]);
-  pL1.PrintLambdaParams();
+  std::cout << "LAMBDA PXi \n";
+  CATSLambdaParam pXi(Proton[1], Xi[1][1]);
+  pXi.PrintLambdaParams();
 
 //  double PurityProton;
 //  double PurityLambda;
@@ -941,7 +942,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 //  delete[] Fraction_L;
 
 }
-
 
 int main(int argc, char *argv[]) {
   FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), argv[4],
