@@ -96,7 +96,7 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       fppCleverMcLevy = new DLM_CleverMcLevyReso();
       fppCleverMcLevy->InitNumMcIter(1000000);
       fppCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fppCleverMcLevy->InitScale(42, 0.1, 1.6);
+      fppCleverMcLevy->InitScale(100, 0.1, 2.6);
       fppCleverMcLevy->InitRad(512, 0, 64);
       fppCleverMcLevy->InitType(2);
       fppCleverMcLevy->InitReso(0, 1);  //number of p resonances
@@ -175,7 +175,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       fpLCleverMcLevy = new DLM_CleverMcLevyReso();
       fpLCleverMcLevy->InitNumMcIter(1000000);
       fpLCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fpLCleverMcLevy->InitScale(42, 0.1, 1.6);
+      fpLCleverMcLevy->InitScale(100, 0.1, 2.6);
       fpLCleverMcLevy->InitRad(512, 0, 64);
       fpLCleverMcLevy->InitType(2);
       fpLCleverMcLevy->InitReso(0, 1);  //number of p resonances
@@ -305,7 +305,7 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
       fpXimCleverMcLevy = new DLM_CleverMcLevyReso();
       fpXimCleverMcLevy->InitNumMcIter(1000000);
       fpXimCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fpXimCleverMcLevy->InitScale(42, 0.1, 1.6);
+      fpXimCleverMcLevy->InitScale(100, 0.1, 2.6);
       fpXimCleverMcLevy->InitRad(512, 0, 64);
       fpXimCleverMcLevy->InitType(2);
       fpXimCleverMcLevy->InitReso(0, 1);    //number of p resonances
