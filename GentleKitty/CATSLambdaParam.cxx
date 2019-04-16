@@ -142,7 +142,6 @@ double CATSLambdaParam::GetLambdaParam(const Type type1, const Type type2,
   } else if (type1 == FeedDown && type2 == Fake) {
     // First particle is feed-down, second is fake
     const double scaling = (fIsSame) ? 2. : 1.;
-    std::cout << "scaling: " << scaling << std::endl;
     return scaling * purity1 * fParticles[0].GetFeedDownFraction(sec1)
         * (1. - purity2);
   } else if (type1 == FeedDown && type2 == FeedDown) {
