@@ -5,25 +5,26 @@
 
 int main(int argc, char* argv[]) {
   const char* filename = argv[1];
-  const char* CalibName = argv[2];
+  const char* CalibPath = argv[2];
   const char* prefix = argv[3];
   const char* addon = (argv[4]) ? argv[4] : "";
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
-
+  DreamFile->SetQuite();
   TString foldername = filename;
   foldername.ReplaceAll("AnalysisResults.root", "");
   DreamKayTee* mTppDists;
   DreamFile->ReadmTHistos(filename, prefix, addon);
   mTppDists = DreamFile->GetmTPairDistributions(0, 0, 1, 1);
 
-  std::vector<float> mTppBins = { 0.9 ,1.07,1.13,1.19,1.25,1.37,1.55,1.97,4.5 };
+  std::vector<float> mTppBins = { 0.9, 1.07, 1.13, 1.19, 1.25, 1.37, 1.55, 1.97,
+      4.5 };
 //  std::vector<float> mTBins = { 1.01,1.13,1.25,1.55,4.5 };
-  TString CalibPP = Form("%s/CFOutput_pp.root",CalibName);
-  mTppDists->SetSEMEReweightingRatio(CalibPP,"pp");
+  TString CalibPP = Form("%s/CFOutput_pp.root", CalibPath);
+  mTppDists->SetSEMEReweightingRatio(CalibPP, "1", false);
   mTppDists->SetKayTeeBins(mTppBins);
-  mTppDists->SetNormalization(0.2, 0.4);
-  mTppDists->SetRebin({2});
+  mTppDists->SetNormalization(0.24, 0.34);
+  mTppDists->SetRebin( { 2 });
   mTppDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pp");
 
   DreamKayTee* mTpLDists;
@@ -32,8 +33,8 @@ int main(int argc, char* argv[]) {
 
   std::vector<float> mTpLBins = { 1.02, 1.26, 1.32, 1.44, 1.62, 1.68, 4.5 };
 
-  TString CalibPL = Form("%s/CFOutput_pL.root",CalibName);
-  mTpLDists->SetSEMEReweightingRatio(CalibPL, "pL");
+  TString CalibPL = Form("%s/CFOutput_pL.root",CalibPath);
+  mTpLDists->SetSEMEReweightingRatio(CalibPL, "1", true);
   mTpLDists->SetKayTeeBins(mTpLBins);
   mTpLDists->SetNormalization(0.2, 0.4);
   mTpLDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pL");
@@ -45,8 +46,8 @@ int main(int argc, char* argv[]) {
 //  std::vector<float> mTpXiBins = { 1.08, 4.5 };
   std::vector<float> mTpXiBins = { 1.08, 1.83, 4.5 };
 
-  TString CalibpXi = Form("%s/CFOutput_pXi.root",CalibName);
-  mTpXiDists->SetSEMEReweightingRatio(CalibpXi, "pXi");
+  TString CalibpXi = Form("%s/CFOutput_pXi.root",CalibPath);
+  mTpXiDists->SetSEMEReweightingRatio(CalibpXi, "1", true);
   mTpXiDists->SetKayTeeBins(mTpXiBins);
   mTpXiDists->SetNormalization(0.2, 0.4);
   mTpXiDists->SetRebin({5});
