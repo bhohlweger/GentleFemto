@@ -42,10 +42,13 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   FemtoRegion[2] = 400;
 
   TidyCats::Sources TheSource;
+  TidyCats::Sources FeeddownSource;
   if (source == 0) {
     TheSource = TidyCats::sGaussian;
+    FeeddownSource = TheSource;
   } else if (source == 1) {
     TheSource = TidyCats::sResonance;
+    FeeddownSource = TidyCats::sGaussian;
   } else if (source == 2) {
     TheSource = TidyCats::sLevy;
   } else {
@@ -226,29 +229,24 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   AB_pp.KillTheCat();
 
   CATS AB_pXim;
-  tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, TheSource,
+  tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
   AB_pXim.KillTheCat();
 
   CATS AB_pXim1530;
-  if (TheSource != TidyCats::sResonance) {
-    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
-                                   TheSource);
-  } else {
-    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
-                                   TidyCats::sGaussian);
-  }
+  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
+                                 FeeddownSource);
   AB_pXim1530.KillTheCat();
 
   for (vMod_pL = TheSource == TidyCats::sLevy ? 1 : 0; vMod_pL < 3; ++vMod_pL) {
     TidyCats::pLPot PLpot;
     CATS AB_pL;
     if (vMod_pL == 1) {
-      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pUsmani);
       AB_pL.KillTheCat();
     } else if (vMod_pL == 2) {
-      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pNLOWF);
       AB_pL.KillTheCat();
     }
@@ -534,6 +532,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           ntBuffer[18] = fitter->GetParError("pp", DLM_Fitter1::p_c);
           ntBuffer[19] = Chi2 / EffNumBins;
           ntResult->Fill(ntBuffer);
+
 
           TList* outList = new TList();
           outList->SetOwner();
