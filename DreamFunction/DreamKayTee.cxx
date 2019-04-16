@@ -162,21 +162,31 @@ void DreamKayTee::AveragekT(const char *pair) {
   c1->cd(1);
   kTkStar->Draw("COLZ");
   c1->cd(2);
+  float totalPairs = kTProjection->Integral();
   kTProjection->Draw();
   c1->SaveAs(Form("kTProjection%s.pdf", pair));
   for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
-    int binLow = kTProjection->GetXaxis()->FindBin(fKayTeeBins.at(ikT));
-    int binUp = kTProjection->GetXaxis()->FindBin(fKayTeeBins.at(ikT + 1));
-    kTProjection->GetXaxis()->SetRange(binLow + 1, binUp);
+    int binLow = kTProjection->GetXaxis()->FindBin(
+        fKayTeeBins.at(ikT) * 1.0001);
+    int binUp = kTProjection->GetXaxis()->FindBin(
+        fKayTeeBins.at(ikT + 1) * 0.9999);
+    kTProjection->GetXaxis()->SetRange(binLow, binUp);
     float binErr = kTProjection->GetRMS();
-    if (binLow + 1 == binUp) {
+    if (binLow == binUp) {
       std::cout << "Low Edge: " << kTProjection->GetBinLowEdge(binLow)
-                << " Up Edge: " << kTProjection->GetBinLowEdge(binLow + 1)
+                << " Up Edge: " << kTProjection->GetBinLowEdge(binLow+1)
                 << std::endl;
       binErr = (kTProjection->GetBinLowEdge(binLow + 1)
           - kTProjection->GetBinLowEdge(binLow)) / 2.;
+      std::cout << "Percent of total: "
+                << kTProjection->GetBinContent(binLow) * 100. / totalPairs
+                << std::endl;
+    } else {
+      std::cout << "Percent of total: "
+                << kTProjection->Integral(binLow, binUp) * 100. / totalPairs
+                << std::endl;
     }
-    std::cout << ikT << '\t' << "Bin Low: " << binLow + 1 << "(="
+    std::cout << ikT << '\t' << "Bin Low: " << binLow << "(="
               << fKayTeeBins.at(ikT) << ")" << '\t' << "Bin Up: " << binUp
               << "(=" << fKayTeeBins.at(ikT + 1) << ")" << '\t'
               << kTProjection->GetMean() << '\t' << binErr << std::endl;
