@@ -53,15 +53,11 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
                                   ikT);
           fCFPart[iPart][ikT] = new DreamPair(PairName.Data(), fNormleft,
                                               fNormright);
-//          std::cout << "fKayTeeBins[ikT]: " << fKayTeeBins[ikT] << std::endl;
-//          std::cout << "fKayTeeBins[ikT+1]: " << fKayTeeBins[ikT+1] << std::endl;
           //multiplications due in order not to hit the border of the bin!
           int kTminBin = fSEkT[iPart]->GetYaxis()->FindBin(
               fKayTeeBins[ikT] * 1.0001);
           int kTmaxBin = fSEkT[iPart]->GetYaxis()->FindBin(
               fKayTeeBins[ikT + 1] * 0.9999);
-//          std::cout << "kTminBin: " << kTminBin << std::endl;
-//          std::cout << "kTmaxBin: " << kTmaxBin << std::endl;
 
           DreamDist* kTDist = new DreamDist();
           TString SEkTBinName = Form("SE%s", PairName.Data());
@@ -97,14 +93,8 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
       }
       this->AveragekT(pair);
       fSum = new DreamCF*[fNKayTeeBins];
-      TString outname = outFolder;
-      outname += "/CFOutputALL_";
-      outname += variable;
-      outname += "_";
-      outname += pair;
-      outname += "_";
-      outname += prefix;
-      outname += ".root";
+      TString outname = TString::Format("%s/CFOutputALL_%s_%s_%s.root",
+                                        outFolder, variable, pair, prefix);
       TFile* allCFsOut = TFile::Open(outname.Data(), "RECREATE");
       if (fAveragekT) {
         fAveragekT->Write(Form("Average%s", variable));
@@ -114,16 +104,9 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
         fSum[ikT]->SetPairs(fCFPart[0][ikT], fCFPart[1][ikT]);
         fSum[ikT]->GetCorrelations();
         std::vector<TH1F*> CFs = fSum[ikT]->GetCorrelationFunctions();
-        TString outfileName = outFolder;
-        outfileName += "/CFOutput_";
-        outfileName += variable;
-        outfileName += "_";
-        outfileName += pair;
-        outfileName += "_";
-        outfileName += prefix;
-        outfileName += "_";
-        outfileName += ikT;
-        outfileName += ".root";
+        TString outfileName = TString::Format("%s/CFOutput_%s_%s_%s_%u.root",
+                                              outFolder, variable, pair, prefix,
+                                              ikT);
         allCFsOut->cd();
         for (auto &it : CFs) {
           TString HistName = it->GetName();
@@ -140,7 +123,7 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
                   fSEMEReweighting->FindBin(binCent));
             }
             if (corrFactor != 0) {
-              it->SetBinContent(iBin, binCont / corrFactor);
+              it->SetBinContent(iBin, binCont * corrFactor);
               it->SetBinError(iBin, binErr);
             } else {
               //dont worry if iBin seems to change, its due to the rebinning!
@@ -203,81 +186,22 @@ void DreamKayTee::AveragekT(const char *pair) {
 }
 
 void DreamKayTee::SetSEMEReweightingRatio(const char* pathToFile,
-                                          TString pair) {
+                                          const char* HistNum,
+                                          bool useRebinned) {
   TFile* CalibFile = TFile::Open(pathToFile, "read");
-  TString HistName = "SEMEReweightingRatio_";
-  if (pair == TString("pp")) {
-    TString HistNamePair1 = HistName;
-    HistNamePair1 += "Particle0_Particle0";
-    TString HistNamePair2 = HistName;
-    HistNamePair2 += "Particle1_Particle1";
-    TH1F* RatioPair1 = (TH1F*) CalibFile->Get(HistNamePair1.Data());
-    if (!RatioPair1) {
-      std::cout << "Ratio Pair 1 missing \n";
-    }
-    TH1F* RatioPair2 = (TH1F*) CalibFile->Get(HistNamePair2.Data());
-    if (!RatioPair2) {
-      std::cout << "Ratio Pair 2 missing \n";
-    }
-    TF1* tfconstant = new TF1("myConst", "pol0", 0, 3000);
-    tfconstant->SetParameter(0, 1.);
-    RatioPair1->Divide(tfconstant, 2);
-    RatioPair2->Divide(tfconstant, 2);
-    fSEMEReweighting = (TH1F*) RatioPair1->Clone("ppReweightingFactor");
-    fSEMEReweighting->Add(RatioPair2);
-    TString MeVName = Form("%sMeV", fSEMEReweighting->GetName());
-    fSEMEReweightingMeV = DreamCF::ConvertToOtherUnit(fSEMEReweighting, 1000,
-                                                      MeVName.Data());
-  } else if (pair == TString("pL")) {
-    TString HistNamePair1 = HistName;
-    HistNamePair1 += "Particle0_Particle2_Rebinned_5";
-    TString HistNamePair2 = HistName;
-    HistNamePair2 += "Particle1_Particle3_Rebinned_5";
-    TH1F* RatioPair1 = (TH1F*) CalibFile->Get(HistNamePair1.Data());
-    if (!RatioPair1) {
-      std::cout << "Ratio Pair 1 missing \n";
-    }
-    TH1F* RatioPair2 = (TH1F*) CalibFile->Get(HistNamePair2.Data());
-    if (!RatioPair2) {
-      std::cout << "Ratio Pair 2 missing \n";
-    }
-    TF1* tfconstant = new TF1("myConst", "pol0", 0, 3000);
-    tfconstant->SetParameter(0, 1.);
-    RatioPair1->Divide(tfconstant, 2);
-    RatioPair2->Divide(tfconstant, 2);
-    fSEMEReweighting = (TH1F*) RatioPair1->Clone("pLReweightingFactor");
-    fSEMEReweighting->Add(RatioPair2);
-    TString MeVName = Form("%sMeV", fSEMEReweighting->GetName());
-    fSEMEReweightingMeV = DreamCF::ConvertToOtherUnit(fSEMEReweighting, 1000,
-                                                      MeVName.Data());
-  } else if (pair == TString("pXi")) {
-    TString HistNamePair1 = HistName;
-    HistNamePair1 += "Particle0_Particle4_Rebinned_5";
-    TString HistNamePair2 = HistName;
-    HistNamePair2 += "Particle1_Particle5_Rebinned_5";
-    TH1F* RatioPair1 = (TH1F*) CalibFile->Get(HistNamePair1.Data());
-    if (!RatioPair1) {
-      std::cout << "Ratio Pair 1 missing \n";
-    }
-    TH1F* RatioPair2 = (TH1F*) CalibFile->Get(HistNamePair2.Data());
-    if (!RatioPair2) {
-      std::cout << "Ratio Pair 2 missing \n";
-    }
-    TF1* tfconstant = new TF1("myConst", "pol0", 0, 3000);
-    tfconstant->SetParameter(0, 1.);
-    RatioPair1->Divide(tfconstant, 2);
-    RatioPair2->Divide(tfconstant, 2);
-    fSEMEReweighting = (TH1F*) RatioPair1->Clone("pXiReweightingFactor");
-    fSEMEReweighting->Add(RatioPair2);
-    TString MeVName = Form("%sMeV", fSEMEReweighting->GetName());
-    fSEMEReweightingMeV = DreamCF::ConvertToOtherUnit(fSEMEReweighting, 1000,
-                                                      MeVName.Data());
-  } else {
-    std::cout << "======================================\n";
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-    std::cout << pair.Data() << "Pair not implemented \n";
-    std::cout << "======================================\n";
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+  if (!CalibFile) {
+    std::cout << "No Calibration file found in " << pathToFile << std::endl;
   }
+  TString HistName = useRebinned ? "Rebinned" : "FixShifted";
+  fSEMEReweightingMeV = (TH1F*) CalibFile->Get(
+      TString::Format("hCk_ReweightedMeV_%s", HistNum));
+  fSEMEReweighting = (TH1F*) CalibFile->Get(
+      TString::Format("hCk_Reweighted_%s", HistNum));
+  TH1F* noRewMeV = (TH1F*) CalibFile->Get(
+      TString::Format("hCk_%sMeV_%s", HistName.Data(), HistNum));
+  TH1F* noRew = (TH1F*) CalibFile->Get(
+      TString::Format("hCk_%s_%s", HistName.Data(), HistNum));
+  fSEMEReweightingMeV->Divide(noRewMeV);
+  fSEMEReweighting->Divide(noRew);
   return;
 }
