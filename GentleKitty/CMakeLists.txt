@@ -75,11 +75,14 @@ add_library(tidyCATS STATIC ${SRCS})
 set_target_properties(tidyCATS PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 target_link_libraries(tidyCATS ForgivingFnct -L${CATS_LIB} -lCATSbasic -lCATSextended -lCATSdev ${ROOT_LIBRARIES} -L${GSL_LIB} -lgsl -lgslcblas)
 
-add_executable(POnly ${PROJECT_SOURCE_DIR}/Scripts/POnly.C)
+add_executable(POnly ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnly.C)
 target_link_libraries(POnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(POnlyOnTheGrid ${PROJECT_SOURCE_DIR}/Scripts/POnlyOnTheGrid.C)
+add_executable(POnlyOnTheGrid ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnlyOnTheGrid.C)
 target_link_libraries(POnlyOnTheGrid tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(ppExtractSource ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/pp_mTSourceExtractor.C)
+target_link_libraries(ppExtractSource tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(XiOnly ${PROJECT_SOURCE_DIR}/Scripts/XiOnly.C)
 target_link_libraries(XiOnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
@@ -90,7 +93,7 @@ target_link_libraries(XiOnlyOnTheGrid tidyCATS -L${DREAM_LIB_PATH} DreamFunction
 add_executable(SideBand ${PROJECT_SOURCE_DIR}/Scripts/SideBand.C)
 target_link_libraries(SideBand tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(ppSystematics ${PROJECT_SOURCE_DIR}/Scripts/systematics_pp.C)
+add_executable(ppSystematics ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/systematics_pp.C)
 target_link_libraries(ppSystematics tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(DrawCurves ${PROJECT_SOURCE_DIR}/Scripts/DrawCurves.C)
@@ -111,7 +114,7 @@ target_link_libraries(PlotSigmaExclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunct
 #add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/plotSigmaModels.C)
 #target_link_libraries(PlotSigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(POnlymT ${PROJECT_SOURCE_DIR}/Scripts/POnlymT.C)
+add_executable(POnlymT ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnlymT.C)
 target_link_libraries(POnlymT tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(CatsPlay ${PROJECT_SOURCE_DIR}/Scripts/CatsPlay.C)
