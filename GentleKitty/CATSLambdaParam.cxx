@@ -17,7 +17,7 @@ void CATSLambdaParam::PrintLambdaParams() const {
   std::cout << "LAMBDA PARAMETERS \n";
   std::cout << "================= \n\n";
   std::cout << "----------------- \n";
-  printf("Primary fraction: %.2f\n\n", GetLambdaParam(Primary) * 100.f);
+  printf("Primary fraction: %.8f\n\n", GetLambdaParam(Primary) * 100.f);
 
   const unsigned int sec1 = fParticles[0].GetNumberOfFeedDownContributions();
   const unsigned int sec2 = fParticles[1].GetNumberOfFeedDownContributions();
@@ -31,28 +31,28 @@ void CATSLambdaParam::PrintLambdaParams() const {
   std::cout << "FeedDown fractions: \n";
   // Primary 1 - FeedDown 2
   for (unsigned int i = 0; i < sec2; ++i) {
-    printf("Prim1 - Sec2 (%i): %.2f\n", i,
+    printf("Prim1 - Sec2 (%i): %.8f\n", i,
            GetLambdaParam(Primary, FeedDown, 0, i) * 100.);
   }
 
   if (!fIsSame) {
     // FeedDown 1 - Primary 2
     for (unsigned int i = 0; i < sec1; ++i) {
-      printf("Sec1 (%i) - Prim2: %.2f\n", i,
+      printf("Sec1 (%i) - Prim2: %.8f\n", i,
              GetLambdaParam(FeedDown, Primary, i, 0) * 100.);
     }
   }
 
   // Fake 1 - FeedDown 2
   for (unsigned int i = 0; i < sec2; ++i) {
-    printf("Fake1 - Sec2 (%i): %.2f\n", i,
+    printf("Fake1 - Sec2 (%i): %.8f\n", i,
            GetLambdaParam(Fake, FeedDown, 0, i) * 100.);
   }
 
   if (!fIsSame) {
     // FeedDown 1 - Fake 2
     for (unsigned int i = 0; i < sec1; ++i) {
-      printf("Sec1 (%i) - Fake2: %.2f\n", i,
+      printf("Sec1 (%i) - Fake2: %.8f\n", i,
              GetLambdaParam(FeedDown, Fake, i, 0) * 100.);
     }
   }
@@ -61,15 +61,15 @@ void CATSLambdaParam::PrintLambdaParams() const {
   for (unsigned int i = 0; i < sec1; ++i) {
     int start = (fIsSame) ? i : 0;
     for (unsigned int j = start; j < sec2; ++j) {
-      printf("Sec1 (%i) - Sec2 (%i): %.2f\n", i, j,
+      printf("Sec1 (%i) - Sec2 (%i): %.8f\n", i, j,
              GetLambdaParam(FeedDown, FeedDown, i, j) * 100.);
     }
   }
 
   std::cout << "\n----------------- \n";
-  std::cout << "Fake fraction: " << GetLambdaParam(Fake) *100.f << "\n";
-  std::cout << "Fake 1: " << GetLambdaParam(Fake, Primary, 0, 0) *100.f << "\n";
-  std::cout << "Fake 2: " << GetLambdaParam(Primary, Fake, 0, 0) *100.f << "\n";
+//  std::cout << "Fake fraction: " << GetLambdaParam(Fake) *100.f << "\n";
+  std::cout << "Fake 1 - Prim2: " << GetLambdaParam(Fake, Primary, 0, 0) *100.f << "\n";
+  std::cout << "Prim1 - Fake 2: " << GetLambdaParam(Primary, Fake, 0, 0) *100.f << "\n";
   std::cout << "Both  : " << GetLambdaParam(Fake, Fake, 0, 0) *100.f << "\n";
   std::cout << "----------------- \n";
 }
@@ -116,7 +116,8 @@ double CATSLambdaParam::GetLambdaParam(const Type type1, const Type type2,
     return GetLambdaParam(Primary);
   } else if (type1 == Fake && type2 == Fake) {
     // all fake contributions
-    return GetLambdaParam(Fake);
+//    return GetLambdaParam(Fake);
+    return (1.f - purity1) * (1.f - purity2);
   } else if (type1 == Primary && type2 == Fake) {
     // First particle is primary, second is fake
     return purity1 * primary1 * (1.f - purity2);
@@ -136,13 +137,14 @@ double CATSLambdaParam::GetLambdaParam(const Type type1, const Type type2,
   } else if (type1 == Fake && type2 == FeedDown) {
     // First particle is fake, second is feed-down
     const double scaling = (fIsSame) ? 2. : 1.;
-    return scaling * (1. - purity1) * primary1 * purity2
+    return scaling * (1. - purity1) * purity2
         * fParticles[1].GetFeedDownFraction(sec2);
   } else if (type1 == FeedDown && type2 == Fake) {
     // First particle is feed-down, second is fake
     const double scaling = (fIsSame) ? 2. : 1.;
+    std::cout << "scaling: " << scaling << std::endl;
     return scaling * purity1 * fParticles[0].GetFeedDownFraction(sec1)
-        * (1. - purity2) * primary2;
+        * (1. - purity2);
   } else if (type1 == FeedDown && type2 == FeedDown) {
     // Both particles are feed-down
     const double scaling = (fIsSame && (sec1!=sec2)) ? 2. : 1.;
