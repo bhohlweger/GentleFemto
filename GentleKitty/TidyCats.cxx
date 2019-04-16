@@ -96,7 +96,7 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       fppCleverMcLevy = new DLM_CleverMcLevyReso();
       fppCleverMcLevy->InitNumMcIter(1000000);
       fppCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fppCleverMcLevy->InitScale(100, 0.1, 2.6);
+      fppCleverMcLevy->InitScale(100, 0.2, 2.6);
       fppCleverMcLevy->InitRad(512, 0, 64);
       fppCleverMcLevy->InitType(2);
       fppCleverMcLevy->InitReso(0, 1);  //number of p resonances
