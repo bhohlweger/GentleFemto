@@ -219,14 +219,14 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
       fSEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
           Form("SEmTDist_%s", FolderName.Data()));
       if (!fSEmT[iPart1][iPart2]) {
-        std::cout << "SEmT Histogramm missing from " << FolderName.Data()
+        if (!fQuiet) std::cout << "SEmT Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
       fMEmT[iPart1][iPart2] = nullptr;
       fMEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
           Form("MEmTDist_%s", FolderName.Data()));
       if (!fMEmT[iPart1][iPart2]) {
-        std::cout << "MEmT Histogramm missing from " << FolderName.Data()
+        if (!fQuiet) std::cout << "MEmT Histogramm missing from " << FolderName.Data()
                   << std::endl;
       }
     }
