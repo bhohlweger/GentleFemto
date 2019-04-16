@@ -57,10 +57,9 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
   }
   fProtonProton->SetCorrelationFunction(
       (TH1F*) CFFile_pp->Get("hCk_ReweightedMeV_0"));
-
-  TF1* systErr = nullptr;
-  if (systErr) {
-    fProtonProton->SetSystematics((TF1*) CFFile_ppSys->Get("SystError"), 2);
+  TF1* sysParam = (TF1*) CFFile_ppSys->Get("SystError");
+  if (sysParam) {
+    fProtonProton->SetSystematics(sysParam, 2);
   } else {
     fProtonProton->SetSystematics((TF1*) CFFile_ppSys->Get("RelSysPPUnbinned"), 2);
   }
@@ -412,7 +411,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_PP->SetTopMargin(top);
   fProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p}", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
-  fProtonProton->SetRangePlotting(0, 200, 0.8, 3.2);
+  fProtonProton->SetRangePlotting(0, 200, 0.8, 3.5);
   fProtonProton->SetInletRangePlotting(50, 200, 0.94, 1.06);
   fProtonProton->SetInletCoordinates(0.27, 0.22, 0.95, 0.61);
   fProtonProton->SetNDivisions(505);
@@ -421,7 +420,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   fProtonProton->DrawCorrelationPlot(c_PP);
   DrawSystemInfo(c_PP, true, 0.32);
   c_PP->cd();
-  Numbering.DrawLatex(0.19, 0.9, "#bf{a)}");
+//  Numbering.DrawLatex(0.19, 0.9, "#bf{a)}");
   c_PP->SaveAs("CF_pp_Gauss_prelim.pdf");
 
   TCanvas* c_PL = new TCanvas("CFpL", "CFpL", 0, 0, 650, 550);
