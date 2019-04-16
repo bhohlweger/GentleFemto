@@ -139,23 +139,46 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     std::cout << "Lambda parameter for system not implmented, extiting \n";
     return;
   }
-  //insignificant variations due to:
-  const double Omegam_to_Xim = 0.1;   // Fraction varies between 5 - 13%
+
+  // for every 10 Xi- one Omega is produced (insignificant variations)
+  const double OmegamXimProdFraction = 1/11.;   // Fraction varies between 5 - 13%
   const double OmegamXim_BR = 0.086;  // Value given by PDG, 8.6 pm 0.4 %
 
-  double PrimXiWithReso = 1 - Omegam_to_Xim*OmegamXim_BR;
-  // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
-  // 1/3 of Xi-(1530) decays via Xi- + pi0 (Isospin considerations)
+  // for every three Xi- one Xi0(1530) is produced
+  // for every three Xi- one Xi-(1530) is produced
+  // for every three Xi- either one Xi0(1530) or one Xi-(1530) is produced?
+  // Produce 1000 Xi's -> Produce:
+  // 1 ) 100 Omegas -> See 8.5 more Xi's
+  // 2)  333 Xi0_1530 -> See 222 more Xi's
+  // 3)  333 Xim_1530 -> See 111 more Xi's
+  // Total Sample: 342 secondaries + 1000 Primaries
+  // -> Secondary fraction: 342/1342 = 0,2548435171
 
-  //ratio Xi-(1530) to Xi-
-  const double Xim1530_to_Xim = 0.32 * (1. / 3.);
-  //ratio Xi0(1530) to Xi0 (n=neutral)
-  const double Xin1530_to_Xim = 0.32 * (2. / 3.);
+  // 11 & 4 -> 44
+  // 1/4 -> 11/44 th
+  // 1/11 -> 4/44 th
+  // 11/44*1/3 + 11/44*2/3 + 4/44*0.085 = 0,2577272727
+
+  const double Xi01530XimProdFraction = 11/44.;
+  const double Xim1530XimProdFraction = 11/44.;
+
+  // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
+  const double Xi01530Xim_BR = 2/3.;
+  // 1/3 of Xi-(1530) decays via Xi- + pi0 (Isospin considerations)
+  const double Xim1530Xim_BR = 1/3.;
+
+
+
+  double SecOmegaXim = OmegamXimProdFraction*OmegamXim_BR;
+  double SecXi01530Xim = Xi01530XimProdFraction*Xi01530Xim_BR;
+  double SecXim1530Xim = Xim1530XimProdFraction*Xim1530Xim_BR;
+  double PrimXim = 1.-SecOmegaXim-SecXi01530Xim-SecXim1530Xim;
 
   std::vector<double> Variation = {0.8,1.0,1.2};
   Particle Protons[3]; // 1) variation of the Secondary Comp.
   Particle Lambdas[3][3]; // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
   Particle Xi[3][3]; //1) variation of the Omega Contribution, 2) variation of the XiResonance contribution
+
   int iVar1 = 0;
   for (auto it : Variation) {
     double SecFracSigma = 1.-PrimProton-it*SecLamProton;
@@ -163,8 +186,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 
     double LamSigProdFraction = 3*it/4. <1 ? 3*it/4. : 1;
     double PrimLambda = LamSigProdFraction*PrimLambdaAndSigma;
-    double SecSigLambda = (1.-LamSigProdFraction)*PrimLambdaAndSigma;
-
+    double SecSigLambda = (1.-LamSigProdFraction)*PrimLambdaAndSigma; // decay probability = 100%!
     int iVar2 = 0;
     for (auto itXim : Variation) {
       double SecXimLambda = itXim*SecLambda/2.;
@@ -175,6 +197,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     }
     iVar1++;
   }
+
+
   CATSLambdaParam pp(Protons[1], Protons[1], true);
   CATSLambdaParam pp1(Protons[0], Protons[0], true);
   std::cout << "LAMBDA PP \n";
