@@ -435,7 +435,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             fitter->AddSameSource("pXim", "pp", 2);
             fitter->AddSameSource("pXim1530", "pp", 2);
 
-            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 1.1, 1.5);
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 0.6, 2.5);
             fitter->SetParameter("pp", DLM_Fitter1::p_sor1, 1.7, 1., 2.);
           } else {
             fitter = new DLM_Fitter1(1);
@@ -449,7 +449,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             fitter->AddSameSource("pXim", "pp", 1);
             fitter->AddSameSource("pXim1530", "pp", 1);
 
-            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.0, 0.5, 1.5);
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
           }
           fitter->SetOutputDir(OutputDir.Data());
 
@@ -555,11 +555,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     }
   }
   OutFile->cd();
+
   c1->Write(TString::Format("%s",c1->GetName())) ;
   ntResult->Write();
   CollOut->Write(CollOut->GetName(),1);
+  StoreHist->Write();
   OutFile->Close();
-
   delete tidy;
 }
 
