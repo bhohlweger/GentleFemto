@@ -2,14 +2,11 @@
 
 void LambdaPP() {
   double PurityProton = 0.9943;
-  double protonPrim = 0.873;
-  double protonSecLam = 0.089;
-  double protonSecSig = 0.037;
+  double PrimProton = 0.873;
+  double SecLamProton = 0.089;  //Fraction of Lambdas
+  double SecSigmaProton = 1. - PrimProton - SecLamProton;
 
-  const Particle p1(
-      PurityProton,
-      protonPrim,
-      { protonSecLam, protonSecSig});
+  const Particle p1(PurityProton, PrimProton, { SecLamProton, SecSigmaProton });
   const Particle p2 = p1;
   //
   CATSLambdaParam params(p1, p2, true);
@@ -19,25 +16,52 @@ void LambdaPP() {
 
 void LambdaPXi() {
   double PurityProton = 0.9943;
-  double protonPrim = 0.873;
-  double protonSecLam = 0.089;
-  double protonSecSig = 0.037;
+  double PrimProton = 0.873;
+  double SecLamProton = 0.089;  //Fraction of Lambdas
+  double SecSigmaProton = 1. - PrimProton - SecLamProton;
+
+  const Particle proton(PurityProton, PrimProton, { SecLamProton, SecSigmaProton });
 
   double PurityXi = 0.915;
-  const double Xim1530_to_Xim = 0.32 * (1. / 3.);
-  const double Xin1530_to_Xim = 0.32 * (2. / 3.);
-  const double Omegam_to_Xim = 0.1;
-  const double OmegamXim_BR = 0.086;
+  // Xi01530 Production: dN/dy = 2.6e-3 (https://link.springer.com/content/pdf/10.1140%2Fepjc%2Fs10052-014-3191-x.pdf)
+  // Xim1530 Production = Xi01530 Production
+  // Xim Production: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // -> Production Ratio ~ 1/2
 
-  const Particle proton(
-      PurityProton,
-      protonPrim,
-      { protonSecLam, protonSecSig });
-  const Particle xi(
-      PurityXi,
-      1. - Xim1530_to_Xim - Xin1530_to_Xim - Omegam_to_Xim * OmegamXim_BR, { {
-          Xim1530_to_Xim, Xin1530_to_Xim, Omegam_to_Xim * OmegamXim_BR } });
+  const double Xi01530XimProdFraction = 1 / 2.;
+  const double Xim1530XimProdFraction = 1 / 2.;
 
+  // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
+  const double Xi01530Xim_BR = 2 / 3.;
+  // 1/3 of Xi-(1530) decays via Xi- + pi0 (Isospin considerations)
+  const double Xim1530Xim_BR = 1 / 3.;
+
+  // Omega production: dN/dy = 0.67e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // Xim Production: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // -> Production Ratio ~ 1/10
+  const double OmegamXimProdFraction = 1 / 10.;
+  const double OmegamXim_BR = 0.086;  // Value given by PDG, 8.6 pm 0.4 %
+
+  // Produce N Xi's -> Produce:
+  // 1 ) N* 1/10 Omegas -> See N* 1/10 * 8.6% more Xi's
+  // 2)  N* 1/2 Xi0_1530 -> See N*1/2*2/3 = N* 1/3 more Xi's
+  // 3)  N* 1/2 Xim_1530 -> See N*1/2*1/3 = N* 1/6 more Xi's
+  // Total Sample:  N(1+0.0086+1/3+1/6) ->
+  // Primary Fraction = N / N(1+0.0086+1/3+1/6)
+  // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
+  // etc.
+  double XiNormalization = 1 + OmegamXimProdFraction * OmegamXim_BR
+      + Xi01530XimProdFraction * Xi01530Xim_BR
+      + Xim1530XimProdFraction * Xim1530Xim_BR;
+  double SecOmegaXim = OmegamXimProdFraction * OmegamXim_BR
+      / (double) XiNormalization;
+  double SecXi01530Xim = Xi01530XimProdFraction * Xi01530Xim_BR
+      / (double) XiNormalization;
+  double SecXim1530Xim = Xim1530XimProdFraction * Xim1530Xim_BR
+      / (double) XiNormalization;
+  double PrimXim = 1. / (double) XiNormalization;
+  const Particle xi(PurityXi, PrimXim, { SecOmegaXim, SecXi01530Xim,
+                        SecXim1530Xim });
   CATSLambdaParam params(proton, xi);
   std::cout << "LAMBDA PXi \n";
   params.PrintLambdaParams();
