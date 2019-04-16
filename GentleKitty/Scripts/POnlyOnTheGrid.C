@@ -93,46 +93,100 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   BlRegion[0] = 420;
   BlRegion[1] = 420;
 
-   double PurityProton;
-  double PurityXi;
 
+  double PurityProton;
   double PrimProton;
   double SecLamProton;
 
+  double PurityLambda;
+  double PrimLambdaAndSigma;
+  double SecLambda;
+
+
+  double PurityXi;
   //pPb
   if (system == 0) {
     PurityProton = 0.984266;  //pPb 5 TeV
-    PurityXi = 0.88;  //new cuts
-
     PrimProton = 0.862814;
     SecLamProton = 0.09603;
 
-  } else if (system == 1) {  // pp MB + HM
-    PurityProton = 0.991213;
-    PurityXi = 0.915;
+    PurityLambda = 0.937761;
+    PrimLambdaAndSigma = 0.79;  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 0.30;  //fraction of weak decay Lambdas
 
+    PurityXi = 0.88;  //new cuts
+  } else if (system == 1) {  // pp HM
+    PurityProton = 0.991213;
     PrimProton = 0.874808;
-    SecLamProton = 0.0876342;  //fraction of
-  } else if (system == 2) {
-    PurityProton = 0.9943;
+    SecLamProton = 0.0876342;
+
+    PurityLambda = 0.965964;
+    PrimLambdaAndSigma = 0.806;  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 0.194;  //fraction of weak decay Lambdas
+
     PurityXi = 0.915;
+  } else if (system == 2) { // pp HM
+    PurityProton = 0.9943;
     PrimProton = 0.873;
     SecLamProton = 0.089;  //Fraction of Lambdas
+
+    PurityLambda = 0.961;
+    PrimLambdaAndSigma = 0.785;  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 0.215;  //fraction of weak decay Lambdas
+
+    PurityXi = 0.915;
   } else {
     std::cout << "Lambda parameter for system not implmented, extiting \n";
     return;
   }
+  //insignificant variations due to:
+  const double Omegam_to_Xim = 0.1;   // Fraction varies between 5 - 13%
+  const double OmegamXim_BR = 0.086;  // Value given by PDG, 8.6 pm 0.4 %
+
+  double PrimXiWithReso = 1 - Omegam_to_Xim*OmegamXim_BR;
+  // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
+  // 1/3 of Xi-(1530) decays via Xi- + pi0 (Isospin considerations)
+
+  //ratio Xi-(1530) to Xi-
+  const double Xim1530_to_Xim = 0.32 * (1. / 3.);
+  //ratio Xi0(1530) to Xi0 (n=neutral)
+  const double Xin1530_to_Xim = 0.32 * (2. / 3.);
+
   std::vector<double> Variation = {0.8,1.0,1.2};
-  CATSLambdaParam ppLam[3];
-  int iVar = 0;
+  Particle Protons[3]; // 1) variation of the Secondary Comp.
+  Particle Lambdas[3][3]; // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
+  Particle Xi[3][3]; //1) variation of the Omega Contribution, 2) variation of the XiResonance contribution
+  int iVar1 = 0;
   for (auto it : Variation) {
     double SecFracSigma = 1.-PrimProton-it*SecLamProton;
-    const Particle p1(PurityProton, PrimProton, {it*SecLamProton,SecFracSigma});
-    const Particle p2 = p1;
-    ppLam[iVar++] = CATSLambdaParam(p1,p2,true);
+    Protons[iVar1] = Particle(PurityProton, PrimProton, {it*SecLamProton,SecFracSigma});
+
+    double LamSigProdFraction = 3*it/4. <1 ? 3*it/4. : 1;
+    double PrimLambda = LamSigProdFraction*PrimLambdaAndSigma;
+    double SecSigLambda = (1.-LamSigProdFraction)*PrimLambdaAndSigma;
+
+    int iVar2 = 0;
+    for (auto itXim : Variation) {
+      double SecXimLambda = itXim*SecLambda/2.;
+      double SecXi0Lambda0 = (1-itXim
+          /2.)*SecLambda;
+      Lambdas[iVar1][iVar2] = Particle(PurityLambda, PrimLambda, {SecSigLambda, SecXimLambda,SecXi0Lambda0});
+      iVar2++;
+    }
+    iVar1++;
   }
+  CATSLambdaParam pp(Protons[1], Protons[1], true);
+  CATSLambdaParam pp1(Protons[0], Protons[0], true);
   std::cout << "LAMBDA PP \n";
-  ppLam[0].PrintLambdaParams();
+  pp.PrintLambdaParams();
+  std::cout << "LAMBDA PP \n";
+  pp1.PrintLambdaParams();
+  std::cout << "LAMBDA PL \n";
+  CATSLambdaParam pL(Protons[1], Lambdas[1][1]);
+  pL.PrintLambdaParams();
+  std::cout << "LAMBDA PL \n";
+  CATSLambdaParam pL1(Protons[0], Lambdas[1][0]);
+  pL1.PrintLambdaParams();
 
 //  double PurityProton;
 //  double PurityLambda;
@@ -147,7 +201,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 //  //pPb
 //  if (system == 0) {
 //    PurityProton = 0.984266;  //pPb 5 TeV
-//    PurityLambda = 0.937761;
 //    PurityXi = 0.88;  //new cuts
 //
 //    pp_f0 = 0.862814;
@@ -158,7 +211,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 //    pL_f2 = 0.152378;  //fractions of Xi0/m
 //  } else if (system == 1) {  // pp MB + HM
 //    PurityProton = 0.991213;
-//    PurityLambda = 0.965964;
 //    PurityXi = 0.956;
 //
 //    pp_f0 = 0.874808;
@@ -169,7 +221,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 //    pL_f2 = 0.0870044;  //fractions of Xi0/m
 //  } else if (system == 2) {
 //    PurityProton = 0.991213;
-//    PurityLambda = 0.965964;
 //    PurityXi = 0.956;
 //
 //    pp_f0 = 0.874808;
