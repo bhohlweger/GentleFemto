@@ -55,7 +55,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
     nBins = 200;
   }  else if (system == 3) {
     histRangeLow = 0.8;
-    histRangeUp = 1.2;
+    histRangeUp = 1.1;
     nBins = 300;
   }
   std::cout << "histRangeLow: " << histRangeLow << '\t' << "histRangeUp: "
@@ -63,7 +63,7 @@ void RUN2_SYSTEMATICS_MEDIAN(const char* InputFolder, int Numiter,
 //  const int nBins = (system == 0) ? 1000 : 500;
   auto histRad = new TH1D("hRad", "hRad", nBins, histRangeLow, histRangeUp);
   auto histRadIter = new TH2D("hRadIter", "hRadIter", nBins, histRangeLow,
-                              histRangeUp, 36, 0, 36);
+                              histRangeUp, 81, 0, 81);
   sysVarTree->Draw("Radius_pp>>hRad");
   auto mean = histRad->GetMean();
 
