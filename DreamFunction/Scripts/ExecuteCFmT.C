@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
   mTppDists->SetKayTeeBins(mTppBins);
   mTppDists->SetNormalization(0.24, 0.34);
   mTppDists->SetRebin( { 2 });
+  mTppDists->FixShift({true,true,true,true,true,true,true},{0.004,0.004,0.008,0.004,0.008,0.008,0.012});
   mTppDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pp");
 
 //  DreamKayTee* mTpLDists;
