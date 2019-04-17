@@ -412,7 +412,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   fProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p}", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
   fProtonProton->SetRangePlotting(0, 200, 0.8, 3.5);
-  fProtonProton->SetInletRangePlotting(50, 200, 0.94, 1.06);
+  fProtonProton->SetInletRangePlotting(50, 375, 0.94, 1.06);
   fProtonProton->SetInletCoordinates(0.27, 0.22, 0.95, 0.61);
   fProtonProton->SetNDivisions(505);
   fProtonProton->SetLegendCoordinates(
