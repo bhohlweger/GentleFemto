@@ -84,13 +84,13 @@ target_link_libraries(POnlyOnTheGrid tidyCATS -L${DREAM_LIB_PATH} DreamFunctions
 add_executable(ppExtractSource ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/pp_mTSourceExtractor.C)
 target_link_libraries(ppExtractSource tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(XiOnly ${PROJECT_SOURCE_DIR}/Scripts/XiOnly.C)
+add_executable(XiOnly ${PROJECT_SOURCE_DIR}/Scripts/pXiAnalysis/XiOnly.C)
 target_link_libraries(XiOnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(XiOnlyOnTheGrid ${PROJECT_SOURCE_DIR}/Scripts/XiOnlyOnTheGrid.C)
+add_executable(XiOnlyOnTheGrid ${PROJECT_SOURCE_DIR}/Scripts/pXiAnalysis/XiOnlyOnTheGrid.C)
 target_link_libraries(XiOnlyOnTheGrid tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(SideBand ${PROJECT_SOURCE_DIR}/Scripts/SideBand.C)
+add_executable(SideBand ${PROJECT_SOURCE_DIR}/Scripts/pXiAnalysis/SideBand.C)
 target_link_libraries(SideBand tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(ppSystematics ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/systematics_pp.C)
@@ -99,7 +99,7 @@ target_link_libraries(ppSystematics tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(DrawCurves ${PROJECT_SOURCE_DIR}/Scripts/DrawCurves.C)
 target_link_libraries(DrawCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(EvalpXiCurves ${PROJECT_SOURCE_DIR}/Scripts/EvalpXiCurves.C)
+add_executable(EvalpXiCurves ${PROJECT_SOURCE_DIR}/Scripts/pXiAnalysis/EvalpXiCurves.C)
 target_link_libraries(EvalpXiCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(pSigma0 ${PROJECT_SOURCE_DIR}/Scripts/pSigma0_single.C)
@@ -120,7 +120,7 @@ target_link_libraries(POnlymT tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(CatsPlay ${PROJECT_SOURCE_DIR}/Scripts/CatsPlay.C)
 target_link_libraries(CatsPlay tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(PotentialPlay ${PROJECT_SOURCE_DIR}/Scripts/PotentialPlay.C)
+add_executable(PotentialPlay ${PROJECT_SOURCE_DIR}/Scripts/pXiAnalysis/PotentialPlay.C)
 target_link_libraries(PotentialPlay tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(TestCats ${PROJECT_SOURCE_DIR}/Scripts/TestCats.C)
