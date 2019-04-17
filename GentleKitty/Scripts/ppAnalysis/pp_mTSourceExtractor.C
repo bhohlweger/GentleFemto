@@ -22,7 +22,7 @@ void mTRadiusPlot(const char* inputFolder, const char* avgmTFile) {
   TFile* mTFile = TFile::Open(avgmTFile, "READ");
   TGraphErrors* avgmT = (TGraphErrors*) mTFile->Get("AveragemT");
   TGraphErrors* mTRadius = new TGraphErrors();
-  for (int imT = 0; imT < 6; ++imT) {
+  for (int imT = 0; imT < 7; ++imT) {
     double mT, dummy;
     float radius, radErr;
     TString inputFile = TString::Format("%s/OutFileVarpp_%u.root",
