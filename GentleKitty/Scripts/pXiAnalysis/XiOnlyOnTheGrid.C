@@ -156,16 +156,15 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     Proton[iVar1] = Particle(PurityProton, PrimProton, { it * SecLamProton,
                                  SecFracSigma });
     int iVar2 = 0;
+    double XiNormalization = 1 + it * OmegamXimProdFraction * OmegamXim_BR
+        + Xi01530XimProdFraction * Xi01530Xim_BR
+            + Xim1530XimProdFraction * Xim1530Xim_BR;
     for (auto itXim : Variation) {
-      double XiNormalization = 1 + it * OmegamXimProdFraction * OmegamXim_BR
-          + itXim
-              * (Xi01530XimProdFraction * Xi01530Xim_BR
-                  + Xim1530XimProdFraction * Xim1530Xim_BR);
       double SecOmegaXim = it * OmegamXimProdFraction * OmegamXim_BR
           / (double) XiNormalization;
       double SecXi01530Xim = itXim * Xi01530XimProdFraction * Xi01530Xim_BR
           / (double) XiNormalization;
-      double SecXim1530Xim = itXim * Xim1530XimProdFraction * Xim1530Xim_BR
+      double SecXim1530Xim = (2.-itXim)*Xim1530XimProdFraction * Xim1530Xim_BR
           / (double) XiNormalization;
       double PrimXim = 1. / (double) XiNormalization;
       Xi[iVar1][iVar2] = Particle(PurityXi, PrimXim, { SecOmegaXim,
@@ -251,30 +250,41 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 
   int uIter = 1;
 
-  float p_a_prefit[4];
-  float p_b_prefit[4];
+  float p_a_prefit[5];
+  float p_b_prefit[5];
+  float p_c_prefit[5];
   TF1* funct_0 = new TF1("myPol0", "pol0", 250, 600);
   TF1* funct_1 = new TF1("myPol1", "pol1", 250, 600);
+  TF1* funct_2 = new TF1("myPol2", "pol2", 250, 600);
 
   Prefit->Fit(funct_0, "SNR");
+  Prefit->Fit(funct_1, "FNR");
+  Prefit->Fit(funct_2, "FNR");
+
   p_a_prefit[0] = funct_0->GetParameter(0);
   p_b_prefit[0] = 0;
-
-  Prefit->Fit(funct_1, "FNR");
+  p_c_prefit[0] = 0;
 
   p_a_prefit[1] = funct_1->GetParameter(0);
   p_b_prefit[1] = funct_1->GetParameter(1);
+  p_c_prefit[1] = 0;
 
   gMinuit->SetErrorDef(1);  //note 4 and not 2!
   TGraph *gr12 = (TGraph*) gMinuit->Contour(40, 0, 1);
 
   p_a_prefit[2] = TMath::MinElement(gr12->GetN(), gr12->GetX());
   p_b_prefit[2] = gr12->Eval(p_a_prefit[2]);
+  p_c_prefit[2] = 0;
 
   p_a_prefit[3] = TMath::MaxElement(gr12->GetN(), gr12->GetX());
   p_b_prefit[3] = gr12->Eval(p_a_prefit[3]);
+  p_c_prefit[3] = 0;
 
-  for (int i = 0; i < 4; ++i) {
+  p_a_prefit[4] = funct_2->GetParameter(0);
+  p_b_prefit[4] = funct_2->GetParameter(1);
+  p_c_prefit[4] = funct_2->GetParameter(2);
+
+  for (int i = 0; i < 5; ++i) {
     std::cout << i << " pa: " << p_a_prefit[i] << " pb: " << p_b_prefit[i]
               << std::endl;
   }
@@ -305,6 +315,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   StoreHist->SetLineColor(1);
   StoreHist->GetXaxis()->SetRangeUser(0, 400);
   CollOut->Add(c1);
+  CollOut->Add(funct_0);
+  CollOut->Add(funct_1);
+  CollOut->Add(funct_2);
   c1->cd();
   StoreHist->DrawCopy();
   StoreHist->GetXaxis()->SetRangeUser(0, 1000);
