@@ -161,15 +161,15 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     Proton[iVar1] = Particle(PurityProton, PrimProton, { it * SecLamProton,
                                  SecFracSigma });
     int iVar2 = 0;
-    double XiNormalization = 1 + it * OmegamXimProdFraction * OmegamXim_BR
-        + Xi01530XimProdFraction * Xi01530Xim_BR
-            + Xim1530XimProdFraction * Xim1530Xim_BR;
     for (auto itXim : Variation) {
+      double XiNormalization = 1 + it * OmegamXimProdFraction * OmegamXim_BR
+          + itXim*Xi01530XimProdFraction * Xi01530Xim_BR
+          + itXim*Xim1530XimProdFraction * Xim1530Xim_BR;
       double SecOmegaXim = it * OmegamXimProdFraction * OmegamXim_BR
           / (double) XiNormalization;
-      double SecXi01530Xim = itXim * Xi01530XimProdFraction * Xi01530Xim_BR
+      double SecXi01530Xim = itXim*Xi01530XimProdFraction * Xi01530Xim_BR
           / (double) XiNormalization;
-      double SecXim1530Xim = (2.-itXim)*Xim1530XimProdFraction * Xim1530Xim_BR
+      double SecXim1530Xim = itXim*Xim1530XimProdFraction * Xim1530Xim_BR
           / (double) XiNormalization;
       double PrimXim = 1. / (double) XiNormalization;
       Xi[iVar1][iVar2] = Particle(PurityXi, PrimXim, { SecOmegaXim,
@@ -230,10 +230,10 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   TNtuple* ntResult = new TNtuple(
       "ntResult", "ntResult", "IterID:FemtoRegion:lampXi:lampXi1530:lampXiFake:"
       "tOut:ppRadius:AlphaLev:AlphaLevErr:varSideNorm:BLSlope:"
-      "p_a:p_a_err:p_b:p_b_err:"
+      "p_a:p_a_err:p_b:p_b_err:p_c:p_c_err:"
       "Chi2NdfGlobal:Chi2NdfLocal:pval:sigma200:sigma100:sigma150");
 
-  Float_t ntBuffer[21];
+  Float_t ntBuffer[23];
 
   int vFemReg_pXim;  //which femto region we use for pXim (1 = default)
   int vFrac_pXim_pXi1530;
@@ -255,45 +255,36 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 
   int uIter = 1;
 
-  float p_a_prefit[5];
-  float p_b_prefit[5];
-  float p_c_prefit[5];
-  TF1* funct_0 = new TF1("myPol0", "pol0", 250, 600);
-  TF1* funct_1 = new TF1("myPol1", "pol1", 250, 600);
-  TF1* funct_2 = new TF1("myPol2", "pol2", 250, 600);
+  float p_a_prefit[4];
+  float p_b_prefit[4];
+  TF1* funct_0 = new TF1("myPol0", "pol0", 250, 450);
+  TF1* funct_1 = new TF1("myPol1", "pol1", 250, 450);
 
   Prefit->Fit(funct_0, "SNR");
-  Prefit->Fit(funct_1, "FNR");
-  Prefit->Fit(funct_2, "FNR");
 
   p_a_prefit[0] = funct_0->GetParameter(0);
   p_b_prefit[0] = 0;
-  p_c_prefit[0] = 0;
 
+  Prefit->Fit(funct_1, "FNR");
   p_a_prefit[1] = funct_1->GetParameter(0);
   p_b_prefit[1] = funct_1->GetParameter(1);
-  p_c_prefit[1] = 0;
 
   gMinuit->SetErrorDef(1);  //note 4 and not 2!
   TGraph *gr12 = (TGraph*) gMinuit->Contour(40, 0, 1);
 
   p_a_prefit[2] = TMath::MinElement(gr12->GetN(), gr12->GetX());
   p_b_prefit[2] = gr12->Eval(p_a_prefit[2]);
-  p_c_prefit[2] = 0;
 
   p_a_prefit[3] = TMath::MaxElement(gr12->GetN(), gr12->GetX());
   p_b_prefit[3] = gr12->Eval(p_a_prefit[3]);
-  p_c_prefit[3] = 0;
 
-  p_a_prefit[4] = funct_2->GetParameter(0);
-  p_b_prefit[4] = funct_2->GetParameter(1);
-  p_c_prefit[4] = funct_2->GetParameter(2);
-
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 4; ++i) {
     std::cout << i << " pa: " << p_a_prefit[i] << " pb: " << p_b_prefit[i]
               << std::endl;
   }
-  delete Prefit;
+  funct_0->SetRange(0,600);
+  funct_1->SetRange(0,600);
+//  delete Prefit;
 
   CATS AB_pXim;
 
@@ -322,7 +313,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   CollOut->Add(c1);
   CollOut->Add(funct_0);
   CollOut->Add(funct_1);
-  CollOut->Add(funct_2);
+  CollOut->Add(Prefit);
   c1->cd();
   StoreHist->DrawCopy();
   StoreHist->GetXaxis()->SetRangeUser(0, 1000);
@@ -467,6 +458,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               fitter->GetFitGraph(0, FitResult_pXim);
               c1->cd();
               TGraph *pointerFitRes = new TGraph(FitResult_pXim);
+              pointerFitRes->SetName(TString::Format("Graph_Var_%u_Iter_%u",NumIter,uIter));
               pointerFitRes->SetLineWidth(2);
               pointerFitRes->SetLineColor(kRed);
               pointerFitRes->SetMarkerStyle(24);
@@ -562,12 +554,14 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               ntBuffer[12] = p_a_strong_err;
               ntBuffer[13] = p_b_strong;
               ntBuffer[14] = p_b_strong_err;
-              ntBuffer[15] = ChiSqStrongGlobal;
-              ntBuffer[16] = Chi2_pXim / double(EffNumBins_pXim);
-              ntBuffer[17] = pvalXi;
-              ntBuffer[18] = nSigmaXi;
-              ntBuffer[19] = nSigmaXi_kSm100;
-              ntBuffer[20] = nSigmaXi_kSm150;
+              ntBuffer[15] = 0;
+              ntBuffer[16] = 0;
+              ntBuffer[17] = ChiSqStrongGlobal;
+              ntBuffer[18] = Chi2_pXim / double(EffNumBins_pXim);
+              ntBuffer[19] = pvalXi;
+              ntBuffer[20] = nSigmaXi;
+              ntBuffer[21] = nSigmaXi_kSm100;
+              ntBuffer[22] = nSigmaXi_kSm150;
               ntResult->Fill(ntBuffer);
               TList* outList = new TList();
               outList->SetOwner();
@@ -604,40 +598,3 @@ int main(int argc, char *argv[]) {
                  argv[5], argv[6]);
   return 0;
 }
-
-//  OutGraphFile->Close();
-//  TList* InputList = new TList();
-//  InputList->SetOwner();
-//  InputList->SetName(TString::Format("Inputs_%u", NumIter));
-//
-//  gr12->SetName("ContourBaseline");
-//  InputList->Add(gr12);
-//  InputList->Add(funct_0);
-//  InputList->Add(funct_1);
-//  InputList->Add(StoreHist);
-//  InputList->Write(InputList->GetName(), 1);
-//
-//              outList->Add(OliHisto_pXim);
-//              FitResult_pXim.SetLineWidth(2);
-//              FitResult_pXim.SetLineColor(kRed);
-//              FitResult_pXim.SetMarkerStyle(24);
-//              FitResult_pXim.SetMarkerColor(kRed);
-//              FitResult_pXim.SetMarkerSize(1);
-//              outList->Write(outList->GetName(),1);
-//              outList->Write(outList->GetName(), 1);
-//              if (NumIter == 1 && SaveSideBands[varSideNorm]) {
-//                TList* SideList;
-//                SideList = new TList();
-//                SideList->SetOwner();
-//                SideList->SetName("SideList");
-//                SideBandStrongWithLambda.SetName("SideBandStrongWithLambda");
-//                SideList->Add(&SideBandStrongWithLambda);
-//                SideBandStrongWithOutLambda.SetName(
-//                    "SideBandStrongWithOutLambda");
-//                SideList->Add(&SideBandStrongWithOutLambda);
-//                SideList->Add(fitme);
-//                OutFile->cd();
-//                SideList->Write(SideList->GetName(), 1);
-//
-//                SaveSideBands[varSideNorm] = false;
-//              }
