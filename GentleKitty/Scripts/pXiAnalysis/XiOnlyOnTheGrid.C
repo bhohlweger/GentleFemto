@@ -20,18 +20,45 @@
 #include "CATSInput.h"
 #include "SideBandFit.h"
 #include "TMinuit.h"
+#include "CATSLambdaParam.h"
+
 void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
-                    TString OutputDir) {
+                    TString DataDir, TString OutputDir) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //System: 0 = pPb, 1 = pp MB, 2 = pp HM
   //Potential: 0 = Coulomb, 1 = Gamow, 2 = HAL + Coulomb, 3 = HAL + Gamow, 5 = RikkenWF , 6 = RikkenPot
   //Source: 0 = Gauss, 1 = Resonances, 2 = Levy
   //Iteration number corresponds here to the systematic cut variation being fit.
-  bool drawSource = (NumIter == 0);
+//  bool drawSource = (NumIter == 0);
   bool fitRadius = false;
-  double BlRegion[2];
-  BlRegion[0] = 500;
-  BlRegion[1] = 500;
+  TString HistpXiDefaultName = "hCk_RebinnedMeV_1";
+  TFile* inFile = TFile::Open(
+      TString::Format("%s/CFpXiVariations_%u.root", DataDir.Data(), NumIter),
+      "READ");
+  TH1F* Prefit = (TH1F*) inFile->Get(HistpXiDefaultName.Data());
+  TH1F* StoreHist = (TH1F*) Prefit->Clone("Ck_Input");
+
+  const int binwidth = 20;
+  const int rebin = 5;
+  const unsigned NumMomBins_pXim = 30;
+
+//  double kMinXiP;
+
+  const double kMin = Prefit->GetXaxis()->GetXmin();
+  const double kMax = kMin + binwidth * NumMomBins_pXim;
+
+  const double NumMomBins_SideBand = 50;
+  const double kMax_SideBand = 1000 + kMin;
+
+  std::cout << "kMinXiP: " << kMin << std::endl;
+  std::cout << "kMax: " << kMax << std::endl;
+  std::cout << "binwidth: " << binwidth << std::endl;
+  std::cout << "NumMomBins_pXim: " << NumMomBins_pXim << std::endl;
+
+  double FemtoRegion_pXim[3];
+  FemtoRegion_pXim[0] = 360;
+  FemtoRegion_pXim[1] = 420;
+  FemtoRegion_pXim[2] = 480;
 
   double normvarCont[3][2];
   normvarCont[0][0] = 450;
@@ -46,109 +73,110 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   tQCDVars[1] = 12;
   tQCDVars[2] = 13;
 
-  double PurityProton;
+  float ppRadii[3];
+
+  TString CalibBaseDir = "";
+  TString SigmaFileName = "";
+  double PurityProton, PrimProton, SecLamProton;
   double PurityXi;
 
-  double pp_f0;
-  double pp_f1;
-
-  //pPb
-  if (system == 0) {
-    PurityProton = 0.984266;  //pPb 5 TeV
-    PurityXi = 0.88;  //new cuts
-
-    pp_f0 = 0.862814;
-    pp_f1 = 0.09603;
-
-  } else {  // pp MB + HM
-    PurityProton = 0.991213;
-    PurityXi = 0.915;
-
-    pp_f0 = 0.874808;
-    pp_f1 = 0.0876342;  //fraction of
-  }
-  double ProtonPrim = pp_f0;
-  double arrayPercLamProton[3] = { pp_f1 / (1. - pp_f0) * 0.8, pp_f1
-      / (1. - pp_f0), pp_f1 / (1. - pp_f0) * 1.2 };  //+/- 20%
-
-  const unsigned NumChannels_p = 4;
-  double** Purities_p = new double*[3];
-  double** Fraction_p = new double*[3];
-  for (unsigned uVar = 0; uVar < 3; uVar++) {
-    Purities_p[uVar] = new double[NumChannels_p];
-    Fraction_p[uVar] = new double[NumChannels_p];
-
-    Purities_p[uVar][0] = PurityProton;
-    Purities_p[uVar][1] = PurityProton;
-    Purities_p[uVar][2] = PurityProton;
-    Purities_p[uVar][3] = 1. - PurityProton;
-
-    Fraction_p[uVar][0] = ProtonPrim;
-    Fraction_p[uVar][1] = (1. - ProtonPrim) * (arrayPercLamProton[uVar]);
-    Fraction_p[uVar][2] = (1. - ProtonPrim) * (1. - arrayPercLamProton[uVar]);
-    Fraction_p[uVar][3] = 1.;
-  }
-
-  //ratio Xi-(1530) to Xi-
-  const double Xim1530_to_Xim = 0.32 * (1. / 3.);
-  //ratio Xi0(1530) to Xi0 (n=neutral)
-  const double Xin1530_to_Xim = 0.32 * (2. / 3.);
-  const double Omegam_to_Xim = 0.1;
-  const double OmegamXim_BR = 0.086;
-
-  const unsigned NumChannels_Xim = 5;
-  double** Purities_Xim = new double*[3];
-  double** Fraction_Xim = new double*[3];
-  for (unsigned uVar = 0; uVar < 3; uVar++) {
-    Purities_Xim[uVar] = new double[NumChannels_Xim];
-    Fraction_Xim[uVar] = new double[NumChannels_Xim];
-
-    Purities_Xim[uVar][0] = PurityXi;
-    Purities_Xim[uVar][1] = PurityXi;
-    Purities_Xim[uVar][2] = PurityXi;
-    Purities_Xim[uVar][3] = PurityXi;
-    Purities_Xim[uVar][4] = 1. - PurityXi;
-
-    //the ratios that we have for Xis are referred to the total number of Xi particles (which already include all contributions)
-    //hence Xi1530_to_Xi indeed is simply the number of Xis that stem from a Xi1530
-    Fraction_Xim[uVar][0] = 1. - Xim1530_to_Xim - Xin1530_to_Xim
-        - Omegam_to_Xim * OmegamXim_BR;
-    Fraction_Xim[uVar][1] = Xim1530_to_Xim;
-    Fraction_Xim[uVar][2] = Xin1530_to_Xim;
-    Fraction_Xim[uVar][3] = Omegam_to_Xim * OmegamXim_BR;
-    Fraction_Xim[uVar][4] = 1.;
-  }
-  float ppRadii[3];
-  if (system == 0) {
-    ppRadii[0] = 1.141;
-    ppRadii[1] = 1.427;
-    ppRadii[2] = 1.434;
-  } else if (system == 2) {
-    ppRadii[0] = 0.70;
-    ppRadii[1] = 0.77;
-    ppRadii[2] = 0.84;
-  } else {
-    std::cout << "Radii for system " << system
-              << " not implemented, exiting \n";
-    return;
-  }
-  std::cout << ppRadii[0] << '\t' << ppRadii[1] << '\t' << ppRadii[2]
-            << std::endl;
-  TString CalibBaseDir;
-  TString DataDir;
+  std::cout << "SYSTEM: " << system << std::endl;
   if (system == 0) {
     if (NumIter > 33) {
       std::cout << "The number of variations is not so damn high (" << NumIter
                 << "), exiting \n";
       return;
     }
-    CalibBaseDir = "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
+    CalibBaseDir += "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
+    SigmaFileName += "Sample3_MeV_compact.root";
     DataDir = "~/cernbox/pPb/Systematics_Test/CFs";
-  } else if (system == 1) {
-    CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_MB/";
-  } else if (system == 2) {
-    CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
+
+    ppRadii[0] = 1.141;
+    ppRadii[1] = 1.427;
+    ppRadii[2] = 1.434;
+
+    PurityProton = 0.984266;  //pPb 5 TeV
+    PrimProton = 0.862814;
+    SecLamProton = 0.09603;
+
+    PurityXi = 0.88;  //new cuts
+  } else if (system == 2) {  // pp HM
+    CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
+    SigmaFileName += "Sample6_MeV_compact.root";
+
+    ppRadii[0] = 0.70;
+    ppRadii[1] = 0.77;
+    ppRadii[2] = 0.84;
+
+    PurityProton = 0.9943;
+    PrimProton = 0.873;
+    SecLamProton = 0.089;  //Fraction of Lambdas
+
+    PurityXi = 0.915;
+  } else {
+    std::cout << "System " << system << " not supported, extiting \n";
+    return;
   }
+
+  // Xi01530 Production: dN/dy = 2.6e-3 (https://link.springer.com/content/pdf/10.1140%2Fepjc%2Fs10052-014-3191-x.pdf)
+  // Xim1530 Production = Xi01530 Production
+  // Xim Production: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // -> Production Ratio ~ 1/2
+
+  const double Xi01530XimProdFraction = 1 / 2.;
+  const double Xim1530XimProdFraction = 1 / 2.;
+
+  // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
+  const double Xi01530Xim_BR = 2 / 3.;
+  // 1/3 of Xi-(1530) decays via Xi- + pi0 (Isospin considerations)
+  const double Xim1530Xim_BR = 1 / 3.;
+
+  // Omega production: dN/dy = 0.67e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // Xim Production: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // -> Production Ratio ~ 1/10
+  const double OmegamXimProdFraction = 1 / 10.;
+  const double OmegamXim_BR = 0.086;  // Value given by PDG, 8.6 pm 0.4 %
+
+  // Produce N Xi's -> Produce:
+  // 1 ) N* 1/10 Omegas -> See N* 1/10 * 8.6% more Xi's
+  // 2)  N* 1/2 Xi0_1530 -> See N*1/2*2/3 = N* 1/3 more Xi's
+  // 3)  N* 1/2 Xim_1530 -> See N*1/2*1/3 = N* 1/6 more Xi's
+  // Total Sample:  N(1+0.0086+1/3+1/6) ->
+  // Primary Fraction = N / N(1+0.0086+1/3+1/6)
+  // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
+  // etc.
+
+  std::vector<double> Variation = { 0.8, 1.0, 1.2 };
+  Particle Proton[3];  // 1) variation of the Secondary Comp.
+  Particle Xi[3][3];  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
+
+  int iVar1 = 0;
+  for (auto it : Variation) {
+    double SecFracSigma = 1. - PrimProton - it * SecLamProton;
+    Proton[iVar1] = Particle(PurityProton, PrimProton, { it * SecLamProton,
+                                 SecFracSigma });
+    int iVar2 = 0;
+    for (auto itXim : Variation) {
+      double XiNormalization = 1 + it * OmegamXimProdFraction * OmegamXim_BR
+          + itXim
+              * (Xi01530XimProdFraction * Xi01530Xim_BR
+                  + Xim1530XimProdFraction * Xim1530Xim_BR);
+      double SecOmegaXim = it * OmegamXimProdFraction * OmegamXim_BR
+          / (double) XiNormalization;
+      double SecXi01530Xim = itXim * Xi01530XimProdFraction * Xi01530Xim_BR
+          / (double) XiNormalization;
+      double SecXim1530Xim = itXim * Xim1530XimProdFraction * Xim1530Xim_BR
+          / (double) XiNormalization;
+      double PrimXim = 1. / (double) XiNormalization;
+      Xi[iVar1][iVar2] = Particle(PurityXi, PrimXim, { SecOmegaXim,
+                                      SecXi01530Xim, SecXim1530Xim });
+      iVar2++;
+    }
+    iVar1++;
+  }
+
+  std::cout << ppRadii[0] << '\t' << ppRadii[1] << '\t' << ppRadii[2]
+            << std::endl;
   TidyCats::Sources TheSource;
   if (iSource == 0) {
     TheSource = TidyCats::sGaussian;
@@ -165,6 +193,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
   CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
   CATSinput->ReadResFile();
+  CATSinput->SetSigmaFileName(SigmaFileName.Data());
+  CATSinput->ReadSigmaFile();
+
   std::cout << "Read Resolution File \n";
 //  TidyCats::pXimPot pot = TidyCats::pCoulomb;
   TidyCats::pXimPot pot;
@@ -182,63 +213,15 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     pot = TidyCats::pRikkenPot;
   } else {
     std::cout << "iPot " << iPot << " not implemented ,exiting \n";
+    return;
   }
 
-  const int binwidth = 20;
-  const int rebin = 5;
-  const unsigned NumMomBins_pXim = 30;
-
-  double kMinXiP;
-
-  const char *prefix;
-  if (system == 0) {
-    CATSinput->SetSigmaFileName("Sample3_MeV_compact.root");
-    CATSinput->SetFixedkStarMinBin(true, 0.008);
-    kMinXiP = 8.;
-    prefix = "MB";
-  } else if (system == 1) {
-    CATSinput->SetSigmaFileName("Sample6_MeV_compact.root");
-    prefix = "MB";
-    kMinXiP = 0.;
-  } else if (system == 2) {
-    CATSinput->SetSigmaFileName("Sample6_MeV_compact.root");
-//    CATSinput->SetFixedkStarMinBin(true, 0.);
-    prefix = "HM";
-    kMinXiP = 0.;
-  }
-
-  const double kMin_pXim = kMinXiP;
-  const double kMax_pXim = kMin_pXim + binwidth * NumMomBins_pXim;
-
-  const double NumMomBins_SideBand = 50;
-  const double kMin_SideBand = kMinXiP;
-  const double kMax_SideBand = 1000 + kMinXiP;
-
-  std::cout << "kMinXiP: " << kMin_pXim << std::endl;
-  std::cout << "kMax_pXim: " << kMax_pXim << std::endl;
-  std::cout << "binwidth: " << binwidth << std::endl;
-  std::cout << "NumMomBins_pXim: " << NumMomBins_pXim << std::endl;
-
-  double FemtoRegion_pXim[3][2];
-  FemtoRegion_pXim[0][0] = kMin_pXim;
-  FemtoRegion_pXim[0][1] = 360;
-  FemtoRegion_pXim[1][0] = kMin_pXim;
-  FemtoRegion_pXim[1][1] = 420;
-  FemtoRegion_pXim[2][0] = kMin_pXim;
-  FemtoRegion_pXim[2][1] = 480;
-
-  CATSinput->ReadSigmaFile();
-
-  std::cout << "Read Sigma File \n";
   TFile* OutFile = new TFile(
       TString::Format("%s/OutFileVarpXi_%u.root", OutputDir.Data(), NumIter),
       "RECREATE");
   TList* CollOut = new TList();
   CollOut->SetOwner();
-  CollOut->SetName(TString::Format("Out%u",NumIter));
-//  TFile* OutGraphFile = new TFile(
-//      TString::Format("%s/OutGraphFileVarpXi_%u.root", OutputDir.Data(), NumIter),
-//      "recreate");
+  CollOut->SetName(TString::Format("Out%u", NumIter));
   //you save a lot of stuff in an NTuple
   TNtuple* ntResult = new TNtuple(
       "ntResult", "ntResult", "IterID:vFemReg_pXim:vFrac_pXim_pXi1530:"
@@ -267,21 +250,11 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   }
 
   int uIter = 1;
-//  TString HistpXiDefaultName = "hCk_ReweightedMeV_0";
-  TString HistpXiDefaultName = "hCk_RebinnedMeV_1";
-  TFile* inFile = TFile::Open(
-      TString::Format("%s/CFpXiVariations_%u.root", DataDir.Data(), NumIter),
-      "READ");
-  TH1F* Prefit = (TH1F*) inFile->Get(HistpXiDefaultName.Data());
-  TH1F* StoreHist = (TH1F*) Prefit->Clone("Ck_Input");
-//  float p_a_prefit[4] = {0.983778, 1.00007, 1.0160844,0.9840556};
-//  float p_b_prefit[4] = {0, -3.56168e-05, -1.3894000e-06, -6.9844200e-05};
+
   float p_a_prefit[4];
   float p_b_prefit[4];
   TF1* funct_0 = new TF1("myPol0", "pol0", 250, 600);
   TF1* funct_1 = new TF1("myPol1", "pol1", 250, 600);
-//  funct_0->SetParameter(0,p_a_prefit[0]);
-//  funct_1->SetParameters(p_a_prefit[1],p_b_prefit[1]);
 
   Prefit->Fit(funct_0, "SNR");
   p_a_prefit[0] = funct_0->GetParameter(0);
@@ -310,8 +283,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   CATS AB_pXim;
 
   CATS AB_pXim1530;
-  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim, kMin_pXim,
-                                 kMax_pXim, TidyCats::sGaussian);
+  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins_pXim, kMin, kMax,
+                                 TidyCats::sGaussian);
   AB_pXim1530.SetAnaSource(1, 1);
   AB_pXim1530.KillTheCat();
   int counter = 1;
@@ -320,24 +293,25 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   int tOutVars = 0;
   if (pot == TidyCats::pHALQCD || pot == TidyCats::pHALQCDGamow) {
     tOutVars = 3;
-    total = 324*3;
+    total = 324 * 3;
   } else {
     tOutVars = 1;
     total = 324;
   }
   std::vector<bool> SaveSideBands = { true, true, true };
-  TCanvas* c1 = new TCanvas(TString::Format("out%u",NumIter)) ;
+  TCanvas* c1 = new TCanvas(TString::Format("out%u", NumIter));
   c1->SetCanvasSize(1920, 1280);
   StoreHist->SetLineWidth(3);
   StoreHist->SetLineColor(1);
-  StoreHist->GetXaxis()->SetRangeUser(0,400);
+  StoreHist->GetXaxis()->SetRangeUser(0, 400);
+  CollOut->Add(c1);
   c1->cd();
   StoreHist->DrawCopy();
-  StoreHist->GetXaxis()->SetRangeUser(0,1000);
+  StoreHist->GetXaxis()->SetRangeUser(0, 1000);
 
   for (tOut = 0; tOut < tOutVars; ++tOut) {
-    tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin_pXim, kMax_pXim,
-                               TheSource, pot, tQCDVars[tOut]);
+    tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin, kMax, TheSource,
+                               pot, tQCDVars[tOut]);
     AB_pXim.KillTheCat();
     for (vFemReg_pXim = 0; vFemReg_pXim < 3; ++vFemReg_pXim) {
       for (vFrac_pXim_pXi1530 = 0; vFrac_pXim_pXi1530 < 3;
@@ -376,8 +350,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               const unsigned NumSourcePars = AB_pXim.GetNumSourcePars();
               DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
               DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
-              DLM_Ck* Ck_SideBand = new DLM_Ck(0, 4, NumMomBins_SideBand,
-                                               kMin_SideBand, kMax_SideBand,
+              DLM_Ck* Ck_SideBand = new DLM_Ck(0, 4, NumMomBins_SideBand, kMin,
+                                               kMax_SideBand,
                                                SideBandFit::Parameterization);
 
               Ck_SideBand->SetPotPar(0, SideBandPars[0]);
@@ -398,22 +372,19 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               DLM_CkDecomposition CkDec_SideBand("pXiSideBand", 0, *Ck_SideBand,
               NULL);
               int vFrac_pp_pL = 1;
-              const double lam_pXim = Purities_p[vFrac_pp_pL][0]
-                  * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][0]
-                  * Fraction_Xim[0][0];
-              const double lam_pXim_pXim1530 = Purities_p[vFrac_pp_pL][0]
-                  * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][1]
-                  * Fraction_Xim[0][1];
-              const double lam_pXim_fake = Purities_p[vFrac_pp_pL][3]
-                  * Purities_Xim[0][0]
-                  + Purities_p[vFrac_pp_pL][0] * Purities_Xim[0][4]
-                  + Purities_p[vFrac_pp_pL][3] * Purities_Xim[0][4];
 
-//              printf("lam_pXim = %.3f\n", lam_pXim);
-//              printf("lam_pXim_pXim1530 = %.3f\n", lam_pXim_pXim1530);
-//              printf("lam_pXim_fake = %.3f\n", lam_pXim_fake);
-//              printf("\n");
-
+              CATSLambdaParam pXiLam(Proton[1], Xi[1][vFrac_pXim_pXi1530]);
+              const double lam_pXim = pXiLam.GetLambdaParam(
+                  CATSLambdaParam::Primary, CATSLambdaParam::Primary);
+              ;
+              const double lam_pXim_pXim1530 = pXiLam.GetLambdaParam(
+                  CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 2);
+              const double lam_pXim_fake = pXiLam.GetLambdaParam(
+                  CATSLambdaParam::Primary, CATSLambdaParam::Fake)
+                  + pXiLam.GetLambdaParam(CATSLambdaParam::Fake,
+                                          CATSLambdaParam::Primary)
+                  + pXiLam.GetLambdaParam(CATSLambdaParam::Fake,
+                                          CATSLambdaParam::Fake);
               CkDec_pXim.AddContribution(0, lam_pXim_pXim1530,
                                          DLM_CkDecomposition::cFeedDown,
                                          &CkDec_pXim1530,
@@ -426,10 +397,10 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                                          &CkDec_SideBand);
               CkDec_pXim.Update();
               DLM_Fitter1* fitter = new DLM_Fitter1(1);
-              fitter->SetSystem(0, *OliHisto_pXim, 1, CkDec_pXim,
-                                FemtoRegion_pXim[vFemReg_pXim][0],
-                                FemtoRegion_pXim[vFemReg_pXim][1], BlRegion[0],
-                                BlRegion[1]);
+              fitter->SetSystem(0, *OliHisto_pXim, 1, CkDec_pXim, kMin,
+                                FemtoRegion_pXim[vFemReg_pXim],
+                                FemtoRegion_pXim[vFemReg_pXim],
+                                FemtoRegion_pXim[vFemReg_pXim]);
               fitter->SetSeparateBL(0, false);  //Simultaneous BL
               if (HaveWeABaseLineSlope) {
                 fitter->FixParameter("pXim", DLM_Fitter1::p_a,
@@ -520,7 +491,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                 double theoryX;
                 double theoryY;
 
-                if (mom > FemtoRegion_pXim[vFemReg_pXim][1])
+                if (mom > FemtoRegion_pXim[vFemReg_pXim])
                   continue;
 
                 FitResult_pXim.GetPoint(uBin, theoryX, theoryY);
@@ -599,9 +570,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   }
   std::cout << "\n";
   OutFile->cd();
-  c1->Write(TString::Format("%s",c1->GetName())) ;
+//  c1->Write(TString::Format("%s", c1->GetName()));
   ntResult->Write();
-  CollOut->Write(CollOut->GetName(),1);
+  CollOut->Write(CollOut->GetName(), 1);
   OutFile->Close();
   return;
 }
@@ -609,7 +580,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 int main(int argc, char *argv[]) {
   const char* addon = (argv[7]) ? argv[7] : "";
   GetXiForRadius(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                 argv[5]);
+                 argv[5], argv[6]);
   return 0;
 }
 
