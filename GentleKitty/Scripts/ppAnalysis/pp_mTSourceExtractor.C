@@ -4,6 +4,7 @@
 #include "TH1D.h"
 #include "TCanvas.h"
 #include <iostream>
+#include "TLegend.h"
 void mTRadiusExtractor(const char *inputFile, float &radius, float &radErrSys, float &radErrStat) {
   TFile* inFile = TFile::Open(inputFile, "READ");
   if(!inFile) {
@@ -40,8 +41,37 @@ void mTRadiusPlot(const char* inputFolder, const char* avgmTFile) {
     mTRadiusSyst->SetPointError(imT, avgmT->GetErrorY(imT), radErrSyst);
     mTRadiusStat->SetPointError(imT, avgmT->GetErrorY(imT), radErrStat);
   }
+  auto c1 = new TCanvas("c2","c2");
+  mTRadiusSyst->SetLineColor(kBlack);
+  mTRadiusSyst->SetTitle("; < m_{T} >  (MeV/#it{c}^{2}); r_{Core} (fm)");
+
+  mTRadiusSyst->GetXaxis()->SetTitleSize(0.05);
+  mTRadiusSyst->GetYaxis()->SetTitleSize(0.05);
+  mTRadiusSyst->GetXaxis()->SetTitleOffset(0.9);
+  mTRadiusSyst->GetYaxis()->SetTitleOffset(0.9);
+
+  mTRadiusSyst->GetXaxis()->SetLabelSize(0.05);
+  mTRadiusSyst->GetYaxis()->SetLabelSize(0.05);
+  mTRadiusSyst->GetXaxis()->SetLabelOffset(0.004);
+  mTRadiusSyst->GetYaxis()->SetLabelOffset(0.004);
+
+  mTRadiusSyst->SetMarkerColor(kBlack);
+  mTRadiusSyst->SetLineWidth(3);
+  mTRadiusSyst->Draw("Ap");
+  mTRadiusSyst->SetFillColorAlpha(kBlack, 0.4);
+  mTRadiusSyst->Draw("2 same");
+
+  TLegend* leg = new TLegend(0.6,0.6,0.9,0.9);
+  leg->AddEntry(mTRadiusSyst,"p#minus p (AV18)","lef");
+
+  mTRadiusStat->SetMarkerColor(kBlack);
+  mTRadiusStat->SetLineWidth(3);
+  mTRadiusStat->Draw("pe same");
+  leg->Draw("same");
+  c1->SaveAs("mTvsRad.pdf");
   TFile* output = TFile::Open("mTRad.root", "RECREATE");
   output->cd();
+  c1->Write();
   mTRadiusSyst->SetName("mTRadiusSyst");
   mTRadiusSyst->Write();
   mTRadiusStat->SetName("mTRadiusStat");
