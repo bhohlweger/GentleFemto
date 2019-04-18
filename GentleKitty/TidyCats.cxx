@@ -432,22 +432,22 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     }
     CleanUpWfHisto(AB_pXim->GetNumChannels(), ExternalWF);
   } else if (pot == pRikkenPot) {
-    CATSparameters* PotParsI0S0 = new CATSparameters(CATSparameters::tSource, 2,
+    CATSparameters* PotParsI0S0 = new CATSparameters(CATSparameters::tPotential, 2,
                                                      true);
     PotParsI0S0->SetParameter(0, 0);
     PotParsI0S0->SetParameter(1, 0);
 
-    CATSparameters* PotParsI0S1 = new CATSparameters(CATSparameters::tSource, 2,
+    CATSparameters* PotParsI0S1 = new CATSparameters(CATSparameters::tPotential, 2,
                                                      true);
     PotParsI0S1->SetParameter(0, 0);
     PotParsI0S1->SetParameter(1, 1);
 
-    CATSparameters* PotParsI1S0 = new CATSparameters(CATSparameters::tSource, 2,
+    CATSparameters* PotParsI1S0 = new CATSparameters(CATSparameters::tPotential, 2,
                                                      true);
     PotParsI1S0->SetParameter(0, 1);
     PotParsI1S0->SetParameter(1, 0);
 
-    CATSparameters* PotParsI1S1 = new CATSparameters(CATSparameters::tSource, 2,
+    CATSparameters* PotParsI1S1 = new CATSparameters(CATSparameters::tPotential, 2,
                                                      true);
     PotParsI1S1->SetParameter(0, 1);
     PotParsI1S1->SetParameter(1, 1);
@@ -668,7 +668,6 @@ double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {
 
   const double& Isospin = Parameters[2];
   const double& Spin = Parameters[3];
-
   TFile fIn(
       TString::Format(
           "%s/cernbox/WaveFunctions/Tom/Potential/ESC16_190319.root",
@@ -685,7 +684,8 @@ double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {
   } else if (Isospin == 1 && Spin == 1) {
     gPot = (TGraph*) fIn.Get("EffPotI1S1");
   } else {
-    printf(" ESC16_pXim_EXAMPLE says ????????????????");
+    std::cout << "Isospin: " << Isospin << " Spin: " << Spin << std::endl;
+    printf(" ESC16_pXim_EXAMPLE says ???????????????? \n");
     return 0;
   }
   return gPot->Eval(Parameters[0]);
