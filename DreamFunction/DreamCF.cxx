@@ -9,6 +9,7 @@
 #include "TFile.h"
 #include "TMath.h"
 #include <iostream>
+#include "TObject.h"
 
 DreamCF::DreamCF()
     : fCF(),
@@ -43,17 +44,17 @@ void DreamCF::GetCorrelations(const char* pairName) {
           fCF.push_back(CFMeVSum);
         }
       } else {
-        std::cout << "No Pair 2 Set, only setting Pair 1! \n";
+        Warning("DreamCF", "No Pair 2 Set, only setting Pair 1!");
         //existence already checked
         fCF.push_back(fPairOne->GetPair()->GetCF());
       }
     }
   } else {
-    std::cout << "No Pair 1 Set, only setting Pair 2 \n";
+    Warning("DreamCF", "No Pair 1 Set, only setting Pair 2");
     if (fPairTwo && fPairTwo->GetPair())
       fCF.push_back(fPairTwo->GetPair()->GetCF());
     else
-      std::cout << "No Pair 2 set either \n";
+      Warning("DreamCF", "No Pair 2 set either");
 
   }
   if (fPairOne && fPairTwo) {
@@ -67,9 +68,8 @@ void DreamCF::GetCorrelations(const char* pairName) {
       LoopCorrelations(fPairOne->GetReweighted(), fPairTwo->GetReweighted(),
                        Form("hCk_Reweighted%s", pairName));
     } else {
-      std::cout << "Pair 1 with " << fPairOne->GetNDists()
-                << " histograms, Pair 2 with " << fPairTwo->GetNDists()
-                << " histograms \n";
+      Warning("DreamCF", "Pair 1 with %i histograms, Pair 2 with %i histograms",
+              fPairOne->GetNDists(), fPairTwo->GetNDists());
     }
   } else if (fPairOne && !fPairTwo) {
     LoopCorrelations(fPairOne->GetShiftedEmpty(),
@@ -88,7 +88,7 @@ void DreamCF::GetCorrelations(const char* pairName) {
     LoopCorrelations(fPairTwo->GetReweighted(),
                      Form("hCk_Reweighted%s", pairName));
   } else {
-    std::cout << "Pair 1 and Pair 2 missing \n";
+    Error("DreamCF", "Pair 1 and Pair 2 missing");
   }
   return;
 }
@@ -97,8 +97,7 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
                                std::vector<DreamDist*> PairTwo,
                                const char* name) {
   if (PairOne.size() != PairTwo.size()) {
-    std::cout << "Different size of pair(" << PairOne.size()
-              << ") and antiparticle pair(" << PairTwo.size() << ") ! \n";
+    Warning("DreamCF", "Different size of pair (%i) and antiparticle pair (%i)", PairOne.size(), PairTwo.size());
   } else {
     unsigned int iIter = 0;
     while (iIter < PairOne.size()) {
@@ -116,11 +115,13 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
         }
       } else {
         if (PartPair->GetCF()) {
-          std::cout << "For iteration " << iIter << " Particle Pair CF ("
-                    << PartPair->GetSEDist()->GetName() << ")is missing \n";
+          Warning("DreamCF",
+                  "For iteration %i Particle Pair CF (%s) is missing", iIter,
+                  PartPair->GetSEDist()->GetName());
         } else if (AntiPartPair->GetCF()) {
-          std::cout << "For iteration " << iIter << " AntiParticle Pair CF ("
-                    << AntiPartPair->GetSEDist()->GetName() << ")is missing \n";
+          Warning("DreamCF",
+                  "For iteration %i AntiParticle Pair CF (%s) is missing",
+                  iIter, AntiPartPair->GetSEDist()->GetName());
         }
       }
       iIter++;
@@ -141,8 +142,8 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> Pair, const char* name) {
         fCF.push_back(CFMeVSum);
       }
     } else {
-      std::cout << "For iteration " << iIter << " Particle Pair CF ("
-                << it->GetSEDist()->GetName() << ")is missing \n";
+      Warning("DreamCF", "For iteration %i Particle Pair CF (%s) is missing \n",
+              iIter, it->GetSEDist()->GetName());
     }
   }
 }
@@ -174,7 +175,7 @@ void DreamCF::WriteOutput(TFile* output, bool closeFile) {
     fPairOne->WriteOutput(PairDist);
     PairDist->Write("PairDist", 1);
   } else {
-    std::cout << "not writing Pair 1 \n";
+    Warning("DreamCF", "not writing Pair 1");
   }
   if (fPairTwo) {
     TList *AntiPairDist = new TList();
@@ -183,7 +184,7 @@ void DreamCF::WriteOutput(TFile* output, bool closeFile) {
     fPairTwo->WriteOutput(AntiPairDist);
     AntiPairDist->Write("AntiPairDist", 1);
   } else {
-    std::cout << "not writing Pair 2 \n";
+    Warning("DreamCF", "not writing Pair 2");
   }
   if (closeFile)output->Close();
   return;
@@ -226,10 +227,11 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
         }
       }
     } else {
-      std::cout << "Skipping " << CF1->GetName() << " and " << CF2->GetName()
-                << " due to uneven beginning of binning ("
-                << CF1->GetXaxis()->GetXmin() << " and "
-                << CF2->GetXaxis()->GetXmin() << ") \n";
+      Warning(
+          "DreamCF",
+          "Skipping %s and %s due to uneven beginning of binning (%i) and (%i)",
+          CF1->GetName(), CF2->GetName(), CF1->GetXaxis()->GetXmin(),
+          CF2->GetXaxis()->GetXmin());
     }
   }
   return hist_CF_sum;
@@ -252,16 +254,15 @@ TH1F* DreamCF::FindCorrelationFunction(TString name) {
   for (auto it : fCF) {
     TString itName = it->GetName();
     if (itName.Contains(name.Data())) {
-      std::cout << "For Histo: " << name << '\t' << "we use the "
-                << itName.Data() << std::endl;
+      Warning("DreamCF", "For Histo: %s '\t' we use the %s", name, itName.Data());
       output = it;
     }
   }
   if (!output) {
-    std::cout << "Output Histogram not found for " << name.Data() << std::endl;
-    std::cout << "What we offer is the following: \n";
+    Warning("DreamCF", "Output Histogram not found for %s", name.Data());
+    Warning("DreamCF", "What we offer is the following:");
     for (auto it : fCF) {
-      std::cout << it->GetName() << std::endl;
+      Warning("DreamCF", "%s", it->GetName());
     }
   }
   return output;

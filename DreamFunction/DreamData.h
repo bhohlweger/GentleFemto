@@ -76,7 +76,7 @@ class DreamData {
     if (fSysError) {
       fSysError->GetXaxis()->SetNdivisions(nDiv);
     } else {
-      std::cout << "No sys err for " << fName;
+      Warning("DreamData", "No sys err for %s", fName);
     }
   }
   ;

@@ -114,11 +114,10 @@ void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
       grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
     } else {
-      std::cout << "For " << fName
-                << " set the CF before adding the systematics \n";
+      Warning("DreamData", "For %s set the CF before adding the systematics", fName);
     }
   } else {
-    std::cout << "Paramters input missing for " << fName << std::endl;
+    Warning("DreamData", "Parameters input missing for %s", fName);
   }
   return;
 }
@@ -153,11 +152,10 @@ void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
       grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
     } else {
-      std::cout << "For " << fName
-                << " set the CF before adding the systematics \n";
+      Warning("DreamData", "For %s set the CF before adding the systematics", fName);
     }
   } else {
-    std::cout << "Paramters input missing for " << fName << std::endl;
+    Warning("DreamData", "Parameters input missing for %s", fName);
   }
   return;
 }
@@ -204,7 +202,7 @@ void DreamData::FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower,
       fFakeGraph.push_back(grFakeModel);
     }
   } else {
-    std::cout << "Set Systematics first for " << fName << "\n";
+    Warning("DreamData", "Set Systematics first for %s", fName);
   }
   return;
 }

@@ -234,8 +234,8 @@ TH1F* DreamSystematics::FillHisto(std::vector<float> Diff, const char* name) {
 
 void DreamSystematics::EvalDifferenceInPairs() {
   if (fnPairsDefault.size() == 0 || fnPairsVar.size() == 0) {
-    std::cout
-        << "DreamSystematics::EvalDifferenceInPairs() : no variations set \n";
+    Error("DreamSystematics",
+          "DreamSystematics::EvalDifferenceInPairs() : no variations set");
   } else {
     EvalDifference(fnPairsDefault, fnPairsVar, fnPairsAbsDiff, fnPairsRelDiff);
     fHistPairsAbsDiff = FillHisto(fnPairsAbsDiff, "AbsDiffPair");
@@ -247,8 +247,9 @@ void DreamSystematics::EvalDifferenceInPairs() {
 
 void DreamSystematics::EvalDifferenceInParticles() {
   if (fNPartOneDefault.size() == 0 || fNPartOneVariations.size() == 0) {
-    std::cout
-        << "DreamSystematics::EvalDifferenceInParticles() : default or var not set for part one \n";
+    Error(
+        "DreamSystematics",
+        "DreamSystematics::EvalDifferenceInParticles() : default or var not set for part one");
   } else {
     EvalDifference(fNPartOneDefault, fNPartOneVariations, fnPartOneAbsDiff,
                    fnPartOneRelDiff);
@@ -258,8 +259,9 @@ void DreamSystematics::EvalDifferenceInParticles() {
     fHistPartOneRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
   if (fNPartTwoDefault.size() == 0 || fNPartTwoVariations.size() == 0) {
-    std::cout
-        << "DreamSystematics::EvalDifferenceInParticles() : default or var not set for part two \n";
+    Error(
+        "DreamSystematics",
+        "DreamSystematics::EvalDifferenceInParticles() : default or var not set for part two");
   } else {
     EvalDifference(fNPartTwoDefault, fNPartTwoVariations, fnPartTwoAbsDiff,
                    fnPartTwoRelDiff);
@@ -272,8 +274,9 @@ void DreamSystematics::EvalDifferenceInParticles() {
 
 void DreamSystematics::EvalDifferenceInPurity() {
   if (fPurityOneDefault.size() == 0 || fPurityOneVariations.size() == 0) {
-    std::cout
-        << "DreamSystematics::EvalDifferenceInPurity() : default or var not set for part one \n";
+    Error(
+        "DreamSystematics",
+        "DreamSystematics::EvalDifferenceInPurity() : default or var not set for part one");
   } else {
     EvalDifference(fPurityOneDefault, fPurityOneVariations, fPurityOneAbsDiff,
                    fPurityOneRelDiff);
@@ -283,8 +286,9 @@ void DreamSystematics::EvalDifferenceInPurity() {
     fHistPurityOneRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
   if (fPurityTwoDefault.size() == 0 || fPurityTwoVariations.size() == 0) {
-    std::cout
-        << "DreamSystematics::EvalDifferenceInPurity() : default or var not set for part two \n";
+    Error(
+        "DreamSystematics",
+        "DreamSystematics::EvalDifferenceInPurity() : default or var not set for part two");
   } else {
     EvalDifference(fPurityTwoDefault, fPurityTwoVariations, fPurityTwoAbsDiff,
                    fPurityTwoRelDiff);
@@ -322,7 +326,7 @@ void DreamSystematics::ComputeUncertainty() {
         EvalProtonLambda(ikstar);
         break;
       default:
-        std::cout << "Non implemented Particle mode \n";
+        Error("DreamSystematics", "Non implemented Particle mode");
         break;
     }
   }
