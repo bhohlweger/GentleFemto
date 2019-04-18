@@ -19,7 +19,7 @@
 const int tupleLength = 14;
 
 void nSigmaMaker(TNtuple* resultTuple, int upperRange, bool debugPlot,
-                 TString varFolder) {
+                 TString varFolder, int potential) {
 
   resultTuple->Draw(Form("nSigma%i >> hist%i", upperRange, upperRange));
   TH1F* hist = (TH1F*) gROOT->FindObject(Form("hist%i", upperRange));
@@ -46,14 +46,14 @@ void nSigmaMaker(TNtuple* resultTuple, int upperRange, bool debugPlot,
     nSigmaText.SetNDC(kTRUE);
     nSigmaText.SetTextSize(0.8 * gStyle->GetTextSize());
     nSigmaText.DrawLatex(
-        0.75, 0.85, TString::Format("#it{n}_{#sigma, best} = %.1f", nSigmaBest));
+        0.7, 0.8, TString::Format("#it{n}_{#sigma, best} = %.1f", nSigmaBest));
     nSigmaText.DrawLatex(
-        0.75, 0.8,
+        0.7, 0.75,
         TString::Format("#it{n}_{#sigma, default} = %.1f", nSigmaDefault));
     nSigmaText.DrawLatex(
-        0.75, 0.75,
+        0.7, 0.7,
         TString::Format("#it{n}_{#sigma, worst} = %.1f", nSigmaWorst));
-    c->Print(Form("%s/nSigma%i.pdf", varFolder.Data(), upperRange));
+    c->Print(Form("%s/nSigma%i_%i.pdf", varFolder.Data(), upperRange, potential));
     delete c;
   }
 }
@@ -293,9 +293,9 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   std::cout << "This is nSigma maker for p-Sigma0 speaking\n";
   std::cout << "I gracefully acknowledge your input\n";
   std::cout << "You have a nice potential, Sir!\n";
-  nSigmaMaker(resultTuple, 250, debugPlots, varFolder);
-  nSigmaMaker(resultTuple, 200, debugPlots, varFolder);
-  nSigmaMaker(resultTuple, 150, debugPlots, varFolder);
+  nSigmaMaker(resultTuple, 250, debugPlots, varFolder, potential);
+  nSigmaMaker(resultTuple, 200, debugPlots, varFolder, potential);
+  nSigmaMaker(resultTuple, 150, debugPlots, varFolder, potential);
   std::cout << "Thanks for your interest in potential " << potential << "\n";
   std::cout << "=============\n";
 
