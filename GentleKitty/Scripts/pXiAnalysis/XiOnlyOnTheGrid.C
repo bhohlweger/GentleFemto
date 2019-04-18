@@ -224,12 +224,12 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   CollOut->SetName(TString::Format("Out%u", NumIter));
   //you save a lot of stuff in an NTuple
   TNtuple* ntResult = new TNtuple(
-      "ntResult", "ntResult", "IterID:vFemReg_pXim:vFrac_pXim_pXi1530:"
+      "ntResult", "ntResult", "IterID:FemtoRegion:lampXi:lampXi1530:lampXiFake:"
       "tOut:ppRadius:AlphaLev:AlphaLevErr:varSideNorm:BLSlope:"
       "p_a:p_a_err:p_b:p_b_err:"
       "Chi2NdfGlobal:Chi2NdfLocal:pval:sigma200:sigma100:sigma150");
 
-  Float_t ntBuffer[19];
+  Float_t ntBuffer[21];
 
   int vFemReg_pXim;  //which femto region we use for pXim (1 = default)
   int vFrac_pXim_pXi1530;
@@ -371,6 +371,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               NULL);
               DLM_CkDecomposition CkDec_SideBand("pXiSideBand", 0, *Ck_SideBand,
               NULL);
+
               int vFrac_pp_pL = 1;
 
               CATSLambdaParam pXiLam(Proton[1], Xi[1][vFrac_pXim_pXi1530]);
@@ -529,24 +530,26 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                   * TMath::ErfcInverse(pvalXi_kSm150);
 
               ntBuffer[0] = uIter;
-              ntBuffer[1] = vFemReg_pXim;
-              ntBuffer[2] = vFrac_pXim_pXi1530;
-              ntBuffer[3] = tOut;
-              ntBuffer[4] = GaussSourceSize;
-              ntBuffer[5] = fitter->GetParameter("pXim", DLM_Fitter1::p_sor1);
-              ntBuffer[6] = fitter->GetParError("pXim", DLM_Fitter1::p_sor1);
-              ntBuffer[7] = varSideNorm;
-              ntBuffer[8] = (float) BaselineSlope;
-              ntBuffer[9] = p_a_strong;
-              ntBuffer[10] = p_a_strong_err;
-              ntBuffer[11] = p_b_strong;
-              ntBuffer[12] = p_b_strong_err;
-              ntBuffer[13] = ChiSqStrongGlobal;
-              ntBuffer[14] = Chi2_pXim / double(EffNumBins_pXim);
-              ntBuffer[15] = pvalXi;
-              ntBuffer[16] = nSigmaXi;
-              ntBuffer[17] = nSigmaXi_kSm100;
-              ntBuffer[18] = nSigmaXi_kSm150;
+              ntBuffer[1] = FemtoRegion_pXim[vFemReg_pXim];
+              ntBuffer[2] = lam_pXim;
+              ntBuffer[3] = lam_pXim_pXim1530;
+              ntBuffer[4] = lam_pXim_fake;
+              ntBuffer[5] = tOut;
+              ntBuffer[6] = GaussSourceSize;
+              ntBuffer[7] = fitter->GetParameter("pXim", DLM_Fitter1::p_sor1);
+              ntBuffer[8] = fitter->GetParError("pXim", DLM_Fitter1::p_sor1);
+              ntBuffer[9] = varSideNorm;
+              ntBuffer[10] = (float) BaselineSlope;
+              ntBuffer[11] = p_a_strong;
+              ntBuffer[12] = p_a_strong_err;
+              ntBuffer[13] = p_b_strong;
+              ntBuffer[14] = p_b_strong_err;
+              ntBuffer[15] = ChiSqStrongGlobal;
+              ntBuffer[16] = Chi2_pXim / double(EffNumBins_pXim);
+              ntBuffer[17] = pvalXi;
+              ntBuffer[18] = nSigmaXi;
+              ntBuffer[19] = nSigmaXi_kSm100;
+              ntBuffer[20] = nSigmaXi_kSm150;
               ntResult->Fill(ntBuffer);
               TList* outList = new TList();
               outList->SetOwner();
