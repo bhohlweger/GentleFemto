@@ -371,7 +371,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               TH1F *OliHisto_pXimFornSigma = nullptr;
               OliHisto_pXimFornSigma = (TH1F*) OliHisto_pXim->Clone(
                   "pXiForNSigma");
-              CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim);
+              CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim, "PXi");
 
               const unsigned NumSourcePars = AB_pXim.GetNumSourcePars();
               std::cout << "Number of Source Parameters: " << NumSourcePars
