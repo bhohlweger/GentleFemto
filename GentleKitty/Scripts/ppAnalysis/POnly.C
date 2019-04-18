@@ -770,9 +770,10 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             hAxis_pp->GetYaxis()->SetTitleSize(0.075);
             hAxis_pp->GetXaxis()->SetRangeUser(0, 600);
             hAxis_pp->GetYaxis()->SetRangeUser(0.5, 4.5);
-            TF1* blPP = new TF1("blPP", "pol1", 0, 500);
+            TF1* blPP = new TF1("blPP", "pol2", 0, 500);
             blPP->SetParameters(fitter->GetParameter("pp", DLM_Fitter1::p_a),
-                                fitter->GetParameter("pp", DLM_Fitter1::p_b));
+                                fitter->GetParameter("pp", DLM_Fitter1::p_b),
+                                fitter->GetParameter("pp", DLM_Fitter1::p_c));
             blPP->SetLineColor(7);
             blPP->SetLineWidth(4);
 
