@@ -18,10 +18,11 @@
 
 const int tupleLength = 14;
 
-void nSigmaMaker(TNtuple* resultTuple, int upperRange) {
+void nSigmaMaker(TNtuple* resultTuple, int upperRange, bool debugPlot,
+                 TString varFolder) {
 
-  resultTuple->Draw(Form("nSigma%i >> hist250", upperRange));
-  TH1F* hist = (TH1F*) gROOT->FindObject("hist250");
+  resultTuple->Draw(Form("nSigma%i >> hist%i", upperRange, upperRange));
+  TH1F* hist = (TH1F*) gROOT->FindObject(Form("hist%i", upperRange));
 
   const float binLow = hist->GetXaxis()->GetBinLowEdge(
       hist->FindFirstBinAbove(1, 1));
@@ -31,8 +32,30 @@ void nSigmaMaker(TNtuple* resultTuple, int upperRange) {
   const float nSigmaDefault = (binUp + binLow) / 2.;
   const float nSigmaBest = nSigmaDefault - Delta;
   const float nSigmaWorst = nSigmaDefault + Delta;
-  std::cout << " - " << upperRange << " MeV/c cut-off: " << nSigmaBest
-            << " / " << nSigmaDefault << " / " << nSigmaWorst << "\n";
+  std::cout << " - " << upperRange << " MeV/c cut-off: " << nSigmaBest << " / "
+            << nSigmaDefault << " / " << nSigmaWorst << "\n";
+
+  if (debugPlot) {
+    auto c = new TCanvas();
+    hist->Draw();
+    hist->SetTitle(
+        Form("; #it{n}_{#sigma} (#it{k}* < %i MeV/#it{c}); Entries", upperRange));
+
+
+    TLatex nSigmaText;
+    nSigmaText.SetNDC(kTRUE);
+    nSigmaText.SetTextSize(0.8 * gStyle->GetTextSize());
+    nSigmaText.DrawLatex(
+        0.75, 0.85, TString::Format("#it{n}_{#sigma, best} = %.1f", nSigmaBest));
+    nSigmaText.DrawLatex(
+        0.75, 0.8,
+        TString::Format("#it{n}_{#sigma, default} = %.1f", nSigmaDefault));
+    nSigmaText.DrawLatex(
+        0.75, 0.75,
+        TString::Format("#it{n}_{#sigma, worst} = %.1f", nSigmaWorst));
+    c->Print(Form("%s/nSigma%i.pdf", varFolder.Data(), upperRange));
+    delete c;
+  }
 }
 
 void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
@@ -230,18 +253,6 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     }
   }
 
-  auto resultTuple = (TNtuple*) file->Get("fitResult");
-
-  std::cout << "=============\n";
-  std::cout << "This is nSigma maker for p-Sigma0 speaking\n";
-  std::cout << "I gracefully acknowledge your input\n";
-  std::cout << "You have a nice potential, Sir!\n";
-  nSigmaMaker(resultTuple, 250);
-  nSigmaMaker(resultTuple, 200);
-  nSigmaMaker(resultTuple, 150);
-  std::cout << "Thanks for your interest in potential " << potential << "\n";
-  std::cout << "=============\n";
-
   if (debugPlots) {
     if (potential == 0) {
       c1->Print(
@@ -275,6 +286,18 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   c1->Write();
   fit->Write();
   sideband->Write();
+
+  auto resultTuple = (TNtuple*) file->Get("fitResult");
+
+  std::cout << "=============\n";
+  std::cout << "This is nSigma maker for p-Sigma0 speaking\n";
+  std::cout << "I gracefully acknowledge your input\n";
+  std::cout << "You have a nice potential, Sir!\n";
+  nSigmaMaker(resultTuple, 250, debugPlots, varFolder);
+  nSigmaMaker(resultTuple, 200, debugPlots, varFolder);
+  nSigmaMaker(resultTuple, 150, debugPlots, varFolder);
+  std::cout << "Thanks for your interest in potential " << potential << "\n";
+  std::cout << "=============\n";
 
   auto grCF = new TGraphErrors();
   grCF->SetName("CF_fit");
@@ -430,6 +453,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   delete sideband;
   delete fit;
   file->Close();
+  return;
 }
 
 // =========================================

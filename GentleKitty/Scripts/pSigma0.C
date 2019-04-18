@@ -458,9 +458,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                                            sidebandFitCATS);
 
           for (unsigned i = 0; i < sideband->GetNumberFreeParameters(); ++i) {
-            if (!batchmode) {
-              std::cout << i << " " << sideband->GetParameter(i) << std::endl;
-            }
             Ck_SideBand->SetPotPar(i, sideband->GetParameter(i));
           }
           Ck_SideBand->Update();
