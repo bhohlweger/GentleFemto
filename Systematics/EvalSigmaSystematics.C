@@ -5,6 +5,7 @@
 #include <iostream>
 
 void SigmaEvalSystematics(TString InputDir, TString trigger) {
+  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   const int rebin = 5;
 
   DreamPlot::SetStyle(false, true);

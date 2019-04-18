@@ -8,6 +8,7 @@
 
 void EvalDreamSystematics(TString InputDir, TString prefix,
                           float upperFitRange) {
+  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
