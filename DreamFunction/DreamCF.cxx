@@ -254,7 +254,7 @@ TH1F* DreamCF::FindCorrelationFunction(TString name) {
   for (auto it : fCF) {
     TString itName = it->GetName();
     if (itName.Contains(name.Data())) {
-      Warning("DreamCF", "For Histo: %s '\t' we use the %s", name, itName.Data());
+      Warning("DreamCF", "For Histo: %s \t we use the %s", name.Data(), itName.Data());
       output = it;
     }
   }
