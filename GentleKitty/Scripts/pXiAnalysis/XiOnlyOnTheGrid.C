@@ -21,6 +21,7 @@
 #include "SideBandFit.h"
 #include "TMinuit.h"
 #include "CATSLambdaParam.h"
+#include "TObject.h"
 
 void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                     TString DataDir, TString OutputDir) {
@@ -31,11 +32,15 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   //Iteration number corresponds here to the systematic cut variation being fit.
 //  bool drawSource = (NumIter == 0);
   bool fitRadius = false;
-  TString HistpXiDefaultName = "hCk_RebinnedMeV_1";
+  TString HistpXiDefaultName = "hCk_ReweightedMeV_0";
   TFile* inFile = TFile::Open(
       TString::Format("%s/CFpXiVariations_%u.root", DataDir.Data(), NumIter),
       "READ");
   TH1F* Prefit = (TH1F*) inFile->Get(HistpXiDefaultName.Data());
+  if (!Prefit) {
+    Error("GetXiForRadius","No Histogram Loaded!\n ");
+    return;
+  }
   TH1F* StoreHist = (TH1F*) Prefit->Clone("Ck_Input");
 
   const int binwidth = 20;
@@ -82,7 +87,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 
   std::cout << "SYSTEM: " << system << std::endl;
   if (system == 0) {
-    if (NumIter > 33) {
+    if (NumIter > 34) {
       std::cout << "The number of variations is not so damn high (" << NumIter
                 << "), exiting \n";
       return;
