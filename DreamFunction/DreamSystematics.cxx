@@ -464,12 +464,12 @@ void DreamSystematics::EvalProtonSigma(const int kstar) {
   addSyst.push_back(
       (fHistAbsErr[4]->GetBinContent(kstar)
           + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
-  // Filter Bit 96
-  addSyst.push_back(fHistAbsErr[6]->GetBinContent(kstar));
   // TPC Cls
   addSyst.push_back(
-      (fHistAbsErr[7]->GetBinContent(kstar)
-          + fHistAbsErr[8]->GetBinContent(kstar)) / 2.);
+      (fHistAbsErr[6]->GetBinContent(kstar)
+          + fHistAbsErr[7]->GetBinContent(kstar)) / 2.);
+  // Filter Bit 96
+  addSyst.push_back(fHistAbsErr[8]->GetBinContent(kstar));
 
   // === Lambda ===
   // pT
