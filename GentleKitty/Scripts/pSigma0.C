@@ -622,24 +622,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               double nSigmapSigma0_150 = TMath::Sqrt(2)
                   * TMath::ErfcInverse(pvalpSigma0_150);
 
-              if (iterID == 0) {
-                std::cout << "=============\n";
-                std::cout << "Fitter output\n";
-                std::cout << "BL a  " << bl_a << " " << bl_a_err << "\n";
-                std::cout << "BL b  " << bl_b << " " << bl_b_err << "\n";
-                std::cout << "Cl    " << Cl << "\n";
-                std::cout << "Chi2\n";
-                std::cout << " glob " << chi2 << "\n";
-                std::cout << " loc  "
-                          << Chi2_pSigma0_250 / round(EffNumBins_pSigma0_250)
-                          << "\n";
-                std::cout << "p-val\n";
-                std::cout << " glob " << pval << "\n";
-                std::cout << " loc  " << nSigmapSigma0_250 << "\n";
-                std::cout << "Neg?  " << isCFneg << "\n";
-                std::cout << "=============\n";
-              }
-
               /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
               /// Write out all the stuff
 
