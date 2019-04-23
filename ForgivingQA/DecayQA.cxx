@@ -263,7 +263,9 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
                                      const char* outname) {
   //First project the whole thing into one bin
   auto* cMassIntegrated = new TCanvas(Form("cInt%s", outname),
-                                      Form("cInt%s", outname));
+                                      Form("cInt%s", outname), 0, 0, 650, 550);
+  cMassIntegrated->SetTopMargin(0.05);
+  cMassIntegrated->SetRightMargin(0.025);
   auto* invMass = (TH1F*) invMasspT->ProjectionY(Form("InvMass%s", outname), 0,
                                                  -1, "e");
   TPad* intPad = (TPad*) cMassIntegrated->cd();
@@ -276,15 +278,13 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
   invMass->GetXaxis()->SetTitle(
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
-  fHairyPlotter->FormatHistogram(invMass, 0, 0, 0.8);
+  fHairyPlotter->FormatHistogram(invMass, 2, 1, 0.8);
   fHairyPlotter->DrawOnPad( { invMass }, intPad, "P");
-  fHairyPlotter->DrawLatexLabel(
-      invMasspT->GetXaxis()->GetBinLowEdge(fInvMassPtStartBin),
-      invMasspT->GetXaxis()->GetXmax(), fFitter, intPad, fPartLatex, 0.8, 0.45);
+  fHairyPlotter->DrawPerformance(fFitter, intPad, fPartLatex, 0.25, 0.87);
   fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0,
-                          invMass->GetMaximum() * 0.5);
+                          invMass->GetMaximum() * 0.5, kTeal + 3);
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,
-                          invMass->GetMaximum() * 0.5);
+                          invMass->GetMaximum() * 0.5, kTeal + 3);
   cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
   auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname));
   cMassBins->Divide(fDivCanX, fDivCanY);

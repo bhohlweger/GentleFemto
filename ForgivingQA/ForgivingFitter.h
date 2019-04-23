@@ -45,7 +45,8 @@ class ForgivingFitter {
   }
   void ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin, float pTMax,
                            const char* part);
-  void FitInvariantMassSigma(TH1F* histo, float massCuts);
+  void FitInvariantMassSigma(TH1F* histo, float massCuts,
+                             int lineColor = kBlue + 4);
  private:
   void CreateBackgroundFunction();
   void CreateContinousBackgroundFunction();

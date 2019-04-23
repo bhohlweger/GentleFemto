@@ -38,7 +38,9 @@ class MakeHistosGreat {
   ;
   void DrawLatexLabel(float pTMin, float pTMax, ForgivingFitter* fit, TPad* pad,
                       const char* part, float xPos, float yPos);
-  void DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax);
+  void DrawPerformance(ForgivingFitter* fit, TPad* pad,
+                       const char* part, float xPos, float yPos);
+  void DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax, int color =  kOrange - 1);
  private:
   bool fTightMargin;
 };

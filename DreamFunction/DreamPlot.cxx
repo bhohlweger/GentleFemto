@@ -285,7 +285,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 2, 0, 0, 3252, true);
+      fProtonSigma->FemtoModelFitBands(ledniband, kRed, 0, 0, 3252, true);
     }
   } else {
     std::cout << "No Lednicky file!  \n";
@@ -300,9 +300,9 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else if (!sideband) {
       std::cout << "No sideband \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure - 3, 0, 0, 3225,
+      fProtonSigma->FemtoModelFitBands(haidenbauerband, kGreen + 2, 0, 0, 3225,
                                        true);
-      fProtonSigma->FemtoModelFitBands(sideband, kCyan + 2, 0.5, true);
+      fProtonSigma->FemtoModelFitBands(sideband, kBlack, 0.6, true);
     }
   } else {
     std::cout << "No Haidenbauer file!  \n";
@@ -476,6 +476,7 @@ void DreamPlot::DrawCorrelationFunctions() {
 
 void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   SetStyle();
+  gStyle->SetHatchesSpacing(0.95);
   const float right = 0.025;
   const float top = 0.025;
   TLatex ref;
@@ -498,7 +499,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
       0.45, 0.71 - 0.09 * fProtonSigma->GetNumberOfModels(), 0.7, 0.8);
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
-  fProtonSigma->DrawCorrelationPlot(c, 13);
+  fProtonSigma->DrawCorrelationPlot(c, 13, kBlue + 4);
   DrawSystemInfo(c, false, 0.46, true);
   c->cd();
   c->SaveAs(Form("%s/CF_pSigma_prelim.pdf", fitPath));

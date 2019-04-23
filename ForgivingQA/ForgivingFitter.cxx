@@ -122,7 +122,7 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
                             fFullFitFnct->GetParameter(8));
 }
 
-void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts) {
+void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lineColor) {
   if (histo->GetEntries() < 12500) {
     return;
   }
@@ -172,6 +172,8 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts) {
   }
   fFullFitFnct = new TF1("fFullFitFnct", "fBackground2 + fSignalSingleGauss",
                          fBkgRangeMin * 0.5, fBkgRangeMax * 2);
+  fFullFitFnct->SetLineColor(lineColor);
+  fFullFitFnct->SetLineStyle(2);
   fFullFitFnct->SetNpx(1000);
   fFullFitFnct->FixParameter(0, fBackGround->GetParameter(0));
   fFullFitFnct->FixParameter(1, fBackGround->GetParameter(1));

@@ -252,9 +252,21 @@ void MakeHistosGreat::DrawLatexLabel(float pTMin, float pTMax,
            meanWidthActual * 1000.f, signal / (signal + background) * 100.f));
 }
 
-void MakeHistosGreat::DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax) {
+void MakeHistosGreat::DrawPerformance(ForgivingFitter* fit, TPad* pad,
+                                      const char* part, float xPos, float yPos) {
+  float signal = (float) fit->GetSignalCounts();
+  pad->cd();
+  TLatex Label;
+  Label.SetNDC(kTRUE);
+  Label.SetTextSize(gStyle->GetTextSize() * 0.96);
+  Label.DrawLatex(xPos, yPos, "ALICE Performance");
+  Label.DrawLatex(xPos, yPos - 0.08, "pp (HM) #sqrt{s} = 13 TeV");
+  Label.DrawLatex(xPos, yPos - 0.16, Form("%s: %.0f", part, signal));
+}
+
+void MakeHistosGreat::DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax, int color) {
   TLine one;
-  one.SetLineColor(fColors[5]);
+  one.SetLineColor(color);
   one.SetLineWidth(2);
   one.SetLineStyle(3);
   pad->cd();

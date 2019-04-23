@@ -64,7 +64,7 @@ DreamData::DreamData(const char* particlePair)
     myColor1.GetColor(255,127,0), //10
     myColor1.GetColor(31,120,180), //11
     myColor1.GetColor(178,223,138), //12
-    kBlue + 3 //13
+    kBlue + 4 //13
   };
   fMarkers = {kFullCircle, kFullSquare, kOpenCircle, kOpenSquare, kOpenDiamond,
     kOpenCross, kFullCross, kFullDiamond, kFullStar, kOpenStar};
@@ -262,7 +262,7 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->SetLineColor(fColors[color]);
 }
 
-void DreamData::DrawCorrelationPlot(TCanvas* c, const int color) {
+void DreamData::DrawCorrelationPlot(TCanvas* c, const int color, const int systematicsColor) {
   c->cd();
   SetStyleHisto(fCorrelationFunction, 2, color);
   fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
@@ -288,6 +288,7 @@ void DreamData::DrawCorrelationPlot(TCanvas* c, const int color) {
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
   fFakeGraph[0]->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
   fFakeGraph[0]->SetMarkerColor(fCorrelationFunction->GetMarkerColor());
+  fFakeGraph[0]->SetFillColorAlpha(systematicsColor, 0.4);
   leg->AddEntry(fFakeGraph[0], fLegendName[0], fLegendOption[0]);
 //  leg->AddEntry(fBaseLine, "Baseline", "l");
   leg->Draw("same");
@@ -303,7 +304,7 @@ void DreamData::DrawCorrelationPlot(TCanvas* c, const int color) {
     (*it)->Draw("L3 same");
     it++;
   }
-  fSysError->SetFillColorAlpha(kBlack, 0.4);
+  fSysError->SetFillColorAlpha(systematicsColor, 0.4);
   fSysError->Draw("2 same");
   fCorrelationFunction->DrawCopy("pe same");
   leg->Draw("same");

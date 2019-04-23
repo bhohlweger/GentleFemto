@@ -41,7 +41,8 @@ class DreamData {
   void FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
                           float colorAlpha, bool addtoLegend);
   void SetStyleHisto(TH1 *histo, int marker, int color);
-  void DrawCorrelationPlot(TCanvas* c, const int color = 0);
+  void DrawCorrelationPlot(TCanvas* c, const int color = 0,
+                           const int systematicsColor = kBlack);
   void SetRangePlotting(float xMin, float xMax, float yMin, float yMax) {
     fXMin = xMin;
     fXMax = xMax;
