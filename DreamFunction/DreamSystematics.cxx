@@ -213,8 +213,8 @@ void DreamSystematics::EvalDifference(std::vector<T> &CountsDefault,
   for (size_t iVar = 0; iVar < CountsVar.size(); ++iVar) {
     float def = CountsDefault[iVar];
     float var = CountsVar[iVar];
-    AbsDiff.push_back(std::abs(def - var));
-    RelDiff.push_back((def > 0) ? std::abs(1 - var / def) * 100.f : 0);
+    AbsDiff.push_back(def - var);
+    RelDiff.push_back((def > 0) ? (1 - var / def) * 100.f : 0);
   }
   return;
 }
