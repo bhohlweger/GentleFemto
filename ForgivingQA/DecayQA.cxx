@@ -272,15 +272,18 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   fFitter->FitInvariantMassSigma(invMass, massCuts);
   const double CutMin = fFitter->GetMeanMass() - massCuts;
   const double CutMax = fFitter->GetMeanMass() + massCuts;
-  invMass->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
+  invMass->GetXaxis()->SetRangeUser(1.172, 1.212);
   invMass->GetYaxis()->SetRangeUser(0, invMass->GetMaximum() * 1.8);
-  //invMass->GetYaxis()->SetMaxDigits(3);
+  invMass->GetXaxis()->SetMaxDigits(2);
+  invMass->GetXaxis()->SetNdivisions(505);
+  invMass->GetYaxis()->SetMaxDigits(1);
+  invMass->GetYaxis()->SetNdivisions(505);
   invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
   invMass->GetXaxis()->SetTitle(
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
-  fHairyPlotter->FormatHistogram(invMass, 2, 1, 0.8);
+  fHairyPlotter->FormatHistogram(invMass, 2, 1, 0.9);
   fHairyPlotter->DrawOnPad( { invMass }, intPad, "P");
-  fHairyPlotter->DrawPerformance(fFitter, intPad, fPartLatex, 0.25, 0.87);
+  fHairyPlotter->DrawPerformance(fFitter, intPad, fPartLatex, 0.205, 0.87);
   fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0,
                           invMass->GetMaximum() * 0.5, kTeal + 3);
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,

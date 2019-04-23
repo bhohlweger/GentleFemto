@@ -255,6 +255,7 @@ void MakeHistosGreat::DrawLatexLabel(float pTMin, float pTMax,
 void MakeHistosGreat::DrawPerformance(ForgivingFitter* fit, TPad* pad,
                                       const char* part, float xPos, float yPos) {
   float signal = (float) fit->GetSignalCounts();
+  float background = (float) fit->GetBackgroundCounts();
   pad->cd();
   TLatex Label;
   Label.SetNDC(kTRUE);
@@ -262,6 +263,7 @@ void MakeHistosGreat::DrawPerformance(ForgivingFitter* fit, TPad* pad,
   Label.DrawLatex(xPos, yPos, "ALICE Performance");
   Label.DrawLatex(xPos, yPos - 0.08, "pp (HM) #sqrt{s} = 13 TeV");
   Label.DrawLatex(xPos, yPos - 0.16, Form("%s: %.0f", part, signal));
+  Label.DrawLatex(xPos, yPos - 0.24, Form("Purity = %.1f %%", signal / (signal + background) * 100.f));
 }
 
 void MakeHistosGreat::DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax, int color) {
