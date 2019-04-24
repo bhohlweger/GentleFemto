@@ -24,6 +24,8 @@ DreamSystematics::DreamSystematics()
       fHistAbsErr(),
       fHistErrBudget(),
       fHistBarlow(),
+      fHistKstar(),
+      fCutTuple(nullptr),
       fBarlowLabel(),
       fnPairsVar(),
       fnPairsAbsDiff(),
@@ -48,7 +50,8 @@ DreamSystematics::DreamSystematics()
       fHistPartTwoRelDiff(nullptr),
       fHistPurityOneRelDiff(nullptr),
       fHistPurityTwoRelDiff(nullptr) {
-  DreamPlot::SetStyle();
+  DreamPlot::SetStyle(false);
+  fCutTuple = new TNtuple("CutVars", "CutVars", "kstar:cf:cferr");
 }
 
 DreamSystematics::DreamSystematics(Pair pair)
@@ -66,6 +69,8 @@ DreamSystematics::DreamSystematics(Pair pair)
       fHistAbsErr(),
       fHistErrBudget(),
       fHistBarlow(),
+      fHistKstar(),
+      fCutTuple(nullptr),
       fBarlowLabel(),
       fnPairsVar(),
       fnPairsAbsDiff(),
@@ -91,16 +96,17 @@ DreamSystematics::DreamSystematics(Pair pair)
       fHistPurityOneRelDiff(nullptr),
       fHistPurityTwoRelDiff(nullptr) {
   DreamPlot::SetStyle();
+  fCutTuple = new TNtuple("CutVars", "CutVars", "kstar:cf:cferr");
 }
 
 TH1F* DreamSystematics::GetAbsError(TH1F* histDefault, TH1F* histVar) const {
   auto histNew = (TH1F*) histVar->Clone(Form("%s_AbsErr", histVar->GetName()));
   histNew->SetTitle(Form("AbsErr %s", histVar->GetTitle()));
-  histNew->GetYaxis()->SetTitle("|CF_{default} - CF_{var}|");
+  histNew->GetYaxis()->SetTitle("CF_{default} - CF_{var}");
 
   for (int i = 1; i < histVar->GetNbinsX() + 1; ++i) {
     histNew->SetBinContent(
-        i, std::abs(histDefault->GetBinContent(i) - histVar->GetBinContent(i)));
+        i, histDefault->GetBinContent(i) - histVar->GetBinContent(i));
     histNew->SetBinError(
         i,
         std::sqrt(
@@ -156,7 +162,7 @@ TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) {
     binErrVar = histVar->GetBinError(i);
     statErrVariation = std::sqrt(
         TMath::Abs(binErrVar * binErrVar - binErrDef * binErrDef));
-    float nSigma =0;
+    float nSigma = 0;
     if (statErrVariation > 1e-6) {
       nSigma = std::abs(binContVar - binContDef) / statErrVariation;
     } else {
@@ -167,7 +173,8 @@ TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) {
   }
   for (int i = 1; i < histNew->GetNbinsX() + 1; ++i) {
     const float nSigma = histNew->GetBinContent(i);
-    if(histNew->GetBinCenter(i) > fBarlowUpperRange) continue;
+    if (histNew->GetBinCenter(i) > fBarlowUpperRange)
+      continue;
     if (nSigma < 2) {
       nSigBel2++;
     } else if (nSigma >= 2 && nSigma < 3) {
@@ -178,10 +185,11 @@ TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) {
     sigBins++;
   }
 
-  TString label = TString::Format(
-      "#splitline{#splitline{Below 2: %.2f (%%)}{Between 2 - 3: %.2f (%%)}}{Above 3: %.2f (%%)}",
-      nSigBel2*100 / (float) sigBins, nSigBel3*100 / (float) sigBins,
-      nSigAb3*100 / (float) sigBins);
+  TString label =
+      TString::Format(
+          "#splitline{#splitline{Below 2: %.2f (%%)}{Between 2 - 3: %.2f (%%)}}{Above 3: %.2f (%%)}",
+          nSigBel2 * 100 / (float) sigBins, nSigBel3 * 100 / (float) sigBins,
+          nSigAb3 * 100 / (float) sigBins);
   fBarlowLabel.push_back(label);
   return histNew;
 }
@@ -194,11 +202,12 @@ void DreamSystematics::EvalSystematics() {
                                          fSystematicFitRangeUp);
   int iVar = 0;
   for (auto &it : fHistVar) {
-    it->SetTitle(GetVariation(iVar));
+    it->SetTitle(Form("Variation %i", iVar + 1));
     FixStyle(it);
     fHistAbsErr.emplace_back(GetAbsError(fHistDefault, it));
     fHistErrBudget.emplace_back(GetErrorBudget(fHistDefault, it));
     fHistBarlow.emplace_back(GetBarlow(fHistDefault, it));
+    FillTuple(it);
     ++iVar;
   }
 
@@ -213,8 +222,8 @@ void DreamSystematics::EvalDifference(std::vector<T> &CountsDefault,
   for (size_t iVar = 0; iVar < CountsVar.size(); ++iVar) {
     float def = CountsDefault[iVar];
     float var = CountsVar[iVar];
-    AbsDiff.push_back(def - var);
-    RelDiff.push_back((def > 0) ? (1 - var / def) * 100.f : 0);
+    AbsDiff.push_back(var - def);
+    RelDiff.push_back((def > 0) ? (var / def - 1) * 100.f : 0);
   }
   return;
 }
@@ -224,7 +233,7 @@ TH1F* DreamSystematics::FillHisto(std::vector<float> Diff, const char* name) {
                             TString::Format("%s%s", name, GetPairName().Data()),
                             Diff.size(), 0, Diff.size());
   for (unsigned int iBin = 1; iBin <= Diff.size(); ++iBin) {
-    outHisto->GetXaxis()->SetBinLabel(iBin, GetVariation(iBin - 1).Data());
+    outHisto->GetXaxis()->SetBinLabel(iBin, Form("Variation %i", iBin));
     outHisto->SetBinContent(iBin, Diff[iBin - 1]);
   }
   DreamPlot::SetStyleHisto(outHisto);
@@ -293,7 +302,7 @@ void DreamSystematics::EvalDifferenceInPurity() {
     EvalDifference(fPurityTwoDefault, fPurityTwoVariations, fPurityTwoAbsDiff,
                    fPurityTwoRelDiff);
     fHistPurityTwoAbsDiff = FillHisto(fPurityTwoAbsDiff, "AbsDiffPartTwo");
-    fHistPurityOneAbsDiff->GetYaxis()->SetTitle("Abs. variation");
+    fHistPurityTwoAbsDiff->GetYaxis()->SetTitle("Abs. variation");
     fHistPurityTwoRelDiff = FillHisto(fPurityTwoRelDiff, "RelDiffPartTwo");
     fHistPurityTwoRelDiff->GetYaxis()->SetTitle("Rel. variation (%)");
   }
@@ -312,23 +321,21 @@ void DreamSystematics::ComputeUncertainty() {
   fHistSystErrRel->Reset("ICMS");
   const int nBins = fHistDefault->GetXaxis()->FindBin(fSystematicFitRangeUp);
   for (int ikstar = 1; ikstar <= nBins; ++ikstar) {
-    switch (fParticlePairMode) {
-      case Pair::pp:
-        EvalProtonProton(ikstar);
-        break;
-      case Pair::pSigma0:
-        EvalProtonSigma(ikstar);
-        break;
-      case Pair::pXi:
-        EvalProtonXi(ikstar);
-        break;
-      case Pair::pL:
-        EvalProtonLambda(ikstar);
-        break;
-      default:
-        Error("DreamSystematics", "Non implemented Particle mode");
-        break;
-    }
+    const int kstar = fHistDefault->GetBinCenter(ikstar);
+
+    fCutTuple->Draw(Form("cf >> h%i", kstar), Form("kstar == %i", kstar));
+    TH1F* hist = (TH1F*) gROOT->FindObject(Form("h%i", kstar));
+    double binLow = hist->GetXaxis()->GetBinLowEdge(
+        hist->FindFirstBinAbove(1, 1));
+    double binUp = hist->GetXaxis()->GetBinUpEdge(hist->FindLastBinAbove(1, 1));
+
+    // TODO: Decide strategy! Alternatively: 68% interval around median!
+    double sysErrTotal = std::abs((binLow - binUp)) / TMath::Sqrt(12);
+
+    fHistSystErrAbs->SetBinContent(ikstar, sysErrTotal);
+    fHistSystErrRel->SetBinContent(
+        ikstar, sysErrTotal / fHistDefault->GetBinContent(ikstar));
+    fHistKstar.push_back(hist);
   }
 
   fRatio = new TF1("SystError", "pol0(0)+expo(1)", fSystematicFitRangeLow,
@@ -366,251 +373,6 @@ void DreamSystematics::ComputeUncertainty() {
   fGrFinalError->SetLineColor(kGray + 1);
 }
 
-void DreamSystematics::EvalProtonProton(const int kstar) {
-  std::vector<float> addSyst;
-
-  // pT
-  addSyst.push_back(
-      (fHistAbsErr[0]->GetBinContent(kstar)
-          + fHistAbsErr[1]->GetBinContent(kstar)) / 2.);
-  // Eta
-  addSyst.push_back(
-      (fHistAbsErr[2]->GetBinContent(kstar)
-          + fHistAbsErr[3]->GetBinContent(kstar)) / 2.);
-  // nSigma
-  addSyst.push_back(
-      (fHistAbsErr[4]->GetBinContent(kstar)
-          + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
-  // Filter Bit 96
-  addSyst.push_back(fHistAbsErr[6]->GetBinContent(kstar));
-  // TPC Cls
-  addSyst.push_back(
-      (fHistAbsErr[7]->GetBinContent(kstar)
-          + fHistAbsErr[8]->GetBinContent(kstar)) / 2.);
-
-  double sysErrTotal = 0.;
-  for (size_t iAdd = 0; iAdd < addSyst.size(); ++iAdd) {
-    sysErrTotal += (addSyst[iAdd] * addSyst[iAdd]);
-  }
-  sysErrTotal = std::sqrt(sysErrTotal);
-
-  fHistSystErrAbs->SetBinContent(kstar, sysErrTotal);
-  fHistSystErrRel->SetBinContent(
-      kstar, sysErrTotal / fHistDefault->GetBinContent(kstar));
-}
-
-void DreamSystematics::EvalProtonLambda(const int kstar) {
-  std::vector<float> addSyst;
-  // pT
-  addSyst.push_back(
-      (fHistAbsErr[0]->GetBinContent(kstar)
-          + fHistAbsErr[1]->GetBinContent(kstar)) / 2.);
-  // Eta
-  addSyst.push_back(
-      (fHistAbsErr[2]->GetBinContent(kstar)
-          + fHistAbsErr[3]->GetBinContent(kstar)) / 2.);
-  // nSigma
-  addSyst.push_back(
-      (fHistAbsErr[4]->GetBinContent(kstar)
-          + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
-  // Filter Bit 96
-  addSyst.push_back(fHistAbsErr[6]->GetBinContent(kstar));
-  // TPC Cls
-  addSyst.push_back(
-      (fHistAbsErr[7]->GetBinContent(kstar)
-          + fHistAbsErr[8]->GetBinContent(kstar)) / 2.);
-  // v0 pT
-  addSyst.push_back(
-      (fHistAbsErr[9]->GetBinContent(kstar)
-          + fHistAbsErr[10]->GetBinContent(kstar)) / 2.);
-  // CPA up
-  addSyst.push_back(fHistAbsErr[11]->GetBinContent(kstar));
-  // nSigma Up
-  addSyst.push_back(fHistAbsErr[12]->GetBinContent(kstar));
-  // Track TPC Cluster Up
-  addSyst.push_back(fHistAbsErr[13]->GetBinContent(kstar));
-  // Eta
-  addSyst.push_back(
-      (fHistAbsErr[14]->GetBinContent(kstar)
-          + fHistAbsErr[15]->GetBinContent(kstar)) / 2.);
-  // dca daughter
-  addSyst.push_back(fHistAbsErr[16]->GetBinContent(kstar));
-  // dca daughters to pv
-  addSyst.push_back(fHistAbsErr[17]->GetBinContent(kstar));
-
-  double sysErrTotal = 0.;
-  for (size_t iAdd = 0; iAdd < addSyst.size(); ++iAdd) {
-    sysErrTotal += (addSyst[iAdd] * addSyst[iAdd]);
-  }
-  sysErrTotal = std::sqrt(sysErrTotal);
-  fHistSystErrAbs->SetBinContent(kstar, sysErrTotal);
-  fHistSystErrRel->SetBinContent(
-      kstar, sysErrTotal / fHistDefault->GetBinContent(kstar));
-}
-
-void DreamSystematics::EvalProtonSigma(const int kstar) {
-  std::vector<float> addSyst;
-
-  // === PROTON ===
-  // pT
-  addSyst.push_back(
-      (fHistAbsErr[0]->GetBinContent(kstar)
-          + fHistAbsErr[1]->GetBinContent(kstar)) / 2.);
-  // Eta
-  addSyst.push_back(
-      (fHistAbsErr[2]->GetBinContent(kstar)
-          + fHistAbsErr[3]->GetBinContent(kstar)) / 2.);
-  // nSigma
-  addSyst.push_back(
-      (fHistAbsErr[4]->GetBinContent(kstar)
-          + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
-  // TPC Cls
-  addSyst.push_back(
-      (fHistAbsErr[6]->GetBinContent(kstar)
-          + fHistAbsErr[7]->GetBinContent(kstar)) / 2.);
-  // Filter Bit 96
-  addSyst.push_back(fHistAbsErr[8]->GetBinContent(kstar));
-
-  // === Lambda ===
-  // pT
-  addSyst.push_back(
-      (fHistAbsErr[9]->GetBinContent(kstar)
-          + fHistAbsErr[10]->GetBinContent(kstar)) / 2.);
-  // CPA
-  addSyst.push_back(
-      (fHistAbsErr[11]->GetBinContent(kstar)
-          + fHistAbsErr[12]->GetBinContent(kstar)) / 2.);
-  // TPC nSigma PID
-  addSyst.push_back(
-      (fHistAbsErr[13]->GetBinContent(kstar)
-          + fHistAbsErr[14]->GetBinContent(kstar)) / 2.);
-  // Armenteros-Podolandski
-  addSyst.push_back(fHistAbsErr[15]->GetBinContent(kstar));
-  // TPC Cls
-  addSyst.push_back(
-      (fHistAbsErr[16]->GetBinContent(kstar)
-          + fHistAbsErr[17]->GetBinContent(kstar)) / 2.);
-  // Eta
-  addSyst.push_back(fHistAbsErr[18]->GetBinContent(kstar));
-  // Mass window
-  addSyst.push_back(fHistAbsErr[19]->GetBinContent(kstar));
-
-  // === Photon ===
-  // Eta
-  addSyst.push_back(fHistAbsErr[20]->GetBinContent(kstar));
-  // pT
-  addSyst.push_back(
-      (fHistAbsErr[21]->GetBinContent(kstar)
-          + fHistAbsErr[22]->GetBinContent(kstar)) / 2.);
-  // TPC Cls
-  addSyst.push_back(fHistAbsErr[23]->GetBinContent(kstar));
-  // TPC nSigma PID
-  addSyst.push_back(
-      (fHistAbsErr[24]->GetBinContent(kstar)
-          + fHistAbsErr[25]->GetBinContent(kstar)) / 2.);
-  // Armenteros-Podolandski
-  addSyst.push_back(
-      (fHistAbsErr[26]->GetBinContent(kstar)
-          + fHistAbsErr[27]->GetBinContent(kstar)) / 2.);
-  // Psi_pair
-  addSyst.push_back(
-      (fHistAbsErr[28]->GetBinContent(kstar)
-          + fHistAbsErr[29]->GetBinContent(kstar)) / 2.);
-  // CPA
-  addSyst.push_back(
-      (fHistAbsErr[30]->GetBinContent(kstar)
-          + fHistAbsErr[31]->GetBinContent(kstar)) / 2.);
-
-  double sysErrTotal = 0.;
-  for (size_t iAdd = 0; iAdd < addSyst.size(); ++iAdd) {
-    sysErrTotal += (addSyst[iAdd] * addSyst[iAdd]);
-  }
-  sysErrTotal = std::sqrt(sysErrTotal);
-
-  fHistSystErrAbs->SetBinContent(kstar, sysErrTotal);
-  fHistSystErrRel->SetBinContent(
-      kstar, sysErrTotal / fHistDefault->GetBinContent(kstar));
-
-}
-
-void DreamSystematics::EvalProtonXi(const int kstar) {
-  std::vector<float> addSyst;
-  //pT
-  addSyst.push_back(
-      (fHistAbsErr[0]->GetBinContent(kstar)
-          + fHistAbsErr[1]->GetBinContent(kstar)) / 2.);
-  // Eta
-  addSyst.push_back(
-      (fHistAbsErr[2]->GetBinContent(kstar)
-          + fHistAbsErr[3]->GetBinContent(kstar)) / 2.);
-  // nSigma
-  addSyst.push_back(
-      (fHistAbsErr[4]->GetBinContent(kstar)
-          + fHistAbsErr[5]->GetBinContent(kstar)) / 2.);
-
-  // Filter Bit 96
-  addSyst.push_back(fHistAbsErr[6]->GetBinContent(kstar));
-  // TPC Cls
-  addSyst.push_back(
-      (fHistAbsErr[7]->GetBinContent(kstar)
-          + fHistAbsErr[8]->GetBinContent(kstar)) / 2.);
-  //Daughter DCA to Casc Vtx
-  addSyst.push_back(
-      (fHistAbsErr[9]->GetBinContent(kstar)
-          + fHistAbsErr[10]->GetBinContent(kstar)) / 2.);
-  //Bach DCA to PV
-  addSyst.push_back(
-      (fHistAbsErr[11]->GetBinContent(kstar)
-          + fHistAbsErr[12]->GetBinContent(kstar)) / 2.);
-  //Xi CPA
-  addSyst.push_back(
-      (fHistAbsErr[13]->GetBinContent(kstar)
-          + fHistAbsErr[14]->GetBinContent(kstar)) / 2.);
-  //Xi Transverse Radius
-  addSyst.push_back(
-      (fHistAbsErr[15]->GetBinContent(kstar)
-          + fHistAbsErr[16]->GetBinContent(kstar)) / 2.);
-  //Daugh DCA to V0 Vtx
-  addSyst.push_back(
-      (fHistAbsErr[17]->GetBinContent(kstar)
-          + fHistAbsErr[18]->GetBinContent(kstar)) / 2.);
-  //V0 CPA
-  addSyst.push_back(
-      (fHistAbsErr[19]->GetBinContent(kstar)
-          + fHistAbsErr[20]->GetBinContent(kstar)) / 2.);
-  //V0 Transverse Radius
-  addSyst.push_back(
-      (fHistAbsErr[21]->GetBinContent(kstar)
-          + fHistAbsErr[22]->GetBinContent(kstar)) / 2.);
-  //V0 DCA to PV
-  addSyst.push_back(
-      (fHistAbsErr[23]->GetBinContent(kstar)
-          + fHistAbsErr[24]->GetBinContent(kstar)) / 2.);
-  //Daugh DCA to PV
-  addSyst.push_back(
-      (fHistAbsErr[25]->GetBinContent(kstar)
-          + fHistAbsErr[26]->GetBinContent(kstar)) / 2.);
-  //Xi Tracks Eta
-  addSyst.push_back(
-      (fHistAbsErr[27]->GetBinContent(kstar)
-          + fHistAbsErr[28]->GetBinContent(kstar)) / 2.);
-  //Xi Tracks PID
-  addSyst.push_back(
-      (fHistAbsErr[29]->GetBinContent(kstar)
-          + fHistAbsErr[30]->GetBinContent(kstar)) / 2.);
-  // Xi Pt
-  addSyst.push_back(fHistAbsErr[31]->GetBinContent(kstar));
-
-  double sysErrTotal = 0.;
-  for (size_t iAdd = 0; iAdd < addSyst.size(); ++iAdd) {
-    sysErrTotal += (addSyst[iAdd] * addSyst[iAdd]);
-  }
-  sysErrTotal = std::sqrt(sysErrTotal);
-  fHistSystErrAbs->SetBinContent(kstar, sysErrTotal);
-  fHistSystErrRel->SetBinContent(
-      kstar, sysErrTotal / fHistDefault->GetBinContent(kstar));
-}
-
 void DreamSystematics::WriteOutput() {
   auto file = new TFile(Form("Systematics_%s.root", GetPairName().Data()),
                         "recreate");
@@ -618,12 +380,14 @@ void DreamSystematics::WriteOutput() {
   WriteOutput(file, fHistAbsErr, "AbsErr");
   WriteOutput(file, fHistErrBudget, "ErrBudget");
   WriteOutput(file, fHistBarlow, "Barlow");
+  WriteOutput(file, fHistKstar, "kStar");
   file->cd();
   fHistDefault->Write("histDefault");
   fHistSystErrAbs->Write("SystErrAbs");
   fHistSystErrRel->Write("SystErrRel");
   fRatio->Write("SystError");
   fGrFinalError->Write("grError");
+  fCutTuple->Write();
 
   if (fnPairsDefault.size() > 0) {
     file->mkdir("nPairs");
@@ -674,16 +438,16 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
   auto c = new TCanvas(canvasName.Data(), canvasName.Data(), 1400, 1000);
   switch (fParticlePairMode) {
     case Pair::pp:
-      c->Divide(3, 4);
+      c->Divide(7, 7);
       break;
     case Pair::pSigma0:
-      c->Divide(7, 5);
+      c->Divide(5, 5);
       break;
     case Pair::pXi:
-      c->Divide(7, 5);
+      c->Divide(7, 7);
       break;
     case Pair::pL:
-      c->Divide(3, 6);
+      c->Divide(7, 7);
       break;
   }
 
@@ -707,10 +471,11 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
                             it->GetBinContent(1) * 100.f));
       }
     } else if (name == TString("Barlow")) {
-      it->GetYaxis()->SetRangeUser(0,it->GetMaximum()*2.0);
+      it->GetYaxis()->SetRangeUser(0, it->GetMaximum() * 2.0);
       c->cd(iVar);
       text.DrawLatex(
-          gPad->GetUxmax()-0.8,gPad->GetUymax()-0.3,fBarlowLabel.at(iVar-1));
+      gPad->GetUxmax() - 0.8,
+                     gPad->GetUymax() - 0.3, fBarlowLabel.at(iVar - 1));
     }
   }
   c->Write();

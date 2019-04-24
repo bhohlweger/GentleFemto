@@ -9,6 +9,7 @@
 #include "TH1F.h"
 #include "TFile.h"
 #include "TString.h"
+#include "TNtuple.h"
 
 #include "DreamPlot.h"
 #include "DreamCF.h"
@@ -57,20 +58,14 @@ class DreamSystematics {
     fNPartOneVariations.push_back(nPart1);
     fNPartTwoVariations.push_back(nPart2);
   }
-  ;
-  void SetPurity(float purDef1, float purDef2, float purPart1,
-                    float purPart2) {
+  void SetPurity(float purDef1, float purDef2, float purPart1, float purPart2) {
     fPurityOneDefault.push_back(purDef1);
     fPurityTwoDefault.push_back(purDef2);
     fPurityOneVariations.push_back(purPart1);
     fPurityTwoVariations.push_back(purPart2);
-  };
-  int GetNumberOfVars() const {
-    return vars[fParticlePairMode].size();
   }
-
-  TString GetVariation(int count) const {
-    return vars[fParticlePairMode][count];
+  int GetNumberOfVars() const {
+    return vars[fParticlePairMode];
   }
 
   Pair GetPair() const {
@@ -83,23 +78,17 @@ class DreamSystematics {
   TH1F* GetAbsError(TH1F* histDefault, TH1F* histVar) const;
   TH1F* GetErrorBudget(TH1F* histDefault, TH1F* histVar) const;
   TH1F* GetBarlow(TH1F* histDefault, TH1F* histVar);
+  void FillTuple(TH1F* histVar);
 
   void EvalSystematics();
-  template <typename T>
-  void EvalDifference(std::vector<T> &CountsDefault,
-                      std::vector<T> &CountsVar,
+  template<typename T>
+  void EvalDifference(std::vector<T> &CountsDefault, std::vector<T> &CountsVar,
                       std::vector<float> &AbsDiff, std::vector<float> &RelDiff);
   TH1F* FillHisto(std::vector<float> Diff, const char* name);
   void EvalDifferenceInPairs();
-//  void CountPairs();
   void EvalDifferenceInParticles();
   void EvalDifferenceInPurity();
-//  void CountParticles();
   void ComputeUncertainty();
-  void EvalProtonProton(const int kstar);
-  void EvalProtonSigma(const int kstar);
-  void EvalProtonXi(const int kstar);
-  void EvalProtonLambda(const int kstar);
   void WriteOutput();
   void WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
                    const TString name);
@@ -119,6 +108,8 @@ class DreamSystematics {
   std::vector<TH1F*> fHistAbsErr;
   std::vector<TH1F*> fHistErrBudget;
   std::vector<TH1F*> fHistBarlow;
+  std::vector<TH1F*> fHistKstar;
+  TNtuple *fCutTuple;
   std::vector<TString> fBarlowLabel;
 
   std::vector<unsigned int> fnPairsDefault;
@@ -161,53 +152,13 @@ class DreamSystematics {
   TH1F* fHistPurityOneRelDiff;
   TH1F* fHistPurityTwoRelDiff;
 
-  const std::vector<TString> ppVariations = { { "Proton #it{p}_{T} down",
-      "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
-      "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",
-      "Proton TPC cluster down", "Proton TPC cluster up", "Proton CPR 0.012",
-      "Proton CPR 0.014" } };
+  const int ppVariations = 44;
+  const int pSigma0Variations = 25;
+  const int pXiVariations = 44;
+  const int pLVariations = 44;
 
-  const std::vector<TString> pSigma0Variations = { { "Proton #it{p}_{T} down",
-      "Proton #it{p}_{T} up", "Proton #eta down", "Proton #eta up",
-      "Proton n#sigma up", "Proton n#sigma down", "Proton TPC cluster down",
-      "Proton TPC cluster up", "Proton FilterBit", "Lambda #it{p}_{T} down",
-      "Lambda #it{p}_{T} up", "Lambda CPA up", "Lambda CPA down",
-      "Lambda Daug n#sigma up", "Lambda Daug n#sigma down",
-      "Lambda Armenteros-Podolandski", "Lambda Daug TPC ncls up",
-      "Lambda Daug TPC ncls down", "Lambda Daug #eta down", "Lambda mass",
-      "Photon #eta down", "Photon #it{p}_{T} down", "Photon #it{p}_{T} up",
-      "Photon Daug TPC ncls finable up", "Photon Daug n#sigma down",
-      "Photon Daug n#sigma up", "Photon q_{T} 1-D up", "Photon q_{T} 2-D down",
-      "Photon #Psi_{Pair} 1-D up", "Photon #Psi_{Pair} 2-D down",
-      "Photon CPA down", "Photon CPA up" } };
-
-  const std::vector<TString> pXiVariations = {
-      { "Proton #it{p}_{T} down", "Proton #it{p}_{T} up", "Proton #eta up",
-          "Proton #eta down", "Proton n#sigma up", "Proton n#sigma down",
-          "Proton FilterBit", "Proton TPC cluster down",
-          "Proton TPC cluster up", "Casc Daug d_{track} up",
-          "Casc Daug d_{track} down", "Casc Bach d_{Track, PV} down",
-          "Casc Bach d_{Track, PV} up", "Casc CPA up 1", "Casc CPA up 2",
-          "Casc Transverse Radius down", "Casc Transverse Radius up",
-          "Casc V0 Daug d_{track} up 1", "Casc V0 Daug d_{track} up 2",
-          "Casc V0 CPA down", "Casc V0 CPA up",
-          "Casc V0 Transverse Radius down", "Casc V0 Transverse Radius up",
-          "Casc V0 d_{V0, PV} up", "Casc V0 d_{V0, PV} down",
-          "Casc V0 Daug d_{Track, PV} down", "Casc V0 Daug d_{Track, PV} up",
-          "Casc Track #eta up", "Casc Track #eta down", "Casc Track n#sigma up",
-          "Casc Track n#sigma down", "Casc #it{p}_{T} up 1",
-          "Casc #it{p}_{T} up 2" } };
-
-  const std::vector<TString> pLVariations = { { "Proton #it{p}_{T} down",
-      "Proton #it{p}_{T} up", "Proton #eta up", "Proton #eta down",
-      "Proton n#sigma up", "Proton n#sigma down", "Proton FilterBit",
-      "Proton TPC cluster down", "Proton TPC cluster up", "V0 #it{p}_{T} down",
-      "V0 #it{p}_{T} up", "V0 CPA up", "V0 Track n#sigma up",
-      "V0 Track TPC cluster up", "V0 Track #eta up", "V0 Track #eta down",
-      "V0 Track d_{track} up", "V0 Track d_{Track, PV}" } };
-
-  const std::vector<std::vector<TString>> vars = { { ppVariations,
-      pSigma0Variations, pXiVariations, pLVariations } };
+  const std::vector<int> vars = { { ppVariations, pSigma0Variations,
+      pXiVariations, pLVariations } };
   const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi", "pL" } };
 };
 
@@ -219,6 +170,13 @@ void DreamSystematics::FixStyle(TH1F* histCF) const {
   DreamPlot::SetStyleHisto(histCF);
   histCF->GetXaxis()->SetTitle("#it{k}* (MeV/#it{c})");
   histCF->GetYaxis()->SetTitle("C(#it{k}*)");
+}
+
+inline void DreamSystematics::FillTuple(TH1F *histVar) {
+
+  for (int i = 1; i < histVar->GetNbinsX() + 1; ++i) {
+    fCutTuple->Fill(histVar->GetBinCenter(i), histVar->GetBinContent(i), histVar->GetBinError(i));
+  }
 }
 
 #endif // DREAMFUNCTION_DREAMPSYSTEMATICS_H_

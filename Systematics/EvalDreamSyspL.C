@@ -29,6 +29,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   DreamDist* pL = DreamFile->GetPairDistributions(0, 2, "");
   DreamDist* ApAL = DreamFile->GetPairDistributions(1, 3, "");
   DreamCF* CFpLDef = CATSinput->ObtainCFSyst(rebin, "pLDef", pL, ApAL);
+  const unsigned int pairCountsDefault = CFpLDef->GetFemtoPairs(0, 0.2);
   DreamSystematics protonL(DreamSystematics::pL);
 //  protonL.SetUpperFitRange(0.080);
   protonL.SetDefaultHist(CFpLDef, "hCk_ReweightedpLDefMeV_1");
@@ -53,13 +54,14 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
         << counter->GetNumberOfTracks() << '\t'
         << "counter->GetNumberOfV0s(): " << counter->GetNumberOfV0s()
         << std::endl;
+    protonL.SetPair(pairCountsDefault, CFpLVar->GetFemtoPairs(0, 0.2));
     protonL.SetParticles(nTracks, nv0, counter->GetNumberOfTracks(),
-                          counter->GetNumberOfCascades());
+                         counter->GetNumberOfV0s());
     counter->ResetCounter();
     iPLCounter++;
   }
   protonL.EvalSystematics();
-//  protonXi.EvalDifferenceInPairs();
+  protonL.EvalDifferenceInPairs();
   protonL.EvalDifferenceInParticles();
   protonL.WriteOutput();
   auto file = new TFile(

@@ -6,7 +6,7 @@
 
 void SigmaEvalSystematics(TString InputDir, TString trigger) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
-  const int rebin = 5;
+  const int rebin = 1;
 
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInputSigma0();
@@ -23,7 +23,7 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
 
   DreamSystematics protonsigma(DreamSystematics::pSigma0);
   protonsigma.SetDefaultHist(dataHistSigma);
-  protonsigma.SetUpperFitRange(500);
+  protonsigma.SetUpperFitRange(450);
   protonsigma.SetBarlowUpperRange(400);
   for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
