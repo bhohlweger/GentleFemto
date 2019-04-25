@@ -114,7 +114,6 @@ void PeriodQA::ProcessQA(const char* prefix, const char* addon) {
     if (purity > 1E-6) {
       histPurityAntiXi->SetBinContent(i + 1, purity * 100.f);
     }
-    histNAntiXi->SetBinContent(i + 1, anticascQA->GetSignalCounts() / nEvents);
     delete trkQA;
     delete antiTrkQA;
     delete v0QA;
