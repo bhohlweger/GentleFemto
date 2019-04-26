@@ -35,7 +35,8 @@ class TidyCats {
     pLOWF
   };
   enum pSigma0Pot {
-    pSigma0Haidenbauer
+    pSigma0Haidenbauer,
+    pSigma0ESC16
   };
   TidyCats();
   virtual ~TidyCats();

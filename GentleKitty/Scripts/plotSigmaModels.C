@@ -274,6 +274,13 @@ int main(int argc, char* argv[]) {
   Kitty.KillTheCat();
   auto Ck_Haidenbauer = new DLM_Ck(1, 0, Kitty);
 
+  // ESC16
+  CATS KittyESC16;
+  tidy->GetCatsProtonSigma0(&KittyESC16, momBins, kmin, kmax, TidyCats::sGaussian,
+                            TidyCats::pSigma0ESC16);
+  KittyESC16.KillTheCat();
+  auto Ck_ESC16 = new DLM_Ck(1, 0, KittyESC16);
+
   // Haidenbauer with resonances
   CATS ResonantKitty;
   tidy->GetCatsProtonSigma0(&ResonantKitty, momBins, kmin, kmax,
@@ -364,6 +371,7 @@ int main(int argc, char* argv[]) {
     grTotalLednickyLambda->SetPoint(i, mom, CkDec_Lednicky.EvalCk(mom));
   }
 
+
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Correlation functions
 
@@ -395,6 +403,18 @@ int main(int argc, char* argv[]) {
   grTripletHaidenbauer->SetLineWidth(2);
   grTripletHaidenbauer->SetLineStyle(2);
   DreamPlot::SetStyleGraph(grTripletHaidenbauer, 20, kBlue + 2);
+
+  auto grTotalESC16 = new TGraph();
+  grTotalESC16->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  DreamPlot::SetStyleGraph(grTotalESC16, 20, kBlack);
+  grTotalESC16->SetLineWidth(2);
+  auto grSingletESC16= new TGraph();
+  grSingletESC16->SetLineWidth(2);
+  grSingletESC16->SetLineStyle(2);
+  DreamPlot::SetStyleGraph(grSingletESC16, 20, kRed + 2);
+  auto grTripletESC16 = new TGraph();
+  grTripletESC16->SetLineWidth(2);
+  grTripletESC16->SetLineStyle(2);
 
   double cf_singletLednicky, cf_tripletLednicky;
   for (unsigned int i = 0; i < Ck_Lednicky->GetNbins(); ++i) {
@@ -439,10 +459,31 @@ int main(int argc, char* argv[]) {
     grTotalResonantHaidenbauer->SetPoint(i, mom, ResonantKitty.GetCorrFun(i));
   }
 
+  for (unsigned int i = 0; i < KittyESC16.GetNumMomBins(); ++i) {
+    const float mom = KittyESC16.GetMomentum(i);
+    grTotalESC16->SetPoint(i, mom, KittyESC16.GetCorrFun(i));
+  }
+  KittyESC16.SetChannelWeight(0, 0);
+  KittyESC16.SetChannelWeight(1, 0);
+  KittyESC16.SetChannelWeight(0, 1);
+  KittyESC16.KillTheCat();
+  for (unsigned int i = 0; i < KittyESC16.GetNumMomBins(); ++i) {
+    const float mom = KittyESC16.GetMomentum(i);
+    grSingletESC16->SetPoint(i, mom, KittyESC16.GetCorrFun(i));
+  }
+  KittyESC16.SetChannelWeight(0, 0);
+  KittyESC16.SetChannelWeight(1, 0);
+  KittyESC16.SetChannelWeight(1, 1);
+  KittyESC16.KillTheCat();
+  for (unsigned int i = 0; i < KittyESC16.GetNumMomBins(); ++i) {
+    const float mom = KittyESC16.GetMomentum(i);
+    grTripletESC16->SetPoint(i, mom, KittyESC16.GetCorrFun(i));
+  }
+
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Plotting
 
-  const float ylow = 0.5;
+  const float ylow = 0.25;
   const float yup = 3;
 
   auto c = new TCanvas();
@@ -508,4 +549,13 @@ int main(int argc, char* argv[]) {
                  "l");
   leg3->Draw("same");
   g->Print("CF_Haidenbauer_resonances.pdf");
+
+  auto h = new TCanvas();
+  grTotalESC16->Draw("AL");
+  grTotalESC16->GetXaxis()->SetRangeUser(0, kmax);
+  grTotalESC16->GetYaxis()->SetRangeUser(ylow, yup);
+  grSingletESC16->Draw("lsame");
+  grTripletESC16->Draw("lsame");
+  leg->Draw("same");
+  h->Print("CF_ESC16.pdf");
 }

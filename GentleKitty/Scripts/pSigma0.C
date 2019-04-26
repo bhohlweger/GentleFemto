@@ -387,6 +387,26 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     AB_pSigma0_draw.KillTheCat();
     Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
     Ck_pSigma0_draw = new DLM_Ck(1, 0, AB_pSigma0_draw);
+  } else if (potential == 4) {  // ESC16 WF
+    std::cout << "Running with the ESC16 potential \n";
+    // ESC16 is valid up to 400 MeV, therefore we have to adopt
+    double kMax_pSigma_ESC16 = kMin_pSigma;
+    int NumMomBins_pSigma_ESC16 = 0;
+    while (kMax_pSigma_ESC16 < 398 - binwidth) {
+      kMax_pSigma_ESC16 += binwidth;
+      ++NumMomBins_pSigma_ESC16;
+    }
+    tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_ESC16, kMin_pSigma,
+                              kMax_pSigma_ESC16, TidyCats::sGaussian,
+                              TidyCats::pSigma0ESC16);
+
+    tidy->GetCatsProtonSigma0(&AB_pSigma0_draw, NumMomBins_pSigma_draw,
+                              kMin_pSigma_draw, kMax_pSigma_draw,
+                              TidyCats::sGaussian, TidyCats::pSigma0ESC16);
+    AB_pSigma0.KillTheCat();
+    AB_pSigma0_draw.KillTheCat();
+    Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
+    Ck_pSigma0_draw = new DLM_Ck(1, 0, AB_pSigma0_draw);
   }
 
   float counter = 0;
