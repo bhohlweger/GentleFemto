@@ -16,18 +16,17 @@
 #include "TLegend.h"
 #include <iostream>
 
-const int tupleLength = 14;
-
 void nSigmaMaker(TNtuple* resultTuple, int upperRange, bool debugPlot,
-                 TString varFolder, int potential) {
+                 TString varFolder, int potential,
+                 std::array<double, 3> &nSigma) {
 
   resultTuple->Draw(Form("nSigma%i >> hist%i", upperRange, upperRange));
   TH1F* hist = (TH1F*) gROOT->FindObject(Form("hist%i", upperRange));
 
   const float binLow = hist->GetXaxis()->GetBinLowEdge(
-      hist->FindFirstBinAbove(1, 1));
+      hist->FindFirstBinAbove(0.1, 1));
   const float binUp = hist->GetXaxis()->GetBinUpEdge(
-      hist->FindLastBinAbove(1, 1));
+      hist->FindLastBinAbove(0.1, 1));
   const float Delta = std::abs((binLow - binUp) / std::sqrt(12));
   const float nSigmaDefault = (binUp + binLow) / 2.;
   const float nSigmaBest = nSigmaDefault - Delta;
@@ -39,8 +38,8 @@ void nSigmaMaker(TNtuple* resultTuple, int upperRange, bool debugPlot,
     auto c = new TCanvas();
     hist->Draw();
     hist->SetTitle(
-        Form("; #it{n}_{#sigma} (#it{k}* < %i MeV/#it{c}); Entries", upperRange));
-
+        Form("; #it{n}_{#sigma} (#it{k}* < %i MeV/#it{c}); Entries",
+             upperRange));
 
     TLatex nSigmaText;
     nSigmaText.SetNDC(kTRUE);
@@ -53,66 +52,36 @@ void nSigmaMaker(TNtuple* resultTuple, int upperRange, bool debugPlot,
     nSigmaText.DrawLatex(
         0.7, 0.7,
         TString::Format("#it{n}_{#sigma, worst} = %.1f", nSigmaWorst));
-    c->Print(Form("%s/nSigma%i_%i.pdf", varFolder.Data(), upperRange, potential));
+    c->Print(
+        Form("%s/nSigma%i_%i.pdf", varFolder.Data(), upperRange, potential));
     delete c;
   }
-}
-
-void ComputeChi2(TH1F* dataHist, TGraphErrors *grFit, double &bestChi2,
-                 double &defaultChi2, double &worstChi2, int &nBins,
-                 int upperBoundary) {
-  double theoryX, theoryY, theoryErr;
-  double dataY, dataErr, dataErrSq;
-  double chi2Down = 0.;
-  double chi2Def = 0.;
-  double chi2Up = 0.;
-  int maxkStarBinChi2 = dataHist->FindBin(upperBoundary);
-  for (unsigned uBin = 1; uBin <= maxkStarBinChi2; uBin++) {
-    double mom = dataHist->GetBinCenter(uBin);
-    grFit->GetPoint(uBin - 1, theoryX, theoryY);
-    theoryErr = grFit->GetErrorY(uBin - 1);
-
-    if (mom != theoryX) {
-      std::cerr << "PROBLEM Sigma0 " << mom << '\t' << theoryX << std::endl;
-    }
-    dataY = dataHist->GetBinContent(uBin);
-    dataErr = dataHist->GetBinError(uBin);
-    dataErrSq = (dataErr * dataErr);
-
-    chi2Up += (dataY - (theoryY + theoryErr)) * (dataY - (theoryY + theoryErr))
-        / dataErrSq;
-    chi2Def += (dataY - theoryY) * (dataY - theoryY) / dataErrSq;
-    chi2Down += (dataY - (theoryY - theoryErr))
-        * (dataY - (theoryY - theoryErr)) / dataErrSq;
-    ++nBins;
-  }
-  worstChi2 = (chi2Up > chi2Down) ? chi2Up : chi2Down;
-  defaultChi2 = chi2Def;
-  bestChi2 = (chi2Up > chi2Down) ? chi2Down : chi2Up;
-
+  nSigma[0] = nSigmaBest;
+  nSigma[1] = nSigmaDefault;
+  nSigma[2] = nSigmaWorst;
 }
 
 // =========================================
 // Compute per k* bin the 68% variations
-void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
+void EvalError(TNtuple *tuple, const int ikstar, TGraph* histCF,
                TGraphErrors *grOut, bool debugPlot, TString varFolder) {
-  float kVal = histCF->GetBinCenter(iBranches);
-  float CkExp = histCF->GetBinContent(iBranches);
+  double kVal, CFval;
+  histCF->GetPoint(ikstar, kVal, CFval);
 
-  tuple->Draw(Form("delta%u >> h", iBranches));
+  tuple->Draw("modelVal >> h", Form("std::abs(kstar - %.3f) < 1e-3", kVal));
   TH1F* hist = (TH1F*) gROOT->FindObject("h");
 
   double binLow = hist->GetXaxis()->GetBinLowEdge(
-      hist->FindFirstBinAbove(1, 1));
-  double binUp = hist->GetXaxis()->GetBinUpEdge(hist->FindLastBinAbove(1, 1));
+      hist->FindFirstBinAbove(0.1, 1));
+  double binUp = hist->GetXaxis()->GetBinUpEdge(hist->FindLastBinAbove(0.1, 1));
   double DeltaCoulomb = (binLow - binUp) / TMath::Sqrt(12);
-  double CoulombdefVal = (binUp + binLow) / 2.;
+  double DefaultVal = (binUp + binLow) / 2.;
 
   if (debugPlot) {
     auto gr = new TGraphErrors();
     DreamPlot::SetStyleGraph(gr, 20, kRed + 2);
     gr->SetLineWidth(2);
-    gr->SetPoint(0, CoulombdefVal, 1);
+    gr->SetPoint(0, DefaultVal, 1);
     gr->SetPointError(0, std::abs(DeltaCoulomb), 0);
     DreamPlot::SetStyleHisto(hist);
     hist->SetTitle(
@@ -121,15 +90,14 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
     hist->Draw();
     gr->Draw("pez same");
     c->SaveAs(
-        Form("%s/Delta_%s_%i.pdf", varFolder.Data(), tuple->GetName(),
-             iBranches));
+        Form("%s/Delta_%s_%i.pdf", varFolder.Data(), tuple->GetName(), ikstar));
     delete gr;
     delete c;
   }
 
-  //std::cout << CkExp - binLow << " " << CkExp - binUp << " " << CoulombdefVal << "\n";
-  grOut->SetPoint(iBranches - 1, kVal, CkExp - CoulombdefVal);
-  grOut->SetPointError(iBranches - 1, 0, DeltaCoulomb);
+  //std::cout << ikstar << " " << kVal << " " << CFval << " " << DefaultVal << "\n";
+  grOut->SetPoint(ikstar, kVal, DefaultVal);
+  grOut->SetPointError(ikstar, 0, DeltaCoulomb);
 
   delete hist;
 }
@@ -139,12 +107,13 @@ void EvalError(TNtuple *tuple, const int iBranches, TH1F* histCF,
 void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
                std::vector<double> params) {
   bool debugPlots = false;
-  bool fancyPlot = false;
   double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
 
   DreamPlot::SetStyle(false, true);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
   TH1F* CF_Histo;
+  TGraph* CF_Model;
+  TGraph* CF_Sidebands;
 
   TString graphfilename;
   if (potential == 0) {
@@ -182,15 +151,8 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   }
 
   auto file = TFile::Open(graphfilename.Data(), "update");
-  float tupler[tupleLength];
-  auto fit = new TNtuple("fit", "fit",
-                         "delta1:delta2:delta3:delta4:delta5:delta6:"
-                         "delta7:delta8:delta9:delta10:delta11:"
-                         "delta12:delta13:delta14");
-  auto sideband = new TNtuple("sideband", "sideband",
-                              "delta1:delta2:delta3:delta4:delta5:delta6:"
-                              "delta7:delta8:delta9:delta10:delta11:"
-                              "delta12:delta13:delta14");
+  auto fit = new TNtuple("fit", "fit", "kstar:modelVal");
+  auto sideband = new TNtuple("sideband", "sideband", "kstar:modelVal");
 
   auto c1 = new TCanvas("CF_var", "CF_var");
   TIter next(file->GetListOfKeys());
@@ -228,27 +190,29 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       auto Graph = (TGraph*) nextkey->ReadObj();
       TString graphName = Form("%s", Graph->GetName());
 
-      if (graphName.Contains("Sigma0Sideband")) {
+      if (graphName.Contains("SBExtrapolate_")) {
+        CF_Sidebands = Graph;
         c1->cd();
         Graph->SetLineColor(kGray + 2);
         Graph->SetLineStyle(0);
         Graph->Draw("L3same");
-        for (int iPnt = 0; iPnt < tupleLength; ++iPnt) {
-          tupler[iPnt] = CF_Histo->GetBinContent(iPnt + 1)
-              - Graph->Eval(CF_Histo->GetBinCenter(iPnt + 1));
+        double x, y;
+        for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
+          Graph->GetPoint(iPnt, x, y);
+          sideband->Fill(x, y);
         }
-        sideband->Fill(tupler);
       }
 
-      if (graphName.Contains("pSigma0Graph")) {
+      if (graphName.Contains("S0Extrapolate_")) {
+        CF_Model = Graph;
         c1->cd();
         Graph->SetLineColor(kRed + 2);
         Graph->Draw("L3same");
-        for (int iPnt = 0; iPnt < tupleLength; ++iPnt) {
-          tupler[iPnt] = CF_Histo->GetBinContent(iPnt + 1)
-              - Graph->Eval(CF_Histo->GetBinCenter(iPnt + 1));
+        double x, y;
+        for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
+          Graph->GetPoint(iPnt, x, y);
+          fit->Fill(x, y);
         }
-        fit->Fill(tupler);
       }
     }
   }
@@ -288,14 +252,17 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   sideband->Write();
 
   auto resultTuple = (TNtuple*) file->Get("fitResult");
+  std::array<double, 3> nSigma250;
+  std::array<double, 3> nSigma200;
+  std::array<double, 3> nSigma150;
 
   std::cout << "=============\n";
   std::cout << "This is nSigma maker for p-Sigma0 speaking\n";
   std::cout << "I gracefully acknowledge your input\n";
   std::cout << "You have a nice potential, Sir!\n";
-  nSigmaMaker(resultTuple, 250, debugPlots, varFolder, potential);
-  nSigmaMaker(resultTuple, 200, debugPlots, varFolder, potential);
-  nSigmaMaker(resultTuple, 150, debugPlots, varFolder, potential);
+  nSigmaMaker(resultTuple, 250, debugPlots, varFolder, potential, nSigma250);
+  nSigmaMaker(resultTuple, 200, debugPlots, varFolder, potential, nSigma200);
+  nSigmaMaker(resultTuple, 150, debugPlots, varFolder, potential, nSigma150);
   std::cout << "Thanks for your interest in potential " << potential << "\n";
   std::cout << "=============\n";
 
@@ -304,72 +271,11 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   auto grSidebands = new TGraphErrors();
   grSidebands->SetName("CF_sidebands");
 
-  for (int iBranches = 1; iBranches < tupleLength + 1; ++iBranches) {
-    EvalError(fit, iBranches, CF_Histo, grCF, debugPlots, varFolder);
-    EvalError(sideband, iBranches, CF_Histo, grSidebands, debugPlots,
-              varFolder);
-  }
-
-  // in case we're running the exclusion task, we're interested in the best/worst chi2 for a given set of scattering parameters
-  double bestChi2, defaultChi2, worstChi2;
-  int nBins = 0;
-  ComputeChi2(CF_Histo, grCF, bestChi2, defaultChi2, worstChi2, nBins, 250);
-
-  if (potential == 0) {
-    auto fitTuple = (TNtuple*) file->Get("fitResult");
-
-    TString resultfilename = TString::Format("%s/Result_%.3f_%.3f_%.3f.root",
-                                             varFolder.Data(), d0, REf0inv,
-                                             IMf0inv);
-    auto resultFile = TFile::Open(resultfilename.Data(), "recreate");
-    TNtuple* ntResult = new TNtuple(
-        "exclusion", "exclusion",
-        "CFneg:d0:REf0inv:IMf0inv:bestChi2:defChi2:worstChi2");
-
-    Float_t ntBuffer[7];
-    fitTuple->Draw("CFneg >> h");
-    TH1F* hist = (TH1F*) gROOT->FindObject("h");
-    ntBuffer[0] = hist->GetMean();
-    ntBuffer[1] = d0;
-    ntBuffer[2] = REf0inv;
-    ntBuffer[3] = IMf0inv;
-    ntBuffer[4] = bestChi2;
-    ntBuffer[5] = defaultChi2;
-    ntBuffer[6] = worstChi2;
-
-    ntResult->Fill(ntBuffer);
-    ntResult->Write();
-    resultFile->Close();
-  } else if (potential == 1) {
-    auto fitTuple = (TNtuple*) file->Get("fitResult");
-
-    TString resultfilename = TString::Format(
-        "%s/Result_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.root", varFolder.Data(),
-        deltap0, deltap1, deltap2, etap0, etap1, etap2);
-    auto resultFile = TFile::Open(resultfilename.Data(), "recreate");
-    TNtuple* ntResult =
-        new TNtuple(
-            "exclusion",
-            "exclusion",
-            "CFneg:deltap0:deltap1:deltap2:etap0:etap1:etap2:bestChi2:defChi2:worstChi2");
-
-    Float_t ntBuffer[10];
-    fitTuple->Draw("CFneg >> h");
-    TH1F* hist = (TH1F*) gROOT->FindObject("h");
-    ntBuffer[0] = hist->GetMean();
-    ntBuffer[1] = deltap0;
-    ntBuffer[2] = deltap1;
-    ntBuffer[3] = deltap2;
-    ntBuffer[4] = etap0;
-    ntBuffer[5] = etap1;
-    ntBuffer[6] = etap2;
-    ntBuffer[7] = bestChi2;
-    ntBuffer[8] = defaultChi2;
-    ntBuffer[9] = worstChi2;
-
-    ntResult->Fill(ntBuffer);
-    ntResult->Write();
-    resultFile->Close();
+  double x, y;
+  for (int ikstar = 0; ikstar < CF_Model->GetN(); ++ikstar) {
+    CF_Model->GetPoint(ikstar, x, y);
+    EvalError(fit, ikstar, CF_Model, grCF, debugPlots, varFolder);
+    EvalError(sideband, ikstar, CF_Model, grSidebands, debugPlots, varFolder);
   }
 
   file->cd();
@@ -388,45 +294,22 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   grSidebands->SetLineColorAlpha(kBlack, 0.0);
   TLatex BeamText;
   BeamText.SetNDC(kTRUE);
-  if (!fancyPlot) {
-    BeamText.SetTextSize(0.8 * gStyle->GetTextSize());
-    if (potential == 0) {
-      BeamText.DrawLatex(0.45, 0.8, TString::Format("d_{0} = %.3f fm", d0));
-      BeamText.DrawLatex(
-          0.45, 0.73,
-          TString::Format("#Rgothic(f_{0}^{-1}) = %.3f fm^{-1}", REf0inv));
-      BeamText.DrawLatex(
-          0.45, 0.66,
-          TString::Format("#Jgothic(f_{0}^{-1}) = %.3f fm^{-1}", IMf0inv));
-    } else if (potential == 1) {
-      BeamText.DrawLatex(0.3, 0.8, "Phase shift");
-      BeamText.DrawLatex(
-          0.3, 0.73,
-          TString::Format("%.2f, %.4f, %.6f", deltap0, deltap1, deltap2));
-      BeamText.DrawLatex(0.3, 0.66, "Elasticity");
-      BeamText.DrawLatex(
-          0.3, 0.59, TString::Format("%.2f, %.4f, %.6f", etap0, etap1, etap2));
-    }
-    BeamText.DrawLatex(0.7, 0.8,
-                       TString::Format("#chi^{2}_{best} = %.3f", bestChi2));
-    BeamText.DrawLatex(0.7, 0.73,
-                       TString::Format("#chi^{2}_{def} = %.3f", defaultChi2));
-    BeamText.DrawLatex(0.7, 0.66,
-                       TString::Format("#chi^{2}_{worst} = %.3f", worstChi2));
-  } else {
-    BeamText.SetTextSize(gStyle->GetTextSize());
-    BeamText.DrawLatex(0.525, 0.8, "ALICE ");
-    BeamText.DrawLatex(0.525, 0.75, "pp #sqrt{s} = 13 TeV HM");
-    auto leg = new TLegend(0.51, 0.53, 0.85, 0.73);
-    leg->SetBorderSize(0);
-    leg->SetTextFont(42);
-    leg->SetTextSize(gStyle->GetTextSize());
-    leg->AddEntry(CF_Histo, "p#Sigma^{0} #oplus #bar{p}#bar{#Sigma}^{0}", "pe");
-    leg->AddEntry(grSidebands, "Background", "f");
-    leg->AddEntry(grCF, "Femtoscopic fit", "f");
-    leg->Draw("same");
-  }
-
+  BeamText.SetTextSize(0.8 * gStyle->GetTextSize());
+  BeamText.DrawLatex(
+      0.6,
+      0.8,
+      TString::Format("n#sigma_{250} = %.1f / %.1f / %.1f", nSigma250[0],
+                      nSigma250[1], nSigma250[2]));
+  BeamText.DrawLatex(
+      0.6,
+      0.73,
+      TString::Format("n#sigma_{200} = %.1f / %.1f / %.1f", nSigma200[0],
+                      nSigma200[1], nSigma200[2]));
+  BeamText.DrawLatex(
+      0.6,
+      0.66,
+      TString::Format("n#sigma_{150} = %.1f / %.1f / %.1f", nSigma150[0],
+                      nSigma150[1], nSigma150[2]));
   if (debugPlots) {
     if (potential == 0) {
       c->Print(

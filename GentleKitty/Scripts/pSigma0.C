@@ -182,15 +182,25 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Set up the CATS ranges, lambda parameters, etc.
-  const int binwidth = 10;
-  int NumMomBins_pSigma = int(800 / binwidth);
-  double kMin_pSigma = dataHist->GetBinCenter(1) - binwidth / 2.f;
+  const int binwidth = dataHist->GetBinWidth(1);
+  int NumMomBins_pSigma = int(600 / binwidth);
+  double kMin_pSigma = dataHist->GetBinCenter(1) - binwidth / 2.;
   double kMax_pSigma = kMin_pSigma + binwidth * NumMomBins_pSigma;
+  int NumMomBins_pSigma_draw = 25;
+  double kMin_pSigma_draw = -9.99;
+  double kMax_pSigma_draw = 490.01;
+  const float drawBinWidth = float(kMax_pSigma_draw - kMin_pSigma_draw)
+      / float(NumMomBins_pSigma_draw);
 
-  std::cout << "kMin_pSigma: " << kMin_pSigma << std::endl;
-  std::cout << "kMax_pSigma: " << kMax_pSigma << std::endl;
+  std::cout << "kMin: " << kMin_pSigma << std::endl;
+  std::cout << "kMax: " << kMax_pSigma << std::endl;
   std::cout << "Binwidth: " << binwidth << std::endl;
-  std::cout << "NumMomBins_pSigma: " << NumMomBins_pSigma << std::endl;
+  std::cout << "NumMomBins: " << NumMomBins_pSigma << std::endl;
+  std::cout << "DRAWING\n";
+  std::cout << "kMin: " << kMin_pSigma_draw << std::endl;
+  std::cout << "kMax: " << kMax_pSigma_draw << std::endl;
+  std::cout << "NumMomBins: " << NumMomBins_pSigma_draw << std::endl;
+  std::cout << "Binwidth : " << drawBinWidth << std::endl;
 
   // pp radius systematic variations
   const double resonancesRadius = 1.124;
@@ -308,10 +318,10 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     std::cout << "Number of variations of the fit region: "
               << femtoFitRegionUp.size() << "\n";
     PrintVars(femtoFitRegionUp);
-    std::cout << "Number of variations of the baseline:   " << prefit_a_Default.size()
-        << "\n";
-    PrintVars (prefit_a_Default);
-    PrintVars (prefit_b_Default);
+    std::cout << "Number of variations of the baseline:   "
+              << prefit_a_Default.size() << "\n";
+    PrintVars(prefit_a_Default);
+    PrintVars(prefit_b_Default);
     std::cout << "Number of variations of the source size : "
               << sourceSize.size() << "\n";
     PrintVars(sourceSize);
@@ -327,13 +337,18 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
   // Set up the model, fitter, etc.
   DLM_Ck* Ck_pSigma0;
+  DLM_Ck* Ck_pSigma0_draw;
   CATS AB_pSigma0;
+  CATS AB_pSigma0_draw;
   if (potential == 0) {  //  Effective Lednicky with scattering parameters
     std::cout << "Running with scattering parameters - d0 = " << d0
               << " fm - Re(f0^-1) = " << REf0inv << " fm^-1 - Im(f0^-1) = "
               << IMf0inv << "\n";
     Ck_pSigma0 = new DLM_Ck(1, 3, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             ComplexLednicky_Singlet_InvScatLen);
+    Ck_pSigma0_draw = new DLM_Ck(1, 3, NumMomBins_pSigma_draw, kMin_pSigma_draw,
+                                 kMax_pSigma_draw,
+                                 ComplexLednicky_Singlet_InvScatLen);
   } else if (potential == 1) {  // Effective Lednicky with delta/eta
     std::cout << "Running with delta/eta parametrization \n";
     std::cout << "Delta: " << deltap0 << " " << deltap1 << " " << deltap2
@@ -341,10 +356,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     std::cout << "Eta  : " << etap0 << " " << etap1 << " " << etap2 << "\n";
     Ck_pSigma0 = new DLM_Ck(1, 6, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             LednickySingletScatAmplitude);
+    Ck_pSigma0_draw = new DLM_Ck(1, 6, NumMomBins_pSigma_draw, kMin_pSigma_draw,
+                                 kMax_pSigma_draw,
+                                 LednickySingletScatAmplitude);
   } else if (potential == 2) {  // Lednicky coupled channel model fss2
     std::cout << "Running with coupled Lednicky \n";
     Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             Lednicky_gauss_Sigma0);
+    Ck_pSigma0_draw = new DLM_Ck(1, 0, NumMomBins_pSigma_draw, kMin_pSigma_draw,
+                                 kMax_pSigma_draw, Lednicky_gauss_Sigma0);
   } else if (potential == 3) {  // Haidenbauer WF
     std::cout << "Running with the Haidenbauer chiEFT potential \n";
     // Haidenbauer is valid up to 350 MeV, therefore we have to adopt
@@ -358,8 +378,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                               kMin_pSigma, kMax_pSigma_Haidenbauer,
                               TidyCats::sGaussian,
                               TidyCats::pSigma0Haidenbauer);
+
+    tidy->GetCatsProtonSigma0(&AB_pSigma0_draw, NumMomBins_pSigma_draw,
+                              kMin_pSigma_draw, kMax_pSigma_draw,
+                              TidyCats::sGaussian,
+                              TidyCats::pSigma0Haidenbauer);
     AB_pSigma0.KillTheCat();
+    AB_pSigma0_draw.KillTheCat();
     Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
+    Ck_pSigma0_draw = new DLM_Ck(1, 0, AB_pSigma0_draw);
   }
 
   float counter = 0;
@@ -457,10 +484,18 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                                            kMin_pSigma, kMax_pSigma,
                                            sidebandFitCATS);
 
+          DLM_Ck* Ck_SideBand_draw = new DLM_Ck(0, nSidebandPars,
+                                                NumMomBins_pSigma_draw,
+                                                kMin_pSigma_draw,
+                                                kMax_pSigma_draw,
+                                                sidebandFitCATS);
+
           for (unsigned i = 0; i < sideband->GetNumberFreeParameters(); ++i) {
             Ck_SideBand->SetPotPar(i, sideband->GetParameter(i));
+            Ck_SideBand_draw->SetPotPar(i, sideband->GetParameter(i));
           }
           Ck_SideBand->Update();
+          Ck_SideBand_draw->Update();
 
           std::cout
               << "\r Processing progress: "
@@ -478,14 +513,24 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               /// Correlation function
               Ck_pSigma0->SetSourcePar(0, sourceSize[sizeIter]);
               Ck_pSigma0->Update();
+              Ck_pSigma0_draw->SetSourcePar(0, sourceSize[sizeIter]);
+              Ck_pSigma0_draw->Update();
 
               DLM_CkDecomposition CkDec_pSigma0("pSigma0", 2, *Ck_pSigma0,
                                                 CATSinput->GetSigmaFile(1));
+
+              DLM_CkDecomposition CkDec_pSigma0_draw(
+                  "pSigma0Draw", 2, *Ck_pSigma0_draw,
+                  CATSinput->GetSigmaFile(1));
 
               /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
               DLM_CkDecomposition CkDec_SideBand("pSigma0SideBand", 0,
                                                  *Ck_SideBand, nullptr);
+
+              DLM_CkDecomposition CkDec_SideBand_draw("pSigma0SideBandDraw", 0,
+                                                      *Ck_SideBand_draw,
+                                                      nullptr);
               const float sidebandContr = lambdaParams[lambdaIter]
                   .GetLambdaParam(CATSLambdaParam::Primary,
                                   CATSLambdaParam::Fake, 0, 0);
@@ -499,6 +544,14 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                                             1.f - sidebandContr - primaryContr,
                                             DLM_CkDecomposition::cFeedDown);
               CkDec_pSigma0.Update();
+
+              CkDec_pSigma0_draw.AddContribution(0, sidebandContr,
+                                                 DLM_CkDecomposition::cFake,
+                                                 &CkDec_SideBand_draw);
+              CkDec_pSigma0_draw.AddContribution(
+                  1, 1.f - sidebandContr - primaryContr,
+                  DLM_CkDecomposition::cFeedDown);
+              CkDec_pSigma0_draw.Update();
 
               /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
               /// Fitter
@@ -587,6 +640,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 if (mom != theoryX) {
                   std::cerr << "PROBLEM Sigma0 " << mom << '\t' << theoryX
                             << std::endl;
+                  return;
                 }
                 dataY = currentHist->GetBinContent(uBin);
                 dataErr = currentHist->GetBinError(uBin);
@@ -625,6 +679,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
               /// Write out all the stuff
 
+              TGraph grCFSigmaExtrapolate;
+              grCFSigmaExtrapolate.SetName(Form("S0Extrapolate_%i", iterID));
               TGraph grCFSigmaRaw;
               grCFSigmaRaw.SetName(Form("Sigma0Raw_%i", iterID));
               TGraph grCFSigmaMain;
@@ -633,9 +689,31 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               grCFSigmaFeed.SetName(Form("Sigma0Feed_%i", iterID));
               TGraph grCFSigmaSideband;
               grCFSigmaSideband.SetName(Form("Sigma0Sideband_%i", iterID));
+              TGraph grCFSigmaSidebandExtrapolate;
+              grCFSigmaSidebandExtrapolate.SetName(
+                  Form("SBExtrapolate_%i", iterID));
 
-              for (unsigned int i = 0; i < Ck_pSigma0->GetNbins(); ++i) {
-                const float mom = Ck_pSigma0->GetBinCenter(0, i);
+              for (int i = 0; i < NumMomBins_pSigma_draw; ++i) {
+                const float mom = Ck_pSigma0_draw->GetBinCenter(0, i);
+                const float baseline = bl_a + bl_b * mom;
+                float cf = CkDec_pSigma0_draw.EvalCk(mom);
+                grCFSigmaExtrapolate.SetPoint(
+                    i, mom, CkDec_pSigma0_draw.EvalCk(mom) * baseline);
+              }
+
+              for (int i = 0; i < Ck_SideBand_draw->GetNbins(); ++i) {
+                const float mom = Ck_SideBand_draw->GetBinCenter(0, i);
+                const float baseline = bl_a + bl_b * mom;
+                grCFSigmaSidebandExtrapolate.SetPoint(
+                    i,
+                    mom,
+                    (((Ck_SideBand_draw->Eval(mom) - 1.) * sidebandContr) + 1)
+                        * baseline);
+              }
+
+              double mom, ck;
+              for (unsigned int i = 0; i < FitResult_pSigma0.GetN(); ++i) {
+                FitResult_pSigma0.GetPoint(i, mom, ck);
                 const float baseline = bl_a + bl_b * mom;
                 grCFSigmaRaw.SetPoint(i, mom,
                                       CkDec_pSigma0.EvalCk(mom) * baseline);
@@ -681,6 +759,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 dataHist->Write();
               }
 
+              grCFSigmaExtrapolate.Write();
+              grCFSigmaSidebandExtrapolate.Write();
               grCFSigmaSideband.Write();
               FitResult_pSigma0.Write(Form("Fit_%i", iterID));
               currentHist->SetName(
@@ -848,6 +928,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
             }
           }
           delete sideband;
+          delete Ck_SideBand_draw;
           delete Ck_SideBand;
         }
       }
@@ -863,6 +944,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   delete ntResult;
   delete param;
   delete tidy;
+  std::cout << "\n";
   return;
 }
 
