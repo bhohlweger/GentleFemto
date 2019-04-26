@@ -285,7 +285,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(ledniband, kRed, 0, 0, 3252, true);
+      fProtonSigma->FemtoModelFitBands(ledniband, kAzure, 0, 0, 3252, true);
     }
   } else {
     std::cout << "No Lednicky file!  \n";
@@ -302,7 +302,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else {
       fProtonSigma->FemtoModelFitBands(haidenbauerband, kGreen + 2, 0, 0, 3225,
                                        true);
-      fProtonSigma->FemtoModelFitBands(sideband, kBlack, 0.6, true);
+      fProtonSigma->FemtoModelFitBands(sideband, kBlack, 0.4, true);
     }
   } else {
     std::cout << "No Haidenbauer file!  \n";
@@ -476,7 +476,7 @@ void DreamPlot::DrawCorrelationFunctions() {
 
 void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   SetStyle();
-  gStyle->SetHatchesSpacing(0.95);
+  gStyle->SetHatchesSpacing(1.2);
   const float right = 0.025;
   const float top = 0.025;
   TLatex ref;
