@@ -24,6 +24,12 @@ class DreamSystematics {
     pL = 3
   };
 
+  enum Estimator {
+    Uniform = 0,
+    StdDev = 1,
+    WeightedStdDev = 2
+  };
+
   DreamSystematics();
   DreamSystematics(Pair pair);
   virtual ~DreamSystematics() = default;
@@ -75,6 +81,10 @@ class DreamSystematics {
     return pairName[fParticlePairMode];
   }
 
+  void SetEstimator(Estimator est) {
+    fErrorEstimator = est;
+  }
+
   TH1F* GetAbsError(TH1F* histDefault, TH1F* histVar) const;
   TH1F* GetErrorBudget(TH1F* histDefault, TH1F* histVar) const;
   TH1F* GetBarlow(TH1F* histDefault, TH1F* histVar);
@@ -90,7 +100,8 @@ class DreamSystematics {
   void EvalDifferenceInPurity();
   void ComputeUncertainty();
   void WriteOutput();
-  void WriteOutput(TFile* file, std::vector<TH1F*>& histvec,
+  template <typename T>
+  void WriteOutput(TFile* file, std::vector<T*>& histvec,
                    const TString name);
   void FixStyle(TH1F* histCF) const;
 
@@ -99,6 +110,7 @@ class DreamSystematics {
   float fSystematicFitRangeUp;
   float fBarlowUpperRange;
   Pair fParticlePairMode;
+  Estimator fErrorEstimator;
   TH1F *fHistDefault;
   TH1F *fHistSystErrAbs;
   TH1F *fHistSystErrRel;
@@ -108,7 +120,7 @@ class DreamSystematics {
   std::vector<TH1F*> fHistAbsErr;
   std::vector<TH1F*> fHistErrBudget;
   std::vector<TH1F*> fHistBarlow;
-  std::vector<TH1F*> fHistKstar;
+  std::vector<TH1D*> fHistKstar;
   TNtuple *fCutTuple;
   std::vector<TString> fBarlowLabel;
 
