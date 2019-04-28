@@ -235,7 +235,7 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
     invMasspTBin->GetXaxis()->SetTitle(
         Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
     //invMasspTBin->GetXaxis()->SetMaxDigits(2);
-    invMasspTBin->GetXaxis()->SetNdivisions(420);
+    invMasspTBin->GetXaxis()->SetNdivisions(505);
     //invMasspTBin->GetYaxis()->SetMaxDigits(3);
     invMasspTBin->GetYaxis()->SetNdivisions(210);
     fHairyPlotter->FormatSmallHistogram(invMasspTBin, 0, 0, 0.7);
