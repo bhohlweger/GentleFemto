@@ -273,13 +273,17 @@ int main(int argc, char* argv[]) {
                             TidyCats::pSigma0Haidenbauer);
   Kitty.KillTheCat();
   auto Ck_Haidenbauer = new DLM_Ck(1, 0, Kitty);
+  Ck_Haidenbauer->SetSourcePar(0, radius[0]);
+  Ck_Haidenbauer->Update();
 
   // ESC16
   CATS KittyESC16;
-  tidy->GetCatsProtonSigma0(&KittyESC16, momBins, kmin, kmax, TidyCats::sGaussian,
-                            TidyCats::pSigma0ESC16);
+  tidy->GetCatsProtonSigma0(&KittyESC16, momBins, kmin, kmax,
+                            TidyCats::sGaussian, TidyCats::pSigma0ESC16);
   KittyESC16.KillTheCat();
   auto Ck_ESC16 = new DLM_Ck(1, 0, KittyESC16);
+  Ck_ESC16->SetSourcePar(0, radius[0]);
+  Ck_ESC16->Update();
 
   // Haidenbauer with resonances
   CATS ResonantKitty;
@@ -289,6 +293,7 @@ int main(int argc, char* argv[]) {
   auto Ck_ResonantHaidenbauer = new DLM_Ck(1, 0, ResonantKitty);
   Ck_ResonantHaidenbauer->SetSourcePar(0, 0.72);
   Ck_ResonantHaidenbauer->Update();
+
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Smearing
   auto grTotalHaidenbauerSmeared = new TGraph();
@@ -302,8 +307,6 @@ int main(int argc, char* argv[]) {
   grTotalLednickySmeared->SetLineWidth(2);
   grTotalLednickySmeared->SetLineStyle(2);
 
-  Ck_Haidenbauer->SetSourcePar(0, radius[0]);
-  Ck_Haidenbauer->Update();
   DLM_CkDecomposition CkDec_Haidenbauer("pSigma0Haidenbauer", 1,
                                         *Ck_Haidenbauer,
                                         CATSinput->GetSigmaFile(1));
@@ -371,7 +374,6 @@ int main(int argc, char* argv[]) {
     grTotalLednickyLambda->SetPoint(i, mom, CkDec_Lednicky.EvalCk(mom));
   }
 
-
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Correlation functions
 
@@ -408,13 +410,14 @@ int main(int argc, char* argv[]) {
   grTotalESC16->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
   DreamPlot::SetStyleGraph(grTotalESC16, 20, kBlack);
   grTotalESC16->SetLineWidth(2);
-  auto grSingletESC16= new TGraph();
+  auto grSingletESC16 = new TGraph();
   grSingletESC16->SetLineWidth(2);
   grSingletESC16->SetLineStyle(2);
   DreamPlot::SetStyleGraph(grSingletESC16, 20, kRed + 2);
   auto grTripletESC16 = new TGraph();
   grTripletESC16->SetLineWidth(2);
   grTripletESC16->SetLineStyle(2);
+  DreamPlot::SetStyleGraph(grTripletESC16, 20, kBlue + 2);
 
   double cf_singletLednicky, cf_tripletLednicky;
   for (unsigned int i = 0; i < Ck_Lednicky->GetNbins(); ++i) {
@@ -450,34 +453,34 @@ int main(int argc, char* argv[]) {
   Kitty.SetChannelWeight(1, 1);
   Kitty.KillTheCat();
   for (unsigned int i = 0; i < Ck_Haidenbauer->GetNbins(); ++i) {
-    const float mom = Kitty.GetMomentum(i);
-    grTripletHaidenbauer->SetPoint(i, mom, Kitty.GetCorrFun(i));
+    grTripletHaidenbauer->SetPoint(i, Kitty.GetMomentum(i),
+                                   Kitty.GetCorrFun(i));
   }
 
   for (unsigned int i = 0; i < Ck_ResonantHaidenbauer->GetNbins(); ++i) {
-    const float mom = ResonantKitty.GetMomentum(i);
-    grTotalResonantHaidenbauer->SetPoint(i, mom, ResonantKitty.GetCorrFun(i));
+    grTotalResonantHaidenbauer->SetPoint(i, Kitty.GetMomentum(i),
+                                         ResonantKitty.GetCorrFun(i));
   }
 
   for (unsigned int i = 0; i < KittyESC16.GetNumMomBins(); ++i) {
-    const float mom = KittyESC16.GetMomentum(i);
-    grTotalESC16->SetPoint(i, mom, KittyESC16.GetCorrFun(i));
+    grTotalESC16->SetPoint(i, KittyESC16.GetMomentum(i),
+                           KittyESC16.GetCorrFun(i));
   }
   KittyESC16.SetChannelWeight(0, 0);
   KittyESC16.SetChannelWeight(1, 0);
   KittyESC16.SetChannelWeight(0, 1);
   KittyESC16.KillTheCat();
   for (unsigned int i = 0; i < KittyESC16.GetNumMomBins(); ++i) {
-    const float mom = KittyESC16.GetMomentum(i);
-    grSingletESC16->SetPoint(i, mom, KittyESC16.GetCorrFun(i));
+    grSingletESC16->SetPoint(i, KittyESC16.GetMomentum(i),
+                             KittyESC16.GetCorrFun(i));
   }
   KittyESC16.SetChannelWeight(0, 0);
   KittyESC16.SetChannelWeight(1, 0);
   KittyESC16.SetChannelWeight(1, 1);
   KittyESC16.KillTheCat();
   for (unsigned int i = 0; i < KittyESC16.GetNumMomBins(); ++i) {
-    const float mom = KittyESC16.GetMomentum(i);
-    grTripletESC16->SetPoint(i, mom, KittyESC16.GetCorrFun(i));
+    grTripletESC16->SetPoint(i, KittyESC16.GetMomentum(i),
+                             KittyESC16.GetCorrFun(i));
   }
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
