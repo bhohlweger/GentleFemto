@@ -203,9 +203,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   std::cout << "Binwidth : " << drawBinWidth << std::endl;
 
   // pp radius systematic variations
-  const double resonancesRadius = 1.124;
-  const double radiusLower = 0.9 * resonancesRadius;  // for now assume +/- 10 %
-  const double radiusUpper = 1.1 * resonancesRadius;  // for now assume +/- 10 %
+  const double resonancesRadius = 1.148;
+  const double radiusLower = 1.115;
+  const double radiusUpper = 1.183;
   const std::vector<double> sourceSize = { { resonancesRadius, radiusLower,
       radiusUpper } };
 

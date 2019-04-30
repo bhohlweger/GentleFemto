@@ -310,19 +310,16 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       0.66,
       TString::Format("n#sigma_{150} = %.1f / %.1f / %.1f", nSigma150[0],
                       nSigma150[1], nSigma150[2]));
-  if (debugPlots) {
-    if (potential == 0) {
-      c->Print(
-          Form("%s/CF_pSigma_fit_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
-               REf0inv, IMf0inv));
-    } else if (potential == 1) {
-      c->Print(
-          Form("%s/CF_pSigma_fit_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
-               varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1,
-               etap2));
-    } else {
-      c->Print(Form("%s/CF_pSigma_fit_%i.pdf", varFolder.Data(), potential));
-    }
+  if (potential == 0) {
+    c->Print(
+        Form("%s/CF_pSigma_fit_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
+             REf0inv, IMf0inv));
+  } else if (potential == 1) {
+    c->Print(
+        Form("%s/CF_pSigma_fit_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
+             varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1, etap2));
+  } else {
+    c->Print(Form("%s/CF_pSigma_fit_%i.pdf", varFolder.Data(), potential));
   }
   c->Write();
   grCF->Write();

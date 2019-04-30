@@ -180,6 +180,8 @@ double Lednicky_gauss_Sigma0(const double& Momentum, const double* SourcePar,
 
 /// =====================================================================================
 void SourcePlay() {
+  const double rCore = 0.743;
+
   const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
   const double massSigma0 = TDatabasePDG::Instance()->GetParticle(3212)->Mass()
@@ -201,7 +203,7 @@ void SourcePlay() {
 
   CATS cats;
   cats.SetAnaSource(CatsSourceForwarder, CleverMcLevyReso, 2);
-  cats.SetAnaSource(0, 0.72);  // this is the radius for this mT
+  cats.SetAnaSource(0, rCore);  // this is the radius for this mT
   cats.SetAnaSource(1, 2.0);
 
   auto grSource = new TGraph();
@@ -231,16 +233,18 @@ void SourcePlay() {
   grSource->Draw("AL");
   grSource->GetXaxis()->SetRangeUser(0, 12);
   grSource->Fit(gaussFit, "", "RQ", 0, 6);
-  auto leg = new TLegend(0.4, 0.7, 0.85, 0.85);
+  auto leg = new TLegend(0.4, 0.63, 0.85, 0.85);
   leg->SetTextFont(42);
   leg->AddEntry(grSource,
                 "p#minus#Sigma^{0} #LT #it{m}_{T} #GT = 2.07 GeV/#it{c}^{2}",
                 "l");
+  leg->AddEntry((TObject*) nullptr, Form("#it{r}_{core} = %.3f fm", rCore), "");
   leg->AddEntry(
       gaussFit,
       Form("Gauss fit #it{r}_{G, eff} = %.3f fm", gaussFit->GetParameter(0)),
       "l");
   leg->Draw("same");
+
   c->Print("ResonanceSource.pdf");
 }
 
@@ -248,7 +252,7 @@ void SourcePlay() {
 int main(int argc, char* argv[]) {
   DreamPlot::SetStyle();
   double* radius = new double[1];
-  radius[0] = 1.124;
+  radius[0] = 1.148;
 
   SourcePlay();
 

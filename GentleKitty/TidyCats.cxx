@@ -622,7 +622,7 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
                                       massSigma0, massPion);
       fpSigma0CleverMcLevy->InitNumMcIter(1000000);
       AB_pSigma0->SetAnaSource(CatsSourceForwarder, fpSigma0CleverMcLevy, 2);
-      AB_pSigma0->SetAnaSource(0, 0.72);  //r0
+      AB_pSigma0->SetAnaSource(0, 0.743);  //r0
       AB_pSigma0->SetAnaSource(1, 2.0);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
       break;
     default:
