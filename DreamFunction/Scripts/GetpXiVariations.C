@@ -84,8 +84,10 @@ void ProcessVariation(ReadDreamFile* DreamFile, TCanvas* c1) {
   pXi->ShiftForEmpty(pXi->GetPair());
   ApAXi->ShiftForEmpty(ApAXi->GetPair());
 
-  pXi->FixShift(pXi->GetPairShiftedEmpty(0), ApAXi->GetPairShiftedEmpty(0), ApAXi->GetFirstBin());
-  ApAXi->FixShift(ApAXi->GetPairShiftedEmpty(0), pXi->GetPairShiftedEmpty(0), pXi->GetFirstBin());
+  pXi->FixShift(pXi->GetPairShiftedEmpty(0), ApAXi->GetPairShiftedEmpty(0),
+                ApAXi->GetFirstBin());
+  ApAXi->FixShift(ApAXi->GetPairShiftedEmpty(0), pXi->GetPairShiftedEmpty(0),
+                  pXi->GetFirstBin());
 
 //  pXi->FixShift(pXi->GetPair(), nullptr, 0.008, true);
 //  ApAXi->FixShift(ApAXi->GetPair(), nullptr, 0.008, true);
@@ -135,8 +137,7 @@ void SystematicLimits(TH1F* lower, TH1F* upper, TH1F* def, TCanvas *c1) {
   }
   for (int ikS = 1; ikS <= def->FindBin(500); ++ikS) {
     float cK = def->GetBinContent(ikS);
-    float err = cK
-                * RelSyst->Eval(def->GetBinCenter(ikS) / 1000.);
+    float err = cK * RelSyst->Eval(def->GetBinCenter(ikS) / 1000.);
     lower->SetBinContent(ikS, cK - err);
     lower->SetBinError(ikS, 1e-5);
     upper->SetBinContent(ikS, cK + err);
@@ -208,15 +209,18 @@ int main(int argc, char* argv[]) {
   const char* prefix = argv[2];
 //  std::vector<int> varsNumbers = { 1 };
   std::vector<int> varsNumbers =
-      { 1, 2, 3, 4, 5, 6, 7, 8, 9, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-          30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42 };
+      { 1, 2, 4, 5, 9, 11, 12, 14, 15, 17, 18, 19, 21, 22, 23, 24, 25, 27, 29,
+          31, 32, 33, 34, 35, 37, 39, 40, 41, 42, 43, 44 };
   TH1F* upper;
   TH1F* lower;
   auto c1 = new TCanvas();
-  TFile* inFake = TFile::Open(
+  TFile* inFake =
+      TFile::Open(
 //      "~/cernbox/pPb/v0offlineFix/woDetadPhi/HEP/CFOutput_pXi.root","read");
-      "~/cernbox/HM13TeV/AnalysisData/ClosePairRej/SelectedPairs/CFOutput_pXi.root","read");
-  TH1F* cfDef = (TH1F*) (inFake->Get("hCk_ReweightedMeV_1")->Clone("hCk_ReweightedMeV_0"));
+          "~/cernbox/HM13TeV/AnalysisData/ClosePairRej/SelectedPairs/CFOutput_pXi.root",
+          "read");
+  TH1F* cfDef = (TH1F*) (inFake->Get("hCk_ReweightedMeV_1")->Clone(
+      "hCk_ReweightedMeV_0"));
   cfDef->SetName("hCk_ReweightedMeV_0");
   cfDef->SetTitle("hCk_ReweightedMeV_0");
   cfDef->SetLineColor(kPink);
@@ -225,14 +229,14 @@ int main(int argc, char* argv[]) {
     ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
     DreamFile->SetQuite();
     DreamFile->SetAnalysisFile(filename, prefix, TString::Format("%u", it));
-    ProcessVariation(DreamFile,c1);
+    ProcessVariation(DreamFile, c1);
   }
 
 //  SystematicLimits(lower,upper,cfDef,c1);
   c1->cd();
   cfDef->Draw("SAME");
   TFile* defFile = TFile::Open(
-      TString::Format("%s/CFpXiVariations_34.root", gSystem->pwd()),
+      TString::Format("%s/CFpXiVariations_32.root", gSystem->pwd()),
       "RECREATE");
   defFile->cd();
   cfDef->Write();
