@@ -285,7 +285,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(ledniband, kAzure, 0, 0, 3252, true);
+      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0, 0, 3205, true);
     }
   } else {
     std::cout << "No Lednicky file!  \n";
@@ -297,7 +297,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!haidenbauerband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(haidenbauerband, kGreen + 2, 0, 0, 3225,
+      fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure, 0, 0, 3325,
                                        true);
     }
   } else {
@@ -313,9 +313,9 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else if (!sideband) {
       std::cout << "No sideband \n";
     } else {
-//      fProtonSigma->FemtoModelFitBands(esc16band, kOrange + 2, 0, 0, 3305,
-//                                       true);
-      fProtonSigma->FemtoModelFitBands(sideband, kBlack, 0.4, true);
+      fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0, 0, 3352,
+                                       true);
+      fProtonSigma->FemtoModelFitBands(sideband, kGray + 2, 0.5, true);
     }
   } else {
     std::cout << "No ESC16 file!  \n";
@@ -489,15 +489,9 @@ void DreamPlot::DrawCorrelationFunctions() {
 
 void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   SetStyle();
-  gStyle->SetHatchesSpacing(1.2);
+  gStyle->SetHatchesSpacing(0.9);
   const float right = 0.025;
   const float top = 0.025;
-  TLatex ref;
-  ref.SetTextSize(gStyle->GetTextSize() * 0.4);
-  ref.SetNDC(kTRUE);
-  TLatex Numbering;
-  Numbering.SetTextSize(gStyle->GetTextSize() * 1.3);
-  Numbering.SetNDC(kTRUE);
   auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 550);
   c->SetRightMargin(right);
   c->SetTopMargin(top);
@@ -505,15 +499,16 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
       "p#minus#Sigma^{0} #oplus #bar{p}#minus#bar{#Sigma^{0}}", "fpe");
   fProtonSigma->SetLegendName("Lednicky coupled channel", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
-//  fProtonSigma->SetLegendName("ESC16", "fl");
-  fProtonSigma->SetLegendName("p-#Sigma^{0} sideband background", "l");
-  fProtonSigma->SetRangePlotting(0, 450, 0.9, 1.6);
+  fProtonSigma->SetLegendName("ESC16", "fl");
+  fProtonSigma->SetLegendName("p-#Sigma^{0} background", "l");
+  fProtonSigma->SetRangePlotting(0, 450, 0.925, 1.5);
   fProtonSigma->SetNDivisions(505);
+  const float upperY = 0.79;
   fProtonSigma->SetLegendCoordinates(
-      0.45, 0.71 - 0.09 * fProtonSigma->GetNumberOfModels(), 0.7, 0.8);
+      0.45, upperY - 0.09 * fProtonSigma->GetNumberOfModels(), 0.7, upperY);
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
-  fProtonSigma->DrawCorrelationPlot(c, 13, kBlue + 4);
+  fProtonSigma->DrawCorrelationPlot(c, 13, kBlue + 3);
   DrawSystemInfo(c, false, 0.46, true);
   c->cd();
   c->SaveAs(Form("%s/CF_pSigma_prelim.pdf", fitPath));

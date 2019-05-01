@@ -64,7 +64,7 @@ DreamData::DreamData(const char* particlePair)
     myColor1.GetColor(255,127,0), //10
     myColor1.GetColor(31,120,180), //11
     myColor1.GetColor(178,223,138), //12
-    kBlue + 4 //13
+    kBlue + 3 //13
   };
   fMarkers = {kFullCircle, kFullSquare, kOpenCircle, kOpenSquare, kOpenDiamond,
     kOpenCross, kFullCross, kFullDiamond, kFullStar, kOpenStar};
