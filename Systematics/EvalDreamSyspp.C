@@ -8,12 +8,12 @@
 
 void EvalDreamSystematics(TString InputDir, TString prefix,
                           float upperFitRange) {
-  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
+//  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
-  const int rebin = 1;
+  const int rebin = 5;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
@@ -43,7 +43,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   protonproton.SetUpperFitRange(upperFitRange);
   protonproton.SetBarlowUpperRange(400);
   for (int i = 1;
-      i <= protonproton.GetNumberOfVars(); ++i) {
+      i <= 44; ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
     DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
     TString VarName = TString::Format("ppVar%u", i);
