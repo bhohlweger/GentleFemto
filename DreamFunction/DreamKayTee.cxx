@@ -168,6 +168,7 @@ void DreamKayTee::AveragekT(const char *pair) {
   kTProjection->Draw();
   DreamPlot::SetStyle();
   DreamPlot::SetStyleHisto(kTProjection);
+  kTProjection->GetXaxis()->SetTitle("<m_{T} > (GeV/c^{2})");
   c2->SaveAs(Form("mTDistribution%s.pdf",pair));
   for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
     int binLow = kTProjection->GetXaxis()->FindBin(
