@@ -109,9 +109,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
     SigmaFileName += "Sample6_MeV_compact.root";
 
-    ppRadii[0] = 0.70;
-    ppRadii[1] = 0.77;
-    ppRadii[2] = 0.84;
+    ppRadii[0] = 0.76;
+    ppRadii[1] = 0.79;
+    ppRadii[2] = 0.82;
 
     PurityProton = 0.9943;
     PrimProton = 0.873;

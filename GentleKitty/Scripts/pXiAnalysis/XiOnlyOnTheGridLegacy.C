@@ -124,9 +124,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     ppRadii[1] = 1.427;
     ppRadii[2] = 1.434;
   } else if (system == 2) {
-    ppRadii[0] = 0.70;
-    ppRadii[1] = 0.77;
-    ppRadii[2] = 0.84;
+    ppRadii[0] = 0.76;
+    ppRadii[1] = 0.79;
+    ppRadii[2] = 0.82;
   } else {
     std::cout << "Radii for system " << system
               << " not implemented, exiting \n";
@@ -235,7 +235,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
       "RECREATE");
   TList* CollOut = new TList();
   CollOut->SetOwner();
-  CollOut->SetName(TString::Format("Out%u",NumIter));
+  CollOut->SetName(TString::Format("Out%u", NumIter));
 //  TFile* OutGraphFile = new TFile(
 //      TString::Format("%s/OutGraphFileVarpXi_%u.root", OutputDir.Data(), NumIter),
 //      "recreate");
@@ -320,20 +320,20 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   int tOutVars = 0;
   if (pot == TidyCats::pHALQCD || pot == TidyCats::pHALQCDGamow) {
     tOutVars = 3;
-    total = 324*3;
+    total = 324 * 3;
   } else {
     tOutVars = 1;
     total = 324;
   }
   std::vector<bool> SaveSideBands = { true, true, true };
-  TCanvas* c1 = new TCanvas(TString::Format("out%u",NumIter)) ;
+  TCanvas* c1 = new TCanvas(TString::Format("out%u", NumIter));
   c1->SetCanvasSize(1920, 1280);
   StoreHist->SetLineWidth(3);
   StoreHist->SetLineColor(1);
-  StoreHist->GetXaxis()->SetRangeUser(0,400);
+  StoreHist->GetXaxis()->SetRangeUser(0, 400);
   c1->cd();
   StoreHist->DrawCopy();
-  StoreHist->GetXaxis()->SetRangeUser(0,1000);
+  StoreHist->GetXaxis()->SetRangeUser(0, 1000);
 
   for (tOut = 0; tOut < tOutVars; ++tOut) {
     tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins_pXim, kMin_pXim, kMax_pXim,
@@ -599,9 +599,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   }
   std::cout << "\n";
   OutFile->cd();
-  c1->Write(TString::Format("%s",c1->GetName())) ;
+  c1->Write(TString::Format("%s", c1->GetName()));
   ntResult->Write();
-  CollOut->Write(CollOut->GetName(),1);
+  CollOut->Write(CollOut->GetName(), 1);
   OutFile->Close();
   return;
 }
