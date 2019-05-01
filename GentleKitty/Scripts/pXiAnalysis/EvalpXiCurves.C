@@ -123,9 +123,9 @@ void EvalError(const char* cfpath, const char* prefix, const char* varFolder, co
   Dummy->Reset();
   DreamPlot::SetStyle();
   DreamPlot::SetStyleHisto(CF_Histo);
-  std::cout << "Error Before: " << CF_Histo->GetBinError(1) << std::endl;
-  CATSinput->AddSystematics("C2totalsysPXi.root",CF_Histo, "PXi");
-  std::cout << "Error After: " << CF_Histo->GetBinError(1) << std::endl;
+//  std::cout << "Error Before: " << CF_Histo->GetBinError(1) << std::endl;
+//  CATSinput->AddSystematics("C2totalsysPXi.root",CF_Histo, "PXi");
+//  std::cout << "Error After: " << CF_Histo->GetBinError(1) << std::endl;
   TFile* output = TFile::Open(Form("%s/outfile.root", varFolder), "update");
   TNtuple* outFit = (TNtuple*) output->Get("pXiFit");
   TGraph grUp;
