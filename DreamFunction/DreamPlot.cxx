@@ -294,18 +294,31 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
   auto haidenbauerFile = TFile::Open(Form("%s/Param_pSigma0_3.root", fitPath));
   if (haidenbauerFile) {
     auto haidenbauerband = (TGraphErrors*) haidenbauerFile->Get("CF_fit");
-    auto sideband = (TGraphErrors*) haidenbauerFile->Get("CF_sidebands");
     if (!haidenbauerband) {
       std::cout << "No coupled Lednicky \n";
-    } else if (!sideband) {
-      std::cout << "No sideband \n";
     } else {
       fProtonSigma->FemtoModelFitBands(haidenbauerband, kGreen + 2, 0, 0, 3225,
                                        true);
-      fProtonSigma->FemtoModelFitBands(sideband, kBlack, 0.4, true);
     }
   } else {
     std::cout << "No Haidenbauer file!  \n";
+  }
+
+  auto ESC16File = TFile::Open(Form("%s/Param_pSigma0_4.root", fitPath));
+  if (ESC16File) {
+    auto esc16band = (TGraphErrors*) ESC16File->Get("CF_fit");
+    auto sideband = (TGraphErrors*) ESC16File->Get("CF_sidebands");
+    if (!esc16band) {
+      std::cout << "No ESC16 \n";
+    } else if (!sideband) {
+      std::cout << "No sideband \n";
+    } else {
+//      fProtonSigma->FemtoModelFitBands(esc16band, kOrange + 2, 0, 0, 3305,
+//                                       true);
+      fProtonSigma->FemtoModelFitBands(sideband, kBlack, 0.4, true);
+    }
+  } else {
+    std::cout << "No ESC16 file!  \n";
   }
   return;
 }
@@ -492,6 +505,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
       "p#minus#Sigma^{0} #oplus #bar{p}#minus#bar{#Sigma^{0}}", "fpe");
   fProtonSigma->SetLegendName("Lednicky coupled channel", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
+//  fProtonSigma->SetLegendName("ESC16", "fl");
   fProtonSigma->SetLegendName("p-#Sigma^{0} sideband background", "l");
   fProtonSigma->SetRangePlotting(0, 450, 0.9, 1.6);
   fProtonSigma->SetNDivisions(505);
