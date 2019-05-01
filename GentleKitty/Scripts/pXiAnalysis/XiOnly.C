@@ -134,9 +134,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     ppTuple->SetBranchAddress("RadUp_pXi", &ppRadii[2]);
     ppTuple->GetEntry(0);
   } else {
-    ppRadii[0] = 0.70;
-    ppRadii[1] = 0.77;
-    ppRadii[2] = 0.84;
+    ppRadii[0] = 0.76;
+    ppRadii[1] = 0.79;
+    ppRadii[2] = 0.82;
   }
   std::cout << ppRadii[0] << '\t' << ppRadii[1] << '\t' << ppRadii[2]
             << std::endl;
@@ -257,8 +257,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   if (system == 0) {
     side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
   } else if (system == 2) {
-    side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/Systematic", "HM",
-                          "103", "104");
+    side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/latestSystematic",
+                          "HM", "103", "104");
   }
 
   int uIter = 1;
@@ -371,7 +371,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               TH1F *OliHisto_pXimFornSigma = nullptr;
               OliHisto_pXimFornSigma = (TH1F*) OliHisto_pXim->Clone(
                   "pXiForNSigma");
-              CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim, "PXi");
+//              CATSinput->AddSystematics("C2totalsysPXi.root", OliHisto_pXim,
+//                                        "PXi");
 
               const unsigned NumSourcePars = AB_pXim.GetNumSourcePars();
               std::cout << "Number of Source Parameters: " << NumSourcePars
