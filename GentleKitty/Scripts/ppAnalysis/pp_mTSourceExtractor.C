@@ -12,13 +12,14 @@ void mTRadiusExtractor(const char *inputFile, float &radius, float &radErrSys, f
     return;
   }
   TNtuple* mTSysVar = (TNtuple*) inFile->Get("ntResult");
-  auto histRad = new TH1D("hRad", "hRad", 200, 0.4, 1.2);
+  auto histRad = new TH1D("hRad", "hRad", 200, 0.4, 2.0);
   auto histErrRad = new TH1D("hRadErr", "hRadErr", 50, 0., 0.1);
   mTSysVar->Draw("Radius_pp>>hRad");
   mTSysVar->Draw("RadiusErr_pp>>hRadErr");
   radius = histRad->GetMean();
   radErrSys = histRad->GetRMS();
   radErrStat = histErrRad->GetMean();
+  delete histErrRad;
   delete histRad;
 }
 
@@ -33,7 +34,7 @@ void mTRadiusPlot(const char* inputFolder, const char* avgmTFile) {
     TString inputFile = TString::Format("%s/OutFileVarpp_%u.root",
                                         inputFolder, imT);
     avgmT->GetPoint(imT, dummy, mT);
-    std::cout << avgmT->GetErrorY(imT) << std::endl;
+//    std::cout << avgmT->GetErrorY(imT) << std::endl;
     mTRadiusExtractor(inputFile.Data(), radius, radErrSyst, radErrStat);
     std::cout << "radius: " << radius << " radErrSyst: " << radErrSyst << " radErrStat: " << radErrStat << std::endl;
     mTRadiusSyst->SetPoint(imT, mT, radius);
