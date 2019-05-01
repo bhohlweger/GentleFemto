@@ -6,6 +6,7 @@
  */
 
 #include "DreamKayTee.h"
+#include "DreamPlot.h"
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TH2F.h"
@@ -157,14 +158,17 @@ void DreamKayTee::AveragekT(const char *pair) {
   TH1F* kTProjection = (TH1F*) kTkStar->ProjectionY(
       Form("%s%sDist", variable, pair), kTkStar->GetXaxis()->FindBin(0.),
       kTkStar->GetXaxis()->FindBin(0.2), "e");
-  auto *c1 = new TCanvas(Form("c%s", pair), Form("c%s", pair));
-  c1->Divide(2, 1);
-  c1->cd(1);
+  auto *c1 = new TCanvas(Form("c1%s", pair), Form("c1%s", pair));
+  auto *c2 = new TCanvas(Form("c2%s", pair), Form("c2%s", pair));
+  c1->cd();
   kTkStar->Draw("COLZ");
-  c1->cd(2);
+  c1->SaveAs(Form("mTvskStar%s.pdf", pair));
+  c2->cd();
   float totalPairs = kTProjection->Integral();
   kTProjection->Draw();
-  c1->SaveAs(Form("kTProjection%s.pdf", pair));
+  DreamPlot::SetStyle();
+  DreamPlot::SetStyleHisto(kTProjection);
+  c2->SaveAs(Form("mTDistribution%s.pdf",pair));
   for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
     int binLow = kTProjection->GetXaxis()->FindBin(
         fKayTeeBins.at(ikT) * 1.0001);
