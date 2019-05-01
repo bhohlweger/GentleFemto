@@ -211,12 +211,12 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       fLambdaLambda->FemtoModelFitBands(grLLDefault, grLLLow, grLLUp, 5, 1, 3,
                                         3000);
     }
-    TGraph* grpXiHALDefault = (TGraph*) systFit->Get("pXimGraphDefault");
-    TGraph* grpXiHALLower = (TGraph*) systFit->Get("pXimGraphLowerLim");
-    TGraph* grpXiHALUpper = (TGraph*) systFit->Get("pXimGraphUpperLim");
-//    TGraph* grpXiHALDefault = (TGraph*) systFit->Get("HALQCDpXimGraphDefault");
-//    TGraph* grpXiHALLower = (TGraph*) systFit->Get("HALQCDpXimGraphLowerLim");
-//    TGraph* grpXiHALUpper = (TGraph*) systFit->Get("HALQCDpXimGraphUpperLim");
+//    TGraph* grpXiHALDefault = (TGraph*) systFit->Get("pXimGraphDefault");
+//    TGraph* grpXiHALLower = (TGraph*) systFit->Get("pXimGraphLowerLim");
+//    TGraph* grpXiHALUpper = (TGraph*) systFit->Get("pXimGraphUpperLim");
+    TGraph* grpXiHALDefault = (TGraph*) systFit->Get("HALQCDpXimGraphDefault");
+    TGraph* grpXiHALLower = (TGraph*) systFit->Get("HALQCDpXimGraphLowerLim");
+    TGraph* grpXiHALUpper = (TGraph*) systFit->Get("HALQCDpXimGraphUpperLim");
     if (!grpXiHALDefault) {
       std::cout << "no pXi Default file \n";
     } else if (!grpXiHALLower) {
@@ -227,25 +227,31 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       fProtonXi->FemtoModelFitBands(grpXiHALDefault, grpXiHALLower,
                                     grpXiHALUpper, 10, 10, 0, 3252);
     }
-//    TGraph* grpXiTomDefault = (TGraph*) systFit->Get("RikkenpXimGraphDefault");
-//    TGraph* grpXiTomLower = (TGraph*) systFit->Get("RikkenpXimGraphLowerLim");
-//    TGraph* grpXiTomUpper = (TGraph*) systFit->Get("RikkenpXimGraphUpperLim");
-//    if (!grpXiTomDefault) {
-//      std::cout << "no pXi Default file \n";
-//    } else if (!grpXiTomLower) {
-//      std::cout << "no pXi lower file \n";
-//    } else if (!grpXiTomUpper) {
-//      std::cout << "no pXi upper file \n";
-//    } else {
-//      fProtonXi->FemtoModelFitBands(grpXiTomDefault, grpXiTomLower,
-//                                    grpXiTomUpper, 11, 8, 0, 3225);
-//    }
+    TGraph* grpXiTomDefault = (TGraph*) systFit->Get("RikkenpXimGraphDefault");
+    TGraph* grpXiTomLower = (TGraph*) systFit->Get("RikkenpXimGraphLowerLim");
+    TGraph* grpXiTomUpper = (TGraph*) systFit->Get("RikkenpXimGraphUpperLim");
+    if (!grpXiTomDefault) {
+      std::cout << "no pXi Default file \n";
+    } else if (!grpXiTomLower) {
+      std::cout << "no pXi lower file \n";
+    } else if (!grpXiTomUpper) {
+      std::cout << "no pXi upper file \n";
+    } else {
+      fProtonXi->FemtoModelFitBands(grpXiTomDefault, grpXiTomLower,
+                                    grpXiTomUpper, 11, 8, 0, 3225);
+    }
+//    TGraph* grpXiDefaultCoulomb = (TGraph*) systFit->Get(
+//        "pXimGraphDefault_COULOMB");
+//    TGraph* grpXiLowerCoulomb = (TGraph*) systFit->Get(
+//        "pXimGraphLowerLim_COULOMB");
+//    TGraph* grpXiUpperCoulomb = (TGraph*) systFit->Get(
+//        "pXimGraphUpperLim_COULOMB");
     TGraph* grpXiDefaultCoulomb = (TGraph*) systFit->Get(
-        "pXimGraphDefault_COULOMB");
+        "CoulombpXimGraphDefault");
     TGraph* grpXiLowerCoulomb = (TGraph*) systFit->Get(
-        "pXimGraphLowerLim_COULOMB");
+        "CoulombpXimGraphLowerLim");
     TGraph* grpXiUpperCoulomb = (TGraph*) systFit->Get(
-        "pXimGraphUpperLim_COULOMB");
+        "CoulombpXimGraphUpperLim");
     if (!grpXiDefaultCoulomb) {
       std::cout << "no pXi Coulomb Default file \n";
     } else if (!grpXiLowerCoulomb) {
@@ -256,12 +262,12 @@ void DreamPlot::ReadFit(const char* fitPath, int UnitConvCATS) {
       fProtonXi->FemtoModelFitBands(grpXiDefaultCoulomb, grpXiLowerCoulomb,
                                     grpXiUpperCoulomb, 12, 1, 3, 4000);
     }
-    TGraph* grpXiDefaultSideband = (TGraph*) systFit->Get("pXimGraphSidebandDefault");
-    TGraph* grpXiLowerSideband = (TGraph*) systFit->Get("pXimGraphSidebandDown");
-    TGraph* grpXiUpperSideband = (TGraph*) systFit->Get("pXimGraphSidebandUp");
-//    TGraph* grpXiDefaultSideband = (TGraph*) systFit->Get("pXiSidebandDefault");
-//    TGraph* grpXiLowerSideband = (TGraph*) systFit->Get("pXiSidebandDown");
-//    TGraph* grpXiUpperSideband = (TGraph*) systFit->Get("pXiSidebandUp");
+//    TGraph* grpXiDefaultSideband = (TGraph*) systFit->Get("pXimGraphSidebandDefault");
+//    TGraph* grpXiLowerSideband = (TGraph*) systFit->Get("pXimGraphSidebandDown");
+//    TGraph* grpXiUpperSideband = (TGraph*) systFit->Get("pXimGraphSidebandUp");
+    TGraph* grpXiDefaultSideband = (TGraph*) systFit->Get("pXiSidebandDefault");
+    TGraph* grpXiLowerSideband = (TGraph*) systFit->Get("pXiSidebandDown");
+    TGraph* grpXiUpperSideband = (TGraph*) systFit->Get("pXiSidebandUp");
     if (!grpXiDefaultSideband) {
       std::cout << "no pXi Sideband Default file \n";
     } else if (!grpXiLowerSideband) {
@@ -473,7 +479,7 @@ void DreamPlot::DrawCorrelationFunctions() {
   c_pXi->SetTopMargin(top);
   fProtonXi->SetLegendName("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+}", "fpe");
   fProtonXi->SetLegendName("Coulomb + HAL-QCD", "fl");
-//  fProtonXi->SetLegendName("Coulomb + ESC 16", "fl");
+  fProtonXi->SetLegendName("Coulomb + ESC 16", "fl");
   fProtonXi->SetLegendName("Coulomb", "l");
   fProtonXi->SetLegendName("p-#Xi^{-} sideband background", "l");
   fProtonXi->SetNDivisions(505);
@@ -483,7 +489,7 @@ void DreamPlot::DrawCorrelationFunctions() {
                                   0.7, 0.875);
   fProtonXi->DrawCorrelationPlot(c_pXi);
   DrawSystemInfo(c_pXi, false, 0.32);
-  Numbering.DrawLatex(0.19, 0.9, "#bf{b)}");
+//  Numbering.DrawLatex(0.19, 0.9, "#bf{b)}");
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
 
