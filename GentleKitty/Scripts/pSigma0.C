@@ -235,8 +235,14 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
   const float lambdaParamDefaultPrimary = lambdaParamDefault.GetLambdaParam(
       CATSLambdaParam::Primary);
-  const float lambdaParamDefaultSideband = lambdaParamDefault.GetLambdaParam(
-      CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
+  float lambdaParamDefaultSideband = lambdaParamDefault.GetLambdaParam(
+      CATSLambdaParam::Fake, CATSLambdaParam::Primary, 0, 0);
+  lambdaParamDefaultSideband += lambdaParamDefault.GetLambdaParam(
+      CATSLambdaParam::Fake, CATSLambdaParam::FeedDown, 0, 0);
+  lambdaParamDefaultSideband += lambdaParamDefault.GetLambdaParam(
+      CATSLambdaParam::Fake, CATSLambdaParam::FeedDown, 0, 1);
+  lambdaParamDefaultSideband += lambdaParamDefault.GetLambdaParam(
+      CATSLambdaParam::Fake, CATSLambdaParam::Fake);
 
   std::cout << "Lambda parameters for the default case\n";
   std::cout << " Primary  " << lambdaParamDefaultPrimary << "\n";
@@ -465,7 +471,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
           { { (1. - protonPrimary) * protonSecondary[lambdaIter], (1.
               - protonPrimary) * (1 - protonSecondary[lambdaIter]) } });
 
-      lambdaParams.push_back( { proton, sigma0 });
+      lambdaParams.push_back( { sigma0, proton });
     }
 
     // 2. Femto fit range
@@ -551,9 +557,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               DLM_CkDecomposition CkDec_SideBand_draw("pSigma0SideBandDraw", 0,
                                                       *Ck_SideBand_draw,
                                                       nullptr);
-              const float sidebandContr = lambdaParams[lambdaIter]
-                  .GetLambdaParam(CATSLambdaParam::Primary,
-                                  CATSLambdaParam::Fake, 0, 0);
+              float sidebandContr = lambdaParams[lambdaIter].GetLambdaParam(
+                  CATSLambdaParam::Fake, CATSLambdaParam::Primary, 0, 0);
+              sidebandContr += lambdaParams[lambdaIter].GetLambdaParam(
+                  CATSLambdaParam::Fake, CATSLambdaParam::FeedDown, 0, 0);
+              sidebandContr += lambdaParams[lambdaIter].GetLambdaParam(
+                  CATSLambdaParam::Fake, CATSLambdaParam::FeedDown, 0, 1);
+              sidebandContr += lambdaParams[lambdaIter].GetLambdaParam(
+                  CATSLambdaParam::Fake, CATSLambdaParam::Fake);
+
               const float primaryContr =
                   lambdaParams[lambdaIter].GetLambdaParam(
                       CATSLambdaParam::Primary);
@@ -907,10 +919,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               ntBuffer[17] = sideband->GetParError(4);
               ntBuffer[18] = sideband->GetParameter(5);
               ntBuffer[19] = sideband->GetParError(5);
-              ntBuffer[20] = lambdaParams[lambdaIter].GetLambdaParam(
-                  CATSLambdaParam::Primary);
-              ntBuffer[21] = lambdaParams[lambdaIter].GetLambdaParam(
-                  CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
+              ntBuffer[20] = primaryContr;
+              ntBuffer[21] = sidebandContr;
               ntBuffer[22] = sidebandNormDown[sbNormIter];
               ntBuffer[23] = sidebandNormUp[sbNormIter];
               ntBuffer[24] = chi2;

@@ -502,11 +502,11 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   c->SetRightMargin(right);
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName(
-      "p#minus#Sigma^{0} #oplus #bar{p}#minus#bar{#Sigma^{0}}", "fpe");
+      "p#minus #Sigma^{0} #oplus #bar{p}#minus #bar{#Sigma^{0}}", "fpe");
   fProtonSigma->SetLegendName("Lednicky coupled channel", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
   fProtonSigma->SetLegendName("ESC16", "fl");
-  fProtonSigma->SetLegendName("p-#Sigma^{0} background", "l");
+  fProtonSigma->SetLegendName("p#minus #Lambda#gamma background", "l");
   fProtonSigma->SetRangePlotting(0, 450, 0.925, 1.5);
   fProtonSigma->SetNDivisions(505);
   const float upperY = 0.79;
