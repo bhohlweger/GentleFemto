@@ -2,6 +2,7 @@
 #include "ReadDreamFile.h"
 #include "TCanvas.h"
 #include "TLegend.h"
+#include "TSystem.h"
 #include <iostream>
 
 void GetCorrelations(const float fixShift, const char* filename,
@@ -118,39 +119,25 @@ void GetCorrelations(const float fixShift, const char* filename,
   pp->ReweightMixedEvent(pp->GetPairFixShifted(1), 0.2, 0.9);
   ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(1), 0.2, 0.9);
 
-//  pL->Rebin(pL->GetPair(), 4);
-//  pL->Rebin(pL->GetPair(), 5);
-//  ApAL->Rebin(ApAL->GetPair(), 4);
-//  ApAL->Rebin(ApAL->GetPair(), 5);
-//  LL->Rebin(LL->GetPair(), 4);
-//  LL->Rebin(LL->GetPair(), 5);
-//  ALAL->Rebin(ALAL->GetPair(), 4);
-//  ALAL->Rebin(ALAL->GetPair(), 5);
-//  pXi->Rebin(pXi->GetPair(), 4);
-//  pXi->Rebin(pXi->GetPair(), 5);
-//  ApAXi->Rebin(ApAXi->GetPair(), 4);
-//  ApAXi->Rebin(ApAXi->GetPair(), 5);
-
   std::cout << "=========================" << std::endl;
   std::cout << "=========CFs=============" << std::endl;
   std::cout << "=========================" << std::endl;
 
-  TString foldername = filename;
-  foldername.ReplaceAll("AnalysisResults.root", "");
+  TString foldername = TString::Format("%s",gSystem->pwd());
 
   CF_pp->SetPairs(pp, ApAp);
   CF_pp->GetCorrelations();
-  CF_pp->WriteOutput(Form("%sCFOutput_pp.root", foldername.Data()));
+  CF_pp->WriteOutput(Form("%s/CFOutput_pp.root", foldername.Data()));
 
   CF_pL->SetPairs(pL, ApAL);
   CF_pL->GetCorrelations();
-  CF_pL->WriteOutput(Form("%sCFOutput_pL.root", foldername.Data()));
+  CF_pL->WriteOutput(Form("%s/CFOutput_pL.root", foldername.Data()));
 
   CF_LL->SetPairs(LL, ALAL);
   CF_LL->GetCorrelations();
-  CF_LL->WriteOutput(Form("%sCFOutput_LL.root", foldername.Data()));
+  CF_LL->WriteOutput(Form("%s/CFOutput_LL.root", foldername.Data()));
 
   CF_pXi->SetPairs(pXi, ApAXi);
   CF_pXi->GetCorrelations();
-  CF_pXi->WriteOutput(Form("%sCFOutput_pXi.root", foldername.Data()));
+  CF_pXi->WriteOutput(Form("%s/CFOutput_pXi.root", foldername.Data()));
 }
