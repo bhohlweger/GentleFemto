@@ -22,9 +22,9 @@
 #include "TMinuit.h"
 #include "CATSLambdaParam.h"
 #include "TObject.h"
-
+#include "TDirectoryFile.h"
 void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
-                    TString DataDir, TString OutputDir) {
+                    TString DataFile, TString HistpXiDefaultName, TString OutputDir) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //System: 0 = pPb, 1 = pp MB, 2 = pp HM
   //Potential: 0 = Coulomb, 1 = Gamow, 2 = HAL + Coulomb, 3 = HAL + Gamow, 5 = RikkenWF , 6 = RikkenPot
@@ -32,9 +32,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   //Iteration number corresponds here to the systematic cut variation being fit.
 //  bool drawSource = (NumIter == 0);
   bool fitRadius = false;
-  TString HistpXiDefaultName = "hCk_ReweightedMeV_0";
+//  TString HistpXiDefaultName = "hCk_ReweightedMeV_0";
   TFile* inFile = TFile::Open(
-      TString::Format("%s/CFpXiVariations_%u.root", DataDir.Data(), NumIter),
+      DataFile.Data(),
       "READ");
   TH1F* Prefit = (TH1F*) inFile->Get(HistpXiDefaultName.Data());
   if (!Prefit) {
@@ -94,7 +94,6 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     }
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
     SigmaFileName += "Sample3_MeV_compact.root";
-    DataDir = "~/cernbox/pPb/Systematics_Test/CFs";
 
     ppRadii[0] = 1.141;
     ppRadii[1] = 1.427;
@@ -108,10 +107,18 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   } else if (system == 2) {  // pp HM
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
     SigmaFileName += "Sample6_MeV_compact.root";
-
-    ppRadii[0] = 0.76;
-    ppRadii[1] = 0.79;
-    ppRadii[2] = 0.82;
+//    mT integrated
+//    ppRadii[0] = 0.76;
+//    ppRadii[1] = 0.79;
+//    ppRadii[2] = 0.82;
+    //mT 0-1.74
+    ppRadii[0] = 0.87;
+    ppRadii[1] = 0.9;
+    ppRadii[2] = 0.93;
+    //mT 1.74-4.5
+//    ppRadii[0] = 0.69;
+//    ppRadii[1] = 0.72;
+//    ppRadii[2] = 0.76;
 
     PurityProton = 0.9943;
     PrimProton = 0.873;
@@ -223,9 +230,9 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   TFile* OutFile = new TFile(
       TString::Format("%s/OutFileVarpXi_%u.root", OutputDir.Data(), NumIter),
       "RECREATE");
-  TList* CollOut = new TList();
-  CollOut->SetOwner();
-  CollOut->SetName(TString::Format("Out%u", NumIter));
+  TDirectoryFile* CollOut = new TDirectoryFile(TString::Format("Out%u", NumIter),TString::Format("Out%u", NumIter));
+//  CollOut->SetOwner();
+//  CollOut->SetName();
   //you save a lot of stuff in an NTuple
   TNtuple* ntResult = new TNtuple(
       "ntResult", "ntResult", "IterID:FemtoRegion:lampXi:lampXi1530:lampXiFake:"
@@ -587,14 +594,13 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   OutFile->cd();
 //  c1->Write(TString::Format("%s", c1->GetName()));
   ntResult->Write();
-  CollOut->Write(CollOut->GetName(), 1);
+  CollOut->Write(TString::Format("Out%u", NumIter), TObject::kSingleKey);
   OutFile->Close();
   return;
 }
 
 int main(int argc, char *argv[]) {
-  const char* addon = (argv[7]) ? argv[7] : "";
   GetXiForRadius(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                 argv[5], argv[6]);
+                 argv[5], argv[6], argv[7]);
   return 0;
 }
