@@ -29,7 +29,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   DreamDist* pXi = DreamFile->GetPairDistributions(0, 4, "");
   DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 5, "");
   DreamCF* CFpXiDef = CATSinput->ObtainCFSyst(rebin, "ppDef", pXi, ApAXi);
-  const unsigned int pairCountsDefault = CFpXiDef->GetFemtoPairs(0, 0.2);
+  const int pairCountsDefault = CFpXiDef->GetFemtoPairs(0, 0.2);
   DreamSystematics protonXi(DreamSystematics::pXi);
   protonXi.SetUpperFitRange(upperFitRange);
   protonXi.SetBarlowUpperRange(400);
@@ -43,6 +43,13 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
     DreamCF* CFpXiVar = CATSinput->ObtainCFSyst(
         rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 4, ""),
         DreamVarFile->GetPairDistributions(1, 5, ""));
+    int femtoPairVar= CFpXiVar->GetFemtoPairs(0, 0.2);
+//    std::cout << "?femtoPairVar: " << femtoPairVar << std::endl;
+//    std::cout << ?
+    float relDiff = (femtoPairVar-pairCountsDefault)/(float)pairCountsDefault;
+    if (TMath::Abs(relDiff) > 0.2) {
+      continue;
+    }
     protonXi.SetVarHist(CFpXiVar,
                         TString::Format("Reweighted%sMeV_1", VarName.Data()));
     TString VarString = TString::Format("%u", i);
@@ -50,11 +57,6 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
                                                          prefix,
                                                          VarString.Data());
     counter->SetNumberOfCandidates(ForgivingFile);
-    std::cout << "nTracks: " << nTracks << '\t' << "nCascades: " << nCascades
-              << '\t' << "counter->GetNumberOfTracks(): "
-              << counter->GetNumberOfTracks() << '\t'
-              << "counter->GetNumberOfCascades(): "
-              << counter->GetNumberOfCascades() << std::endl;
     protonXi.SetParticles(nTracks, nCascades, counter->GetNumberOfTracks(),
                           counter->GetNumberOfCascades());
     protonXi.SetPair(pairCountsDefault, CFpXiVar->GetFemtoPairs(0, 0.2));

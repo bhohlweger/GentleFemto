@@ -29,7 +29,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   DreamDist* pL = DreamFile->GetPairDistributions(0, 2, "");
   DreamDist* ApAL = DreamFile->GetPairDistributions(1, 3, "");
   DreamCF* CFpLDef = CATSinput->ObtainCFSyst(rebin, "pLDef", pL, ApAL);
-  const unsigned int pairCountsDefault = CFpLDef->GetFemtoPairs(0, 0.2);
+  const int pairCountsDefault = CFpLDef->GetFemtoPairs(0, 0.2);
   DreamSystematics protonL(DreamSystematics::pL);
 //  protonL.SetUpperFitRange(0.080);
   protonL.SetDefaultHist(CFpLDef, "hCk_ReweightedpLDefMeV_1");
@@ -42,6 +42,11 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
     DreamCF* CFpLVar = CATSinput->ObtainCFSyst(
         rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 2, ""),
         DreamVarFile->GetPairDistributions(1, 3, ""));
+    int femtoPairVar= CFpLVar->GetFemtoPairs(0, 0.2);
+    float relDiff = (femtoPairVar-pairCountsDefault)/(float)pairCountsDefault;
+    if (TMath::Abs(relDiff) > 0.2) {
+      continue;
+    }
     protonL.SetVarHist(CFpLVar,
                         TString::Format("Reweighted%sMeV_1", VarName.Data()));
     TString VarString = TString::Format("%u", i);
@@ -49,11 +54,6 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
                                                          prefix,
                                                          VarString.Data());
     counter->SetNumberOfCandidates(ForgivingFile);
-    std::cout << "nTracks: " << nTracks << '\t' << "nv0: " << nv0
-        << '\t' << "counter->GetNumberOfTracks(): "
-        << counter->GetNumberOfTracks() << '\t'
-        << "counter->GetNumberOfV0s(): " << counter->GetNumberOfV0s()
-        << std::endl;
     protonL.SetPair(pairCountsDefault, CFpLVar->GetFemtoPairs(0, 0.2));
     protonL.SetParticles(nTracks, nv0, counter->GetNumberOfTracks(),
                          counter->GetNumberOfV0s());

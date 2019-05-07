@@ -5,10 +5,10 @@
 #include "CandidateCounter.h"
 #include "TCanvas.h"
 #include <iostream>
-
+#include "TMath.h"
 void EvalDreamSystematics(TString InputDir, TString prefix,
                           float upperFitRange) {
-//  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
+  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
@@ -32,7 +32,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   std::cout << "Femto Pairs ApAp: " << ApAp->GetFemtoPairs(0, 0.200)
             << std::endl;
   DreamCF* CFppDef = CATSinput->ObtainCFSyst(rebin, "ppDef", pp, ApAp);
-  const unsigned int pairCountsDefault = CFppDef->GetFemtoPairs(0, 0.2);
+  const int pairCountsDefault = CFppDef->GetFemtoPairs(0, 0.2);
   DreamSystematics protonproton(DreamSystematics::pp);
 //  protonproton.SetUpperFitRange(44);
   if (rebin != 1) {
@@ -42,14 +42,18 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   }
   protonproton.SetUpperFitRange(upperFitRange);
   protonproton.SetBarlowUpperRange(400);
-  for (int i = 1;
-      i <= 44; ++i) {
+  for (int i = 1; i <= 44; ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
     DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
     TString VarName = TString::Format("ppVar%u", i);
     DreamCF* CFppVar = CATSinput->ObtainCFSyst(
         rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 0, ""),
         DreamVarFile->GetPairDistributions(1, 1, ""));
+    int femtoPairVar= CFppVar->GetFemtoPairs(0, 0.2);
+    float relDiff = (femtoPairVar-pairCountsDefault)/(float)pairCountsDefault;
+    if (TMath::Abs(relDiff) > 0.2) {
+      continue;
+    }
     if (rebin != 1) {
       protonproton.SetVarHist(
           CFppVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
