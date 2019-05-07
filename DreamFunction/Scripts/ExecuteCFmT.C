@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
   mTpXiDists->SetKayTeeBins(mTpXiBins);
   mTpXiDists->SetNormalization(0.24, 0.34);
   mTpXiDists->SetRebin({5});
-  mTpXiDists->FixShift({false,true},{0.000,0.004});
+  mTpXiDists->FixShift({true,true},{0.004,0.004});
   mTpXiDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pXi");
 //
   return 0;
