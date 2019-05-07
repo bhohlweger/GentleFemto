@@ -39,20 +39,20 @@ int main(int argc, char* argv[]) {
 //  mTpLDists->SetNormalization(0.24, 0.34);
 //  mTpLDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pL");
 //
-//  DreamKayTee* mTpXiDists;
-//  DreamFile->ReadmTHistos(filename, prefix, addon);
-//  mTpXiDists = DreamFile->GetmTPairDistributions(0, 4, 1, 5);
-//
+  DreamKayTee* mTpXiDists;
+  DreamFile->ReadmTHistos(filename, prefix, addon);
+  mTpXiDists = DreamFile->GetmTPairDistributions(0, 4, 1, 5);
+
 //  std::vector<float> mTpXiBins = { 1.08, 4.5 };
-////  std::vector<float> mTpXiBins = { 1.08, 1.83, 4.5 };
-//
-//  TString CalibpXi = Form("%s/CFOutput_pXi.root",CalibPath);
-//  mTpXiDists->SetSEMEReweightingRatio(CalibpXi, "1", true);
-//  mTpXiDists->SetKayTeeBins(mTpXiBins);
-//  mTpXiDists->SetNormalization(0.24, 0.34);
-//  mTpXiDists->SetRebin({5});
-//  mTpXiDists->FixShift({true,true},{0.012,0.008});
-//  mTpXiDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pXi");
+  std::vector<float> mTpXiBins = { 1.08, 1.74, 4.5 };
+
+  TString CalibpXi = Form("%s/CFOutput_pXi.root",CalibPath);
+  mTpXiDists->SetSEMEReweightingRatio(CalibpXi, "1", true);
+  mTpXiDists->SetKayTeeBins(mTpXiBins);
+  mTpXiDists->SetNormalization(0.24, 0.34);
+  mTpXiDists->SetRebin({5});
+  mTpXiDists->FixShift({false,true},{0.000,0.004});
+  mTpXiDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix, "pXi");
 //
   return 0;
 }
