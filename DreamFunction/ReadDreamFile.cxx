@@ -82,6 +82,29 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
   delete _file0;
 }
 
+void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile, const char* Path,
+                                    const char* Prefix, const char* Addon) {
+  TFile* _file0 = TFile::Open(PathAnalysisFile, "READ");
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults%s", Prefix, Addon)));
+  TList *Results;
+  dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
+  auto listResults = (TList*)Results->FindObject(Path);
+  ExtractResults(listResults);
+  TIter next(listResults);
+  TObject *obj = nullptr;
+  while (obj = next()) {
+    TList *list = dynamic_cast<TList*>(obj);
+    if (list)
+      list->Delete();
+  }
+  listResults->Delete();
+  Results->Delete();
+  dirResults->Close();
+  _file0->Close();
+  delete _file0;
+}
+
 void ReadDreamFile::ExtractResults(const TList *Results) {
   TList *PartList;
 
