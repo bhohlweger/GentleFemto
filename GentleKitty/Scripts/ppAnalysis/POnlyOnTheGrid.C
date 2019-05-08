@@ -22,18 +22,20 @@
 #include "stdlib.h"
 
 void FitPPVariations(const unsigned& NumIter, int system, int source,
-                     TString InputDir, TString OutputDir) {
+                     TString InputFile, TString HistoName, TString OutputDir) {
 //  gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Cauchy; 2=DoubleGauss
-  TString HistppName = "hCk_RebinnedMeV_0";
-  TFile* inFile = TFile::Open(
-      TString::Format("%s/CFOutput_mT_pp_HM_%u.root", InputDir.Data(), NumIter),
-      "READ");
+  TString HistppName = HistoName.Data();
+  TFile* inFile = TFile::Open(TString::Format("%s", InputFile.Data()), "READ");
+  if (!inFile) {
+    return;
+  }
   TH1F* StoreHist = (TH1F*) inFile->Get(HistppName.Data());
   //This is for the CATS objects, make sure it covers the full femto range
+
   const unsigned NumMomBins = 105;
   const double kMin = StoreHist->GetXaxis()->GetXmin();
-  const double kMax = kMin + 8 * NumMomBins;  //(4 is the bin width)
+  const double kMax = kMin + StoreHist->GetXaxis()->GetBinWidth(1) * NumMomBins;  //(4 is the bin width)
 
   //if you modify you may need to change the CATS ranges somewhere below
   double FemtoRegion[3];
@@ -183,6 +185,9 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   TFile* OutFile = new TFile(
       TString::Format("%s/OutFileVarpp_%u.root", OutputDir.Data(), NumIter),
       "RECREATE");
+  if (!OutFile) {
+    return;
+  }
   TList* CollOut = new TList();
   CollOut->SetOwner();
   CollOut->SetName(TString::Format("Out%u", NumIter));
@@ -206,7 +211,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   Float_t ntBuffer[20];
 
   int uIter = 1;
-  float total =  TheSource == TidyCats::sLevy ? 54 : 81;
+  float total = TheSource == TidyCats::sLevy ? 54 : 81;
   int counter = 1;
   int vFemReg;  //which femto region we use for pp (1 = default)
   int vMod_pL = 1;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
@@ -215,14 +220,14 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   bool HaveWeABaseLine = true;
 
   TidyCats* tidy = new TidyCats();
-  TCanvas* c1 = new TCanvas(TString::Format("out%u",NumIter)) ;
+  TCanvas* c1 = new TCanvas(TString::Format("out%u", NumIter));
   c1->SetCanvasSize(1920, 1280);
   StoreHist->SetLineWidth(3);
   StoreHist->SetLineColor(1);
-  StoreHist->GetXaxis()->SetRangeUser(0,400);
+  StoreHist->GetXaxis()->SetRangeUser(0, 400);
   c1->cd();
   StoreHist->DrawCopy();
-  StoreHist->GetXaxis()->SetRangeUser(0,1000);
+  StoreHist->GetXaxis()->SetRangeUser(0, 1000);
 
   CATS AB_pp;
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
@@ -473,7 +478,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           TGraph FitResult;
           FitResult.SetName(TString::Format("FitResult_%u", uIter));
           fitter->GetFitGraph(0, FitResult);
-          TGraph* pointerFitResult= new TGraph(FitResult);
+          TGraph* pointerFitResult = new TGraph(FitResult);
           c1->cd();
           pointerFitResult->SetLineWidth(2);
           pointerFitResult->SetLineColor(kRed);
@@ -533,7 +538,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           ntBuffer[19] = Chi2 / EffNumBins;
           ntResult->Fill(ntBuffer);
 
-
           TList* outList = new TList();
           outList->SetOwner();
           outList->SetName(
@@ -555,17 +559,17 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   }
   OutFile->cd();
 
-  c1->Write(TString::Format("%s",c1->GetName())) ;
+  c1->Write(TString::Format("%s", c1->GetName()));
   ntResult->Write();
-  CollOut->Write(CollOut->GetName(),1);
+  CollOut->Write(CollOut->GetName(), 1);
   StoreHist->Write();
   OutFile->Close();
   delete tidy;
 }
 
 int main(int argc, char *argv[]) {
-  FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), argv[4],
-                  argv[5]);
+  FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), argv[4], argv[5],
+                  argv[6]);
   return 0;
 }
 
