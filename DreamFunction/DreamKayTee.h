@@ -48,7 +48,10 @@ class DreamKayTee {
                                         "MB",
                                     const char* pair = "pp");
   void AveragekT(const char *pair);
-  void SetSEMEReweightingRatio(const char* pathToFile, const char* RewName, bool useRebinned);
+  void SetSEMEReweightingRatio(const char* pathToFile, const char* RewName,
+                               bool useRebinned);
+  void SetSEMEReweightingRatio(TH1F* Rebinned, TH1F* Reweighted,
+                               TH1F* RebinnedMeV, TH1F* ReweightedMeV);
   void FixShift(std::vector<bool> doIt, std::vector<float> value) {
     fFixShift = doIt;
     fFixShiftValue = value;

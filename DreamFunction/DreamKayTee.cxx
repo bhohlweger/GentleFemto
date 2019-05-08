@@ -169,7 +169,7 @@ void DreamKayTee::AveragekT(const char *pair) {
   DreamPlot::SetStyle();
   DreamPlot::SetStyleHisto(kTProjection);
   kTProjection->GetXaxis()->SetTitle("<m_{T} > (GeV/c^{2})");
-  c2->SaveAs(Form("mTDistribution%s.pdf",pair));
+  c2->SaveAs(Form("mTDistribution%s.pdf", pair));
   for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
     int binLow = kTProjection->GetXaxis()->FindBin(
         fKayTeeBins.at(ikT) * 1.0001);
@@ -179,7 +179,7 @@ void DreamKayTee::AveragekT(const char *pair) {
     float binErr = kTProjection->GetMeanError();
     if (binLow == binUp) {
       std::cout << "Low Edge: " << kTProjection->GetBinLowEdge(binLow)
-                << " Up Edge: " << kTProjection->GetBinLowEdge(binLow+1)
+                << " Up Edge: " << kTProjection->GetBinLowEdge(binLow + 1)
                 << std::endl;
       binErr = (kTProjection->GetBinLowEdge(binLow + 1)
           - kTProjection->GetBinLowEdge(binLow)) / 2.;
@@ -208,15 +208,24 @@ void DreamKayTee::SetSEMEReweightingRatio(const char* pathToFile,
     std::cout << "No Calibration file found in " << pathToFile << std::endl;
   }
   TString HistName = useRebinned ? "Rebinned" : "FixShifted";
-  fSEMEReweightingMeV = (TH1F*) CalibFile->Get(
-      TString::Format("hCk_ReweightedMeV_%s", HistNum));
-  fSEMEReweighting = (TH1F*) CalibFile->Get(
-      TString::Format("hCk_Reweighted_%s", HistNum));
-  TH1F* noRewMeV = (TH1F*) CalibFile->Get(
-      TString::Format("hCk_%sMeV_%s", HistName.Data(), HistNum));
-  TH1F* noRew = (TH1F*) CalibFile->Get(
-      TString::Format("hCk_%s_%s", HistName.Data(), HistNum));
-  fSEMEReweightingMeV->Divide(noRewMeV);
-  fSEMEReweighting->Divide(noRew);
+  SetSEMEReweightingRatio(
+      (TH1F*) CalibFile->Get(
+          TString::Format("hCk_%s_%s", HistName.Data(), HistNum)),
+      (TH1F*) CalibFile->Get(TString::Format("hCk_Reweighted_%s", HistNum)),
+      (TH1F*) CalibFile->Get(
+          TString::Format("hCk_%sMeV_%s", HistName.Data(), HistNum)),
+      (TH1F*) CalibFile->Get(TString::Format("hCk_ReweightedMeV_%s", HistNum)));
+  return;
+}
+
+void DreamKayTee::SetSEMEReweightingRatio(TH1F* Rebinned, TH1F* Reweighted,
+                                          TH1F* RebinnedMeV,
+                                          TH1F* ReweightedMeV) {
+  fSEMEReweighting = (TH1F*) Reweighted->Clone(
+      TString::Format("hCk_Reweighting"));
+  fSEMEReweighting->Divide(Rebinned);
+  fSEMEReweightingMeV = (TH1F*) ReweightedMeV->Clone(
+      TString::Format("hCk_ReweightingMeV"));
+  fSEMEReweightingMeV->Divide(RebinnedMeV);
   return;
 }
