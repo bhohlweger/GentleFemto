@@ -229,7 +229,7 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
     } else {
       Warning(
           "DreamCF",
-          "Skipping %s and %s due to uneven beginning of binning (%i) and (%i)",
+          "Skipping %s and %s due to uneven beginning of binning (%.3f) and (%.3f)",
           CF1->GetName(), CF2->GetName(), CF1->GetXaxis()->GetXmin(),
           CF2->GetXaxis()->GetXmin());
     }
