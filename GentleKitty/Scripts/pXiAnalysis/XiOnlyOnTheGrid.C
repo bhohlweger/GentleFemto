@@ -108,13 +108,13 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
     SigmaFileName += "Sample6_MeV_compact.root";
 //    mT integrated
-//    ppRadii[0] = 0.76;
-//    ppRadii[1] = 0.79;
-//    ppRadii[2] = 0.82;
+    ppRadii[0] = 0.76;
+    ppRadii[1] = 0.79;
+    ppRadii[2] = 0.82;
     //mT 0-1.74
-    ppRadii[0] = 0.87;
-    ppRadii[1] = 0.9;
-    ppRadii[2] = 0.93;
+//    ppRadii[0] = 0.87;
+//    ppRadii[1] = 0.9;
+//    ppRadii[2] = 0.93;
     //mT 1.74-4.5
 //    ppRadii[0] = 0.69;
 //    ppRadii[1] = 0.72;
