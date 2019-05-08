@@ -94,12 +94,18 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
       }
       this->AveragekT(pair);
       fSum = new DreamCF*[fNKayTeeBins];
-      TString outname = TString::Format("%s/CFOutputALL_%s_%s_%s.root",
-                                        outFolder, variable, pair, prefix);
-      TFile* allCFsOut = TFile::Open(outname.Data(), "RECREATE");
+      TString outname = TString::Format("%s/AveragemT.root",
+                                        outFolder);
+      TFile* allCFsOut = TFile::Open(outname.Data(), "UPDATE");
+      allCFsOut->cd();
       if (fAveragekT) {
-        fAveragekT->Write(Form("Average%s", variable));
+        TString name = TString::Format("Average%s_%s", variable,pair);
+        TGraphErrors* copy = new TGraphErrors(*fAveragekT);
+        copy->SetName(name.Data());
+        copy->Write(name.Data());
+        allCFsOut->Write();
       }
+      allCFsOut->Close();
       for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
         fSum[ikT] = new DreamCF();
         fSum[ikT]->SetPairs(fCFPart[0][ikT], fCFPart[1][ikT]);
@@ -108,7 +114,6 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
         TString outfileName = TString::Format("%s/CFOutput_%s_%s_%s_%u.root",
                                               outFolder, variable, pair, prefix,
                                               ikT);
-        allCFsOut->cd();
         for (auto &it : CFs) {
           TString HistName = it->GetName();
           for (int iBin = 1; iBin < it->GetNbinsX(); ++iBin) {
@@ -126,19 +131,18 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
             if (corrFactor != 0) {
               it->SetBinContent(iBin, binCont * corrFactor);
               it->SetBinError(iBin, binErr);
-            } else {
-              //dont worry if iBin seems to change, its due to the rebinning!
-              std::cout << "======================================\n";
-              std::cout << it->GetName() << std::endl;
-              std::cout << "!for ikT = " << ikT << " and iBin = " << iBin
-                        << "!\n";
-              std::cout << "Correction factor 0, CFs meaningless!!! \n";
-              std::cout << "======================================\n";
-              std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             }
+//            else {
+//              //dont worry if iBin seems to change, its due to the rebinning!
+//              std::cout << "======================================\n";
+//              std::cout << it->GetName() << std::endl;
+//              std::cout << "!for ikT = " << ikT << " and iBin = " << iBin
+//                        << "!\n";
+//              std::cout << "Correction factor 0, CFs meaningless!!! \n";
+//              std::cout << "======================================\n";
+//              std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+//            }
           }
-          TString OutName = Form("%s_%sBin_%i", it->GetName(), variable, ikT);
-          it->Write(OutName.Data());
         }
         fSum[ikT]->WriteOutput(outfileName.Data());
       }
@@ -151,6 +155,9 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
 
 void DreamKayTee::AveragekT(const char *pair) {
   const char* variable = (fIskT) ? "kT" : "mT";
+  if (fAveragekT) {
+    delete fAveragekT;
+  }
   fAveragekT = new TGraphErrors();
   TH2F* kTkStar = (TH2F*) fSEkT[0]->Clone(
       Form("%s%skStarForAverage", variable, pair));
