@@ -5,27 +5,36 @@
 #include "TCanvas.h"
 #include <iostream>
 #include "TLegend.h"
-void mTRadiusExtractor(const char *inputFile, float &radius, float &radErrSys, float &radErrStat) {
-  TFile* inFile = TFile::Open(inputFile, "READ");
-  if(!inFile) {
-    std::cout << "No input found for " << inputFile << ", exiting \n";
-    return;
-  }
-  TNtuple* mTSysVar = (TNtuple*) inFile->Get("ntResult");
-  auto histRad = new TH1D("hRad", "hRad", 200, 0.4, 2.0);
-  auto histErrRad = new TH1D("hRadErr", "hRadErr", 50, 0., 0.1);
-  mTSysVar->Draw("Radius_pp>>hRad");
-  mTSysVar->Draw("RadiusErr_pp>>hRadErr");
-  radius = histRad->GetMean();
-  radErrSys = histRad->GetRMS();
-  radErrStat = histErrRad->GetMean();
-  delete histErrRad;
-  delete histRad;
+#include <vector>
+void mTRadiusExtractor(int iBin, float &radius, float &radErrSys, float &radErrStat) {
+  // mT Bin 1: Radius Mean: 1.13497 Radius stat Err: 0.00996232 Radius SystErr Down: 0.0198902 Radius Syst Err Up: 0.0225297
+  // mT Bin 2: Radius Mean: 1.07765 Radius stat Err: 0.0116435 Radius SystErr Down: 0.0146171 Radius Syst Err Up: 0.019332
+  // mT Bin 3: Radius Mean: 1.04489 Radius stat Err: 0.0283188 Radius SystErr Down: 0.0168989 Radius Syst Err Up: 0.0172078
+  // mT Bin 4: Radius Mean: 0.987981 Radius stat Err: 0.0199837 Radius SystErr Down: 0.00948221 Radius Syst Err Up: 0.0145662
+  // mT Bin 5: Radius Mean: 0.924195 Radius stat Err: 0.0139078 Radius SystErr Down: 0.0117057 Radius Syst Err Up: 0.0160959
+  // mT Bin 6: Radius Mean: 0.826865 Radius stat Err: 0.00853009 Radius SystErr Down: 0.0126212 Radius Syst Err Up: 0.0163956
+  // mT Bin 7: Radius Mean: 0.731138 Radius stat Err: 0.0136254 Radius SystErr Down: 0.0125193 Radius Syst Err Up: 0.0147957
+    std::vector<float> mean = {1.13497,1.07765,1.04489,0.987981,0.924195,0.826865,0.731138};
+    std::vector<float> statErr = {0.00996232,0.0116435,0.0139078,0.0199837,0.0139078,0.00853009,0.0136254};
+    std::vector<float> systDown = {0.0198902,0.0146171,0.0117057,0.00948221,0.0117057,0.0126212,0.0125193};
+    std::vector<float> systUp= {0.0225297,0.019332,0.0160959,0.0145662,0.0160959,0.0163956,0.0147957};
+    radius = mean.at(iBin);
+    radErrStat = statErr.at(iBin);
+    radErrSys = (systDown.at(iBin)+systUp.at(iBin))/2.;
 }
 
 void mTRadiusPlot(const char* inputFolder, const char* avgmTFile) {
   TFile* mTFile = TFile::Open(avgmTFile, "READ");
-  TGraphErrors* avgmT = (TGraphErrors*) mTFile->Get("AveragemT");
+  if (!mTFile) {
+    std::cout << "No mT File \n";
+    return;
+  }
+  TGraphErrors* avgmT = (TGraphErrors*) mTFile->Get("AveragemT_ppVar0");
+  if(! avgmT) {
+    std::cout << "no average mT file " << std::endl;
+    return;
+  }
+
   TGraphErrors* mTRadiusSyst = new TGraphErrors();
   TGraphErrors* mTRadiusStat = new TGraphErrors();
   for (int imT = 0; imT < 7; ++imT) {
@@ -35,8 +44,11 @@ void mTRadiusPlot(const char* inputFolder, const char* avgmTFile) {
                                         inputFolder, imT);
     avgmT->GetPoint(imT, dummy, mT);
 //    std::cout << avgmT->GetErrorY(imT) << std::endl;
-    mTRadiusExtractor(inputFile.Data(), radius, radErrSyst, radErrStat);
+    mTRadiusExtractor(imT, radius, radErrSyst, radErrStat);
     std::cout << "radius: " << radius << " radErrSyst: " << radErrSyst << " radErrStat: " << radErrStat << std::endl;
+    if (radius < 0) {
+      continue;
+    }
     mTRadiusSyst->SetPoint(imT, mT, radius);
     mTRadiusStat->SetPoint(imT, mT, radius);
     mTRadiusSyst->SetPointError(imT, avgmT->GetErrorY(imT), radErrSyst);
@@ -55,6 +67,9 @@ void mTRadiusPlot(const char* inputFolder, const char* avgmTFile) {
   mTRadiusSyst->GetYaxis()->SetLabelSize(0.05);
   mTRadiusSyst->GetXaxis()->SetLabelOffset(0.004);
   mTRadiusSyst->GetYaxis()->SetLabelOffset(0.004);
+
+  mTRadiusSyst->GetXaxis()->SetRangeUser(0.95,2.7);
+  mTRadiusSyst->GetYaxis()->SetRangeUser(0.65,1.2);
 
   mTRadiusSyst->SetMarkerColor(kBlack);
   mTRadiusSyst->SetLineWidth(3);
@@ -84,3 +99,5 @@ int main(int argc, char *argv[]) {
   mTRadiusPlot(argv[1], argv[2]);
   return 0;
 }
+
+
