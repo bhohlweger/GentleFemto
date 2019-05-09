@@ -59,6 +59,7 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/PlayWithCats.cxx
   ${PROJECT_SOURCE_DIR}/SideBandFit.cxx
   ${PROJECT_SOURCE_DIR}/SidebandSigma.cxx
+  ${PROJECT_SOURCE_DIR}/VariationAnalysis.cxx
   )
 
 set(HEADERS
@@ -69,6 +70,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/PlayWithCats.h
   ${PROJECT_SOURCE_DIR}/SideBandFit.h
   ${PROJECT_SOURCE_DIR}/SidebandSigma.h
+  ${PROJECT_SOURCE_DIR}/VariationAnalysis.h
   )
 
 add_library(tidyCATS STATIC ${SRCS})
@@ -131,5 +133,8 @@ target_link_libraries(LambdaPars tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(SourceMtMaker ${PROJECT_SOURCE_DIR}/Scripts/SourceMtMaker.C)
 target_link_libraries(SourceMtMaker tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(POnlyExtractor ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnlyExtractor.C)
+target_link_libraries(POnlyExtractor tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_subdirectory(Test)
