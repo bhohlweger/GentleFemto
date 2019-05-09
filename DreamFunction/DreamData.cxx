@@ -210,8 +210,8 @@ void DreamData::FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower,
 void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color, int lineStyle,
                                    double lineWidth, int fillStyle,
                                    bool addtoLegend) {
-  grFemtoModel->SetLineColor(color);
-  grFemtoModel->SetFillColor(color);
+  grFemtoModel->SetLineColor(fColors[color]);
+  grFemtoModel->SetFillColor(fColors[color]);
   grFemtoModel->SetLineWidth(lineWidth);
   grFemtoModel->SetLineStyle(lineStyle);
   if (fillStyle > 0)
@@ -219,8 +219,8 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color, int li
   fFemtoModdeled.push_back(grFemtoModel);
   if (addtoLegend) {
     TGraph *grFakeModel = new TGraph();
-    grFakeModel->SetLineColor(color);
-    grFakeModel->SetFillColor(color);
+    grFakeModel->SetLineColor(fColors[color]);
+    grFakeModel->SetFillColor(fColors[color]);
     grFakeModel->SetLineWidth(lineWidth * 1.8);
     grFakeModel->SetLineStyle(lineStyle);
     if (fillStyle > 0) {
