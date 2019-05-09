@@ -35,6 +35,15 @@ class VariationAnalysis {
   float GetRadStatErr() const {
     return fRadStat;
   }
+  float GetRadMean() const {
+    return fRadMean;
+  }
+  float GetRadSystDown() const {
+    return fRadSystDown;
+  }
+  float GetRadSystUp() const {
+    return fRadSystUp;
+  }
  private:
   TFile* fInFile;
   const char* fHistname;

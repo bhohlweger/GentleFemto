@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   TF1* systematic = (TF1*) systFile->Get("SystError");
-  VariationAnalysis* analysis = new VariationAnalysis("hCk_FixShiftedppVar","FitResult_", 26,
+  VariationAnalysis* analysis = new VariationAnalysis("hCk_FixShiftedppVar", 26,
                                                       81);
 //  VariationAnalysis* analysis = new VariationAnalysis("hCk_ReweightedppVar", 26,
 //                                                      81);
