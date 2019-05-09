@@ -109,7 +109,7 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
       for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
         fSum[ikT] = new DreamCF();
         fSum[ikT]->SetPairs(fCFPart[0][ikT], fCFPart[1][ikT]);
-        fSum[ikT]->GetCorrelations();
+        fSum[ikT]->GetCorrelations(pair);
         std::vector<TH1F*> CFs = fSum[ikT]->GetCorrelationFunctions();
         TString outfileName = TString::Format("%s/CFOutput_%s_%s_%s_%u.root",
                                               outFolder, variable, pair, prefix,
