@@ -6,6 +6,8 @@
 #include "TCanvas.h"
 #include <iostream>
 #include "TMath.h"
+#include "TSystem.h"
+
 void EvalDreamSystematics(TString InputDir, TString prefix,
                           float upperFitRange) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
@@ -31,24 +33,28 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   DreamDist* ApAp = DreamFile->GetPairDistributions(1, 1, "");
   std::cout << "Femto Pairs ApAp: " << ApAp->GetFemtoPairs(0, 0.200)
             << std::endl;
-  DreamCF* CFppDef = CATSinput->ObtainCFSyst(rebin, "ppDef", pp, ApAp);
+  DreamCF* CFppDef = CATSinput->ObtainCFSyst(rebin, "ppVar0", pp, ApAp);
   const int pairCountsDefault = CFppDef->GetFemtoPairs(0, 0.2);
   DreamSystematics protonproton(DreamSystematics::pp);
 //  protonproton.SetUpperFitRange(44);
   if (rebin != 1) {
-    protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppDefMeV_1");
+    protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppVar0MeV_1");
   } else {
-    protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppDefMeV_0");
+    protonproton.SetDefaultHist(CFppDef, "hCk_ReweightedppVar0MeV_0");
   }
   protonproton.SetUpperFitRange(upperFitRange);
   protonproton.SetBarlowUpperRange(400);
+  int outCounter = 1;
   for (int i = 1; i <= 44; ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
     DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
-    TString VarName = TString::Format("ppVar%u", i);
+    TString VarName = TString::Format("ppVar%u", outCounter);
     DreamCF* CFppVar = CATSinput->ObtainCFSyst(
         rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 0, ""),
         DreamVarFile->GetPairDistributions(1, 1, ""));
+    DreamCF* CFppOut = CATSinput->ObtainCFSyst(
+            rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 0, ""),
+            DreamVarFile->GetPairDistributions(1, 1, ""));
     int femtoPairVar= CFppVar->GetFemtoPairs(0, 0.2);
     float relDiff = (femtoPairVar-pairCountsDefault)/(float)pairCountsDefault;
     if (TMath::Abs(relDiff) > 0.2) {
@@ -68,6 +74,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
     counter->SetNumberOfCandidates(ForgivingFile);
     protonproton.SetPair(pairCountsDefault, CFppVar->GetFemtoPairs(0, 0.2));
     protonproton.SetParticles(nTracks, 1, counter->GetNumberOfTracks(), 1);
+    CFppOut->WriteOutput(TString::Format("%s/CF_pp_Var%u.root",gSystem->pwd(),outCounter++).Data());
     counter->ResetCounter();
   }
 
@@ -77,7 +84,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   protonproton.WriteOutput();
   auto file = new TFile(
       Form("Systematics_%s.root", protonproton.GetPairName().Data()), "update");
-  CFppDef->WriteOutput(file, true);
+  CFppDef->WriteOutput(TString::Format("%s/CF_pp_Var0.root",gSystem->pwd()).Data());
 }
 
 int main(int argc, char* argv[]) {
