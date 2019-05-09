@@ -9,15 +9,15 @@
 void mTRadiusExtractor(int iBin, float &radius, float &radErrSys, float &radErrStat) {
   // mT Bin 1: Radius Mean: 1.13497 Radius stat Err: 0.00996232 Radius SystErr Down: 0.0198902 Radius Syst Err Up: 0.0225297
   // mT Bin 2: Radius Mean: 1.07765 Radius stat Err: 0.0116435 Radius SystErr Down: 0.0146171 Radius Syst Err Up: 0.019332
-  // mT Bin 3: Radius Mean: 1.04489 Radius stat Err: 0.0283188 Radius SystErr Down: 0.0168989 Radius Syst Err Up: 0.0172078
-  // mT Bin 4: Radius Mean: 0.987981 Radius stat Err: 0.0199837 Radius SystErr Down: 0.00948221 Radius Syst Err Up: 0.0145662
+  // mT Bin 3: Radius Mean: 1.04481 Radius stat Err: 0.0228825 Radius SystErr Down: 0.015478 Radius Syst Err Up: 0.0150418
+  // mT Bin 4: Radius Mean: 0.990884 Radius stat Err: 0.0147561 Radius SystErr Down: 0.00988509 Radius Syst Err Up: 0.0143956
   // mT Bin 5: Radius Mean: 0.924195 Radius stat Err: 0.0139078 Radius SystErr Down: 0.0117057 Radius Syst Err Up: 0.0160959
   // mT Bin 6: Radius Mean: 0.826865 Radius stat Err: 0.00853009 Radius SystErr Down: 0.0126212 Radius Syst Err Up: 0.0163956
   // mT Bin 7: Radius Mean: 0.731138 Radius stat Err: 0.0136254 Radius SystErr Down: 0.0125193 Radius Syst Err Up: 0.0147957
-    std::vector<float> mean = {1.13497,1.07765,1.04489,0.987981,0.924195,0.826865,0.731138};
-    std::vector<float> statErr = {0.00996232,0.0116435,0.0139078,0.0199837,0.0139078,0.00853009,0.0136254};
-    std::vector<float> systDown = {0.0198902,0.0146171,0.0117057,0.00948221,0.0117057,0.0126212,0.0125193};
-    std::vector<float> systUp= {0.0225297,0.019332,0.0160959,0.0145662,0.0160959,0.0163956,0.0147957};
+    std::vector<float> mean =     {1.13497,   1.07765,  1.04481,  0.990884,   0.924195,   0.826865,   0.731138};
+    std::vector<float> statErr =  {0.00996232,0.0116435,0.0228825,0.0147561,  0.0139078,  0.00853009, 0.0136254};
+    std::vector<float> systDown = {0.0198902, 0.0146171,0.015478, 0.00948221, 0.00988509, 0.0126212,  0.0125193};
+    std::vector<float> systUp=    {0.0225297, 0.019332, 0.0150418,0.0145662,  0.0143956,  0.0163956,  0.0147957};
     radius = mean.at(iBin);
     radErrStat = statErr.at(iBin);
     radErrSys = (systDown.at(iBin)+systUp.at(iBin))/2.;
