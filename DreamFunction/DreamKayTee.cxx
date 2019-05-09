@@ -183,7 +183,7 @@ void DreamKayTee::AveragekT(const char *pair) {
     int binUp = kTProjection->GetXaxis()->FindBin(
         fKayTeeBins.at(ikT + 1) * 0.9999);
     kTProjection->GetXaxis()->SetRange(binLow, binUp);
-    float binErr = kTProjection->GetMeanError();
+    float binErr = kTProjection->GetRMS();
     if (binLow == binUp) {
       std::cout << "Low Edge: " << kTProjection->GetBinLowEdge(binLow)
                 << " Up Edge: " << kTProjection->GetBinLowEdge(binLow + 1)
