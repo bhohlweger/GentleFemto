@@ -274,7 +274,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             std::cout << HistppName.Data() << " Missing" << std::endl;
             return;
           }
-          CATSinput->AddSystematics("C2totalsysPP.root", OliHisto_pp);
+//          CATSinput->AddSystematics("C2totalsysPP.root", OliHisto_pp);
 
           //!CHANGE PATH HERE
 
