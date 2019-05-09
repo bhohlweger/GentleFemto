@@ -26,8 +26,8 @@ void boundaries(TNtuple* tuple, double radVal, TGraph *grUpper,
   histRad->Sumw2();
 
   double median;
-  double q = 0.5; // 0.5 for "median"
-  histRad->ComputeIntegral(); // just a precaution
+  double q = 0.5;  // 0.5 for "median"
+  histRad->ComputeIntegral();  // just a precaution
   histRad->GetQuantiles(1, &median, &q);
   auto medianBin = histRad->FindBin(median);
 
@@ -72,7 +72,7 @@ void SourceMtMaker(TH1D* histmT, int pdg1, double frac1, double massEff1,
 
   const double meanmT = histmT->GetMean();
 
-  const int nTries = 15000;
+  const int nTries = 5000;
   const double mass1 = TDatabasePDG::Instance()->GetParticle(pdg1)->Mass()
       * 1000;
   const double mass2 = TDatabasePDG::Instance()->GetParticle(pdg2)->Mass()
@@ -120,29 +120,28 @@ void SourceMtMaker(TH1D* histmT, int pdg1, double frac1, double massEff1,
       "[&](double *x, double *p){ return p[0]*pow(x[0], p[1])+p[2]; }", 0, 5,
       3);
   // upper
+  const int nSigma = 3;  // can also be 1
   // 3 sigma
-  rUpper->FixParameter(0, 0.750327);
-  rUpper->FixParameter(1, -1.63876);
-  rUpper->FixParameter(2, 0.547119);
-
-  // 1 sigma
-//  rUpper->FixParameter(0, 0.759781);
-//  rUpper->FixParameter(1, -1.53513);
-//  rUpper->FixParameter(2, 0.504981);
-
-  // lower
-  // 3 sigma
-  rLower->FixParameter(0, 0.789205);
-  rLower->FixParameter(1, -1.32559);
-  rLower->FixParameter(2, 0.410767);
-
-  // 1 sigma
-//  rLower->FixParameter(0, 0.775207);
-//  rLower->FixParameter(1, -1.42141);
-//  rLower->FixParameter(2, 0.456818);
+  if (nSigma == 3) {
+    rUpper->FixParameter(0, 0.750327);
+    rUpper->FixParameter(1, -1.63876);
+    rUpper->FixParameter(2, 0.547119);
+    rLower->FixParameter(0, 0.789205);
+    rLower->FixParameter(1, -1.32559);
+    rLower->FixParameter(2, 0.410767);
+  } else if (nSigma == 1) {
+    rUpper->FixParameter(0, 0.759781);
+    rUpper->FixParameter(1, -1.53513);
+    rUpper->FixParameter(2, 0.504981);
+    rLower->FixParameter(0, 0.775207);
+    rLower->FixParameter(1, -1.42141);
+    rLower->FixParameter(2, 0.456818);
+  } else {
+    std::cerr << "Confidence level not define - abort!\n";
+    return;
+  }
 
   TGraph grmTCore;
-
   double rCoremT;
   double mTRandom;
   auto file = new TFile("results.root", "RECREATE");
@@ -174,7 +173,8 @@ void SourceMtMaker(TH1D* histmT, int pdg1, double frac1, double massEff1,
     grSource.SetName(Form("source_%i", i));
     for (double i = 0; i < 100; ++i) {
       double source = cats.EvaluateTheSource(0, i * 0.1, 0);
-      if(source < 0) continue;
+      if (source < 0)
+        continue;
       grSource.SetPoint(i, i * 0.1, source);
       fit->Fill(i * 0.1, source, mTRandom, rCoremT);
     }
@@ -221,10 +221,10 @@ void SourceMtMaker(TH1D* histmT, int pdg1, double frac1, double massEff1,
   grSourceUpper.SetLineStyle(2);
   grSourceLower.Draw("same");
   grSourceUpper.Draw("same");
-  grSourceLowerConf->SetLineColor(kGreen+2);
+  grSourceLowerConf->SetLineColor(kGreen + 2);
   grSourceLowerConf->SetLineStyle(3);
   grSourceLowerConf->Draw("same");
-  grSourceUpperConf->SetLineColor(kGreen+2);
+  grSourceUpperConf->SetLineColor(kGreen + 2);
   grSourceUpperConf->SetLineStyle(3);
   grSourceUpperConf->Draw("same");
   grSourceUpperConf->Fit(gaussFit, "RN", "", 0, 2);
