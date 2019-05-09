@@ -9,9 +9,11 @@
 #define GENTLEKITTY_VARIATIONANALYSIS_H_
 #include "TROOT.h"
 #include "TH1F.h"
+#include "TH1D.h"
 #include "TNtuple.h"
 #include "TGraphErrors.h"
 #include <vector>
+#include "DreamData.h"
 
 class VariationAnalysis {
  public:
@@ -29,7 +31,7 @@ class VariationAnalysis {
   TH1F* GetCorrelationFunctio(int i) const {
     return fCk.at(i);
   }
-  TH1F* GetRadDist() const {
+  TH1D* GetRadDist() const {
     return fRadiusDist;
   }
   TGraphErrors* GetModel() {
@@ -46,10 +48,13 @@ class VariationAnalysis {
   int fnRadBins;
   float fRadMin;
   float fRadMax;
+  float fRadMean;
+  float fRadSystUp;
+  float fRadSystDown;
   float fRadStat;
   std::vector<TH1F*> fCk;
   TGraphErrors* fModel;
-  TH1F* fRadiusDist;
+  TH1D* fRadiusDist;
 };
 
 #endif /* GENTLEKITTY_VARIATIONANALYSIS_H_ */
