@@ -14,7 +14,6 @@
 #include "TLine.h"
 #include <iostream>
 #include "TCanvas.h"
-
 VariationAnalysis::VariationAnalysis(const char* histname, const int nVars,
                                      const int nFitVars)
     : fInFile(nullptr),
@@ -31,7 +30,7 @@ VariationAnalysis::VariationAnalysis(const char* histname, const int nVars,
       fCk(),
       fModel(nullptr),
       fRadiusDist(nullptr) {
-
+  DreamPlot::SetStyle();
 }
 
 VariationAnalysis::~VariationAnalysis() {
@@ -177,8 +176,10 @@ void VariationAnalysis::EvalRadius() {
   auto *canRad2 = new TCanvas();
   canRad2->cd();
   fRadiusDist->Rebin(2);
+  DreamPlot::SetStyleHisto(fRadiusDist,20,1);
+  fRadiusDist->GetXaxis()->SetTitle("Core Radius (fm)");
+  fRadiusDist->GetYaxis()->SetTitle("Number of Entries");
   fRadiusDist->Draw();
-
   auto histRadLimits = (TH1F*) fRadiusDist->Clone("histRadLimits");
   histRadLimits->Reset();
   for (int i = 0; i < fRadiusDist->GetNbinsX(); ++i) {

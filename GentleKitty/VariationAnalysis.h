@@ -13,7 +13,7 @@
 #include "TNtuple.h"
 #include "TGraphErrors.h"
 #include <vector>
-#include "DreamData.h"
+#include "DreamPlot.h"
 
 class VariationAnalysis {
  public:
