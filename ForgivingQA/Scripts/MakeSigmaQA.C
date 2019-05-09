@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
   antiSigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   antiSigma0QA->SetCanvasDivisions(3, 2);
   antiSigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
-  antiSigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
+  antiSigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("AntiSigma0Cuts"),
                                      "Sigma0antiPart");
   antiSigma0QA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
   antiSigma0QA->InvariantMassSigma0(0.003, "Sigma0antiPart", false);

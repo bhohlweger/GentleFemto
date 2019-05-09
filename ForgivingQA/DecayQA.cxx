@@ -666,7 +666,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
     std::cerr << "Number of Sigma candidates distribution missing for "
               << outname << std::endl;
   }
-  nSigma->GetXaxis()->SetTitle("Number of #Sigma^{0} candidates");
+  nSigma->GetXaxis()->SetTitle(Form("Number of %s candidates", fPartLatex));
   nSigma->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(nSigma, 0, 1);
   fHairyPlotter->DrawLogYAndStore( { nSigma }, Form("%s_nSigma", outname),
