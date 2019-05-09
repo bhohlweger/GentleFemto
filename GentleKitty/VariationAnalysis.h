@@ -19,31 +19,36 @@ class VariationAnalysis {
                     const int nFitVars);
   virtual ~VariationAnalysis();
   void ReadFitFile(TString FileName);
-  TGraphErrors* EvaluateCurves(TNtuple* tuple, const int nBins, const int kMin,
-                               const int dkStar);
+  TGraphErrors* EvaluateCurves(TNtuple* tuple, TGraph* RefGraph);
+  void EvalRadius();
+  void SetRadiusRanges(int nRadBins, float radMin, float radMax) {
+    fnRadBins = nRadBins;
+    fRadMin = radMin;
+    fRadMax = radMax;
+  }
   TH1F* GetCorrelationFunctio(int i) const {
     return fCk.at(i);
   }
-  TH1F* GetRadDist() const { return fRadiusDist;};
-  float GetRadStatErr() const {return fRadStat;};
-  void SetRadiusRanges(int nRadBins, float radMin, float radMax) {
-    fnRadBins=nRadBins;
-    fRadMin = radMin;
-    fRadMax = radMax;
+  TH1F* GetRadDist() const {
+    return fRadiusDist;
+  }
+  TGraphErrors* GetModel() {
+    return fModel;
+  }
+  float GetRadStatErr() const {
+    return fRadStat;
   }
  private:
   TFile* fInFile;
   const char* fHistname;
   const int fnDataVars;
   const int fnFitVars;
-  float fnkMin;
-  int fnModelBins;
-  int fdkstar;
   int fnRadBins;
   float fRadMin;
   float fRadMax;
   float fRadStat;
   std::vector<TH1F*> fCk;
+  TGraphErrors* fModel;
   TH1F* fRadiusDist;
 };
 
