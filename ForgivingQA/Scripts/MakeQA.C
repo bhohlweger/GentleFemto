@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
   cascQA->SetIMHistoScale(2.5,0.8,0.45);
   cascQA->SetDecayCuts(reader->GetCascadeCuts());
   cascQA->SetAntiDecayCuts(reader->GetAntiCascadeCuts());
-  cascQA->SetRangesFitting(1.31, 1.33, 1.3, 1.35);
+  cascQA->SetRangesFitting(1.31, 1.33, 1.285, 1.365);
   cascQA->InvariantMassXi(1.317, 1.327);
   cascQA->IvariantMassXiLambda();
   return 0;
