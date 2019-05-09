@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     mTppDists->FixShift( { true, true, true, true, true, true, true }, { 0.004,
                             0.004, 0.004, 0.004, 0.004, 0.004, 0.004 });
     mTppDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix,
-                                            TString::Format("pp_%u", OutCounter));
+                                            TString::Format("ppVar%u", OutCounter));
     OutCounter++;
   }
 }
