@@ -10,7 +10,7 @@
 #include "TGraph.h"
 #include "TError.h"
 #include "TMath.h"
-
+#include "TSystem.h"
 VariationAnalysis::VariationAnalysis(const char* histname, const int nVars,
                                      const int nFitVars)
     : fInFile(nullptr),
@@ -20,8 +20,12 @@ VariationAnalysis::VariationAnalysis(const char* histname, const int nVars,
       fnkMin(0),
       fnModelBins(0),
       fdkstar(0),
-      fCk(nullptr),
-      fFits(nullptr) {
+      fnRadBins(0),
+      fRadMin(0),
+      fRadMax(0),
+      fRadStat(0),
+      fCk(),
+      fRadiusDist(nullptr){
 
 }
 
@@ -31,16 +35,21 @@ VariationAnalysis::~VariationAnalysis() {
 
 void VariationAnalysis::ReadFitFile(TString FileName) {
   fInFile = TFile::Open(FileName, "READ");
-  if (fFits) {
-    delete fFits;
+  TFile* tmpFile = TFile::Open(TString::Format("%s/tmp.root",gSystem->pwd()),"RECREATE");
+  if (!tmpFile) {
+    Error("ReadFitFile","No Tmp file");
+    return;
   }
-  fFits = new TNtuple("fitCurves", "fitCurves", "kstar:modelValue");
+  TNtuple* Fits=new TNtuple("fitCurves", "fitCurves", "kstar:modelValue");
+  tmpFile->cd();
+  Fits->Write();
   for (int iVars = 0; iVars < fnDataVars + 1; ++iVars) {
-    TString histname = TString::Format("%s%uMeV_0");
+    TString histname = TString::Format("%s%iMeV_0", fHistname, iVars);
     TH1F* histo = (TH1F*) fInFile->Get(histname.Data());
     if (!histo) {
-      Error("ReadFitFile",
-            TString::Format("Histogram (%s) missing, rip", histname.Data()));
+      TString OutputError = TString::Format("Histogram (%s) missing, rip",
+                                            histname.Data());
+      Error("ReadFitFile", OutputError.Data());
     } else {
       fCk.push_back(histo);
     }
@@ -48,44 +57,64 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
       fnkMin = histo->GetXaxis()->GetXmin();
       fdkstar = histo->GetBinWidth(1);
     }
-    TList* outList = (TList*) fInFile->Get(TString::Format("Out%u", iVars));
+    TList* outList = (TList*) fInFile->Get(TString::Format("Out%i", iVars));
     if (!outList) {
-      Error(
-          "ReadFitFile",
-          TString::Format("Outlist %s not available",
-                          TString::Format("Out%u", iVars)));
+      TString OutputError = TString::Format(
+          "Outlist %s not available", TString::Format("Out%i", iVars).Data())
+          .Data();
+      Error("ReadFitFile", OutputError.Data());
     }
     //loop over all variations for on fit
     for (int iFitVar = 1; iFitVar < fnFitVars; iFitVar++) {
-      TString folderName = TString::Format("Graph_Var%u_iter_%u");
+      TString folderName = TString::Format("Graph_Var_%i_iter_%i", iVars,
+                                           iFitVar);
       TList* GraphList = (TList*) outList->FindObject(folderName.Data());
       if (!GraphList) {
-        Error("ReadFitFile",
-              TString::Format("GraphList %s not available", folderName.Data()));
+        TString OutputError = TString::Format("GraphList %s not available",
+                                              folderName.Data()).Data();
+        Error(
+            "ReadFitFile",OutputError.Data());
+        return;
       } else {
-        TString GraphName = TString("FitResult_%u", iFitVar);
+        TString GraphName = TString::Format("FitResult_%i", iFitVar);
         TGraph* Graph = (TGraph*) GraphList->FindObject(GraphName.Data());
-        double x, y;
-        if (iVars == 0 && iFitVar == 1) {
-          fnModelBins = Graph->GetN();
-        }
-        for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
-          Graph->GetPoint(iPnt, x, y);
-          fFits->Fill(x, y);
+        if (!Graph) {
+          Error("ReadFitFile", GraphName.Data());
+          return;
+        } else {
+          double x, y;
+          if (iVars == 0 && iFitVar == 1) {
+            fnModelBins = Graph->GetN();
+          }
+          for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
+            Graph->GetPoint(iPnt, x, y);
+            Fits->Fill(x, y);
+          }
         }
       }
     }
   }
-}
-
-TGraphErrors* VariationAnalysis::ModelFitBands() {
-  return EvaluateCurves(fFits, fnModelBins, fnkMin, fdkstar);
+  EvaluateCurves(Fits, fnModelBins, fnkMin, fdkstar);
+  TNtuple *resultTuple = (TNtuple*) fInFile->Get("ntResult");
+  if (!resultTuple) {
+    Error("ReadFitFile", "No Result tuple rip. \n");
+    return;
+  } else {
+    if (fRadiusDist) {
+      delete fRadiusDist;
+    }
+    fRadiusDist = new TH1F("RadDist", "RadDist", fnRadBins, fRadMin, fRadMax);
+    resultTuple->Draw("Radius_pp>>RadDist");
+    TH1F* statErr = new TH1F("RadStat","RadStat",50,0,0.02);
+    resultTuple->Draw("RadiusErr_pp>>RadStat");
+    fRadStat=statErr->GetMean();
+  }
 }
 
 TGraphErrors* VariationAnalysis::EvaluateCurves(TNtuple* tuple, const int nBins,
                                                 const int kMin,
                                                 const int dkStar) {
-  //user needs to delete grOut.
+//user needs to delete grOut.
   TGraphErrors* grOut = new TGraphErrors();
   for (int ikstar = 0; ikstar < nBins; ++ikstar) {
     double kVal = kMin + ikstar * dkStar;

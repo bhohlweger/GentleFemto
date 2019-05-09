@@ -19,11 +19,17 @@ class VariationAnalysis {
                     const int nFitVars);
   virtual ~VariationAnalysis();
   void ReadFitFile(TString FileName);
-  TGraphErrors* ModelFitBands();
   TGraphErrors* EvaluateCurves(TNtuple* tuple, const int nBins, const int kMin,
                                const int dkStar);
   TH1F* GetCorrelationFunctio(int i) const {
     return fCk.at(i);
+  }
+  TH1F* GetRadDist() const { return fRadiusDist;};
+  float GetRadStatErr() const {return fRadStat;};
+  void SetRadiusRanges(int nRadBins, float radMin, float radMax) {
+    fnRadBins=nRadBins;
+    fRadMin = radMin;
+    fRadMax = radMax;
   }
  private:
   TFile* fInFile;
@@ -33,8 +39,12 @@ class VariationAnalysis {
   float fnkMin;
   int fnModelBins;
   int fdkstar;
+  int fnRadBins;
+  float fRadMin;
+  float fRadMax;
+  float fRadStat;
   std::vector<TH1F*> fCk;
-  TNtuple* fFits;
+  TH1F* fRadiusDist;
 };
 
 #endif /* GENTLEKITTY_VARIATIONANALYSIS_H_ */
