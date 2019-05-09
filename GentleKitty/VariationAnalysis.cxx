@@ -20,9 +20,6 @@ VariationAnalysis::VariationAnalysis(const char* histname, const int nVars,
       fHistname(histname),
       fnDataVars(nVars),
       fnFitVars(nFitVars),
-      fnRadBins(0),
-      fRadMin(0),
-      fRadMax(0),
       fRadMean(0),
       fRadSystUp(0),
       fRadSystDown(0),
@@ -42,6 +39,25 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
   if (!fInFile) {
     Error("ReadFitFile", "No input file");
     return;
+  }
+  TNtuple *resultTuple = (TNtuple*) fInFile->Get("ntResult");
+  if (!resultTuple) {
+    Error("ReadFitFile", "No Result tuple rip. \n");
+    return;
+  } else {
+    if (fRadiusDist) {
+      delete fRadiusDist;
+    }
+    resultTuple->Draw("Radius_pp>>RadDist");
+    fRadiusDist = (TH1D*) gROOT->FindObject("RadDist");
+    float radMin = 0.9 * (fRadiusDist->GetMean() - fRadiusDist->GetRMS());
+    float radMax = 1.1 * (fRadiusDist->GetMean() + fRadiusDist->GetRMS());
+    delete fRadiusDist;
+    fRadiusDist = new TH1D("RadDist", "RadDist", 200, radMin, radMax);
+    resultTuple->Draw("Radius_pp>>RadDist");
+    resultTuple->Draw("RadiusErr_pp>>RadStat");
+    TH1F* statErr = (TH1F*) gROOT->FindObject("RadStat");
+    fRadStat = statErr->GetMean();
   }
   TFile* tmpFile = TFile::Open(TString::Format("%s/tmp.root", gSystem->pwd()),
                                "RECREATE");
@@ -104,32 +120,20 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
   fModel->Write();
   tmpFile->Write();
   tmpFile->Close();
-  TNtuple *resultTuple = (TNtuple*) fInFile->Get("ntResult");
-  if (!resultTuple) {
-    Error("ReadFitFile", "No Result tuple rip. \n");
-    return;
-  } else {
-    if (fRadiusDist) {
-      delete fRadiusDist;
-    }
-    fRadiusDist = new TH1D("RadDist", "RadDist", fnRadBins, fRadMin, fRadMax);
-    resultTuple->Draw("Radius_pp>>RadDist");
-    TH1F* statErr = new TH1F("RadStat", "RadStat", 500, 0, 2.);
-    resultTuple->Draw("RadiusErr_pp>>RadStat");
-    fRadStat = statErr->GetMean();
-  }
 }
 
-TGraphErrors* VariationAnalysis::EvaluateCurves(TNtuple* tuple,
-                                                TGraph* RefGraph) {
+TGraphErrors * VariationAnalysis::EvaluateCurves(TNtuple * tuple,
+                                                 TGraph * RefGraph) {
   //Ref Graph is just any fit graph to have the correct x values for the tuple.
   //user needs to delete grOut.
   TGraphErrors* grOut = new TGraphErrors();
   double kVal, Ck;
   for (int ikstar = 0; ikstar < RefGraph->GetN(); ++ikstar) {
     RefGraph->GetPoint(ikstar, kVal, Ck);
-    tuple->Draw("modelValue >> h", Form("std::abs(kstar - %.3f) < 1e-3", kVal));
-    TH1F* hist = (TH1F*) gROOT->FindObject("h");
+    tuple->Draw(Form("modelValue >> h%i", ikstar),
+                Form("std::abs(kstar - %.3f) < 1e-3", kVal));
+    TH1F* hist = (TH1F*) gROOT->FindObject(Form("h%i", ikstar));
+
     double binLow = hist->GetXaxis()->GetBinLowEdge(
         hist->FindFirstBinAbove(0.1, 1));
     double binUp = hist->GetXaxis()->GetBinUpEdge(
@@ -145,14 +149,15 @@ TGraphErrors* VariationAnalysis::EvaluateCurves(TNtuple* tuple,
 void VariationAnalysis::EvalRadius() {
   fRadMean = fRadiusDist->GetMean();
   int n = fRadiusDist->GetXaxis()->GetNbins();
+
   auto histRadCumulative = fRadiusDist->GetCumulative();
-  std::vector<double> x(n);
-  fRadiusDist->GetXaxis()->GetCenter(&x[0]);
-  const double * y = fRadiusDist->GetArray();
-  // exclude underflow/overflows from bin content array y
-  auto median = TMath::Median(n, &x[0], &y[1]);
-  auto medianBin = fRadiusDist->FindBin(median);
-  histRadCumulative->Scale(1 / (double) fRadiusDist->GetEntries());
+  histRadCumulative->Scale(1. / (double) fRadiusDist->GetEntries());
+  auto c1 = new TCanvas("c4", "c5");
+  histRadCumulative->Draw("");
+  c1->SaveAs(Form("%s/cumulative.pdf", gSystem->pwd()));
+  auto medianBin = histRadCumulative->FindFirstBinAbove(0.5, 1);
+  std::cout << "medianBin: " << medianBin << " Median: "
+            << histRadCumulative->GetBinCenter(medianBin) << std::endl;
   int binMin = 0;
   int binMax = 0;
   for (int iBin = 0; iBin < histRadCumulative->GetNbinsX(); iBin++) {
@@ -170,20 +175,22 @@ void VariationAnalysis::EvalRadius() {
   }
   auto radMin = histRadCumulative->GetXaxis()->GetBinCenter(binMin);
   auto radMax = histRadCumulative->GetXaxis()->GetBinCenter(binMax);
+  std::cout << "radMin: " << radMin << " radMax: " << radMax << std::endl;
   fRadSystUp = radMax - fRadMean;
   fRadSystDown = fRadMean - radMin;
 
   auto *canRad2 = new TCanvas();
   canRad2->cd();
   fRadiusDist->Rebin(2);
-  DreamPlot::SetStyleHisto(fRadiusDist,20,1);
+  DreamPlot::SetStyleHisto(fRadiusDist, 20, 1);
   fRadiusDist->GetXaxis()->SetTitle("Core Radius (fm)");
   fRadiusDist->GetYaxis()->SetTitle("Number of Entries");
   fRadiusDist->Draw();
   auto histRadLimits = (TH1F*) fRadiusDist->Clone("histRadLimits");
   histRadLimits->Reset();
   for (int i = 0; i < fRadiusDist->GetNbinsX(); ++i) {
-    if (fRadiusDist->GetBinCenter(i) < radMin || fRadiusDist->GetBinCenter(i) > radMax)
+    if (fRadiusDist->GetBinCenter(i) < radMin
+        || fRadiusDist->GetBinCenter(i) > radMax)
       continue;
     histRadLimits->SetBinContent(i, fRadiusDist->GetBinContent(i));
   }

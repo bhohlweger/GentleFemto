@@ -23,11 +23,6 @@ class VariationAnalysis {
   void ReadFitFile(TString FileName);
   TGraphErrors* EvaluateCurves(TNtuple* tuple, TGraph* RefGraph);
   void EvalRadius();
-  void SetRadiusRanges(int nRadBins, float radMin, float radMax) {
-    fnRadBins = nRadBins;
-    fRadMin = radMin;
-    fRadMax = radMax;
-  }
   TH1F* GetCorrelationFunctio(int i) const {
     return fCk.at(i);
   }
@@ -45,9 +40,6 @@ class VariationAnalysis {
   const char* fHistname;
   const int fnDataVars;
   const int fnFitVars;
-  int fnRadBins;
-  float fRadMin;
-  float fRadMax;
   float fRadMean;
   float fRadSystUp;
   float fRadSystDown;
