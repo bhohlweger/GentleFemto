@@ -309,7 +309,6 @@ DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
   if (fnormalizationLeft == 0 || fnormalizationRight == 0) {
     std::cout << "Normalization is 0! Bad results incoming! \n";
   }
-  std::cout << "Set pair\n";
   pp->SetPair(ppDist);
   ApAp->SetPair(ApApDist);
 
