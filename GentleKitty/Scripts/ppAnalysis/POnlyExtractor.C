@@ -16,10 +16,10 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   TF1* systematic = (TF1*) systFile->Get("SystError");
-  VariationAnalysis* analysis = new VariationAnalysis("hCk_FixShiftedppVar", 26,
-                                                      81);
-//  VariationAnalysis* analysis = new VariationAnalysis("hCk_ReweightedppVar", 26,
-//                                                      81);
+  //VariationAnalysis* analysis = new VariationAnalysis("hCk_FixShiftedppVar", 26,
+                                                      // 81);
+  VariationAnalysis* analysis = new VariationAnalysis("hCk_ReweightedppVar", 26,
+						      81);
   analysis->ReadFitFile(filename);
   analysis->EvalRadius();
   std::cout << "Radius Mean: " << analysis->GetRadMean() << " Radius stat Err: "
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
   text.DrawLatex(
       0.32,
       0.825,
-      Form("#it{r}_{0} = %.3f #pm %.3f (stat.) ^{+%.3f}_{-%.3f} (syst.) fm",
+      Form("#it{r}_{#kern[-0.17]{core}} = %.3f#kern[-0.1]{#pm}%.3f(stat.)^{+%.3f}_{-%.3f}(syst.) fm",
            analysis->GetRadMean(), analysis->GetRadStatErr(),
            analysis->GetRadSystUp(), analysis->GetRadSystDown()));
 
