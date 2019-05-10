@@ -24,7 +24,8 @@
 #include "TObject.h"
 #include "TDirectoryFile.h"
 void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
-                    TString DataFile, TString HistpXiDefaultName, TString OutputDir) {
+                    TString DataFile, TString HistpXiDefaultName,
+                    TString OutputDir) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //System: 0 = pPb, 1 = pp MB, 2 = pp HM
   //Potential: 0 = Coulomb, 1 = Gamow, 2 = HAL + Coulomb, 3 = HAL + Gamow, 5 = RikkenWF , 6 = RikkenPot
@@ -33,15 +34,13 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 //  bool drawSource = (NumIter == 0);
   bool fitRadius = false;
 //  TString HistpXiDefaultName = "hCk_ReweightedMeV_0";
-  TFile* inFile = TFile::Open(
-      DataFile.Data(),
-      "READ");
-  TH1F* Prefit = (TH1F*) inFile->Get(HistpXiDefaultName.Data());
-  if (!Prefit) {
-    Error("GetXiForRadius","No Histogram Loaded!\n ");
+  TFile* inFile = TFile::Open(DataFile.Data(), "READ");
+  TH1F* StoreHist = (TH1F*) inFile->Get(HistpXiDefaultName.Data());
+  if (!StoreHist) {
+    Error("GetXiForRadius", "No Histogram Loaded!\n ");
     return;
   }
-  TH1F* StoreHist = (TH1F*) Prefit->Clone("Ck_Input");
+  TH1F* Prefit = (TH1F*) StoreHist->Clone("CkPrefit");
 
   const int binwidth = 20;
   const int rebin = 5;
@@ -170,13 +169,13 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     int iVar2 = 0;
     for (auto itXim : Variation) {
       double XiNormalization = 1 + it * OmegamXimProdFraction * OmegamXim_BR
-          + itXim*Xi01530XimProdFraction * Xi01530Xim_BR
-          + itXim*Xim1530XimProdFraction * Xim1530Xim_BR;
+          + itXim * Xi01530XimProdFraction * Xi01530Xim_BR
+          + itXim * Xim1530XimProdFraction * Xim1530Xim_BR;
       double SecOmegaXim = it * OmegamXimProdFraction * OmegamXim_BR
           / (double) XiNormalization;
-      double SecXi01530Xim = itXim*Xi01530XimProdFraction * Xi01530Xim_BR
+      double SecXi01530Xim = itXim * Xi01530XimProdFraction * Xi01530Xim_BR
           / (double) XiNormalization;
-      double SecXim1530Xim = itXim*Xim1530XimProdFraction * Xim1530Xim_BR
+      double SecXim1530Xim = itXim * Xim1530XimProdFraction * Xim1530Xim_BR
           / (double) XiNormalization;
       double PrimXim = 1. / (double) XiNormalization;
       Xi[iVar1][iVar2] = Particle(PurityXi, PrimXim, { SecOmegaXim,
@@ -230,15 +229,17 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   TFile* OutFile = new TFile(
       TString::Format("%s/OutFileVarpXi_%u.root", OutputDir.Data(), NumIter),
       "RECREATE");
-  TDirectoryFile* CollOut = new TDirectoryFile(TString::Format("Out%u", NumIter),TString::Format("Out%u", NumIter));
+  TDirectoryFile* CollOut = new TDirectoryFile(
+      TString::Format("Out%u", NumIter), TString::Format("Out%u", NumIter));
 //  CollOut->SetOwner();
 //  CollOut->SetName();
   //you save a lot of stuff in an NTuple
   TNtuple* ntResult = new TNtuple(
-      "ntResult", "ntResult", "IterID:FemtoRegion:lampXi:lampXi1530:lampXiFake:"
+      "ntResult", "ntResult",
+      "NumIter:IterID:FemtoRegion:lampXi:lampXi1530:lampXiFake:"
       "tOut:ppRadius:AlphaLev:AlphaLevErr:varSideNorm:BLSlope:"
       "p_a:p_a_err:p_b:p_b_err:p_c:p_c_err:"
-      "Chi2NdfGlobal:Chi2NdfLocal:pval:sigma200:sigma100:sigma150");
+      "Chi2NdfGlobal:chisqPerndf:pval:sigma200:sigma100:sigma150");
 
   Float_t ntBuffer[23];
 
@@ -256,8 +257,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   if (system == 0) {
     side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
   } else if (system == 2) {
-    side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/latestSystematic", "HM",
-                          "103", "104");
+    side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/latestSystematic",
+                          "HM", "103", "104");
   }
 
   int uIter = 1;
@@ -289,8 +290,8 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     std::cout << i << " pa: " << p_a_prefit[i] << " pb: " << p_b_prefit[i]
               << std::endl;
   }
-  funct_0->SetRange(0,600);
-  funct_1->SetRange(0,600);
+  funct_0->SetRange(0, 600);
+  funct_1->SetRange(0, 600);
 //  delete Prefit;
 
   CATS AB_pXim;
@@ -317,6 +318,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   StoreHist->SetLineWidth(3);
   StoreHist->SetLineColor(1);
   StoreHist->GetXaxis()->SetRangeUser(0, 400);
+
   CollOut->Add(c1);
   CollOut->Add(funct_0);
   CollOut->Add(funct_1);
@@ -461,11 +463,12 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
 
               TGraph FitResult_pXim;
 
-              FitResult_pXim.SetName(TString::Format("pXimGraph"));
+              FitResult_pXim.SetName(TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
               fitter->GetFitGraph(0, FitResult_pXim);
               c1->cd();
               TGraph *pointerFitRes = new TGraph(FitResult_pXim);
-              pointerFitRes->SetName(TString::Format("Graph_Var_%u_Iter_%u",NumIter,uIter));
+              pointerFitRes->SetName(
+                  TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
               pointerFitRes->SetLineWidth(2);
               pointerFitRes->SetLineColor(kRed);
               pointerFitRes->SetMarkerStyle(24);
@@ -546,29 +549,30 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
               double nSigmaXi_kSm150 = TMath::Sqrt(2)
                   * TMath::ErfcInverse(pvalXi_kSm150);
 
-              ntBuffer[0] = uIter;
-              ntBuffer[1] = FemtoRegion_pXim[vFemReg_pXim];
-              ntBuffer[2] = lam_pXim;
-              ntBuffer[3] = lam_pXim_pXim1530;
-              ntBuffer[4] = lam_pXim_fake;
-              ntBuffer[5] = tOut;
-              ntBuffer[6] = GaussSourceSize;
-              ntBuffer[7] = fitter->GetParameter("pXim", DLM_Fitter1::p_sor1);
-              ntBuffer[8] = fitter->GetParError("pXim", DLM_Fitter1::p_sor1);
-              ntBuffer[9] = varSideNorm;
-              ntBuffer[10] = (float) BaselineSlope;
-              ntBuffer[11] = p_a_strong;
-              ntBuffer[12] = p_a_strong_err;
-              ntBuffer[13] = p_b_strong;
-              ntBuffer[14] = p_b_strong_err;
-              ntBuffer[15] = 0;
+              ntBuffer[0] = NumIter;
+              ntBuffer[1] = uIter;
+              ntBuffer[2] = FemtoRegion_pXim[vFemReg_pXim];
+              ntBuffer[3] = lam_pXim;
+              ntBuffer[4] = lam_pXim_pXim1530;
+              ntBuffer[5] = lam_pXim_fake;
+              ntBuffer[6] = tOut;
+              ntBuffer[7] = GaussSourceSize;
+              ntBuffer[8] = fitter->GetParameter("pXim", DLM_Fitter1::p_sor1);
+              ntBuffer[9] = fitter->GetParError("pXim", DLM_Fitter1::p_sor1);
+              ntBuffer[10] = varSideNorm;
+              ntBuffer[11] = (float) BaselineSlope;
+              ntBuffer[12] = p_a_strong;
+              ntBuffer[13] = p_a_strong_err;
+              ntBuffer[14] = p_b_strong;
+              ntBuffer[15] = p_b_strong_err;
               ntBuffer[16] = 0;
-              ntBuffer[17] = ChiSqStrongGlobal;
-              ntBuffer[18] = Chi2_pXim / double(EffNumBins_pXim);
-              ntBuffer[19] = pvalXi;
-              ntBuffer[20] = nSigmaXi;
-              ntBuffer[21] = nSigmaXi_kSm100;
-              ntBuffer[22] = nSigmaXi_kSm150;
+              ntBuffer[17] = 0;
+              ntBuffer[18] = ChiSqStrongGlobal;
+              ntBuffer[19] = Chi2_pXim / double(EffNumBins_pXim);
+              ntBuffer[20] = pvalXi;
+              ntBuffer[21] = nSigmaXi;
+              ntBuffer[22] = nSigmaXi_kSm100;
+              ntBuffer[23] = nSigmaXi_kSm150;
               ntResult->Fill(ntBuffer);
               TList* outList = new TList();
               outList->SetOwner();
@@ -592,10 +596,10 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   }
   std::cout << "\n";
   OutFile->cd();
-//  c1->Write(TString::Format("%s", c1->GetName()));
   ntResult->Write();
   CollOut->Write(TString::Format("Out%u", NumIter), TObject::kSingleKey);
   OutFile->Close();
+  delete tidy;
   return;
 }
 

@@ -23,7 +23,7 @@
 
 void FitPPVariations(const unsigned& NumIter, int system, int source,
                      TString InputFile, TString HistoName, TString OutputDir) {
-//  gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
+  gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Cauchy; 2=DoubleGauss
   TString HistppName = HistoName.Data();
   TFile* inFile = TFile::Open(TString::Format("%s", InputFile.Data()), "READ");
@@ -188,8 +188,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   if (!OutFile) {
     return;
   }
-  TList* CollOut = new TList();
-  CollOut->SetOwner();
+  TDirectoryFile* CollOut = new TDirectoryFile(
+      TString::Format("Out%u", NumIter), TString::Format("Out%u", NumIter));
   CollOut->SetName(TString::Format("Out%u", NumIter));
   TNtuple* ntResult = new TNtuple("ntResult", "ntResult", "NumIter:"
                                   "IterID:"
@@ -227,8 +227,10 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   StoreHist->GetXaxis()->SetRangeUser(0, 400);
   c1->cd();
   StoreHist->DrawCopy();
-  StoreHist->GetXaxis()->SetRangeUser(0, 1000);
 
+  CollOut->Add(c1);
+  StoreHist->GetXaxis()->SetRangeUser(0, 1000);
+  CollOut->Add(StoreHist);
   CATS AB_pp;
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
   AB_pp.KillTheCat();
@@ -476,10 +478,13 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           fitter->GoBabyGo();
 
           TGraph FitResult;
-          FitResult.SetName(TString::Format("FitResult_%u", uIter));
+          FitResult.SetName(
+              TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
           fitter->GetFitGraph(0, FitResult);
-          TGraph* pointerFitResult = new TGraph(FitResult);
           c1->cd();
+          TGraph* pointerFitResult = new TGraph(FitResult);
+          pointerFitResult->SetName(
+              TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
           pointerFitResult->SetLineWidth(2);
           pointerFitResult->SetLineColor(kRed);
           pointerFitResult->SetMarkerStyle(24);
@@ -557,12 +562,10 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
       }
     }
   }
+  std::cout << "\n";
   OutFile->cd();
-
-  c1->Write(TString::Format("%s", c1->GetName()));
   ntResult->Write();
-  CollOut->Write(CollOut->GetName(), 1);
-  StoreHist->Write();
+  CollOut->Write(TString::Format("Out%u", NumIter), TObject::kSingleKey);
   OutFile->Close();
   delete tidy;
 }
