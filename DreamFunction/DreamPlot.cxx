@@ -487,7 +487,7 @@ void DreamPlot::DrawCorrelationFunctions() {
                                   0.785 - 0.09 * fProtonXi->GetNumberOfModels(),
                                   0.7, 0.875);
   fProtonXi->DrawCorrelationPlot(c_pXi);
-  DrawSystemInfo(c_pXi, false, 0.32);
+  DrawSystemInfo(c_pXi, false, 0.32, true);
 //  Numbering.DrawLatex(0.19, 0.9, "#bf{b)}");
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
@@ -543,10 +543,10 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin,
     }
   } else {
     if (isPreliminary && !plotRadius) {
-      BeamText.DrawLatex(xMin, 0.9, "ALICE Preliminary");
+//      BeamText.DrawLatex(xMin, 0.9, "ALICE Preliminary");
       BeamText.DrawLatex(
-          xMin, 0.825,
-          Form("%s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));
+          xMin, 0.9,
+          Form("ALICE Preliminary %s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));
     } else {
       BeamText.DrawLatex(
           xMin,
