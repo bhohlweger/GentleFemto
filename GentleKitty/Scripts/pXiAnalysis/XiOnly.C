@@ -134,9 +134,12 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
     ppTuple->SetBranchAddress("RadUp_pXi", &ppRadii[2]);
     ppTuple->GetEntry(0);
   } else {
-    ppRadii[0] = 0.76;
-    ppRadii[1] = 0.79;
-    ppRadii[2] = 0.82;
+    ppRadii[0] = 0.764823;
+    ppRadii[1] = 0.795331;
+    ppRadii[2] = 0.826608;
+//    ppRadii[0] = 1.05;
+//    ppRadii[1] = 1.1;
+//    ppRadii[2] = 1.15;
   }
   std::cout << ppRadii[0] << '\t' << ppRadii[1] << '\t' << ppRadii[2]
             << std::endl;
