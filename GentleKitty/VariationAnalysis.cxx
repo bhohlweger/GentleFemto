@@ -87,6 +87,13 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     }
     //loop over all variations for on fit
     for (int iFitVar = 1; iFitVar < fnFitVars; iFitVar++) {
+      resultTuple->Draw("chisqPerndf>>chisq",Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3",iVars,iFitVar));
+      TH1F* chiSq = (TH1F*)gROOT->FindObject("chisq");
+      if (chiSq->GetMean() > 15.){
+	Warning("ReadFitFile",Form("Chisq (%.1f) larger than 15, ignoring fit",chiSq->GetMean()));
+	continue;
+      }
+      delete chiSq; 
       TString folderName = TString::Format("Graph_Var_%i_iter_%i", iVars,
                                            iFitVar);
       TList* GraphList = (TList*) outList->FindObject(folderName.Data());
@@ -133,7 +140,7 @@ TGraphErrors * VariationAnalysis::EvaluateCurves(TNtuple * tuple,
     tuple->Draw(Form("modelValue >> h%i", ikstar),
                 Form("std::abs(kstar - %.3f) < 1e-3", kVal));
     TH1F* hist = (TH1F*) gROOT->FindObject(Form("h%i", ikstar));
-
+    
     double binLow = hist->GetXaxis()->GetBinLowEdge(
         hist->FindFirstBinAbove(0.1, 1));
     double binUp = hist->GetXaxis()->GetBinUpEdge(
