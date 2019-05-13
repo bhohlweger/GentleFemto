@@ -319,8 +319,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else if (!sideband) {
       std::cout << "No sideband \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0, 0, 3352,
-                                       true);
+      fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0, 0, 3352, true);
       fProtonSigma->FemtoModelFitBands(sideband, kGray + 2, 0.5, true);
     }
   } else {
@@ -506,7 +505,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   fProtonSigma->SetLegendName("Lednicky coupled channel", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
   fProtonSigma->SetLegendName("ESC16", "fl");
-  fProtonSigma->SetLegendName("p#minus #Lambda#gamma background", "l");
+  fProtonSigma->SetLegendName("p#minus (#Lambda#gamma) background", "l");
   fProtonSigma->SetRangePlotting(0, 450, 0.925, 1.5);
   fProtonSigma->SetNDivisions(505);
   const float upperY = 0.79;

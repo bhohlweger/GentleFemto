@@ -203,9 +203,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   std::cout << "Binwidth : " << drawBinWidth << std::endl;
 
   // pp radius systematic variations
-  const double resonancesRadius = 1.148;
-  const double radiusLower = 1.115;
-  const double radiusUpper = 1.183;
+  const double resonancesRadius = 1.154;
+  const double radiusLower = 1.113;
+  const double radiusUpper = 1.196;
   const std::vector<double> sourceSize = { { resonancesRadius, radiusLower,
       radiusUpper } };
 
@@ -523,8 +523,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
           Ck_SideBand->Update();
           Ck_SideBand_draw->Update();
 
-          std::cout
-              << "\r Processing progress: "
+          std::cout << "\r Processing progress: "
               << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
               << std::flush;
 

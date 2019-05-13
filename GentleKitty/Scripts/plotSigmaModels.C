@@ -180,7 +180,7 @@ double Lednicky_gauss_Sigma0(const double& Momentum, const double* SourcePar,
 
 /// =====================================================================================
 void SourcePlay() {
-  const double rCore = 0.743;
+  const double rCore = 0.748428;
 
   const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
