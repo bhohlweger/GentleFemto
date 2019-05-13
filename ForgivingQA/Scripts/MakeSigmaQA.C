@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
   sigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   sigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
                                  "Sigma0part");
-  sigma0QA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
+  sigma0QA->SetRangesFitting(1.19, 1.196, 1.167, 1.217);
   sigma0QA->InvariantMassSigma0(0.003, "Sigma0part", false);
   delete sigma0QA;
 
@@ -66,19 +66,19 @@ int main(int argc, char* argv[]) {
   antiSigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   antiSigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("AntiSigma0Cuts"),
                                      "Sigma0antiPart");
-  antiSigma0QA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
+  antiSigma0QA->SetRangesFitting(1.19, 1.196, 1.167, 1.217);
   antiSigma0QA->InvariantMassSigma0(0.003, "Sigma0antiPart", false);
   delete antiSigma0QA;
 
-  DecayQA* sigmaSumQA = new DecayQA("#Sigma^{0} #oplus #bar{#Sigma^{0}}",
-                                    "#Lambda#gamma #oplus #bar{#Lambda}#gamma");
+  DecayQA* sigmaSumQA = new DecayQA("#Sigma^{0} + #bar{#Sigma^{0}}",
+                                    "#Lambda#gamma + #bar{#Lambda}#gamma");
   sigmaSumQA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigmaSumQA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   sigmaSumQA->SetCanvasDivisions(3, 2);
   sigmaSumQA->SetIMHistoScale(1.75, 0.8, 0.35);
   sigmaSumQA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
                                    "SigmaSum");
-  sigmaSumQA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
+  sigmaSumQA->SetRangesFitting(1.19, 1.196, 1.167, 1.217);
   sigmaSumQA->InvariantMassSigma0(0.003);
   delete sigmaSumQA;
 }

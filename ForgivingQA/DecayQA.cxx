@@ -269,7 +269,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   auto* invMass = (TH1F*) invMasspT->ProjectionY(Form("InvMass%s", outname), 0,
                                                  -1, "e");
   TPad* intPad = (TPad*) cMassIntegrated->cd();
-  fFitter->FitInvariantMassSigma(invMass, massCuts);
+  fFitter->FitInvariantMassSigma(invMass, massCuts, kRed + 1);
   const double CutMin = fFitter->GetMeanMass() - massCuts;
   const double CutMax = fFitter->GetMeanMass() + massCuts;
   invMass->GetXaxis()->SetRangeUser(1.172, 1.212);
@@ -281,9 +281,9 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
   invMass->GetXaxis()->SetTitle(
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
-  fHairyPlotter->FormatHistogram(invMass, 2, 1, 0.9);
+  fHairyPlotter->FormatHistogram(invMass, 2, 8, 1.1);
   fHairyPlotter->DrawOnPad( { invMass }, intPad, "P");
-  fHairyPlotter->DrawPerformance(fFitter, intPad, fPartLatex, 0.205, 0.87);
+  fHairyPlotter->DrawPerformance(fFitter, intPad, fPartLatex, 0.205, 0.87, 0.4, 10);
   fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0,
                           invMass->GetMaximum() * 0.5, kTeal + 3);
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,

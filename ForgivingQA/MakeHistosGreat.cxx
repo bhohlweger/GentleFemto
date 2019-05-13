@@ -13,7 +13,7 @@
 std::vector<int> fFillColors = { kGray + 1, kRed - 10, kBlue - 9, kGreen - 8,
     kMagenta - 9, kOrange - 9, kCyan - 8, kYellow - 7 };
 std::vector<int> fColors = { kBlack, kRed + 1, kBlue + 2, kGreen + 3, kMagenta
-    + 1, kOrange - 1, kCyan + 2, kYellow + 2 };
+    + 1, kOrange - 1, kCyan + 2, kYellow + 2, kBlue + 3 };
 std::vector<int> fMarkers = { kFullCircle, kFullSquare, kOpenCircle,
     kOpenSquare, kOpenDiamond, kOpenCross, kFullCross, kFullDiamond, kFullStar,
     kOpenStar };
@@ -253,17 +253,27 @@ void MakeHistosGreat::DrawLatexLabel(float pTMin, float pTMax,
 }
 
 void MakeHistosGreat::DrawPerformance(ForgivingFitter* fit, TPad* pad,
-                                      const char* part, float xPos, float yPos) {
+                                      const char* part, float xPos, float yPos,
+                                      float pTmin, float pTmax) {
   float signal = (float) fit->GetSignalCounts();
   float background = (float) fit->GetBackgroundCounts();
   pad->cd();
+  const float offset = 0.08;
+  float counter = 0;
   TLatex Label;
   Label.SetNDC(kTRUE);
   Label.SetTextSize(gStyle->GetTextSize() * 0.96);
-  Label.DrawLatex(xPos, yPos, "ALICE Performance");
-  Label.DrawLatex(xPos, yPos - 0.08, "pp (HM) #sqrt{s} = 13 TeV");
-  Label.DrawLatex(xPos, yPos - 0.16, Form("%s: %.0f", part, signal));
-  Label.DrawLatex(xPos, yPos - 0.24, Form("Purity = %.1f %%", signal / (signal + background) * 100.f));
+  Label.DrawLatex(xPos, yPos - offset * counter++, "ALICE Performance");
+  Label.DrawLatex(xPos, yPos - offset * counter++, "pp (HM) #sqrt{s} = 13 TeV");
+  if (pTmin > 0 && pTmax > 0) {
+    Label.DrawLatex(xPos, yPos - offset * counter++,
+                    Form("%.1f < #it{p}_{T} < %.1f GeV/#it{c}", pTmin, pTmax));
+  }
+  Label.DrawLatex(xPos, yPos - offset * counter++,
+                  Form("%s: %.0f", part, signal));
+  Label.DrawLatex(
+      xPos, yPos - offset * counter++,
+      Form("Purity = %.1f %%", signal / (signal + background) * 100.f));
 }
 
 void MakeHistosGreat::DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax, int color) {
