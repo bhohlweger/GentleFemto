@@ -55,8 +55,6 @@ TidyCats::~TidyCats() {
 void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
                                    double kMax, TidyCats::Sources source) {
   TString HomeDir = gSystem->GetHomeDirectory().c_str();
-  TString Test = TString::Format("%s", HomeDir.Data());
-  std::cout << Test.Data() << std::endl;
   const double Weight1S0 = 3. / 12.;
   const double Weight3P0 = 1. / 12.;
   const double Weight3P1 = 3. / 12.;
@@ -129,6 +127,8 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       std::cout << "Source not implemented \n";
       break;
   }
+  AB_pp->SetEpsilonConv(1e-8);
+  AB_pp->SetEpsilonProp(1e-8);
   AB_pp->SetUseAnalyticSource(true);
   AB_pp->SetMomentumDependentSource(false);
   AB_pp->SetThetaDependentSource(false);

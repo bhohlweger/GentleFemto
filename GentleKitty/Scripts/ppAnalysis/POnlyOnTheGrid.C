@@ -28,9 +28,15 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   TString HistppName = HistoName.Data();
   TFile* inFile = TFile::Open(TString::Format("%s", InputFile.Data()), "READ");
   if (!inFile) {
+    std::cout << "No input file found exiting \n";
     return;
   }
   TH1F* StoreHist = (TH1F*) inFile->Get(HistppName.Data());
+  if (!StoreHist) {
+    std::cout << "Histogram " << HistppName.Data() << " not found, exiting \n";
+    inFile->ls();
+    return;
+  }
   //This is for the CATS objects, make sure it covers the full femto range
 
   const unsigned NumMomBins = 105;
@@ -217,7 +223,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   int vMod_pL = 1;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
   int vFrac_pp_pL;  //fraction of protons coming from Lambda variation (1 = default)
   int iNorm = 1;
-  bool HaveWeABaseLine = true;
 
   TidyCats* tidy = new TidyCats();
   TCanvas* c1 = new TCanvas(TString::Format("out%u", NumIter));
@@ -260,12 +265,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
       for (vFrac_pp_pL = 0; vFrac_pp_pL < 3; ++vFrac_pp_pL) {
         for (int BaselineSlope = 0; BaselineSlope < 3; ++BaselineSlope) {
-          if (BaselineSlope == 0) {
-            HaveWeABaseLine = true;  //use baseline
-          } else {
-            HaveWeABaseLine = false;  // no baseline
-          }
-
           std::cout
               << "\r Processing progress: "
               << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
