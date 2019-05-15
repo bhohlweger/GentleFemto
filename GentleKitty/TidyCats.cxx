@@ -63,13 +63,18 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
   const double Weight3P2 = 5. / 12.;
 
   double PotPars1S0[8] = { NN_AV18, v18_Coupled3P2, 1, 1, 1, 0, 0, 0 };
+  double PotPars1D2[8] = { NN_AV18, v18_Coupled3P2, 1, 1, 1, 0, 2, 2 };  //the last 3 digits are s,l,j
   double PotPars3P0[8] = { NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1, 0 };
   double PotPars3P1[8] = { NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1, 1 };
   double PotPars3P2[8] = { NN_AV18, v18_Coupled3P2, 1, 1, 1, 1, 1, 2 };
+//  double PotPars3P2[8] = { NN_AV18, v18_SingleChannelMagic, 1, 1, 1, 1, 1, 2 }; // magically accounts for the coupling to F something
 
   CATSparameters *cPotPars1S0 = new CATSparameters(CATSparameters::tPotential,
                                                    8, true);
   cPotPars1S0->SetParameters(PotPars1S0);
+  CATSparameters *cPotPars1D2 = new CATSparameters(CATSparameters::tPotential,
+                                                   8, true);
+  cPotPars1D2->SetParameters(PotPars1D2);
   CATSparameters *cPotPars3P0 = new CATSparameters(CATSparameters::tPotential,
                                                    8, true);
   cPotPars3P0->SetParameters(PotPars3P0);
@@ -133,7 +138,7 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
   AB_pp->SetPdgId(2212, 2212);
   AB_pp->SetRedMass(0.5 * massProton);
   AB_pp->SetNumChannels(4);
-  AB_pp->SetNumPW(0, 2);
+  AB_pp->SetNumPW(0, 3);
   AB_pp->SetNumPW(1, 2);
   AB_pp->SetNumPW(2, 2);
   AB_pp->SetNumPW(3, 2);
@@ -146,6 +151,7 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
   AB_pp->SetChannelWeight(2, Weight3P1);
   AB_pp->SetChannelWeight(3, Weight3P2);
   AB_pp->SetShortRangePotential(0, 0, fDlmPot, *cPotPars1S0);
+  AB_pp->SetShortRangePotential(0, 2, fDlmPot, *cPotPars1D2);
   AB_pp->SetShortRangePotential(1, 1, fDlmPot, *cPotPars3P0);
   AB_pp->SetShortRangePotential(2, 1, fDlmPot, *cPotPars3P1);
   AB_pp->SetShortRangePotential(3, 1, fDlmPot, *cPotPars3P2);
@@ -182,7 +188,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       fpLCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
       fpLCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
                                  massPion);
-      fpLCleverMcLevy->SetUpReso(1, 0,1.-0.3562,1462.93,4.69,massLambda,
+      fpLCleverMcLevy->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
                                  massPion);
       AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverMcLevy, 2);
       AB_pL->SetAnaSource(0, 1.2);
@@ -432,23 +438,23 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     }
     CleanUpWfHisto(AB_pXim->GetNumChannels(), ExternalWF);
   } else if (pot == pRikkenPot) {
-    CATSparameters* PotParsI0S0 = new CATSparameters(CATSparameters::tPotential, 2,
-                                                     true);
+    CATSparameters* PotParsI0S0 = new CATSparameters(CATSparameters::tPotential,
+                                                     2, true);
     PotParsI0S0->SetParameter(0, 0);
     PotParsI0S0->SetParameter(1, 0);
 
-    CATSparameters* PotParsI0S1 = new CATSparameters(CATSparameters::tPotential, 2,
-                                                     true);
+    CATSparameters* PotParsI0S1 = new CATSparameters(CATSparameters::tPotential,
+                                                     2, true);
     PotParsI0S1->SetParameter(0, 0);
     PotParsI0S1->SetParameter(1, 1);
 
-    CATSparameters* PotParsI1S0 = new CATSparameters(CATSparameters::tPotential, 2,
-                                                     true);
+    CATSparameters* PotParsI1S0 = new CATSparameters(CATSparameters::tPotential,
+                                                     2, true);
     PotParsI1S0->SetParameter(0, 1);
     PotParsI1S0->SetParameter(1, 0);
 
-    CATSparameters* PotParsI1S1 = new CATSparameters(CATSparameters::tPotential, 2,
-                                                     true);
+    CATSparameters* PotParsI1S1 = new CATSparameters(CATSparameters::tPotential,
+                                                     2, true);
     PotParsI1S1->SetParameter(0, 1);
     PotParsI1S1->SetParameter(1, 1);
 
@@ -659,8 +665,10 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       ExternalWF = Init_pS0_ESC08("/home/amathis/CERNhome/Sigma0/ESC08/",
                                   AB_pSigma0);
 #endif
-      AB_pSigma0->SetExternalWaveFunction(0,0,ExternalWF[0][0][0],ExternalWF[1][0][0]);
-      AB_pSigma0->SetExternalWaveFunction(1,0,ExternalWF[0][1][0],ExternalWF[1][1][0]);
+      AB_pSigma0->SetExternalWaveFunction(0, 0, ExternalWF[0][0][0],
+                                          ExternalWF[1][0][0]);
+      AB_pSigma0->SetExternalWaveFunction(1, 0, ExternalWF[0][1][0],
+                                          ExternalWF[1][1][0]);
       CleanUpWfHisto(AB_pSigma0->GetNumChannels(), ExternalWF);
       break;
     default:
