@@ -659,10 +659,10 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       break;
     case TidyCats::pSigma0ESC16:
 #ifdef __APPLE__
-      ExternalWF = Init_pS0_ESC08(
-          "/Users/amathis/CERNHome/Sigma0/ESC08/", AB_pSigma0);
+      ExternalWF = Init_pS0_ESC16(
+          "/Users/amathis/CERNHome/Sigma0/ESC16/", AB_pSigma0);
 #else
-      ExternalWF = Init_pS0_ESC08("/home/amathis/CERNhome/Sigma0/ESC08/",
+      ExternalWF = Init_pS0_ESC16("/home/amathis/CERNhome/Sigma0/ESC16/",
                                   AB_pSigma0);
 #endif
       AB_pSigma0->SetExternalWaveFunction(0, 0, ExternalWF[0][0][0],
