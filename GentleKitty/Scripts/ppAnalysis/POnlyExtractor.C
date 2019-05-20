@@ -63,9 +63,10 @@ int main(int argc, char *argv[]) {
   text.DrawLatex(
       0.32,
       0.825,
-      Form("#it{r}_{#kern[-0.17]{core}} = %.3f#kern[-0.1]{#pm}%.3f(stat.)^{+%.3f}_{-%.3f}(syst.) fm",
-           analysis->GetRadMean(), analysis->GetRadStatErr(),
-           analysis->GetRadSystUp(), analysis->GetRadSystDown()));
+      "Gaussian source");
+//      Form("#it{r}_{#kern[-0.17]{core}} = %.3f#kern[-0.1]{#pm}%.3f(stat.)^{+%.3f}_{-%.3f}(syst.) fm",
+//           analysis->GetRadMean(), analysis->GetRadStatErr(),
+//           analysis->GetRadSystUp(), analysis->GetRadSystDown()));
 
   c_PP->cd();
 //  Numbering.DrawLatex(0.19, 0.9, "#bf{a)}");
