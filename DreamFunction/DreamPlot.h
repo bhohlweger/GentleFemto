@@ -52,7 +52,7 @@ class DreamPlot {
   void DrawCorrelationFunctions();
   void DrawCorrelationFunctionSigma(const char* fitPath);
   void DrawSystemInfo(TCanvas* c, bool plotRadius = true, float xMin = 0.35,
-                      bool isPreliminary = false);
+                      int isPreliminary = 0);
   DreamData* fProtonProton;
   DreamData* fProtonLambda;
   DreamData* fLambdaLambda;

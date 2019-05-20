@@ -37,7 +37,8 @@ class DreamData {
                           int color, int lineStyle, double lineWidth,
                           int fillStyle, bool addtoLegend = true);
   void FemtoModelFitBands(TGraphErrors *gr, int color, int lineStyle,
-                          double lineWidth, int fillStyle, bool addtoLegend);
+                          double lineWidth, int fillStyle, bool addtoLegend,
+                          bool useDefaultColors = true);
   void FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
                           float colorAlpha, bool addtoLegend);
   void SetStyleHisto(TH1 *histo, int marker, int color);

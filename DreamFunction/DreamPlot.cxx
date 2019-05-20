@@ -291,7 +291,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0, 0, 3205, true);
+      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0, 0, 3205, true, false);
     }
   } else {
     std::cout << "No Lednicky file!  \n";
@@ -304,7 +304,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
       std::cout << "No coupled Lednicky \n";
     } else {
       fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure, 0, 0, 3325,
-                                       true);
+                                       true, false);
     }
   } else {
     std::cout << "No Haidenbauer file!  \n";
@@ -319,7 +319,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else if (!sideband) {
       std::cout << "No sideband \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0, 0, 3352, true);
+      fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0, 0, 3352, true, false);
       fProtonSigma->FemtoModelFitBands(sideband, kGray + 2, 0.5, true);
     }
   } else {
@@ -506,7 +506,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
   fProtonSigma->SetLegendName("ESC16", "fl");
   fProtonSigma->SetLegendName("p#minus (#Lambda#gamma) background", "l");
-  fProtonSigma->SetRangePlotting(0, 450, 0.925, 1.5);
+  fProtonSigma->SetRangePlotting(0, 360, 0.925, 1.5);
   fProtonSigma->SetNDivisions(505);
   const float upperY = 0.79;
   fProtonSigma->SetLegendCoordinates(
@@ -514,13 +514,13 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
   fProtonSigma->DrawCorrelationPlot(c, 13, kBlue + 3);
-  DrawSystemInfo(c, false, 0.46, true);
+  DrawSystemInfo(c, false, 0.46, 2);
   c->cd();
   c->SaveAs(Form("%s/CF_pSigma_prelim.pdf", fitPath));
 }
 
 void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin,
-                               bool isPreliminary) {
+                               int isPreliminary) {
   c->cd();
   TLatex BeamText;
   TLatex text;
@@ -542,11 +542,17 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin,
                fEnergy));
     }
   } else {
-    if (isPreliminary && !plotRadius) {
+    if (isPreliminary == 1 && !plotRadius) {
 //      BeamText.DrawLatex(xMin, 0.9, "ALICE Preliminary");
       BeamText.DrawLatex(
           xMin, 0.9,
           Form("ALICE Preliminary %s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));
+    } else if (isPreliminary == 2 && !plotRadius) {
+      BeamText.DrawLatex(xMin, 0.9, "ALICE Preliminary");
+      BeamText.DrawLatex(
+          xMin,
+          0.825,
+          Form("%s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));
     } else {
       BeamText.DrawLatex(
           xMin,
