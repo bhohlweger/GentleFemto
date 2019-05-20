@@ -282,7 +282,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   auto c = new TCanvas("pSigma0Correlation");
   auto histDummy = new TH1F("histDummy",
                             "; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)", 100, 0,
-                            450);
+                            350);
   histDummy->GetYaxis()->SetRangeUser(0.8, 1.6);
   histDummy->Draw();
   CF_Histo->Draw("same");

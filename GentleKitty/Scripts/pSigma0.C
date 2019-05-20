@@ -809,7 +809,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 sidebandHistUp->Write("SidebandUp");
 
                 auto c = new TCanvas("DefaultFit", "DefaultFit");
-                currentHist->GetXaxis()->SetRangeUser(0., 600);
+                currentHist->GetXaxis()->SetRangeUser(0., 350);
                 currentHist->GetYaxis()->SetRangeUser(0.8, 1.6);
                 currentHist->Draw();
                 FitResult_pSigma0.Draw("l3same");
@@ -864,7 +864,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 }
 
                 auto d = new TCanvas("SidebandFit", "SidebandFit");
-                SBmerge->GetXaxis()->SetRangeUser(0., 600);
+                SBmerge->GetXaxis()->SetRangeUser(0., 350);
                 SBmerge->GetYaxis()->SetRangeUser(0.8, 1.6);
                 SBmerge->Draw();
                 sideband->Draw("l3same");
