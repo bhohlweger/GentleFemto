@@ -55,7 +55,7 @@ TidyCats::~TidyCats() {
 void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
                                    double kMax, TidyCats::Sources source) {
   TString HomeDir = gSystem->GetHomeDirectory().c_str();
-  const double Weight1S0 = 3. / 12.;
+  const double Weight1S0 = 3. / 12.; // also the weight for 1D2
   const double Weight3P0 = 1. / 12.;
   const double Weight3P1 = 3. / 12.;
   const double Weight3P2 = 5. / 12.;
@@ -137,24 +137,32 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
   AB_pp->SetQ1Q2(1);
   AB_pp->SetPdgId(2212, 2212);
   AB_pp->SetRedMass(0.5 * massProton);
-  AB_pp->SetNumChannels(4);
-  AB_pp->SetNumPW(0, 3);
-  AB_pp->SetNumPW(1, 2);
-  AB_pp->SetNumPW(2, 2);
-  AB_pp->SetNumPW(3, 2);
+  AB_pp->SetNumChannels(5); // Number of potentials I am gonna feed the cat
+  //Channel 0 : 1S0
+  //Channel 1 : 1D2
+  //Channel 2 : 3P0
+  //Channel 3 : 3P1
+  //Channel 4 : 3P2
+  AB_pp->SetNumPW(0, 3); // the maximum number of partial waves flying around = the number of l (s,p,d -> l = 3)
+  AB_pp->SetNumPW(1, 3);
+  AB_pp->SetNumPW(2, 3);
+  AB_pp->SetNumPW(3, 3);
+  AB_pp->SetNumPW(4, 3);
   AB_pp->SetSpin(0, 0);
-  AB_pp->SetSpin(1, 1);
+  AB_pp->SetSpin(1, 0);
   AB_pp->SetSpin(2, 1);
   AB_pp->SetSpin(3, 1);
+  AB_pp->SetSpin(4, 1);
   AB_pp->SetChannelWeight(0, Weight1S0);
-  AB_pp->SetChannelWeight(1, Weight3P0);
-  AB_pp->SetChannelWeight(2, Weight3P1);
-  AB_pp->SetChannelWeight(3, Weight3P2);
+  AB_pp->SetChannelWeight(1, Weight1S0);
+  AB_pp->SetChannelWeight(2, Weight3P0);
+  AB_pp->SetChannelWeight(3, Weight3P1);
+  AB_pp->SetChannelWeight(4, Weight3P2);
   AB_pp->SetShortRangePotential(0, 0, fDlmPot, *cPotPars1S0);
-  AB_pp->SetShortRangePotential(0, 2, fDlmPot, *cPotPars1D2);
-  AB_pp->SetShortRangePotential(1, 1, fDlmPot, *cPotPars3P0);
-  AB_pp->SetShortRangePotential(2, 1, fDlmPot, *cPotPars3P1);
-  AB_pp->SetShortRangePotential(3, 1, fDlmPot, *cPotPars3P2);
+  AB_pp->SetShortRangePotential(1, 2, fDlmPot, *cPotPars1D2);
+  AB_pp->SetShortRangePotential(2, 1, fDlmPot, *cPotPars3P0);
+  AB_pp->SetShortRangePotential(3, 1, fDlmPot, *cPotPars3P1);
+  AB_pp->SetShortRangePotential(4, 1, fDlmPot, *cPotPars3P2);
 
   return;
 }
