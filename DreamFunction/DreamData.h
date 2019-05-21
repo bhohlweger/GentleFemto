@@ -45,6 +45,8 @@ class DreamData {
   void SetStyleHisto(TH1 *histo, int marker, int color);
   void DrawCorrelationPlot(TPad* c, const int color = 0,
                            const int systematicsColor = kBlack);
+  void DrawDeviationPerBin(TPad* c);
+  void SetPurgeXaxis(bool purge) { fPurgeXaxis = purge;}
   void SetRangePlotting(float xMin, float xMax, float yMin, float yMax) {
     fXMin = xMin;
     fXMax = xMax;
@@ -110,6 +112,7 @@ class DreamData {
   float fXMax;
   float fYMin;
   float fYMax;
+  bool  fPurgeXaxis;
   bool  fInlet;
   float fXMinZoom;
   float fXMaxZoom;

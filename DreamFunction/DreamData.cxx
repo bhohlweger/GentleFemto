@@ -19,6 +19,7 @@ DreamData::DreamData(const char* particlePair)
       fXMax(0.5),
       fYMin(0),
       fYMax(0.5),
+      fPurgeXaxis(false),
       fInlet(false),
       fXMinZoom(0),
       fXMaxZoom(0.5),
@@ -249,7 +250,7 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
 }
 
 void DreamData::FemtoModelDeviations(TGraphErrors* grDeviation, int color) {
-  SetStyleGraph(grDeviation,2,color);
+  SetStyleGraph(grDeviation, 2, color);
   fFemtoDeviation.push_back(grDeviation);
 }
 
@@ -287,6 +288,10 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   }
   fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
+  if (fPurgeXaxis) {
+    fSysError->GetXaxis()->SetTitleSize(0);
+    fSysError->GetXaxis()->SetLabelSize(0);
+  }
   TLegend *leg = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend,
                              fYMaxLegend);
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
@@ -380,4 +385,24 @@ void DreamData::SetStyleGraph(TGraph *histo, int marker, int color) {
   histo->SetMarkerStyle(fMarkers[marker]);
   histo->SetMarkerColor(fColors[color]);
   histo->SetLineColor(fColors[color]);
+  histo->SetFillColor(fColors[color]);
+}
+
+void DreamData::DrawDeviationPerBin(TPad* c) {
+  c->cd();
+  TString CFName = fCorrelationFunction->GetName();
+  TGraphErrors* tmp = fFemtoDeviation.at(0);
+  tmp->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
+  tmp->GetXaxis()->SetRangeUser(fXMin, fXMax);
+  if (CFName.Contains("MeV")) {
+    tmp->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  } else {
+    tmp->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
+  }
+  tmp->Draw("AL3");
+//  int nGraphs = fFemtoDeviation.size();
+//  for (auto it : fFemtoDeviation) {
+//    it->GetXaxis()->SetRangeUser(fXMin,fXMax);
+//    it->Draw("L3");
+//  }
 }
