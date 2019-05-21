@@ -24,7 +24,7 @@
 void FitPPVariations(const unsigned& NumIter, int system, int source,
                      TString InputFile, TString HistoName, TString OutputDir) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
-  //What source to use: 0 = Gauss; 1=Cauchy; 2=DoubleGauss
+  //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
   TString HistppName = HistoName.Data();
   TFile* inFile = TFile::Open(TString::Format("%s", InputFile.Data()), "READ");
   if (!inFile) {
