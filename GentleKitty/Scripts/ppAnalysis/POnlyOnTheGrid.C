@@ -493,7 +493,13 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 
           double Chi2 = 0;
           unsigned EffNumBins = 0;
-
+          if (BaselineSlope == 0) {
+            EffNumBins =- 2; // radius and normalization
+          } else if (BaselineSlope == 0) {
+            EffNumBins =- 3; // radius, normalization and slope
+          } else if (BaselineSlope == 0) {
+            EffNumBins =- 4; // radius, normalization, slope and skewness
+          }
           for (unsigned uBin = 0; uBin < 50; uBin++) {
 
             double mom = AB_pp.GetMomentum(uBin);
