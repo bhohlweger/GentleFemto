@@ -22,8 +22,9 @@ class VariationAnalysis {
   virtual ~VariationAnalysis();
   void ReadFitFile(TString FileName);
   TGraphErrors* EvaluateCurves(TNtuple* tuple, TGraph* RefGraph);
+  TGraphErrors* DeviationByBin(TH1F* RefHist, TGraphErrors* model);
   void EvalRadius();
-  TH1F* GetCorrelationFunctio(int i) const {
+  TH1F* GetCorrelationFunction(int i) const {
     return fCk.at(i);
   }
   TH1D* GetRadDist() const {
@@ -55,6 +56,7 @@ class VariationAnalysis {
   float fRadStat;
   std::vector<TH1F*> fCk;
   TGraphErrors* fModel;
+  TGraphErrors* fDeviationByBin;
   TH1D* fRadiusDist;
 };
 

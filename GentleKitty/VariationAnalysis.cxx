@@ -26,7 +26,8 @@ VariationAnalysis::VariationAnalysis(const char* histname, const int nVars,
       fRadStat(0),
       fCk(),
       fModel(nullptr),
-      fRadiusDist(nullptr) {
+      fRadiusDist(nullptr),
+      fDeviationByBin(nullptr) {
   DreamPlot::SetStyle();
 }
 
@@ -69,8 +70,16 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
   Fits->Write();
   TGraph* refGraph;
   for (int iVars = 0; iVars < fnDataVars + 1; ++iVars) {
+    TString dirName = TString::Format("Out%i", iVars);
+    TDirectoryFile* dir = (TDirectoryFile*) fInFile->FindObjectAny(
+        dirName.Data());
+    if (!dir) {
+      TString OutputError = TString::Format("No directory names %s",
+                                            dirName.Data());
+      Error("ReadFitFile", OutputError.Data());
+    }
     TString histname = TString::Format("%s%iMeV_0", fHistname, iVars);
-    TH1F* histo = (TH1F*) fInFile->Get(histname.Data());
+    TH1F* histo = (TH1F*) dir->FindObjectAny(histname.Data());
     if (!histo) {
       TString OutputError = TString::Format("Histogram (%s) missing, rip",
                                             histname.Data());
@@ -78,35 +87,36 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     } else {
       fCk.push_back(histo);
     }
-    TList* outList = (TList*) fInFile->Get(TString::Format("Out%i", iVars));
-    if (!outList) {
-      TString OutputError = TString::Format(
-          "Outlist %s not available", TString::Format("Out%i", iVars).Data())
-          .Data();
-      Error("ReadFitFile", OutputError.Data());
-    }
     //loop over all variations for on fit
     for (int iFitVar = 1; iFitVar < fnFitVars; iFitVar++) {
-      resultTuple->Draw("chisqPerndf>>chisq",Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3",iVars,iFitVar));
-      TH1F* chiSq = (TH1F*)gROOT->FindObject("chisq");
-      if (chiSq->GetMean() > 15.){
-	Warning("ReadFitFile",Form("Chisq (%.1f) larger than 15, ignoring fit",chiSq->GetMean()));
-	continue;
+      resultTuple->Draw(
+          "chisqPerndf>>chisq",
+          Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
+               iFitVar));
+      TH1F* chiSq = (TH1F*) gROOT->FindObject("chisq");
+      if (chiSq->GetMean() > 15.) {
+        Warning(
+            "ReadFitFile",
+            Form("Chisq (%.1f) larger than 15, ignoring fit",
+                 chiSq->GetMean()));
+        continue;
       }
-      delete chiSq; 
+      delete chiSq;
       TString folderName = TString::Format("Graph_Var_%i_iter_%i", iVars,
                                            iFitVar);
-      TList* GraphList = (TList*) outList->FindObject(folderName.Data());
+      TList* GraphList = (TList*) dir->FindObjectAny(folderName.Data());
       if (!GraphList) {
         TString OutputError = TString::Format("GraphList %s not available",
                                               folderName.Data()).Data();
         Error("ReadFitFile", OutputError.Data());
         return;
       } else {
-        TString GraphName = TString::Format("FitResult_%i", iFitVar);
+        TString GraphName = TString::Format("Graph_Var_%i_Iter_%i", iVars,
+                                            iFitVar);
         TGraph* Graph = (TGraph*) GraphList->FindObject(GraphName.Data());
         if (!Graph) {
-          Error("ReadFitFile", GraphName.Data());
+          GraphList->ls();
+          Error("ReadFitFile", folderName.Data());
           return;
         } else {
           double x, y;
@@ -123,8 +133,11 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
   }
   fModel = EvaluateCurves(Fits, refGraph);
   fModel->SetName("Model");
+  fDeviationByBin = DeviationByBin(fCk.at(0), fModel);
+  fDeviationByBin->SetName("DeviationPerBin");
   tmpFile->cd();
   fModel->Write();
+  fDeviationByBin->Write();
   tmpFile->Write();
   tmpFile->Close();
 }
@@ -140,7 +153,7 @@ TGraphErrors * VariationAnalysis::EvaluateCurves(TNtuple * tuple,
     tuple->Draw(Form("modelValue >> h%i", ikstar),
                 Form("std::abs(kstar - %.3f) < 1e-3", kVal));
     TH1F* hist = (TH1F*) gROOT->FindObject(Form("h%i", ikstar));
-    
+
     double binLow = hist->GetXaxis()->GetBinLowEdge(
         hist->FindFirstBinAbove(0.1, 1));
     double binUp = hist->GetXaxis()->GetBinUpEdge(
@@ -153,6 +166,35 @@ TGraphErrors * VariationAnalysis::EvaluateCurves(TNtuple * tuple,
   }
   return grOut;
 }
+
+TGraphErrors* VariationAnalysis::DeviationByBin(TH1F* RefHist,
+                                                TGraphErrors* model) {
+  TGraphErrors* grOut = new TGraphErrors();
+  double kVal, Ck;
+  for (int ikstar = 0; ikstar < model->GetN(); ++ikstar) {
+    model->GetPoint(ikstar, kVal, Ck);
+    int iDataBin = RefHist->FindBin(kVal);
+    if (std::abs(kVal - RefHist->GetBinCenter(iDataBin)) > 1e-3) {
+      TString OutError =
+          TString::Format(
+              "Deviation between Graph & Histogram of %.3f. Someone should look into this \n",
+              std::abs(kVal - RefHist->GetBinCenter(iDataBin)));
+      Error("DeviationByBin", OutError.Data());
+      return nullptr;
+    }
+    double CkErr = model->GetErrorY(ikstar);
+    double CkData = RefHist->GetBinContent(iDataBin);
+    double CkErrStatData = RefHist->GetBinError(iDataBin);
+
+    double deviation = (Ck-CkData)/CkErrStatData;
+    double err = CkErr/CkErrStatData;
+
+    grOut->SetPoint(ikstar,kVal,deviation);
+    grOut->SetPointError(ikstar,0,err);
+  }
+  return grOut;
+}
+
 void VariationAnalysis::EvalRadius() {
   fRadMean = fRadiusDist->GetMean();
   int n = fRadiusDist->GetXaxis()->GetNbins();
