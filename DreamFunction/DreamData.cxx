@@ -61,10 +61,10 @@ DreamData::DreamData(const char* particlePair)
     kYellow + 2,//7
     kWhite,//8
     kGreen - 5,//9
-    myColor1.GetColor(255,127,0), //10
-    myColor1.GetColor(31,120,180), //11
-    myColor1.GetColor(178,223,138), //12
-    kBlue + 3 //13
+    myColor1.GetColor(255,127,0),//10
+    myColor1.GetColor(31,120,180),//11
+    myColor1.GetColor(178,223,138),//12
+    kBlue + 3//13
   };
   fMarkers = {kFullCircle, kFullSquare, kOpenCircle, kOpenSquare, kOpenDiamond,
     kOpenCross, kFullCross, kFullDiamond, kFullStar, kOpenStar};
@@ -114,7 +114,8 @@ void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
       grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
     } else {
-      Warning("DreamData", "For %s set the CF before adding the systematics", fName);
+      Warning("DreamData", "For %s set the CF before adding the systematics",
+              fName);
     }
   } else {
     Warning("DreamData", "Parameters input missing for %s", fName);
@@ -152,7 +153,8 @@ void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
       grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
     } else {
-      Warning("DreamData", "For %s set the CF before adding the systematics", fName);
+      Warning("DreamData", "For %s set the CF before adding the systematics",
+              fName);
     }
   } else {
     Warning("DreamData", "Parameters input missing for %s", fName);
@@ -207,9 +209,10 @@ void DreamData::FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower,
   return;
 }
 
-void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color, int lineStyle,
-                                   double lineWidth, int fillStyle,
-                                   bool addtoLegend, bool useDefaultColors) {
+void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
+                                   int lineStyle, double lineWidth,
+                                   int fillStyle, bool addtoLegend,
+                                   bool useDefaultColors) {
   grFemtoModel->SetLineColor(useDefaultColors ? fColors[color] : color);
   grFemtoModel->SetFillColor(useDefaultColors ? fColors[color] : color);
   grFemtoModel->SetLineWidth(lineWidth);
@@ -230,8 +233,8 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color, int li
   }
 }
 
-void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color, float colorAlpha,
-                                   bool addtoLegend) {
+void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
+                                   float colorAlpha, bool addtoLegend) {
   grFemtoModel->SetLineColorAlpha(color, colorAlpha);
   grFemtoModel->SetFillColorAlpha(color, colorAlpha);
   grFemtoModel->SetLineWidth(0);
@@ -243,6 +246,11 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color, float 
     grFakeModel->SetLineWidth(5);
     fFakeGraph.push_back(grFakeModel);
   }
+}
+
+void DreamData::FemtoModelDeviations(TGraphErrors* grDeviation, int color) {
+  SetStyleGraph(grDeviation,2,color);
+  fFemtoDeviation.push_back(grDeviation);
 }
 
 void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
@@ -262,7 +270,8 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->SetLineColor(fColors[color]);
 }
 
-void DreamData::DrawCorrelationPlot(TCanvas* c, const int color, const int systematicsColor) {
+void DreamData::DrawCorrelationPlot(TPad* c, const int color,
+                                    const int systematicsColor) {
   c->cd();
   SetStyleHisto(fCorrelationFunction, 2, color);
   fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
@@ -300,7 +309,7 @@ void DreamData::DrawCorrelationPlot(TCanvas* c, const int color, const int syste
     legendCounter++;
   }
   auto it = fFemtoModdeled.rbegin();
-  while (it!=fFemtoModdeled.rend())  {
+  while (it != fFemtoModdeled.rend()) {
     (*it)->Draw("L3 same");
     it++;
   }
@@ -313,7 +322,7 @@ void DreamData::DrawCorrelationPlot(TCanvas* c, const int color, const int syste
   }
 }
 
-void DreamData::DrawInlet(TCanvas *c) {
+void DreamData::DrawInlet(TPad *c) {
   c->cd();
   TPad *inset_pad = new TPad("insert", "insertPad", fXMinInlet, fYMinInlet,
                              fXMaxInlet, fYMaxInlet);

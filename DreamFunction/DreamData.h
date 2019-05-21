@@ -41,8 +41,9 @@ class DreamData {
                           bool useDefaultColors = true);
   void FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
                           float colorAlpha, bool addtoLegend);
+  void FemtoModelDeviations(TGraphErrors* grDeviation, int color);
   void SetStyleHisto(TH1 *histo, int marker, int color);
-  void DrawCorrelationPlot(TCanvas* c, const int color = 0,
+  void DrawCorrelationPlot(TPad* c, const int color = 0,
                            const int systematicsColor = kBlack);
   void SetRangePlotting(float xMin, float xMax, float yMin, float yMax) {
     fXMin = xMin;
@@ -96,7 +97,7 @@ class DreamData {
   }
   ;
   void SetStyleGraph(TGraph *histo, int marker, int color);
-  void DrawInlet(TCanvas *c);
+  void DrawInlet(TPad *c);
   int GetNumberOfModels() const { return fFemtoModdeled.size(); }
   virtual ~DreamData();
   const char* fName;
@@ -127,6 +128,7 @@ class DreamData {
   std::vector<const char*> fLegendName;
   std::vector<const char*> fLegendOption;
   std::vector<TGraphErrors*> fFemtoModdeled;
+  std::vector<TGraphErrors*> fFemtoDeviation;
   std::vector<TGraph*> fFakeGraph;
   std::vector<int> fFillColors;
   std::vector<int> fColors;
