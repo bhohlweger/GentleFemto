@@ -33,6 +33,9 @@ class VariationAnalysis {
   TGraphErrors* GetModel() {
     return fModel;
   }
+  TGraphErrors* GetDeviationByBin() {
+    return fDeviationByBin;
+  }
   float GetRadStatErr() const {
     return fRadStat;
   }
