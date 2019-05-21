@@ -250,7 +250,11 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
 }
 
 void DreamData::FemtoModelDeviations(TGraphErrors* grDeviation, int color) {
-  SetStyleGraph(grDeviation, 2, color);
+//  SetStyleGraph(grDeviation, 2, color);
+  grDeviation->SetMarkerStyle(fMarkers[0]);
+  grDeviation->SetMarkerColor(fColors[color]);
+  grDeviation->SetLineColor(fColors[color]);
+  grDeviation->SetFillColor(fColors[color]);
   fFemtoDeviation.push_back(grDeviation);
 }
 
