@@ -126,7 +126,7 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       fppCleverMcLevy->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
                                  massPion);
       //Nolan Parameterization.
-      AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverLevy, 2);
+      AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
       AB_pp->SetAnaSource(0, 1.2);  //r0
       AB_pp->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
       break;
@@ -217,7 +217,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       fpLCleverMcLevy->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
                                  massPion);
       //Nolan Parameterization.
-      AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverLevy, 2);
+      AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverMcLevy, 2);
       AB_pL->SetAnaSource(0, 1.2);  //r0
       AB_pL->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
       break;
