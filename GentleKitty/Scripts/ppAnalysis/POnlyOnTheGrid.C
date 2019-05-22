@@ -209,6 +209,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                                   "lam_pLXim:"
                                   "Source:"
                                   "Radius_pp:RadiusErr_pp:"
+                                  "Stab_pp:StabErr_pp:"
                                   "p_a:p_aErr:"
                                   "p_b:p_bErr:"
                                   "p_c:p_cErr:"
@@ -439,7 +440,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             fitter->AddSameSource("pXim", "pp", 2);
             fitter->AddSameSource("pXim1530", "pp", 2);
 
-            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 0.6, 2.5);
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
             fitter->SetParameter("pp", DLM_Fitter1::p_sor1, 1.7, 1., 2.);
           } else {
             fitter = new DLM_Fitter1(1);
@@ -539,13 +540,15 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           ntBuffer[10] = TheSource;
           ntBuffer[11] = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
           ntBuffer[12] = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
-          ntBuffer[13] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
-          ntBuffer[14] = fitter->GetParError("pp", DLM_Fitter1::p_a);
-          ntBuffer[15] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
-          ntBuffer[16] = fitter->GetParError("pp", DLM_Fitter1::p_b);
-          ntBuffer[17] = fitter->GetParameter("pp", DLM_Fitter1::p_c);
-          ntBuffer[18] = fitter->GetParError("pp", DLM_Fitter1::p_c);
-          ntBuffer[19] = Chi2 / EffNumBins;
+          ntBuffer[13] = fitter->GetParameter("pp", DLM_Fitter1::p_sor1);
+          ntBuffer[14] = fitter->GetParError("pp", DLM_Fitter1::p_sor1);
+          ntBuffer[15] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
+          ntBuffer[16] = fitter->GetParError("pp", DLM_Fitter1::p_a);
+          ntBuffer[17] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
+          ntBuffer[18] = fitter->GetParError("pp", DLM_Fitter1::p_b);
+          ntBuffer[19] = fitter->GetParameter("pp", DLM_Fitter1::p_c);
+          ntBuffer[20] = fitter->GetParError("pp", DLM_Fitter1::p_c);
+          ntBuffer[21] = Chi2 / EffNumBins;
           ntResult->Fill(ntBuffer);
 
           TList* outList = new TList();
