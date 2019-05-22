@@ -353,11 +353,13 @@ void DreamPlot::SetStyle(bool graypalette, bool title) {
   gStyle->SetFuncWidth(2);
   gStyle->SetFuncColor(kGreen);
   gStyle->SetLineWidth(2);
-  gStyle->SetLabelSize(0.045, "xyz");
+  gStyle->SetLabelFont(43, "xyz");
+  gStyle->SetTitleFont(43, "xyz");
+  gStyle->SetLabelSize(28, "xyz");
+  gStyle->SetTitleSize(28, "xyz");
   gStyle->SetLabelOffset(0.01, "y");
   gStyle->SetLabelOffset(0.01, "x");
   gStyle->SetLabelColor(kBlack, "xyz");
-  gStyle->SetTitleSize(0.05, "xyz");
   gStyle->SetTitleOffset(1.25, "y");
   gStyle->SetTitleOffset(1.2, "x");
   gStyle->SetTitleFillColor(kWhite);
