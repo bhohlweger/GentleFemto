@@ -42,6 +42,9 @@ class TidyCats {
   virtual ~TidyCats();
   void GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin, double kMax,
                            TidyCats::Sources source);
+  DLM_CleverMcLevyReso* GetSourceProtonProton() {
+    return fppCleverMcLevy;
+  }
   void GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin, double kMax,
                            TidyCats::Sources source, TidyCats::pLPot pot);
   void GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
