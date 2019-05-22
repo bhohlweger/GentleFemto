@@ -59,6 +59,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     FeeddownSource = TidyCats::sGaussian;
   } else if (source == 2) {
     TheSource = TidyCats::sLevy;
+    FeeddownSource = TidyCats::sGaussian;
   } else {
     std::cout << "Source does not exist! Exiting \n";
     return;
@@ -150,6 +151,9 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     double SecFracSigma = 1. - PrimProton - it * SecLamProton;
     Proton[iVar1] = Particle(PurityProton, PrimProton, { it * SecLamProton,
                                  SecFracSigma });
+    std::cout << "it: " << it << " PurityProton: " << PurityProton
+              << " it * SecLamProton: " << it * SecLamProton << " SecFracSigma:"
+              << SecFracSigma << std::endl;
 
     double LamSigProdFraction = 3 * it / 4. < 1 ? 3 * it / 4. : 1;
     double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma;
@@ -178,7 +182,72 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     }
     iVar1++;
   }
+  CATSLambdaParam ppLam0(Proton[0], Proton[0], true);
+  CATSLambdaParam ppLam1(Proton[1], Proton[1], true);
+  CATSLambdaParam ppLam2(Proton[2], Proton[2], true);
 
+  const std::vector<double> lam_pp =
+      { ppLam0.GetLambdaParam(CATSLambdaParam::Primary,
+                              CATSLambdaParam::Primary), ppLam1.GetLambdaParam(
+          CATSLambdaParam::Primary, CATSLambdaParam::Primary), ppLam2
+          .GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary) };
+  const std::vector<double> lam_pp_pL =
+      { ppLam0.GetLambdaParam(CATSLambdaParam::Primary,
+                              CATSLambdaParam::FeedDown, 0, 0), ppLam1
+          .GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown,
+                          0, 0), ppLam2.GetLambdaParam(
+          CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0) };
+  const std::vector<double> lam_pp_fake =
+      {
+          (ppLam0.GetLambdaParam(CATSLambdaParam::Primary,
+                                 CATSLambdaParam::Fake)
+              + ppLam0.GetLambdaParam(CATSLambdaParam::Fake,
+                                      CATSLambdaParam::Primary)
+              + ppLam0.GetLambdaParam(CATSLambdaParam::Fake,
+                                      CATSLambdaParam::Fake)), (ppLam1
+              .GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake)
+              + ppLam1.GetLambdaParam(CATSLambdaParam::Fake,
+                                      CATSLambdaParam::Primary)
+              + ppLam1.GetLambdaParam(CATSLambdaParam::Fake,
+                                      CATSLambdaParam::Fake)), (ppLam2
+              .GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake)
+              + ppLam2.GetLambdaParam(CATSLambdaParam::Fake,
+                                      CATSLambdaParam::Primary)
+              + ppLam2.GetLambdaParam(CATSLambdaParam::Fake,
+                                      CATSLambdaParam::Fake)) };
+  CATSLambdaParam pLLam(Proton[1], Lambda[1][1]);
+  const double lam_pL = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+                                             CATSLambdaParam::Primary);
+  const double lam_pL_pS0 = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+                                                 CATSLambdaParam::FeedDown, 0,
+                                                 0);
+  const double lam_pL_pXm = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+                                                 CATSLambdaParam::FeedDown, 0,
+                                                 1);
+  const double lam_pL_fake = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+                                                  CATSLambdaParam::Fake)
+      + pLLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary)
+      + pLLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake);
+  CATSLambdaParam pXiLam(Proton[1], Xi[1][1]);
+  const double lam_pXim = pXiLam.GetLambdaParam(CATSLambdaParam::Primary,
+                                                CATSLambdaParam::Primary);
+  const double lam_pXim_pXim1530 = pXiLam.GetLambdaParam(
+      CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 2);
+  const double lam_pXim_fake = pXiLam.GetLambdaParam(CATSLambdaParam::Primary,
+                                                     CATSLambdaParam::Fake)
+      + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary)
+      + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake);
+
+  for (int vFrac_pp_pL = 0; vFrac_pp_pL < 3; vFrac_pp_pL++) {
+    std::cout << "lam_pp: " << lam_pp.at(vFrac_pp_pL) << " lam_pp_pL: "
+              << lam_pp_pL.at(vFrac_pp_pL) << " lam_pp_fake: "
+              << lam_pp_fake.at(vFrac_pp_pL) << std::endl;
+  }
+  std::cout << "lam_pL_pXm: " << lam_pL_pXm << " lam_pL: " << lam_pL
+            << " lam_pL_fake: " << lam_pL_fake << std::endl;
+  std::cout << "lam_pXim: " << lam_pXim << " lam_pXim_pXim1530: "
+            << lam_pXim_pXim1530 << " lam_pXim_fake:" << lam_pXim_fake
+            << std::endl;
   const double GaussSourceSize = 1.2;
 
   CATSInput *CATSinput = new CATSInput();
@@ -240,7 +309,18 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   CATS AB_pp;
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
   AB_pp.KillTheCat();
-
+  TGraph* SourceDist = new TGraph();
+  SourceDist->SetName(TString::Format("SourceDist_NumIter_%i", NumIter));
+  for (int iRad = 0; iRad < 200; ++iRad) {
+    std::cout << "\r Source progress: "
+              << TString::Format("%.1f %%", (iRad + 1) / 200 * 100.f).Data()
+              << std::flush;
+    double rad = 0.04 * iRad;
+    double pars[5] = { 0, rad, 0, 1.2, 1.7 };
+    SourceDist->SetPoint(iRad, rad, tidy->GetSourceProtonProton()->Eval(pars));
+  }
+  std::cout << std::endl;
+  CollOut->Add(SourceDist);
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
@@ -339,23 +419,17 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             std::cout << "No Calib 0 \n";
             return;
           }
-          CATSLambdaParam ppLam(Proton[vFrac_pp_pL], Proton[vFrac_pp_pL], true);
-          double lam_pp = ppLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                               CATSLambdaParam::Primary);
-          double lam_pp_pL = ppLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                  CATSLambdaParam::FeedDown, 0,
-                                                  0);
-          double lam_pp_fake = ppLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                    CATSLambdaParam::Fake)
-              + ppLam.GetLambdaParam(CATSLambdaParam::Fake,
-                                     CATSLambdaParam::Primary)
-              + ppLam.GetLambdaParam(CATSLambdaParam::Fake,
-                                     CATSLambdaParam::Fake);
-          CkDec_pp.AddContribution(0, lam_pp_pL, DLM_CkDecomposition::cFeedDown,
-                                   &CkDec_pL, CATSinput->GetResFile(0));
-          CkDec_pp.AddContribution(1, 1. - lam_pp - lam_pp_pL - lam_pp_fake,
-                                   DLM_CkDecomposition::cFeedDown);
-          CkDec_pp.AddContribution(2, lam_pp_fake, DLM_CkDecomposition::cFake);  //0.02
+
+          CkDec_pp.AddContribution(0, lam_pp_pL.at(vFrac_pp_pL),
+                                   DLM_CkDecomposition::cFeedDown, &CkDec_pL,
+                                   CATSinput->GetResFile(0));
+          CkDec_pp.AddContribution(
+              1,
+              1. - lam_pp.at(vFrac_pp_pL) - lam_pp_pL.at(vFrac_pp_pL)
+                  - lam_pp_fake.at(vFrac_pp_pL),
+              DLM_CkDecomposition::cFeedDown);
+          CkDec_pp.AddContribution(2, lam_pp_fake.at(vFrac_pp_pL),
+                                   DLM_CkDecomposition::cFake);  //0.02
 
           if (!CATSinput->GetResFile(1)) {
             std::cout << "No Calib 1 \n";
@@ -365,22 +439,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             std::cout << "No Calib 2 \n";
             return;
           }
-
-          CATSLambdaParam pLLam(Proton[1], Lambda[1][1]);
-          double lam_pL = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                               CATSLambdaParam::Primary);
-          double lam_pL_pS0 = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                   CATSLambdaParam::FeedDown, 0,
-                                                   0);
-          double lam_pL_pXm = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                   CATSLambdaParam::FeedDown, 0,
-                                                   1);
-          double lam_pL_fake = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                    CATSLambdaParam::Fake)
-              + pLLam.GetLambdaParam(CATSLambdaParam::Fake,
-                                     CATSLambdaParam::Primary)
-              + pLLam.GetLambdaParam(CATSLambdaParam::Fake,
-                                     CATSLambdaParam::Fake);
 
           if (TheSource == TidyCats::sLevy) {
             CkDec_pL.AddContribution(0, lam_pL_pXm,
@@ -404,19 +462,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                                      DLM_CkDecomposition::cFake);  //0.03
           }
 
-          CATSLambdaParam pXiLam(Proton[1], Xi[1][1]);
-          const double lam_pXim = pXiLam.GetLambdaParam(
-              CATSLambdaParam::Primary, CATSLambdaParam::Primary);
-          ;
-          const double lam_pXim_pXim1530 = pXiLam.GetLambdaParam(
-              CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 2);
-          const double lam_pXim_fake = pXiLam.GetLambdaParam(
-              CATSLambdaParam::Primary, CATSLambdaParam::Fake)
-              + pXiLam.GetLambdaParam(CATSLambdaParam::Fake,
-                                      CATSLambdaParam::Primary)
-              + pXiLam.GetLambdaParam(CATSLambdaParam::Fake,
-                                      CATSLambdaParam::Fake);
-          ;
           if (!CATSinput->GetResFile(3)) {
             std::cout << "No Calib 3 \n";
             return;
@@ -495,11 +540,11 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           double Chi2 = 0;
           unsigned EffNumBins = 0;
           if (BaselineSlope == 0) {
-            EffNumBins =- 2; // radius and normalization
+            EffNumBins = -2;  // radius and normalization
           } else if (BaselineSlope == 0) {
-            EffNumBins =- 3; // radius, normalization and slope
+            EffNumBins = -3;  // radius, normalization and slope
           } else if (BaselineSlope == 0) {
-            EffNumBins =- 4; // radius, normalization, slope and skewness
+            EffNumBins = -4;  // radius, normalization, slope and skewness
           }
           for (unsigned uBin = 0; uBin < 50; uBin++) {
 
@@ -532,8 +577,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           ntBuffer[2] = FemtoRegion[vFemReg];
           ntBuffer[3] = vMod_pL;
           ntBuffer[4] = BaselineSlope;
-          ntBuffer[5] = lam_pp;
-          ntBuffer[6] = lam_pp_pL;
+          ntBuffer[5] = lam_pp.at(vFrac_pp_pL);
+          ntBuffer[6] = lam_pp_pL.at(vFrac_pp_pL);
           ntBuffer[7] = lam_pL;
           ntBuffer[8] = lam_pL_pS0;
           ntBuffer[9] = lam_pL_pXm;
