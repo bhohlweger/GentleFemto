@@ -8,6 +8,7 @@
 #include "DreamData.h"
 #include "TLegend.h"
 #include "TStyle.h"
+#include "TLine.h"
 DreamData::DreamData(const char* particlePair)
     : fName(particlePair),
       fCorrelationFunction(nullptr),
@@ -19,7 +20,6 @@ DreamData::DreamData(const char* particlePair)
       fXMax(0.5),
       fYMin(0),
       fYMax(0.5),
-      fPurgeXaxis(false),
       fInlet(false),
       fXMinZoom(0),
       fXMaxZoom(0.5),
@@ -268,7 +268,7 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->GetYaxis()->SetTitleSize(0.05);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
-  histo->SetMarkerSize(1.2);
+  histo->SetMarkerSize(1.);
   histo->SetLineWidth(2);
   histo->SetMarkerStyle(fMarkers[marker]);
   histo->SetMarkerColor(fColors[color]);
@@ -282,6 +282,7 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fCorrelationFunction->GetYaxis()->SetRangeUser(fYMin, fYMax);
   fSysError->SetLineColor(kWhite);
+  fSysError->GetYaxis()->SetTitleOffset(1.5);
   fSysError->Draw("Ap");
   fBaseLine->Draw("same");
   TString CFName = fCorrelationFunction->GetName();
@@ -292,10 +293,6 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   }
   fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
-  if (fPurgeXaxis) {
-    fSysError->GetXaxis()->SetTitleSize(0);
-    fSysError->GetXaxis()->SetLabelSize(0);
-  }
   TLegend *leg = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend,
                              fYMaxLegend);
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
@@ -349,15 +346,12 @@ void DreamData::DrawInlet(TPad *c) {
   SetStyleHisto(CFCopy, 2, 0);
   CFCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
   CFCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
-  SysErrCopy->GetYaxis()->SetLabelSize(0.11);
   SysErrCopy->GetYaxis()->SetNdivisions(203);
-  SysErrCopy->GetXaxis()->SetLabelSize(0.11);
   SysErrCopy->GetXaxis()->SetNdivisions(204);
   SysErrCopy->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  SysErrCopy->GetXaxis()->SetTitleSize(0.12);
-  SysErrCopy->GetXaxis()->SetTitleOffset(0.95);
-  SysErrCopy->GetYaxis()->SetTitleSize(0.12);
-  SysErrCopy->GetYaxis()->SetTitleOffset(0.75);
+  SysErrCopy->GetXaxis()->SetTitleOffset(3.0);
+  SysErrCopy->GetYaxis()->CenterTitle(true);
+  SysErrCopy->GetYaxis()->SetTitleOffset(2.2);
   SysErrCopy->SetLineColor(kWhite);
   SysErrCopy->Draw("Ap");
   fBaseLine->Draw("same");
@@ -369,7 +363,7 @@ void DreamData::DrawInlet(TPad *c) {
   }
   SysErrCopy->SetFillColorAlpha(kBlack, 0.4);
   SysErrCopy->Draw("2 same");
-  CFCopy->SetMarkerSize(0.9);
+  CFCopy->SetMarkerSize(0.6);
   CFCopy->DrawCopy("pe same");
   return;
 }
@@ -395,18 +389,21 @@ void DreamData::SetStyleGraph(TGraph *histo, int marker, int color) {
 void DreamData::DrawDeviationPerBin(TPad* c) {
   c->cd();
   TString CFName = fCorrelationFunction->GetName();
-  TGraphErrors* tmp = fFemtoDeviation.at(0);
-  tmp->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
-  tmp->GetXaxis()->SetRangeUser(fXMin, fXMax);
-  if (CFName.Contains("MeV")) {
-    tmp->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  } else {
-    tmp->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
+  TGraphErrors* GraphAxis = (TGraphErrors*) fSysError->Clone("Dummy");
+  GraphAxis->Clear();
+  GraphAxis->GetYaxis()->SetTitle("n#sigma_{local}");
+  GraphAxis->GetYaxis()->CenterTitle(true);
+  GraphAxis->GetYaxis()->SetNdivisions(203);
+  GraphAxis->GetXaxis()->SetTitleOffset(3.);
+  TLine lineOne = TLine(fXMin, 1, fXMax, 1);
+  lineOne.SetLineWidth(3);
+  lineOne.SetLineColor(kBlack);
+  lineOne.SetLineStyle(2);
+  for (auto it : fFemtoDeviation) {
+    GraphAxis->GetYaxis()->SetRangeUser(it->GetYaxis()->GetXmin(),
+                                        it->GetYaxis()->GetXmax());
+    GraphAxis->DrawClone("AP");
+    it->Draw("L3 same");
+    lineOne.DrawLine(fXMin,0,fXMax,0);
   }
-  tmp->Draw("AL3");
-//  int nGraphs = fFemtoDeviation.size();
-//  for (auto it : fFemtoDeviation) {
-//    it->GetXaxis()->SetRangeUser(fXMin,fXMax);
-//    it->Draw("L3");
-//  }
 }
