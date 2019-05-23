@@ -258,13 +258,14 @@ void MakeHistosGreat::DrawPerformance(ForgivingFitter* fit, TPad* pad,
   float signal = (float) fit->GetSignalCounts();
   float background = (float) fit->GetBackgroundCounts();
   pad->cd();
-  const float offset = 0.08;
+  const float offset = 0.06;
   float counter = 0;
   TLatex Label;
   Label.SetNDC(kTRUE);
-  Label.SetTextSize(gStyle->GetTextSize() * 0.96);
-  Label.DrawLatex(xPos, yPos - offset * counter++, "ALICE Performance");
-  Label.DrawLatex(xPos, yPos - offset * counter++, "pp (HM) #sqrt{s} = 13 TeV");
+  Label.SetTextSize(gStyle->GetTextSize() * 0.9);
+  Label.DrawLatex(xPos, yPos - offset * counter++, "#bf{ALICE Performance}");
+  Label.DrawLatex(xPos, yPos - offset * counter++, "pp #sqrt{s} = 13 TeV");
+  Label.DrawLatex(xPos, yPos - offset * counter++, "High Mult. (0-0.072% INEL)");
   if (pTmin > 0 && pTmax > 0) {
     Label.DrawLatex(xPos, yPos - offset * counter++,
                     Form("%.1f < #it{p}_{T} < %.1f GeV/#it{c}", pTmin, pTmax));

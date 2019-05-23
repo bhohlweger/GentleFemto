@@ -510,12 +510,12 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   fProtonSigma->SetLegendName("p#minus (#Lambda#gamma) background", "l");
   fProtonSigma->SetRangePlotting(0, 360, 0.925, 1.5);
   fProtonSigma->SetNDivisions(505);
-  const float upperY = 0.79;
+  const float upperY = 0.755;
   fProtonSigma->SetLegendCoordinates(
-      0.45, upperY - 0.09 * fProtonSigma->GetNumberOfModels(), 0.7, upperY);
+      0.45, upperY - 0.08 * fProtonSigma->GetNumberOfModels(), 0.7, upperY);
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
-  fProtonSigma->DrawCorrelationPlot(c, 13, kBlue + 3);
+  fProtonSigma->DrawCorrelationPlot(c, 13, kBlue + 3, 0.9);
   DrawSystemInfo(c, false, 0.46, 2);
   c->cd();
   c->SaveAs(Form("%s/CF_pSigma_prelim.pdf", fitPath));
