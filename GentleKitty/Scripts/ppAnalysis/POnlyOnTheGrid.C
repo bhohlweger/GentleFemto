@@ -309,18 +309,20 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   CATS AB_pp;
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
   AB_pp.KillTheCat();
-  TGraph* SourceDist = new TGraph();
-  SourceDist->SetName(TString::Format("SourceDist_NumIter_%i", NumIter));
-  for (int iRad = 0; iRad < 200; ++iRad) {
-    std::cout << "\r Source progress: "
-              << TString::Format("%.1f %%", (iRad + 1) / 200 * 100.f).Data()
-              << std::flush;
-    double rad = 0.04 * iRad;
-    double pars[5] = { 0, rad, 0, 1.2, 1.7 };
-    SourceDist->SetPoint(iRad, rad, tidy->GetSourceProtonProton()->Eval(pars));
+  if (tidy->GetSourceProtonProton()) {
+    TGraph* SourceDist = new TGraph();
+    SourceDist->SetName(TString::Format("SourceDist_NumIter_%i", NumIter));
+    for (int iRad = 0; iRad < 200; ++iRad) {
+      std::cout << "\r Source progress: "
+          << TString::Format("%.1f %%", (iRad + 1) / 200 * 100.f).Data()
+          << std::flush;
+      double rad = 0.04 * iRad;
+      double pars[5] = { 0, rad, 0, 1.2, 1.7 };
+      SourceDist->SetPoint(iRad, rad, tidy->GetSourceProtonProton()->Eval(pars));
+    }
+    std::cout << std::endl;
+    CollOut->Add(SourceDist);
   }
-  std::cout << std::endl;
-  CollOut->Add(SourceDist);
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
