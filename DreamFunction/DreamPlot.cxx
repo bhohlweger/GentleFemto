@@ -485,11 +485,11 @@ void DreamPlot::DrawCorrelationFunctions() {
   fProtonXi->SetLegendName("p-#Xi^{-} sideband background", "l");
   fProtonXi->SetNDivisions(505);
   fProtonXi->SetRangePlotting(0, 300, 0.8, 2.6);
-  fProtonXi->SetLegendCoordinates(0.3,
-                                  0.785 - 0.09 * fProtonXi->GetNumberOfModels(),
-                                  0.7, 0.875);
+  fProtonXi->SetLegendCoordinates(0.4,
+                                  0.75 - 0.09 * fProtonXi->GetNumberOfModels(),
+                                  0.7, 0.75);
   fProtonXi->DrawCorrelationPlot(c_pXi);
-  DrawSystemInfo(c_pXi, false, 0.32, true);
+  DrawSystemInfo(c_pXi, false, 0.42, 2);
 //  Numbering.DrawLatex(0.19, 0.9, "#bf{b)}");
   c_pXi->SaveAs("CF_pXi_Gauss_prelim.pdf");
 }
