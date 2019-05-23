@@ -550,11 +550,15 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin,
           xMin, 0.9,
           Form("ALICE Preliminary %s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));
     } else if (isPreliminary == 2 && !plotRadius) {
-      BeamText.DrawLatex(xMin, 0.9, "ALICE Preliminary");
+      BeamText.SetTextSize(gStyle->GetTextSize() * .9);
+      BeamText.DrawLatex(xMin, 0.9, "#bf{ALICE Preliminary}");
       BeamText.DrawLatex(
           xMin,
-          0.825,
+          0.84,
           Form("%s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));
+      BeamText.DrawLatex(
+          xMin,
+          0.78, "High Mult. (0-0.072% INEL)");
     } else {
       BeamText.DrawLatex(
           xMin,
