@@ -387,12 +387,12 @@ void DreamPlot::SetStyle(bool graypalette, bool title) {
 }
 
 void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color) {
-  histo->GetXaxis()->SetLabelSize(0.045);
+  histo->GetXaxis()->SetLabelSize(28);
   histo->GetXaxis()->SetTitleSize(0.05);
   histo->GetXaxis()->SetLabelOffset(0.01);
   histo->GetXaxis()->SetTitleOffset(1.2);
-  histo->GetXaxis()->SetLabelFont(42);
-  histo->GetYaxis()->SetLabelSize(0.045);
+  histo->GetXaxis()->SetLabelFont(43);
+  histo->GetYaxis()->SetLabelSize(28);
   histo->GetYaxis()->SetTitleSize(0.05);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
@@ -402,13 +402,13 @@ void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color) {
 }
 
 void DreamPlot::SetStyleGraph(TGraph *histo, int marker, int color) {
-  histo->GetXaxis()->SetLabelSize(0.045);
-  histo->GetXaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetLabelSize(28);
+  histo->GetXaxis()->SetTitleSize(28);
   histo->GetXaxis()->SetLabelOffset(0.01);
   histo->GetXaxis()->SetTitleOffset(1.2);
-  histo->GetXaxis()->SetLabelFont(42);
-  histo->GetYaxis()->SetLabelSize(0.045);
-  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetLabelFont(43);
+  histo->GetYaxis()->SetLabelSize(28);
+  histo->GetYaxis()->SetTitleSize(28);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
   histo->SetMarkerStyle(marker);
