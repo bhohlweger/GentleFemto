@@ -2,6 +2,6 @@
 
 int globalBinWidth = 20;  // in MeV
 //const char* globalCollisionSystem = "p#minusPb";
-const char* globalCollisionSystem = "pp (HM)";
+const char* globalCollisionSystem = "pp";
 const char* globalEventGenerator = "DPMJET";
 float globalBeamEnergy = 13;
