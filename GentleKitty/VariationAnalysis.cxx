@@ -68,7 +68,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
   }
   TNtuple* Fits = new TNtuple("fitCurves", "fitCurves", "kstar:modelValue");
   Fits->Write();
-  TGraph* refGraph;
+  TGraph* refGraph = nullptr;
   for (int iVars = 0; iVars < fnDataVars + 1; ++iVars) {
     TString dirName = TString::Format("Out%i", iVars);
     TDirectoryFile* dir = (TDirectoryFile*) fInFile->FindObjectAny(
@@ -89,6 +89,16 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     }
     //loop over all variations for on fit
     for (int iFitVar = 1; iFitVar < fnFitVars; iFitVar++) {
+//      resultTuple->Draw(
+//          "PolBaseLine>>myBaseLine",
+//          Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
+//               iFitVar));
+//      TH1F* polBL = (TH1F*) gROOT->FindObject("myBaseLine");
+//      if (std::abs(polBL->GetMean()-2)<0.1) {
+//        continue;
+//        delete polBL;
+//      }
+//      delete polBL;
       resultTuple->Draw(
           "chisqPerndf>>chisq",
           Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
@@ -99,6 +109,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
             "ReadFitFile",
             Form("Chisq (%.1f) larger than 15, ignoring fit",
                  chiSq->GetMean()));
+        delete chiSq;
         continue;
       }
       delete chiSq;
@@ -120,7 +131,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
           return;
         } else {
           double x, y;
-          if (iVars == 0 && iFitVar == 1) {
+          if (!refGraph) {
             refGraph = Graph;
           }
           for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
@@ -186,11 +197,11 @@ TGraphErrors* VariationAnalysis::DeviationByBin(TH1F* RefHist,
     double CkData = RefHist->GetBinContent(iDataBin);
     double CkErrStatData = RefHist->GetBinError(iDataBin);
 
-    double deviation = (Ck-CkData)/CkErrStatData;
-    double err = CkErr/CkErrStatData;
+    double deviation = (Ck - CkData) / CkErrStatData;
+    double err = CkErr / CkErrStatData;
 
-    grOut->SetPoint(ikstar,kVal,deviation);
-    grOut->SetPointError(ikstar,0,err);
+    grOut->SetPoint(ikstar, kVal, deviation);
+    grOut->SetPointError(ikstar, 0, err);
   }
   return grOut;
 }
