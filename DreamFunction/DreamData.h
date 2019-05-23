@@ -44,7 +44,8 @@ class DreamData {
   void FemtoModelDeviations(TGraphErrors* grDeviation, int color);
   void SetStyleHisto(TH1 *histo, int marker, int color);
   void DrawCorrelationPlot(TPad* c, const int color = 0,
-                           const int systematicsColor = kBlack);
+                           const int systematicsColor = kBlack,
+                           const float legendTextScale = 0.96);
   void DrawDeviationPerBin(TPad* c);
   void SetRangePlotting(float xMin, float xMax, float yMin, float yMax) {
     fXMin = xMin;

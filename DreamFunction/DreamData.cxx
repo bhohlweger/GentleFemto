@@ -276,7 +276,8 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
 }
 
 void DreamData::DrawCorrelationPlot(TPad* c, const int color,
-                                    const int systematicsColor) {
+                                    const int systematicsColor,
+                                    const float legendTextScale) {
   c->cd();
   SetStyleHisto(fCorrelationFunction, 2, color);
   fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
@@ -298,7 +299,7 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
   leg->SetBorderSize(0);
   leg->SetTextFont(42);
-  leg->SetTextSize(gStyle->GetTextSize() * 0.96);
+  leg->SetTextSize(gStyle->GetTextSize() * legendTextScale);
   int legendCounter = 1;
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
   fFakeGraph[0]->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
