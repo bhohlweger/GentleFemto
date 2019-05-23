@@ -16,6 +16,7 @@
 #include "CATSLambdaParam.h"
 #include "TDatabasePDG.h"
 #include "TidyCats.h"
+#include "TStyle.h"
 
 /// =====================================================================================
 double Lednicky_gauss_Sigma0(const double& Momentum, const double* SourcePar,
@@ -249,12 +250,94 @@ void SourcePlay() {
 }
 
 /// =====================================================================================
+void plotProtonLambda(double* radius, float momBins, float kmin, float kmax) {
+
+  auto grTotalLednicky = new TGraph();
+  grTotalLednicky->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  DreamPlot::SetStyleGraph(grTotalLednicky, 20, kBlack);
+  grTotalLednicky->SetLineWidth(2);
+  auto grTotalHaidenbauer = new TGraph();
+  grTotalHaidenbauer->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  DreamPlot::SetStyleGraph(grTotalHaidenbauer, 20, kBlack);
+  grTotalHaidenbauer->SetLineWidth(2);
+  auto grTotalESC16 = new TGraph();
+  grTotalESC16->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  DreamPlot::SetStyleGraph(grTotalESC16, 20, kBlack);
+  grTotalESC16->SetLineWidth(2);
+
+  auto TotalHaidenbauer = new DLM_Ck(1, 4, momBins, kmin, kmax,
+                                  Lednicky_SingletTriplet);
+  TotalHaidenbauer->SetPotPar(0, 2.91);
+  TotalHaidenbauer->SetPotPar(1, 2.78);
+  TotalHaidenbauer->SetPotPar(2, 1.54);
+  TotalHaidenbauer->SetPotPar(3, 2.72);
+  TotalHaidenbauer->SetSourcePar(0, radius[0]);
+  TotalHaidenbauer->Update();
+  for (unsigned int i = 0; i < TotalHaidenbauer->GetNbins(); ++i) {
+    const float mom = TotalHaidenbauer->GetBinCenter(0, i);
+    grTotalHaidenbauer->SetPoint(i, mom, TotalHaidenbauer->Eval(mom));
+  }
+
+  auto TotalLednicky = new DLM_Ck(1, 4, momBins, kmin, kmax,
+                                  Lednicky_SingletTriplet);
+  TotalLednicky->SetPotPar(0, 2.59);
+  TotalLednicky->SetPotPar(1, 2.83);
+  TotalLednicky->SetPotPar(2, 1.60);
+  TotalLednicky->SetPotPar(3, 3.01);
+  TotalLednicky->SetSourcePar(0, radius[0]);
+  TotalLednicky->Update();
+  for (unsigned int i = 0; i < TotalLednicky->GetNbins(); ++i) {
+    const float mom = TotalLednicky->GetBinCenter(0, i);
+    grTotalLednicky->SetPoint(i, mom, TotalLednicky->Eval(mom));
+  }
+
+  auto TotalESC16 = new DLM_Ck(1, 4, momBins, kmin, kmax,
+                                  Lednicky_SingletTriplet);
+  TotalESC16->SetPotPar(0, 1.88);
+  TotalESC16->SetPotPar(1, 3.58);
+  TotalESC16->SetPotPar(2, 1.86);
+  TotalESC16->SetPotPar(3, 3.37);
+  TotalESC16->SetSourcePar(0, radius[0]);
+  TotalESC16->Update();
+  for (unsigned int i = 0; i < TotalESC16->GetNbins(); ++i) {
+    const float mom = TotalESC16->GetBinCenter(0, i);
+    grTotalESC16->SetPoint(i, mom, TotalESC16->Eval(mom));
+  }
+
+  auto compareCF = new TCanvas();
+  grTotalESC16->SetLineColor(kGreen + 2);
+  grTotalHaidenbauer->SetLineColor(kAzure);
+  grTotalLednicky->SetLineColor(kRed + 1 );
+  grTotalHaidenbauer->Draw("AL");
+  grTotalHaidenbauer->GetXaxis()->SetRangeUser(0, kmax);
+  grTotalHaidenbauer->GetYaxis()->SetRangeUser(0.6, 3.5);
+  grTotalESC16->Draw("lsame");
+  grTotalLednicky->Draw("lsame");
+  auto leg4 = new TLegend(0.65, 0.6, 0.5, 0.84);
+  leg4->SetBorderSize(0);
+  leg4->SetTextFont(42);
+  leg4->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg4->SetHeader(Form("#it{r}_{0} = %.3f fm", radius[0]));
+  leg4->AddEntry(grTotalLednicky, "fss2", "l");
+  leg4->AddEntry(grTotalHaidenbauer, "#chiEFT (NLO)", "l");
+  leg4->AddEntry(grTotalESC16, "ESC16", "l");
+  leg4->Draw("same");
+  compareCF->Print("allCF_protonLambda.pdf");
+
+  delete compareCF;
+}
+
+/// =====================================================================================
 int main(int argc, char* argv[]) {
   DreamPlot::SetStyle();
   double* radius = new double[1];
-  radius[0] = 1.148;
+  radius[0] = 1.154;
+  int momBins = 40;
+  int kmin = -4.99;
+  int kmax = 395.01;
 
   SourcePlay();
+  plotProtonLambda(radius, momBins, kmin, kmax);
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Calibration
@@ -268,9 +351,6 @@ int main(int argc, char* argv[]) {
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Haidenbauer
-  int momBins = 40;
-  int kmin = 1;
-  int kmax = 320;
   TidyCats* tidy = new TidyCats();
   CATS Kitty;
   tidy->GetCatsProtonSigma0(&Kitty, momBins, kmin, kmax, TidyCats::sGaussian,
@@ -565,4 +645,24 @@ int main(int argc, char* argv[]) {
   grTripletESC16->Draw("lsame");
   leg->Draw("same");
   h->Print("CF_ESC16.pdf");
+
+  auto compareCF = new TCanvas();
+  grTotalESC16->SetLineColor(kGreen + 2);
+  grTotalHaidenbauer->SetLineColor(kAzure);
+  grTotalLednicky->SetLineColor(kRed + 1 );
+  grTotalESC16->Draw("AL");
+  grTotalESC16->GetXaxis()->SetRangeUser(0, kmax);
+  grTotalESC16->GetYaxis()->SetRangeUser(0.6, 2.25);
+  grTotalHaidenbauer->Draw("lsame");
+  grTotalLednicky->Draw("lsame");
+  auto leg4 = new TLegend(0.35, 0.6, 0.5, 0.84);
+  leg4->SetBorderSize(0);
+  leg4->SetTextFont(42);
+  leg4->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg4->SetHeader(Form("#it{r}_{0} = %.3f fm", radius[0]));
+  leg4->AddEntry(grTotalLednicky, "Lednicky coupled channel (fss2)", "l");
+  leg4->AddEntry(grTotalHaidenbauer, "#chiEFT (NLO)", "l");
+  leg4->AddEntry(grTotalESC16, "ESC16", "l");
+  leg4->Draw("same");
+  compareCF->Print("allCF.pdf");
 }
