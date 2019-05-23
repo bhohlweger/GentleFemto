@@ -352,7 +352,7 @@ void DreamData::DrawInlet(TPad *c) {
   SysErrCopy->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   SysErrCopy->GetXaxis()->SetTitleOffset(3.0);
   SysErrCopy->GetYaxis()->CenterTitle(true);
-  SysErrCopy->GetYaxis()->SetTitleOffset(2.2);
+  SysErrCopy->GetYaxis()->SetTitleOffset(1.8);
   SysErrCopy->SetLineColor(kWhite);
   SysErrCopy->Draw("Ap");
   fBaseLine->Draw("same");
