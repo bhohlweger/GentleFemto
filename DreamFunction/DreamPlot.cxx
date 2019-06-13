@@ -291,7 +291,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0, 0, 3205, true, false);
+      //fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0, 0, 3205, true, false);
     }
   } else {
     std::cout << "No Lednicky file!  \n";
@@ -496,7 +496,7 @@ void DreamPlot::DrawCorrelationFunctions() {
 
 void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   SetStyle();
-  gStyle->SetHatchesSpacing(0.9);
+  gStyle->SetHatchesSpacing(0.55);
   const float right = 0.025;
   const float top = 0.025;
   auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 550);
@@ -504,7 +504,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName(
       "p#minus #Sigma^{0} #oplus #bar{p}#minus #bar{#Sigma^{0}}", "fpe");
-  fProtonSigma->SetLegendName("Lednicky coupled channel", "fl");
+//  fProtonSigma->SetLegendName("Lednicky coupled channel", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
   fProtonSigma->SetLegendName("ESC16", "fl");
   fProtonSigma->SetLegendName("p#minus (#Lambda#gamma) background", "l");
