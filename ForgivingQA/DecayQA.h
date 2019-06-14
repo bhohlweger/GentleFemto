@@ -25,8 +25,7 @@ class DecayQA {
     fAntiDecayCuts = DecayCuts;
   }
   ;
-  void InvariantMassLambda(float CutMin, float CutMax);
-  void InvariantMassLambdaSigma0(float CutMin, float CutMax);
+  void InvariantMassLambda(float CutMin, float CutMax, bool minBook = false);
   void InvariantMassSigma0(float massCuts, const char* name = "Sigma0",
                            bool isSum = true);
   void GetPeriodQA(float CutMin, float CutMax,
@@ -52,6 +51,8 @@ class DecayQA {
   void PlotQATopologySigma0Daughter(TList *v0Cuts, const char* outname);
   void PlotQATopologySigma0(TList *v0Cuts, const char* outname);
   void PlotPIDSigma0Daughter(TList *v0Cuts, const char* outname);
+  void PlotPIDLambda();
+  void PlotPIDLambda(TList *v0Cuts, const char* outname);
   void SetIMHistoScale(float scaleMaximum, float TexOffX, float TexOffY) {
     fScaleMax = scaleMaximum;
     fTexOffX = TexOffX;

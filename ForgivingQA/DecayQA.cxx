@@ -31,41 +31,31 @@ DecayQA::~DecayQA() {
   // TODO Auto-generated destructor stub
 }
 
-void DecayQA::InvariantMassLambda(float CutMin, float CutMax) {
+void DecayQA::InvariantMassLambda(float CutMin, float CutMax, bool minBook) {
+  const char* listName = minBook ? "MinimalBooking" : "v0Cuts";
   auto invMassPart = (TH2F*) fReader->Get2DHistInList(
-      fReader->GetListInList(fDecayCuts, { "v0Cuts" }), "InvMassPt");
-  FitInvariantMass(invMassPart, CutMin, CutMax, "Lambda");
-  PlotKaonRejection(
-      (TH1F*) fReader->Get1DHistInList(fReader->GetListInList(fDecayCuts, {
-                                                                  "v0Cuts" }),
-                                       "InvMassKaon"),
-      "Lambda");
-
-  auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(
-      fReader->GetListInList(fAntiDecayCuts, { "v0Cuts" }), "InvMassPt");
-  FitInvariantMass(invMassAntiPart, CutMin, CutMax, "AntiLambda");
-  PlotKaonRejection(
-      (TH1F*) fReader->Get1DHistInList(fReader->GetListInList(fAntiDecayCuts, {
-                                                                  "v0Cuts" }),
-                                       "InvMassKaon"),
-      "AntiLambda");
-}
-
-void DecayQA::InvariantMassLambdaSigma0(float CutMin, float CutMax) {
-  auto invMassPart = (TH2F*) fReader->Get2DHistInList(fDecayCuts, "InvMassPt");
+      fReader->GetListInList(fDecayCuts, { listName }), "InvMassPt");
   invMassPart->RebinX(10);
   FitInvariantMass(invMassPart, CutMin, CutMax, "Lambda");
-  PlotKaonRejection(
-      (TH1F*) fReader->Get1DHistInList(fDecayCuts, "fHistK0MassAfter"),
-      "Lambda");
+  if (!minBook) {
+    PlotKaonRejection(
+        (TH1F*) fReader->Get1DHistInList(fReader->GetListInList(fDecayCuts, {
+                                                                    listName }),
+                                         "InvMassKaon"),
+        "Lambda");
+  }
 
-  auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(fAntiDecayCuts,
-                                                          "InvMassPt");
+  auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fAntiDecayCuts, { listName }), "InvMassPt");
   invMassAntiPart->RebinX(10);
   FitInvariantMass(invMassAntiPart, CutMin, CutMax, "AntiLambda");
-  PlotKaonRejection(
-      (TH1F*) fReader->Get1DHistInList(fAntiDecayCuts, "fHistK0MassAfter"),
-      "AntiLambda");
+  if (!minBook) {
+    PlotKaonRejection(
+        (TH1F*) fReader->Get1DHistInList(
+            fReader->GetListInList(fAntiDecayCuts, { listName }),
+            "InvMassKaon"),
+        "AntiLambda");
+  }
 }
 
 void DecayQA::InvariantMassSigma0(float massCuts, const char* name, bool isSum) {
@@ -469,7 +459,6 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
   fHairyPlotter->DrawAndStore( { etaDist }, Form("%s_eta", outname), "hist");
 
 }
-
 void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   // DCA daughters at the decay vertex
   auto dcaDaugVtx = (TH1F*) (fReader->Get2DHistInList(
@@ -581,10 +570,17 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   fHairyPlotter->DrawAndStore( { cpa }, Form("%sCPA", outname));
 }
 
-void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
+void DecayQA::PlotPIDLambda() {
+  PlotPIDLambda(fDecayCuts, "Lambda");
+  PlotPIDLambda(fAntiDecayCuts, "AntiLambda");
+}
+
+void DecayQA::PlotPIDLambda(TList* v0Cuts, const char* outname) {
   // Armenteros
-  TH2F* armenteros = (TH2F*) fReader->Get2DHistInList(
-      fReader->GetListInList(v0Cuts, { "After" }), "fHistArmenterosAfter");
+
+  auto* armenteros = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "v0Cuts", "after" }),
+      "ArmenterosPodolandski_after");
   if (!armenteros) {
     std::cerr << "Armenteros is missing for " << outname << std::endl;
   }
@@ -594,7 +590,42 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
                                   "colz");
 
-  // dE/dc pos daughter
+  // dE/dx pos daughter
+  auto* posPID = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "PosCuts", "after" }), "NSigTPC_after");
+  if (!posPID) {
+    std::cerr << "Pos PID is missing for " << outname << std::endl;
+  }
+  fHairyPlotter->FormatHistogram(posPID, 0, 1);
+  drawVecTPC = {posPID};
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_PosPID", outname),
+                                  "colz");
+
+  // dE/dx neg daughter
+  TH2F* negPID = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "NegCuts", "after" }), "NSigTPC_after");
+  if (!negPID) {
+    std::cerr << "Neg PID is missing for " << outname << std::endl;
+  }
+  fHairyPlotter->FormatHistogram(negPID, 0, 1);
+  drawVecTPC = {negPID};
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_NegPID", outname),
+                                  "colz");
+}
+
+void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
+  TH2F* armenteros = (TH2F*) fReader->Get2DHistInList(
+        fReader->GetListInList(v0Cuts, { "After" }), "fHistArmenterosAfter");
+  if (!armenteros) {
+    std::cerr << "Armenteros is missing for " << outname << std::endl;
+  }
+  armenteros->SetTitle("Armenteros-Podolandski");
+  fHairyPlotter->FormatHistogram(armenteros, 0, 1);
+  std::vector<TH2*> drawVecTPC = { armenteros };
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
+                                  "colz");
+
+  // dE/dx pos daughter
   TH2F* posPID = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(v0Cuts, { "V0_PosDaughter" }),
       "fHistSingleParticlePID_pos");
@@ -606,7 +637,7 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_PosPID", outname),
                                   "colz");
 
-  // Armenteros
+  // dE/dx neg daughter
   TH2F* negPID = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(v0Cuts, { "V0_NegDaughter" }),
       "fHistSingleParticlePID_neg");
@@ -617,12 +648,13 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
   drawVecTPC = {negPID};
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_NegPID", outname),
                                   "colz");
+
 }
 
 void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
 
   // pT
-  auto pTDist = (TH1F*) (fReader->Get2DHistInList(v0Cuts, "fHistInvMassPt"))
+  auto pTDist = (TH1F*) (fReader->Get2DHistInList(v0Cuts, "fHistInvMassPtRaw"))
       ->ProjectionX();
   if (!pTDist) {
     std::cerr << "pT Distribution missing for " << outname << std::endl;
