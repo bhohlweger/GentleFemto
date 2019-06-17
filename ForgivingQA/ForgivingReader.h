@@ -17,6 +17,7 @@ class ForgivingReader {
   ForgivingReader(const char *filename, const char* prefix, const char* suffix =
                       "");
   virtual ~ForgivingReader();
+  TFile *GetFile() const { return fInput; }
   TList* GetListInDir(const char* pathToList);
   TList* GetListInList(TList* inList, std::vector<const char*> pathToList);
   TH1* Get1DHistInList(TList* inList, const char* histname);
