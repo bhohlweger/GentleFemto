@@ -66,6 +66,10 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
 
   TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
       Form("%sResults%s", Prefix, Addon)));
+  if (!dirResults) {
+    std::cout << "no dir results " << Form("%sResults%s", Prefix, Addon)
+              << std::endl;
+  }
   TList *Results;
   dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
   ExtractResults(Results);
@@ -82,14 +86,15 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
   delete _file0;
 }
 
-void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile, const char* Path,
-                                    const char* Prefix, const char* Addon) {
+void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
+                                    const char* Path, const char* Prefix,
+                                    const char* Addon) {
   TFile* _file0 = TFile::Open(PathAnalysisFile, "READ");
   TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
       Form("%sResults%s", Prefix, Addon)));
   TList *Results;
   dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
-  auto listResults = (TList*)Results->FindObject(Path);
+  auto listResults = (TList*) Results->FindObject(Path);
   ExtractResults(listResults);
   TIter next(listResults);
   TObject *obj = nullptr;
@@ -126,8 +131,9 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       auto hist1D = (TH1F*) PartList->FindObject(
           Form("SEDist_%s", FolderName.Data()));
       if (!hist1D) {
-        if (!fQuiet) std::cout << "SE Histogramm missing from " << FolderName.Data()
-                  << std::endl;
+        if (!fQuiet)
+          std::cout << "SE Histogramm missing from " << FolderName.Data()
+                    << std::endl;
       } else {
         fSE[iPart1][iPart2] = (TH1F*) hist1D->Clone(
             Form("%s_clone", hist1D->GetName()));
@@ -137,8 +143,9 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       auto hist2D = (TH2F*) PartList->FindObject(
           Form("SEMultDist_%s", FolderName.Data()));
       if (!hist2D) {
-        if (!fQuiet) std::cout << "SEMult Histogramm missing from " << FolderName.Data()
-                  << std::endl;
+        if (!fQuiet)
+          std::cout << "SEMult Histogramm missing from " << FolderName.Data()
+                    << std::endl;
       } else {
         fSEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
             Form("%s_clone", hist2D->GetName()));
@@ -156,8 +163,9 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       hist1D = (TH1F*) PartList->FindObject(
           Form("MEDist_%s", FolderName.Data()));
       if (!hist1D) {
-        if (!fQuiet) std::cout << "ME Histogramm missing from " << FolderName.Data()
-                  << std::endl;
+        if (!fQuiet)
+          std::cout << "ME Histogramm missing from " << FolderName.Data()
+                    << std::endl;
       } else {
         fME[iPart1][iPart2] = (TH1F*) hist1D->Clone(
             Form("%s_clone", hist1D->GetName()));
@@ -168,8 +176,9 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
       hist2D = (TH2F*) PartList->FindObject(
           Form("MEMultDist_%s", FolderName.Data()));
       if (!hist2D) {
-        if (!fQuiet) std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
-                  << std::endl;
+        if (!fQuiet)
+          std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
+                    << std::endl;
       } else {
         fMEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
             Form("%s_clone", hist2D->GetName()));
@@ -242,15 +251,17 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
       fSEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
           Form("SEmTDist_%s", FolderName.Data()));
       if (!fSEmT[iPart1][iPart2]) {
-        if (!fQuiet) std::cout << "SEmT Histogramm missing from " << FolderName.Data()
-                  << std::endl;
+        if (!fQuiet)
+          std::cout << "SEmT Histogramm missing from " << FolderName.Data()
+                    << std::endl;
       }
       fMEmT[iPart1][iPart2] = nullptr;
       fMEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
           Form("MEmTDist_%s", FolderName.Data()));
       if (!fMEmT[iPart1][iPart2]) {
-        if (!fQuiet) std::cout << "MEmT Histogramm missing from " << FolderName.Data()
-                  << std::endl;
+        if (!fQuiet)
+          std::cout << "MEmT Histogramm missing from " << FolderName.Data()
+                    << std::endl;
       }
     }
   }
@@ -272,14 +283,11 @@ void ReadDreamFile::ReaddEtadPhiAtRadHists(const unsigned int nMaxMix,
   dirResults->GetObject(Form("%sResultQA%s", prefix, Addon), ResultsQA);
   TList *PartList;
 
-
   for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
     fSEdEtadPhiAtRad[iPart1] = new TH2F***[fNPart2];
     fSEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F***[fNPart2];
     fMEdEtadPhiAtRad[iPart1] = new TH2F***[fNPart2];
     fMEdEtadPhiAtRadSmallkStar[iPart1] = new TH2F***[fNPart2];
-
-
 
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
       TString FolderName = Form("QA_Particle%i_Particle%i", iPart1, iPart2);
@@ -351,7 +359,6 @@ void ReadDreamFile::ReaddEtadPhiHists(const unsigned int NBinsmT,
     }
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
       TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
-
 
       PartList = (TList*) Results->FindObject(FolderName.Data());
       if (NBinsmT > 0) {
@@ -487,8 +494,9 @@ DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistribution(int iPart1, int iPart2,
   return outDist;
 }
 
-DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistributionSingle(int iPart1, int iPart2,
-                                                      int imT) {
+DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistributionSingle(int iPart1,
+                                                            int iPart2,
+                                                            int imT) {
   if (iPart2 < iPart1) {
     std::cout << "Particle Combination does not exist \n";
     return nullptr;
