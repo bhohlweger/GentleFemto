@@ -478,7 +478,6 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     PotParsI1S1->SetParameter(0, 1);
     PotParsI1S1->SetParameter(1, 1);
 
-    CATS Kitty;
     //define the usual stuff
     AB_pXim->SetShortRangePotential(0, 0, ESC16_pXim_EXAMPLE, *PotParsI0S0);
     AB_pXim->SetShortRangePotential(1, 0, ESC16_pXim_EXAMPLE, *PotParsI0S1);
