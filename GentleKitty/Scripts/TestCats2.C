@@ -5,7 +5,7 @@
 #include "TLegend.h"
 #include "TCanvas.h"
 
-void testCats() {
+void testCats2() {
   TFile* myfile =
       TFile::Open(
           "~/cernbox/HM13TeV/AnalysisData/ClosePairRej/SelectedPairs/fmTOutputProper.root",
