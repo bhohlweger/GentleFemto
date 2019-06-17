@@ -53,7 +53,7 @@ void GetCorrelationsPhi(const char* filename, const char* Path, const char* pref
   std::cout << "==Rebinning & Weighting==" << std::endl;
   std::cout << "=========================" << std::endl;
 
-  std::vector<int> rebinVec = { { 4, 5 } };
+  std::vector<int> rebinVec = { { 4, 5, 10 } };
   for (size_t iReb = 0; iReb < rebinVec.size(); ++iReb) {
     pPhi->Rebin(pPhi->GetPairFixShifted(0), rebinVec[iReb]);
     pPhi->ReweightMixedEvent(pPhi->GetPairRebinned(iReb), 0.2, 0.9);
@@ -73,11 +73,12 @@ void GetCorrelationsPhi(const char* filename, const char* Path, const char* pref
   TString foldername = filename;
   foldername.ReplaceAll("AnalysisResults.root", "");
 
+
   CF_pp->SetPairs(pp, ApAp);
   CF_pp->GetCorrelations();
-  CF_pp->WriteOutput(Form("%sCFOutput_pp.root", foldername.Data()));
+  CF_pp->WriteOutput(Form("%sCFOutput_pp_%s_%s.root", foldername.Data(),prefix, addon));
 
   CF_pPhi->SetPairs(pPhi, ApPhi);
   CF_pPhi->GetCorrelations();
-  CF_pPhi->WriteOutput(Form("%sCFOutput_pPhi.root", foldername.Data()));
+  CF_pPhi->WriteOutput(Form("%sCFOutput_pPhi_%s_%s.root", foldername.Data(),prefix, addon));
 }
