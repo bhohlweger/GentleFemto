@@ -460,19 +460,33 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
 
 }
 void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
-  // DCA daughters at the decay vertex
-  auto dcaDaugVtx = (TH1F*) (fReader->Get2DHistInList(
-      fReader->GetListInList(v0Cuts, { "After" }), "fHistDCADaughtersAfter"))
+  // DCAr
+  auto dcar = (TH1F*) (fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "After" }), "fHistDCArAfter"))
       ->ProjectionY();
-  if (!dcaDaugVtx) {
-    std::cerr << "dcaDaugter To Vtx is missing for " << outname << std::endl;
+  if (!dcar) {
+    std::cerr << "dcar is missing for " << outname << std::endl;
   }
-  dcaDaugVtx->GetXaxis()->SetRangeUser(0, 1.5);
-  dcaDaugVtx->GetXaxis()->SetTitle("DCA(daughters at decay vtx) (cm)");
-  dcaDaugVtx->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(dcaDaugVtx, 0, 1);
-  fHairyPlotter->DrawAndStore( { dcaDaugVtx },
-                              Form("%sdcaDaugDecVtx", outname));
+  dcar->GetXaxis()->SetRangeUser(0, 5);
+  dcar->GetXaxis()->SetTitle("DCA_{R} (cm)");
+  dcar->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(dcar, 0, 1);
+  fHairyPlotter->DrawAndStore( { dcar },
+                              Form("%sdcaR", outname));
+
+  // DCAz
+  auto dcaz = (TH1F*) (fReader->Get2DHistInList(
+      fReader->GetListInList(v0Cuts, { "After" }), "fHistDCAzAfter"))
+      ->ProjectionY();
+  if (!dcaz) {
+    std::cerr << "dcaz is missing for " << outname << std::endl;
+  }
+  dcaz->GetXaxis()->SetRangeUser(0, 5);
+  dcaz->GetXaxis()->SetTitle("DCA_{Z} (cm)");
+  dcaz->GetYaxis()->SetTitle("Entries");
+  fHairyPlotter->FormatHistogram(dcaz, 0, 1);
+  fHairyPlotter->DrawAndStore( { dcaz },
+                              Form("%sdcaZ", outname));
 
   // Transverse radius
   auto v0TRad =
