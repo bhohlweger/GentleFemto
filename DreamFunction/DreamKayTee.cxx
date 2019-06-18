@@ -154,6 +154,7 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
 }
 
 void DreamKayTee::AveragekT(const char *pair) {
+  DreamPlot::SetStyle();
   const char* variable = (fIskT) ? "kT" : "mT";
   if (fAveragekT) {
     delete fAveragekT;
@@ -170,13 +171,14 @@ void DreamKayTee::AveragekT(const char *pair) {
   c1->cd();
   kTkStar->Draw("COLZ");
   c1->SaveAs(Form("mTvskStar%s.pdf", pair));
-  c2->cd();
+
   float totalPairs = kTProjection->Integral();
-  kTProjection->Draw();
-  DreamPlot::SetStyle();
   DreamPlot::SetStyleHisto(kTProjection);
-  kTProjection->GetXaxis()->SetTitle("<m_{T} > (GeV/c^{2})");
-  c2->SaveAs(Form("mTDistribution%s.pdf", pair));
+  kTProjection->GetXaxis()->SetTitle("<m_{T}> (GeV/c^{2})");
+  c2->cd();
+  kTProjection->DrawClone();
+  TString outCanName = TString::Format("mTDistribution%s.pdf", pair);
+  c2->SaveAs(outCanName.Data());
   for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
     int binLow = kTProjection->GetXaxis()->FindBin(
         fKayTeeBins.at(ikT) * 1.0001);
