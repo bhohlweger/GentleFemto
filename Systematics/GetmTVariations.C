@@ -4,8 +4,10 @@
 #include "TSystem.h"
 #include "CATSInput.h"
 #include "ForgivingReader.h"
+
 int main(int argc, char* argv[]) {
-  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
+//  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
+  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 4.5 };
   const char* filename = argv[1];
   const char* prefix = argv[2];
   auto CATSinput = new CATSInput();
@@ -53,7 +55,7 @@ int main(int argc, char* argv[]) {
                                        DefReweightedMeV);
     mTppDists->SetKayTeeBins(mTppBins);
     mTppDists->SetNormalization(0.24, 0.34);
-//    mTppDists->SetRebin( { 2 });
+    mTppDists->SetRebin( { 2 });
     mTppDists->FixShift( { true, true, true, true, true, true, true }, { 0.004,
                             0.004, 0.004, 0.004, 0.004, 0.004, 0.004 });
     mTppDists->ObtainTheCorrelationFunction(gSystem->pwd(), prefix,
