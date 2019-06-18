@@ -102,3 +102,6 @@ target_link_libraries(executePhi DreamFunctions)
 
 add_executable(executePXi ${PROJECT_SOURCE_DIR}/Scripts/GetpXiVariations.C)
 target_link_libraries(executePXi DreamFunctions)
+
+add_executable(ppVariationsmT ${PROJECT_SOURCE_DIR}/Scripts/nanoAODp_p/mTVariations.C)
+target_link_libraries(ppVariationsmT DreamFunctions)
