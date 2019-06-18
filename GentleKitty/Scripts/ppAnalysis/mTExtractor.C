@@ -1,7 +1,8 @@
 
 #include "VariationmTAnalysis.h"
-
+#include "TROOT.h"
 int main(int argc, char* argv[])   {
+  gROOT->ProcessLine("gErrorIgnoreLevel = 2001");
   const char* DataDir = argv[1];
   const char* FitDir = argv[2];
   const int nMTBins = 6;
