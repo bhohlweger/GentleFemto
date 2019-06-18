@@ -6,6 +6,8 @@
  */
 #include "VariationmTAnalysis.h"
 #include "TSystemDirectory.h"
+#include "DreamPlot.h"
+#include "TStyle.h"
 #include <iostream>
 
 VariationmTAnalysis::VariationmTAnalysis()
@@ -72,9 +74,9 @@ void VariationmTAnalysis::SetSystematic(const char* DataDir) {
     }
   }
   Systematics.EvalSystematics();
-  Systematics.WriteOutput(Form("%u",outputCounter));
+//  Systematics.WriteOutput(Form("%u",outputCounter));
   outputCounter++;
-//  fSystematic.push_back(Systematics);
+  fSystematic.push_back(Systematics);
   return;
 }
 
@@ -83,22 +85,31 @@ void VariationmTAnalysis::SetVariation(const char* VarDir) {
 }
 
 void VariationmTAnalysis::MakePlots() {
-  auto c1 = new TCanvas("c24455454", "c256345654");
+  DreamPlot::SetStyle();
+  gStyle->SetLabelSize(14, "xyz");
+  gStyle->SetTitleSize(14, "xyz");
+  gStyle->SetTitleOffset(2., "x");
+  gStyle->SetTitleOffset(3., "y");
+  auto c1 = new TCanvas("c2", "c2");
   c1->Divide(3, 2);
   int counter = 1;
   for (auto it : fSystematic) {
-    DreamData *ProtonProton = new DreamData(Form("ProtonProton%i",counter));
+    DreamData *ProtonProton = new DreamData(Form("ProtonProton%i", counter));
+    ProtonProton->SetMultiHisto(true);
     ProtonProton->SetUnitConversionData(1);
     ProtonProton->SetUnitConversionCATS(1);
     ProtonProton->SetCorrelationFunction(it.GetDefault());
     ProtonProton->SetSystematics(it.GetSystematicError(), 2);
     ProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p}", "fpe");
     ProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
-    ProtonProton->SetRangePlotting(0, 200, 0.725, 3.5);
+    ProtonProton->SetRangePlotting(0, 200, 0.725, it.GetDefault()->GetMaximum()*1.2);
     ProtonProton->SetNDivisions(505);
     ProtonProton->SetLegendCoordinates(
         0.30, 0.65 - 0.09 * ProtonProton->GetNumberOfModels(), 0.7, 0.725);
-    TPad* tmp = (TPad*)c1->cd(counter);
+    TPad* tmp = (TPad*) c1->cd(counter);
+    tmp->SetRightMargin(0.07);
+    tmp->SetTopMargin(0.01);
+    tmp->SetLeftMargin(0.2);
     ProtonProton->DrawCorrelationPlot(tmp);
     counter++;
   }
