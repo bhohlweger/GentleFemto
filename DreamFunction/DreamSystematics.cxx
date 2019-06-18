@@ -8,6 +8,7 @@
 #include "TFile.h"
 #include "TMath.h"
 #include <cmath>
+#include "TRandom3.h"
 
 DreamSystematics::DreamSystematics()
     : fSystematicFitRangeLow(0.f),
@@ -53,6 +54,7 @@ DreamSystematics::DreamSystematics()
       fHistPurityTwoRelDiff(nullptr) {
   DreamPlot::SetStyle(false);
   fCutTuple = new TNtuple("CutVars", "CutVars", "kstar:cf:cferr");
+  gRandom->SetSeed(0);
 }
 
 DreamSystematics::DreamSystematics(Pair pair)
@@ -99,6 +101,7 @@ DreamSystematics::DreamSystematics(Pair pair)
       fHistPurityTwoRelDiff(nullptr) {
   DreamPlot::SetStyle();
   fCutTuple = new TNtuple("CutVars", "CutVars", "kstar:cf:cferr");
+  gRandom->SetSeed(0);
 }
 
 TH1F* DreamSystematics::GetAbsError(TH1F* histDefault, TH1F* histVar) const {
@@ -310,7 +313,7 @@ void DreamSystematics::EvalDifferenceInPurity() {
 }
 
 void DreamSystematics::ComputeUncertainty() {
-
+  int uniqueID = gRandom->Integer(1e7);
   fHistSystErrAbs = (TH1F*) fHistDefault->Clone(
       Form("%s_SystErrAbs", fHistDefault->GetName()));
   fHistSystErrAbs->GetYaxis()->SetTitle("Syst. error");
@@ -324,8 +327,8 @@ void DreamSystematics::ComputeUncertainty() {
   for (int ikstar = 1; ikstar <= nBins; ++ikstar) {
     const int kstar = fHistDefault->GetBinCenter(ikstar);
 
-    fCutTuple->Draw(Form("cf >> h%i", kstar), Form("kstar == %i", kstar));
-    TH1D* hist = (TH1D*) gROOT->FindObject(Form("h%i", kstar));
+    fCutTuple->Draw(Form("cf >> h%i%i", kstar,uniqueID), Form("kstar == %i", kstar));
+    TH1D* hist = (TH1D*) gROOT->FindObject(Form("h%i%i", kstar,uniqueID));
 
     double sysErr;
     switch (fErrorEstimator) {
