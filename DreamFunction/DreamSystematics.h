@@ -100,11 +100,13 @@ class DreamSystematics {
   void EvalDifferenceInPurity();
   void ComputeUncertainty();
   void WriteOutput();
-  template <typename T>
-  void WriteOutput(TFile* file, std::vector<T*>& histvec,
-                   const TString name);
+  template<typename T>
+  void WriteOutput(TFile* file, std::vector<T*>& histvec, const TString name);
   void FixStyle(TH1F* histCF) const;
-
+  TF1* GetSystematicError() const {
+    return fRatio;
+  }
+  ;
  private:
   float fSystematicFitRangeLow;
   float fSystematicFitRangeUp;
@@ -187,7 +189,8 @@ void DreamSystematics::FixStyle(TH1F* histCF) const {
 inline void DreamSystematics::FillTuple(TH1F *histVar) {
 
   for (int i = 1; i < histVar->GetNbinsX() + 1; ++i) {
-    fCutTuple->Fill(histVar->GetBinCenter(i), histVar->GetBinContent(i), histVar->GetBinError(i));
+    fCutTuple->Fill(histVar->GetBinCenter(i), histVar->GetBinContent(i),
+                    histVar->GetBinError(i));
   }
 }
 
