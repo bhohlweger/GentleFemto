@@ -427,8 +427,8 @@ void DreamSystematics::ComputeUncertainty() {
   fGrFinalError->SetLineColor(kGray + 1);
 }
 
-void DreamSystematics::WriteOutput() {
-  auto file = new TFile(Form("Systematics_%s.root", GetPairName().Data()),
+void DreamSystematics::WriteOutput(const char* outname) {
+  auto file = new TFile(Form("Systematics%s_%s.root", outname,GetPairName().Data()),
                         "recreate");
   WriteOutput(file, fHistVar, "Raw");
   WriteOutput(file, fHistAbsErr, "AbsErr");

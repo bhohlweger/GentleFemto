@@ -42,10 +42,18 @@ class DreamSystematics {
   }
 
   void SetDefaultHist(TH1F* histDef) {
-    fHistDefault = histDef;
+    if (!histDef) {
+      Warning("SetDefaultHist","No Histogram exists, nothing set \n");
+    } else {
+      fHistDefault = histDef;
+    }
   }
   void SetVarHist(TH1F* histVar) {
-    fHistVar.emplace_back(histVar);
+    if (!histVar) {
+      Warning("SetDefaultHist","No Histogram exists, nothing set \n");
+    } else {
+      fHistVar.emplace_back(histVar);
+    }
   }
   void SetDefaultHist(DreamCF* CFDef, const char* CFName) {
     SetDefaultHist(CFDef->FindCorrelationFunction(CFName));
@@ -99,7 +107,7 @@ class DreamSystematics {
   void EvalDifferenceInParticles();
   void EvalDifferenceInPurity();
   void ComputeUncertainty();
-  void WriteOutput();
+  void WriteOutput(const char* outname = "");
   template<typename T>
   void WriteOutput(TFile* file, std::vector<T*>& histvec, const TString name);
   void FixStyle(TH1F* histCF) const;
@@ -107,6 +115,9 @@ class DreamSystematics {
     return fRatio;
   }
   ;
+  TH1F* GetDefault() const {
+    return fHistDefault;
+  }
  private:
   float fSystematicFitRangeLow;
   float fSystematicFitRangeUp;
