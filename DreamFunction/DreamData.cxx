@@ -35,6 +35,7 @@ DreamData::DreamData(const char* particlePair)
       fYMaxLegend(0.5),
       fUnitConversionData(1),
       fUnitConversionCATS(1),
+      fMultiHisto(false),
       fLegendName(),
       fLegendOption(),
       fFemtoModdeled(),
@@ -259,16 +260,37 @@ void DreamData::FemtoModelDeviations(TGraphErrors* grDeviation, int color) {
 }
 
 void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
-  histo->GetXaxis()->SetLabelSize(0.045);
-  histo->GetXaxis()->SetTitleSize(0.05);
+  if (fMultiHisto) {
+    SetStyleMultiHisto(histo, marker, color);
+  } else {
+    histo->GetXaxis()->SetLabelSize(0.045);
+    histo->GetXaxis()->SetTitleSize(0.05);
+    histo->GetXaxis()->SetLabelOffset(0.01);
+    histo->GetXaxis()->SetTitleOffset(1.2);
+    histo->GetXaxis()->SetLabelFont(42);
+    histo->GetYaxis()->SetLabelSize(0.045);
+    histo->GetYaxis()->SetTitleSize(0.05);
+    histo->GetYaxis()->SetLabelOffset(0.01);
+    histo->GetYaxis()->SetTitleOffset(1.25);
+    histo->SetMarkerSize(1.0);
+    histo->SetLineWidth(2);
+    histo->SetMarkerStyle(fMarkers[marker]);
+    histo->SetMarkerColor(fColors[color]);
+    histo->SetLineColor(fColors[color]);
+  }
+}
+
+void DreamData::SetStyleMultiHisto(TH1 *histo, int marker, int color) {
+  histo->GetXaxis()->SetLabelSize(0.015);
+  histo->GetXaxis()->SetTitleSize(0.015);
   histo->GetXaxis()->SetLabelOffset(0.01);
   histo->GetXaxis()->SetTitleOffset(1.2);
   histo->GetXaxis()->SetLabelFont(42);
-  histo->GetYaxis()->SetLabelSize(0.045);
-  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetYaxis()->SetLabelSize(0.015);
+  histo->GetYaxis()->SetTitleSize(0.015);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
-  histo->SetMarkerSize(1.);
+  histo->SetMarkerSize(0.5);
   histo->SetLineWidth(2);
   histo->SetMarkerStyle(fMarkers[marker]);
   histo->SetMarkerColor(fColors[color]);
@@ -283,7 +305,8 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fCorrelationFunction->GetYaxis()->SetRangeUser(fYMin, fYMax);
   fSysError->SetLineColor(kWhite);
-  fSysError->GetYaxis()->SetTitleOffset(1.5);
+  if (!fMultiHisto)
+    fSysError->GetYaxis()->SetTitleOffset(1.5);
   fSysError->Draw("Ap");
   fBaseLine->Draw("same");
   TString CFName = fCorrelationFunction->GetName();
@@ -370,6 +393,28 @@ void DreamData::DrawInlet(TPad *c) {
 }
 
 void DreamData::SetStyleGraph(TGraph *histo, int marker, int color) {
+  if (fMultiHisto) {
+    SetStyleGraphMulti(histo,marker,color);
+  } else {
+    histo->GetXaxis()->SetLabelSize(0.045);
+    histo->GetXaxis()->SetTitleSize(0.05);
+    histo->GetXaxis()->SetLabelOffset(0.01);
+    histo->GetXaxis()->SetTitleOffset(1.2);
+    histo->GetXaxis()->SetLabelFont(42);
+    histo->GetYaxis()->SetLabelSize(0.045);
+    histo->GetYaxis()->SetTitleSize(0.05);
+    histo->GetYaxis()->SetLabelOffset(0.01);
+    histo->GetYaxis()->SetTitleOffset(1.25);
+    histo->SetMarkerSize(1.4);
+    histo->SetLineWidth(2);
+    histo->SetMarkerStyle(fMarkers[marker]);
+    histo->SetMarkerColor(fColors[color]);
+    histo->SetLineColor(fColors[color]);
+    histo->SetFillColor(fColors[color]);
+  }
+}
+
+void DreamData::SetStyleGraphMulti(TGraph *histo, int marker, int color) {
   histo->GetXaxis()->SetLabelSize(0.045);
   histo->GetXaxis()->SetTitleSize(0.05);
   histo->GetXaxis()->SetLabelOffset(0.01);
@@ -379,7 +424,7 @@ void DreamData::SetStyleGraph(TGraph *histo, int marker, int color) {
   histo->GetYaxis()->SetTitleSize(0.05);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
-  histo->SetMarkerSize(1.4);
+  histo->SetMarkerSize(0.5);
   histo->SetLineWidth(2);
   histo->SetMarkerStyle(fMarkers[marker]);
   histo->SetMarkerColor(fColors[color]);
@@ -405,6 +450,6 @@ void DreamData::DrawDeviationPerBin(TPad* c) {
                                         it->GetYaxis()->GetXmax());
     GraphAxis->DrawClone("AP");
     it->Draw("L3 same");
-    lineOne.DrawLine(fXMin,0,fXMax,0);
+    lineOne.DrawLine(fXMin, 0, fXMax, 0);
   }
 }

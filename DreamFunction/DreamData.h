@@ -23,7 +23,9 @@ class DreamData {
     fCorrelationFunction = CF;
   }
   ;
-  const TH1F* GetCorrelationFunction() { return fCorrelationFunction; }
+  const TH1F* GetCorrelationFunction() {
+    return fCorrelationFunction;
+  }
   void SetCorrelationFunctionSimulation(TH1F* CF) {
     fCorrelationFunctionSimulation = CF;
   }
@@ -43,6 +45,7 @@ class DreamData {
                           float colorAlpha, bool addtoLegend);
   void FemtoModelDeviations(TGraphErrors* grDeviation, int color);
   void SetStyleHisto(TH1 *histo, int marker, int color);
+  void SetStyleMultiHisto(TH1 *histo, int marker, int color);
   void DrawCorrelationPlot(TPad* c, const int color = 0,
                            const int systematicsColor = kBlack,
                            const float legendTextScale = 0.96);
@@ -54,7 +57,8 @@ class DreamData {
     fYMax = yMax;
   }
   ;
-  void SetInletRangePlotting(float xRangeMin, float xRangeMax, float yRangeMin, float yRangeMax) {
+  void SetInletRangePlotting(float xRangeMin, float xRangeMax, float yRangeMin,
+                             float yRangeMax) {
     fInlet = true;
     fXMinZoom = xRangeMin;
     fXMaxZoom = xRangeMax;
@@ -98,9 +102,15 @@ class DreamData {
     fUnitConversionCATS = unit;
   }
   ;
+  void SetMultiHisto(bool multiHisto) {
+    fMultiHisto= multiHisto;
+  }
   void SetStyleGraph(TGraph *histo, int marker, int color);
+  void SetStyleGraphMulti(TGraph *histo, int marker, int color);
   void DrawInlet(TPad *c);
-  int GetNumberOfModels() const { return fFemtoModdeled.size(); }
+  int GetNumberOfModels() const {
+    return fFemtoModdeled.size();
+  }
   virtual ~DreamData();
   const char* fName;
   TH1F* fCorrelationFunction;
@@ -112,7 +122,7 @@ class DreamData {
   float fXMax;
   float fYMin;
   float fYMax;
-  bool  fInlet;
+  bool fInlet;
   float fXMinZoom;
   float fXMaxZoom;
   float fYMinZoom;
@@ -127,6 +137,7 @@ class DreamData {
   float fYMaxLegend;
   int fUnitConversionData;
   int fUnitConversionCATS;
+  bool fMultiHisto;
   std::vector<const char*> fLegendName;
   std::vector<const char*> fLegendOption;
   std::vector<TGraphErrors*> fFemtoModdeled;
