@@ -59,7 +59,8 @@ int main(int argc, char* argv[]) {
 
   DecayQA* sigma0QA = new DecayQA("#Sigma^{0}", "#Lambda#gamma");
   sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
-  sigma0QA->SetCanvasDivisions(3, 2);
+  sigma0QA->SetCanvasDivisions(3, 3);
+  sigma0QA->SetInvMasspTStartBin(2);
   sigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   if (suffix == "0") {
     sigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
@@ -72,7 +73,8 @@ int main(int argc, char* argv[]) {
   DecayQA* antiSigma0QA = new DecayQA("#bar{#Sigma^{0}}",
                                       "#bar{#Lambda}#gamma");
   antiSigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
-  antiSigma0QA->SetCanvasDivisions(3, 2);
+  antiSigma0QA->SetCanvasDivisions(3, 3);
+  antiSigma0QA->SetInvMasspTStartBin(2);
   antiSigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   if (suffix == "0") {
     antiSigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("AntiSigma0Cuts"),
@@ -86,7 +88,8 @@ int main(int argc, char* argv[]) {
                                     "#Lambda#gamma + #bar{#Lambda}#gamma");
   sigmaSumQA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigmaSumQA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
-  sigmaSumQA->SetCanvasDivisions(3, 2);
+  sigmaSumQA->SetCanvasDivisions(3, 3);
+  sigmaSumQA->SetInvMasspTStartBin(2);
   sigmaSumQA->SetIMHistoScale(1.75, 0.8, 0.35);
   if (suffix == "0") {
     sigmaSumQA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),

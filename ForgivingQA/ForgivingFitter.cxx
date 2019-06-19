@@ -123,10 +123,6 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
 }
 
 void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lineColor) {
-  if (histo->GetEntries() < 12500) {
-    return;
-  }
-
   // Fit Background with third order polynomial
   if (fBackGround) {
     delete fBackGround;

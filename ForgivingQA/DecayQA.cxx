@@ -79,7 +79,7 @@ void DecayQA::InvariantMassSigma0(float massCuts, const char* name, bool isSum) 
         fAntiDecayCuts, "fHistInvMassPtRaw");
     invMassPart->Add(invMassAntiPart);
   }
-  invMassPart->RebinX(20);
+  invMassPart->RebinX(10);
   FitInvariantMassSigma0(invMassPart, massCuts, name);
 }
 
@@ -273,7 +273,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
   fHairyPlotter->FormatHistogram(invMass, 2, 8, 1.1);
   fHairyPlotter->DrawOnPad( { invMass }, intPad, "P");
-  fHairyPlotter->DrawPerformance(fFitter, intPad, fPartLatex, 0.205, 0.87, 0.4, 10);
+  fHairyPlotter->DrawPerformance(fFitter, intPad, fPartLatex, 0.205, 0.87, 1, 10);
   fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0,
                           invMass->GetMaximum() * 0.5, kTeal + 3);
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,
@@ -307,25 +307,42 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
     auto invMasspTBin = (TH1F*) invMasspT->ProjectionY(
         Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
     fFitter->FitInvariantMassSigma(invMasspTBin, massCuts);
-    invMasspTBin->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
-    invMasspTBin->GetYaxis()->SetRangeUser(
-        0, invMasspTBin->GetMaximum() * fScaleMax);
+    double CutMinpT = fFitter->GetMeanMass() - massCuts;
+    double CutMaxpT = fFitter->GetMeanMass() + massCuts;
+    double peakVal = invMasspTBin->GetBinContent(invMasspTBin->GetXaxis()->FindBin(fFitter->GetMeanMass()));
+    invMasspTBin->GetXaxis()->SetRangeUser(1.172, 1.212);
+    invMasspTBin->GetYaxis()->SetRangeUser(0, peakVal * 1.8);
     invMasspTBin->GetXaxis()->SetTitle(
         Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
-    invMasspTBin->GetXaxis()->SetNdivisions(420);
+    invMasspTBin->GetYaxis()->SetTitle(
+        "d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
     invMasspTBin->GetXaxis()->SetMaxDigits(2);
-    invMasspTBin->GetYaxis()->SetMaxDigits(2);
-    invMasspTBin->GetYaxis()->SetNdivisions(210);
-    fHairyPlotter->FormatSmallHistogram(invMasspTBin, 0, 0, 0.7);
+    invMasspTBin->GetXaxis()->SetNdivisions(505);
+    invMasspTBin->GetYaxis()->SetMaxDigits(1);
+    invMasspTBin->GetYaxis()->SetNdivisions(505);
+    fHairyPlotter->FormatHistogram(invMasspTBin, 2, 8, 0.8);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad, "");
     fHairyPlotter->DrawLatexLabel(invMasspT->GetXaxis()->GetBinLowEdge(ipT),
                                   invMasspT->GetXaxis()->GetBinUpEdge(ipT),
                                   fFitter, CurrentPad, fPartLatex, fTexOffX,
                                   fTexOffY);
-    fHairyPlotter->DrawLine(CurrentPad, CutMin, CutMin, 0,
-                            invMasspTBin->GetMaximum() * 0.5);
-    fHairyPlotter->DrawLine(CurrentPad, CutMax, CutMax, 0,
-                            invMasspTBin->GetMaximum() * 0.5);
+    fHairyPlotter->DrawLine(CurrentPad, CutMinpT, CutMinpT, 0, peakVal * 0.85,
+                            kTeal + 3);
+    fHairyPlotter->DrawLine(CurrentPad, CutMaxpT, CutMaxpT, 0, peakVal * 0.85,
+                            kTeal + 3);
+
+    auto cpt = new TCanvas();
+    cpt->SetTopMargin(0.05);
+    cpt->SetRightMargin(0.025);
+    TPad *intPadpt = (TPad*) cpt->cd();
+    fHairyPlotter->FormatHistogram(invMasspTBin, 2, 8, 1.1);
+    fHairyPlotter->DrawOnPad( { invMasspTBin }, intPadpt, "P");
+    fHairyPlotter->DrawPerformance(fFitter, intPadpt, fPartLatex, 0.205, 0.87,
+                                   invMasspT->GetXaxis()->GetBinLowEdge(ipT),
+                                   invMasspT->GetXaxis()->GetBinUpEdge(ipT));
+    cpt->SaveAs(Form("InvInt%s_%i.pdf", outname, iPad));
+    delete cpt;
+
     float signal = (float) fFitter->GetSignalCounts();
     float background = (float) fFitter->GetBackgroundCounts();
     Purity->SetBinContent(ipT, fFitter->GetPurity());
