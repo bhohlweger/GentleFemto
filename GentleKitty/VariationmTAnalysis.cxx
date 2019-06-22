@@ -165,7 +165,7 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p}", "fpe");
     ProtonProton->SetLegendName("#splitline{Coulomb +}{Argonne #nu_{18} (fit)}",
                                 "l");
-    ProtonProton->SetRangePlotting(4, 208, 0.725, 4.3);
+    ProtonProton->SetRangePlotting(8, 208, 0.725, 4.3);
     ProtonProton->SetNDivisions(505);
     ProtonProton->FemtoModelFitBands(fAnalysis[counter - 1].GetModel(), 2, 1, 3,
                                      -3000, true);

@@ -143,11 +143,13 @@ void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
       }
       fSystematics->SetLineWidth(2.0);
       fSysError = new TGraphErrors();
-      for (int i = 0; i < nBinsX; i++) {
-        fSysError->SetPoint(i, fCorrelationFunction->GetBinCenter(i + 1),
-                            fCorrelationFunction->GetBinContent(i + 1));
+      fSysError->SetPoint(0,0.,1);
+      fSysError->SetPointError(0,errorwidth,0.);
+      for (int i = 1; i <= nBinsX; i++) {
+        fSysError->SetPoint(i, fCorrelationFunction->GetBinCenter(i),
+                            fCorrelationFunction->GetBinContent(i));
         fSysError->SetPointError(i, errorwidth,
-                                 fSystematics->GetBinContent(i + 1));
+                                 fSystematics->GetBinContent(i));
       }
       TGraph *grFakeSys = new TGraph();
       SetStyleGraph(grFakeSys, 2, 0);
