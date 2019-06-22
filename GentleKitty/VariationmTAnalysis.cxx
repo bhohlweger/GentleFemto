@@ -171,7 +171,7 @@ void VariationmTAnalysis::MakePlots() {
     text.DrawLatex(
         LatexX,
         0.8,
-        TString::Format("m_{T} #in [%.2f, %.2f] (GeV/#it{c}^{2})}",
+        TString::Format("m_{T} #in [%.2f, %.2f] (GeV/#it{c}^{2})",
                         mTppBins[counter - 1], mTppBins[counter]));
     if (counter == 1) {
       TPad* tmp2 = GetFormattedPad(0);
