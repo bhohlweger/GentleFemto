@@ -131,24 +131,24 @@ void VariationmTAnalysis::MakePlots() {
   for (auto it : fSystematic) {
     c1->cd();
     TPad* pad = new TPad(Form("p%u", counter), Form("p%u", counter),
-                         xMinPad[counter - 1], yMinPad[counter - 1],
-                         xMaxPad[counter - 1], yMaxPad[counter - 1]);
+                         xMinPad[counter], yMinPad[counter],
+                         xMaxPad[counter], yMaxPad[counter]);
     pad->SetTopMargin(0.);
     if (counter % 2 == 0) {
-      pad->SetRightMargin(0.07);
-      pad->SetLeftMargin(0.);
+      pad->SetRightMargin(0.);
+      pad->SetLeftMargin(0.2);
       if (counter < 6) {
         pad->SetBottomMargin(0.);
       } else {
         pad->SetBottomMargin(0.242);
       }
     } else {
-      pad->SetRightMargin(0.);
-      pad->SetLeftMargin(0.2);
+      pad->SetRightMargin(0.07);
+      pad->SetLeftMargin(0.);
       if (counter < 6) {
         pad->SetBottomMargin(0.);
       } else {
-        pad->SetBottomMargin(0.08);
+        pad->SetBottomMargin(0.242);
       }
     }
     pad->Draw();
