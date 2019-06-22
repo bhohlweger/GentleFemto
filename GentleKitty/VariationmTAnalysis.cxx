@@ -121,11 +121,11 @@ void VariationmTAnalysis::MakePlots() {
   gStyle->SetTitleOffset(5., "y");
   TGraphErrors* AxisGraph = new TGraphErrors();
   AxisGraph->SetPoint(0,4,1.);
-  AxisGraph->SetPoint(1,208,1);
+  AxisGraph->SetPoint(1,210,1);
   AxisGraph->SetLineColor(kWhite);
 //  AxisGraph->GetYaxis()->SetTitleOffset(1.5);
   AxisGraph->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  AxisGraph->GetXaxis()->SetRangeUser(4,208);
+  AxisGraph->GetXaxis()->SetRangeUser(4,210);
   AxisGraph->GetYaxis()->SetRangeUser(0.725, 4.3);
   AxisGraph->GetXaxis()->SetNdivisions(505);
   auto c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
@@ -196,6 +196,9 @@ void VariationmTAnalysis::MakePlots() {
       TPad* tmp2 = new TPad(Form("p%u", 0), Form("p%u", 0),
                             xMinPad[0], yMinPad[0],
                             xMaxPad[0], yMaxPad[0]);
+      c1->cd();
+      tmp2->Draw();
+      tmp2->cd();
       ProtonProton->DrawLegendExternal(tmp2);
     }
     counter++;
