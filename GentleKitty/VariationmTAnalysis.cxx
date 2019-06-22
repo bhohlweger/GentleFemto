@@ -133,8 +133,8 @@ void VariationmTAnalysis::MakePlots() {
   int counter = 1;
   TFile* out = TFile::Open("tmp.root", "recreate");
   std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
-  std::vector<float> xMinPad = { 0., 0.5, 0., 0.5, 0., 0.5, 0., 0.5 };
-  std::vector<float> xMaxPad = { 0.5, 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0 };
+  std::vector<float> xMinPad = { 0.1, 0.4, 0., 0.5, 0., 0.5, 0., 0.5 };
+  std::vector<float> xMaxPad = { 0.4, 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0 };
   std::vector<float> yMinPad = { 0.77, 0.77, 0.54, 0.54, 0.31, 0.31, 0., 0. };
   std::vector<float> yMaxPad = { 1.0, 1.0, 0.77, 0.77, 0.54, 0.54, 0.31, 0.31 };
   for (auto it : fSystematic) {
@@ -146,7 +146,11 @@ void VariationmTAnalysis::MakePlots() {
     float LatexX = 0.; 
     if (counter % 2 == 0) {
       LatexX = 0.35; 
-      pad->SetRightMargin(0.);
+      if (counter!= 2) {
+        pad->SetRightMargin(0.);
+      } else {
+        pad->SetRightMargin(0.2);
+      }
       pad->SetLeftMargin(0.2);
       if (counter < 5) {
         pad->SetBottomMargin(0.);
@@ -181,7 +185,7 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->FemtoModelFitBands(fAnalysis[counter - 1].GetModel(), 2, 1, 3,
                                      -3000, true);
     ProtonProton->SetLegendCoordinates(0., 0.2, 1.0, 0.8, false);
-    ProtonProton->DrawCorrelationPlot(pad, 0, kBlack, 1.2);
+    ProtonProton->DrawCorrelationPlot(pad, 0, kBlack, 1.8);
     TLatex text;
     text.SetTextFont(43);
     text.SetNDC();
@@ -197,6 +201,7 @@ void VariationmTAnalysis::MakePlots() {
                             xMinPad[0], yMinPad[0],
                             xMaxPad[0], yMaxPad[0]);
       c1->cd();
+      tmp2->SetFillStyle(4000);
       tmp2->Draw();
       tmp2->cd();
       ProtonProton->DrawLegendExternal(tmp2);
