@@ -22,10 +22,16 @@ class VariationmTAnalysis {
     fHistname = Histname;
   }
   void MakePlots();
+  void SetmTAverage(TGraphErrors* mTAvg) {
+    fmTAverage = mTAvg;
+  }
  private:
   std::vector<VariationAnalysis> fAnalysis;
   std::vector<DreamSystematics> fSystematic;
   const char* fHistname;
+  TGraphErrors* fmTAverage;
+  TGraphErrors* fmTRadiusSyst;
+  TGraphErrors* fmTRadiusStat;
 };
 
 #endif /* GENTLEKITTY_VARIATIONMTANALYSIS_H_ */
