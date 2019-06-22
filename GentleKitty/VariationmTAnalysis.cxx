@@ -119,6 +119,13 @@ void VariationmTAnalysis::MakePlots() {
   gStyle->SetTitleSize(16, "xyz");
   gStyle->SetTitleOffset(3.5, "x");
   gStyle->SetTitleOffset(5., "y");
+  TGraphErrors* AxisGraph = new TGraphErrors();
+  AxisGraph->SetPoint(0,4,1.);
+  AxisGraph->SetPoint(1,204,1);
+  AxisGraph->SetLineColor(kWhite);
+  AxisGraph->GetYaxis()->SetTitleOffset(1.5);
+  AxisGraph->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+
   auto c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
 //  c1->Divide(4, 2);
   int counter = 1;
@@ -156,6 +163,7 @@ void VariationmTAnalysis::MakePlots() {
     }
     pad->Draw();
     pad->cd();
+    AxisGraph->Draw("Ap");
     DreamData *ProtonProton = new DreamData(Form("ProtonProton%i", counter));
     ProtonProton->SetMultiHisto(true);
     ProtonProton->SetUnitConversionData(1);
@@ -165,6 +173,7 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p}", "fpe");
     ProtonProton->SetLegendName("#splitline{Coulomb +}{Argonne #nu_{18} (fit)}",
                                 "l");
+    ProtonProton->SetDrawAxis(false);
     ProtonProton->SetRangePlotting(4, 208, 0.725, 4.3);
     ProtonProton->SetNDivisions(505);
     ProtonProton->FemtoModelFitBands(fAnalysis[counter - 1].GetModel(), 2, 1, 3,

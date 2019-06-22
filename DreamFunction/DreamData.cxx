@@ -16,6 +16,7 @@ DreamData::DreamData(const char* particlePair)
       fSystematics(nullptr),
       fSysError(nullptr),
       fBaseLine(new TF1(Form("%sBaseLine", particlePair), "pol1", 0, 1000)),
+      fDrawAxis(true),
       fXMin(0),
       fXMax(0.5),
       fYMin(0),
@@ -310,7 +311,7 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
     fSysError->GetYaxis()->SetTitleOffset(1.5);
   fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
-  fSysError->Draw("Ap");
+  if(fDrawAxis)fSysError->Draw("Ap");
   fBaseLine->Draw("same");
   TString CFName = fCorrelationFunction->GetName();
   if (CFName.Contains("MeV")) {

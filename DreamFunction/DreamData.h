@@ -50,6 +50,9 @@ class DreamData {
                            const int systematicsColor = kBlack,
                            const float legendTextScale = 0.96);
   void DrawDeviationPerBin(TPad* c);
+  void SetDrawAxis(bool drawAxis) {
+    fDrawAxis = drawAxis;
+  }
   void SetRangePlotting(float xMin, float xMax, float yMin, float yMax) {
     fXMin = xMin;
     fXMax = xMax;
@@ -121,6 +124,7 @@ class DreamData {
   TH1F* fSystematics;
   TGraphErrors* fSysError;
   TF1* fBaseLine;
+  bool fDrawAxis;
   float fXMin;
   float fXMax;
   float fYMin;
