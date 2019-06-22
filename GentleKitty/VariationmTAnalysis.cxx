@@ -9,6 +9,7 @@
 #include "DreamPlot.h"
 #include "TStyle.h"
 #include "TLegend.h"
+#include "TLatex.h"
 #include <iostream>
 
 VariationmTAnalysis::VariationmTAnalysis()
@@ -78,7 +79,7 @@ void VariationmTAnalysis::SetSystematic(const char* DataDir) {
     }
   }
   Systematics.EvalSystematics();
-  Systematics.WriteOutput(Form("%u",outputCounter));
+  Systematics.WriteOutput(Form("%u", outputCounter));
   outputCounter++;
   fSystematic.push_back(Systematics);
   return;
@@ -121,6 +122,7 @@ void VariationmTAnalysis::MakePlots() {
   c1->Divide(4, 2);
   int counter = 1;
   TFile* out = TFile::Open("tmp.root", "recreate");
+  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
   for (auto it : fSystematic) {
     DreamData *ProtonProton = new DreamData(Form("ProtonProton%i", counter));
     ProtonProton->SetMultiHisto(true);
@@ -136,12 +138,22 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->FemtoModelFitBands(fAnalysis[counter - 1].GetModel(), 2, 1, 3,
                                      -3000, true);
     ProtonProton->SetLegendCoordinates(
-        0.45, 0.65 - 0.09 * ProtonProton->GetNumberOfModels(), 0.7, 0.725, false);
+        0.45, 0.65 - 0.09 * ProtonProton->GetNumberOfModels(), 0.7, 0.725,
+        false);
     TPad* tmp = (TPad*) c1->cd(counter);
     tmp->SetRightMargin(0.07);
     tmp->SetTopMargin(0.01);
     tmp->SetLeftMargin(0.2);
     ProtonProton->DrawCorrelationPlot(tmp);
+    TLatex text;
+    text.SetNDC();
+    text.SetTextColor(1);
+    text.SetTextSize(gStyle->GetTextSize() * 0.85);
+    text.DrawLatex(
+        0.32,
+        0.73,
+        TString::Format("%.2f < m_{T} < %.2f (GeV/#it{c}^2)", mTppBins[counter-1],
+                        mTppBins[counter]));
     if (counter == 1) {
       TPad* tmp2 = (TPad*) c1->cd(8);
       ProtonProton->DrawLegendExternal(tmp2);
@@ -167,12 +179,12 @@ void VariationmTAnalysis::MakePlots() {
   fmTRadiusSyst->GetXaxis()->SetLabelOffset(.02);
   fmTRadiusSyst->GetYaxis()->SetLabelOffset(.02);
 
-  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95,2.7);
-  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.65,1.2);
-//  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95, 2.7);
-//  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.95, 1.55);
+  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95, 2.7);
+  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.65, 1.2);
+  //  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95, 2.7);
+  //  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.95, 1.55);
 
-  fmTRadiusSyst->SetMarkerColorAlpha(kBlack,0.);
+  fmTRadiusSyst->SetMarkerColorAlpha(kBlack, 0.);
   fmTRadiusSyst->SetLineWidth(0);
   fmTRadiusSyst->Draw("APZ");
   fmTRadiusSyst->SetFillColorAlpha(kBlack, 0.4);
