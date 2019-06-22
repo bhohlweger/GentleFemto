@@ -215,6 +215,7 @@ void VariationAnalysis::EvalRadius() {
   auto c1 = new TCanvas("c4", "c5");
   histRadCumulative->Draw("");
   c1->SaveAs(Form("%s/cumulative.pdf", gSystem->pwd()));
+  delete c1;
   auto medianBin = histRadCumulative->FindFirstBinAbove(0.5, 1);
   std::cout << "medianBin: " << medianBin << " Median: "
             << histRadCumulative->GetBinCenter(medianBin) << std::endl;
