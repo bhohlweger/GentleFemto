@@ -169,9 +169,10 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->SetLegendCoordinates(0., 0.2, 1.0, 0.8, false);
     ProtonProton->DrawCorrelationPlot(pad, 0, kBlack, 1.2);
     TLatex text;
+    text.SetTextFont(43);
     text.SetNDC();
     text.SetTextColor(1);
-    text.SetTextSize(gStyle->GetTextSize() * 1.8);
+    text.SetTextSizePixels(26);
     text.DrawLatex(
         0.35,
         0.85,
