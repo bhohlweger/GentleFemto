@@ -25,6 +25,7 @@ class VariationmTAnalysis {
   void SetmTAverage(TGraphErrors* mTAvg) {
     fmTAverage = mTAvg;
   }
+  TPad* GetFormattedPad(int counter);
  private:
   std::vector<VariationAnalysis> fAnalysis;
   std::vector<DreamSystematics> fSystematic;

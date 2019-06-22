@@ -120,12 +120,12 @@ void VariationmTAnalysis::MakePlots() {
   gStyle->SetTitleOffset(3.5, "x");
   gStyle->SetTitleOffset(3.5, "y");
   TGraphErrors* AxisGraph = new TGraphErrors();
-  AxisGraph->SetPoint(0,4,1.);
-  AxisGraph->SetPoint(1,210,1);
+  AxisGraph->SetPoint(0, 4, 1.);
+  AxisGraph->SetPoint(1, 210, 1);
   AxisGraph->SetLineColor(kWhite);
 //  AxisGraph->GetYaxis()->SetTitleOffset(1.5);
   AxisGraph->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  AxisGraph->GetXaxis()->SetRangeUser(4,210);
+  AxisGraph->GetXaxis()->SetRangeUser(4, 210);
   AxisGraph->GetYaxis()->SetRangeUser(0.725, 4.3);
   AxisGraph->GetXaxis()->SetNdivisions(505);
   auto c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
@@ -133,43 +133,16 @@ void VariationmTAnalysis::MakePlots() {
   int counter = 1;
   TFile* out = TFile::Open("tmp.root", "recreate");
   std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
-  std::vector<float> xMinPad = { 0.1, 0.4, 0., 0.5, 0., 0.5, 0., 0.5 };
-  std::vector<float> xMaxPad = { 0.4, 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0 };
-  std::vector<float> yMinPad = { 0.75, 0.75, 0.52, 0.52, 0.29, 0.29, 0., 0. };
-  std::vector<float> yMaxPad = { .98, 0.98, 0.75, 0.75, 0.52, 0.52, 0.29, 0.29 };
   for (auto it : fSystematic) {
     c1->cd();
-    TPad* pad = new TPad(Form("p%u", counter), Form("p%u", counter),
-                         xMinPad[counter], yMinPad[counter],
-                         xMaxPad[counter], yMaxPad[counter]);
+    TPad* pad = GetFormattedPad(counter);
     pad->SetTopMargin(0.);
-    float LatexX = 0.; 
+    float LatexX = 0.;
     //left sided pads
     if (counter % 2 == 0) {
-      LatexX = 0.35; 
-      pad->SetRightMargin(0.);
-      pad->SetLeftMargin(0.2);
-      if (counter < 5) {
-        pad->SetBottomMargin(0.);
-      } else {
-        pad->SetBottomMargin(0.06/0.29);
-      }
-    } else {//right sided pads
-      LatexX = 0.25; 
-      if (counter!=1) {
-        pad->SetLeftMargin(0.);
-        pad->SetRightMargin(0.07);
-	//AxisGraph->GetYaxis()->SetTitleOffset(5); 
-      } else {
-        pad->SetLeftMargin(0.1/0.6);
-        pad->SetRightMargin(0.035/0.6);
-	//AxisGraph->GetYaxis()->SetTitleOffset(1.); 
-      }
-      if (counter < 6) {
-        pad->SetBottomMargin(0.);
-      } else {
-        pad->SetBottomMargin(0.06/0.29);
-      }
+      LatexX = 0.35;
+    } else {  //right sided pads
+      LatexX = 0.25;
     }
     pad->Draw();
     pad->cd();
@@ -194,23 +167,21 @@ void VariationmTAnalysis::MakePlots() {
     text.SetTextFont(43);
     text.SetNDC();
     text.SetTextColor(1);
-    text.SetTextSizePixels(18);
+    text.SetTextSizePixels(14);
     text.DrawLatex(
         LatexX,
         0.8,
-        TString::Format("#splitline{m_{T} #in}{[%.2f, %.2f] (GeV/#it{c}^{2})}",
+        TString::Format("m_{T} #in [%.2f, %.2f] (GeV/#it{c}^{2})}",
                         mTppBins[counter - 1], mTppBins[counter]));
     if (counter == 1) {
-      TPad* tmp2 = new TPad(Form("p%u", 0), Form("p%u", 0),
-                            xMinPad[0], yMinPad[0],
-                            xMaxPad[0], yMaxPad[0]);
+      TPad* tmp2 = GetFormattedPad(0);
       c1->cd();
       tmp2->SetFillStyle(4000);
       tmp2->Draw();
       tmp2->cd();
       ProtonProton->DrawLegendExternal(tmp2);
     }
-    
+
     counter++;
   }
   out->cd();
@@ -264,4 +235,39 @@ void VariationmTAnalysis::MakePlots() {
 
   out->Write();
   out->Close();
+}
+
+TPad* VariationmTAnalysis::GetFormattedPad(int counter) {
+  std::vector<float> xMinPad = { 0.1, 0.4, 0., 0.5, 0., 0.5, 0., 0.5 };
+  std::vector<float> xMaxPad = { 0.4, 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0 };
+  std::vector<float> yMinPad = { 0.75, 0.75, 0.52, 0.52, 0.29, 0.29, 0., 0. };
+  std::vector<float> yMaxPad = { .98, 0.98, 0.75, 0.75, 0.52, 0.52, 0.29, 0.29 };
+  TPad* pad = new TPad(Form("p%u", counter), Form("p%u", counter),
+                       xMinPad[counter], yMinPad[counter], xMaxPad[counter],
+                       yMaxPad[counter]);
+  pad->SetTopMargin(0.);
+  //left sided pads
+  if (counter % 2 == 0) {
+    pad->SetRightMargin(0.);
+    pad->SetLeftMargin(0.2);
+    if (counter < 5) {
+      pad->SetBottomMargin(0.);
+    } else {
+      pad->SetBottomMargin(0.06 / 0.29);
+    }
+  } else {  //right sided pads
+    if (counter != 1) {
+      pad->SetLeftMargin(0.);
+      pad->SetRightMargin(0.07);
+    } else {
+      pad->SetLeftMargin(0.1 / 0.6);
+      pad->SetRightMargin(0.035 / 0.6);
+    }
+    if (counter < 6) {
+      pad->SetBottomMargin(0.);
+    } else {
+      pad->SetBottomMargin(0.06 / 0.29);
+    }
+  }
+  return pad;
 }
