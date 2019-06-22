@@ -118,7 +118,7 @@ void VariationmTAnalysis::MakePlots() {
   gStyle->SetLabelSize(16, "xyz");
   gStyle->SetTitleSize(16, "xyz");
   gStyle->SetTitleOffset(3.5, "x");
-  gStyle->SetTitleOffset(5., "y");
+  gStyle->SetTitleOffset(3.5, "y");
   TGraphErrors* AxisGraph = new TGraphErrors();
   AxisGraph->SetPoint(0,4,1.);
   AxisGraph->SetPoint(1,210,1);
@@ -159,9 +159,11 @@ void VariationmTAnalysis::MakePlots() {
       if (counter!=1) {
         pad->SetLeftMargin(0.);
         pad->SetRightMargin(0.07);
+	//AxisGraph->GetYaxis()->SetTitleOffset(5); 
       } else {
         pad->SetLeftMargin(0.1/0.6);
         pad->SetRightMargin(0.035/0.6);
+	//AxisGraph->GetYaxis()->SetTitleOffset(1.); 
       }
       if (counter < 6) {
         pad->SetBottomMargin(0.);
@@ -208,6 +210,7 @@ void VariationmTAnalysis::MakePlots() {
       tmp2->cd();
       ProtonProton->DrawLegendExternal(tmp2);
     }
+    
     counter++;
   }
   out->cd();
