@@ -29,10 +29,12 @@ DreamData::DreamData(const char* particlePair)
       fXMaxInlet(0.5),
       fYMinInlet(0),
       fYMaxInlet(0.5),
+      fLegend(nullptr),
       fXMinLegend(0),
       fXMaxLegend(0.5),
       fYMinLegend(0),
       fYMaxLegend(0.5),
+      fDrawLegend(true),
       fUnitConversionData(1),
       fUnitConversionCATS(1),
       fMultiHisto(false),
@@ -317,24 +319,24 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   }
   fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
-  TLegend *leg = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend,
-                             fYMaxLegend);
+  fLegend = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend, fYMaxLegend);
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
-  leg->SetBorderSize(0);
-  leg->SetTextFont(42);
-  leg->SetTextSize(gStyle->GetTextSize() * legendTextScale);
+  fLegend->SetBorderSize(0);
+  fLegend->SetTextFont(42);
+  fLegend->SetTextSize(gStyle->GetTextSize() * legendTextScale);
   int legendCounter = 1;
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
   fFakeGraph[0]->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
   fFakeGraph[0]->SetMarkerColor(fCorrelationFunction->GetMarkerColor());
   fFakeGraph[0]->SetFillColorAlpha(systematicsColor, 0.4);
-  leg->AddEntry(fFakeGraph[0], fLegendName[0], fLegendOption[0]);
+  fLegend->AddEntry(fFakeGraph[0], fLegendName[0], fLegendOption[0]);
 //  leg->AddEntry(fBaseLine, "Baseline", "l");
-  leg->Draw("same");
+  if (fDrawLegend)
+    fLegend->Draw("same");
   for (auto &it : fFemtoModdeled) {
     if (legendCounter < fFakeGraph.size()) {
-      leg->AddEntry(fFakeGraph[legendCounter], fLegendName[legendCounter],
-                    fLegendOption[legendCounter]);
+      fLegend->AddEntry(fFakeGraph[legendCounter], fLegendName[legendCounter],
+                        fLegendOption[legendCounter]);
     }
     legendCounter++;
   }
@@ -346,7 +348,8 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   fSysError->SetFillColorAlpha(systematicsColor, 0.4);
   fSysError->Draw("2 same");
   fCorrelationFunction->DrawCopy("pe same");
-  leg->Draw("same");
+  if (fDrawLegend)
+    fLegend->Draw("same");
   if (fInlet) {
     DrawInlet(c);
   }
@@ -394,7 +397,7 @@ void DreamData::DrawInlet(TPad *c) {
 
 void DreamData::SetStyleGraph(TGraph *histo, int marker, int color) {
   if (fMultiHisto) {
-    SetStyleGraphMulti(histo,marker,color);
+    SetStyleGraphMulti(histo, marker, color);
   } else {
     histo->GetXaxis()->SetLabelSize(0.045);
     histo->GetXaxis()->SetTitleSize(0.05);
@@ -452,4 +455,14 @@ void DreamData::DrawDeviationPerBin(TPad* c) {
     it->Draw("L3 same");
     lineOne.DrawLine(fXMin, 0, fXMax, 0);
   }
+}
+
+void DreamData::DrawLegendExternal(TPad* LegPad) {
+  if (!fLegend) {
+    Error("DreamData::DrawLegendExternal",
+          "No Legend Created yet, call after DrawCorrelationPlot. Exiting \n");
+    return;
+  }
+  LegPad->cd();
+  fLegend->Draw();
 }

@@ -74,13 +74,16 @@ class DreamData {
     fYMaxInlet = yMax;
   }
   ;
-  void SetLegendCoordinates(float xMin, float yMin, float xMax, float yMax) {
+  void SetLegendCoordinates(float xMin, float yMin, float xMax, float yMax,
+                            bool drawLegend = true) {
     fXMinLegend = xMin;
     fXMaxLegend = xMax;
     fYMinLegend = yMin;
     fYMaxLegend = yMax;
+    fDrawLegend = drawLegend;
   }
   ;
+  void DrawLegendExternal(TPad* LegPad);
   void SetNDivisions(int nDiv) {
     if (fSysError) {
       fSysError->GetXaxis()->SetNdivisions(nDiv);
@@ -103,7 +106,7 @@ class DreamData {
   }
   ;
   void SetMultiHisto(bool multiHisto) {
-    fMultiHisto= multiHisto;
+    fMultiHisto = multiHisto;
   }
   void SetStyleGraph(TGraph *histo, int marker, int color);
   void SetStyleGraphMulti(TGraph *histo, int marker, int color);
@@ -131,10 +134,12 @@ class DreamData {
   float fXMaxInlet;
   float fYMinInlet;
   float fYMaxInlet;
+  TLegend* fLegend;
   float fXMinLegend;
   float fXMaxLegend;
   float fYMinLegend;
   float fYMaxLegend;
+  bool fDrawLegend;
   int fUnitConversionData;
   int fUnitConversionCATS;
   bool fMultiHisto;

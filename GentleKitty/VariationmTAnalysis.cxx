@@ -78,7 +78,7 @@ void VariationmTAnalysis::SetSystematic(const char* DataDir) {
     }
   }
   Systematics.EvalSystematics();
-//  Systematics.WriteOutput(Form("%u",outputCounter));
+  Systematics.WriteOutput(Form("%u",outputCounter));
   outputCounter++;
   fSystematic.push_back(Systematics);
   return;
@@ -136,12 +136,16 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->FemtoModelFitBands(fAnalysis[counter - 1].GetModel(), 2, 1, 3,
                                      -3000, true);
     ProtonProton->SetLegendCoordinates(
-        0.45, 0.65 - 0.09 * ProtonProton->GetNumberOfModels(), 0.7, 0.725);
+        0.45, 0.65 - 0.09 * ProtonProton->GetNumberOfModels(), 0.7, 0.725, false);
     TPad* tmp = (TPad*) c1->cd(counter);
     tmp->SetRightMargin(0.07);
     tmp->SetTopMargin(0.01);
     tmp->SetLeftMargin(0.2);
     ProtonProton->DrawCorrelationPlot(tmp);
+    if (counter == 1) {
+      TPad* tmp2 = (TPad*) c1->cd(8);
+      ProtonProton->DrawLegendExternal(tmp2);
+    }
     counter++;
   }
   out->cd();
