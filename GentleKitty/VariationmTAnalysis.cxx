@@ -10,6 +10,7 @@
 #include "TStyle.h"
 #include "TLegend.h"
 #include "TLatex.h"
+#include "TPad.h"
 #include <iostream>
 
 VariationmTAnalysis::VariationmTAnalysis()
@@ -118,12 +119,25 @@ void VariationmTAnalysis::MakePlots() {
   gStyle->SetTitleSize(14, "xyz");
   gStyle->SetTitleOffset(2., "x");
   gStyle->SetTitleOffset(3., "y");
-  auto c1 = new TCanvas("c2", "c2");
-  c1->Divide(4, 2);
+  auto c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
+//  c1->Divide(4, 2);
   int counter = 1;
   TFile* out = TFile::Open("tmp.root", "recreate");
   std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
+  std::vector<float> xMinPad = { 0., 0.5, 0., 0.5, 0., 0.5, 0., 0.5 };
+  std::vector<float> xMaxPad = { 0.5, 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0 };
+  std::vector<float> yMinPad = { 0., 0., 0.25, 0.25, 0.5, 0.5, 0.75, 0.75 };
+  std::vector<float> yMaxPad = { 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1.0, 1.0 };
   for (auto it : fSystematic) {
+    c1->cd();
+    TPad* pad = new TPad(Form("p%u", counter), Form("p%u", counter),
+                         xMinPad[counter-1], yMinPad[counter-1], xMaxPad[counter-1],
+                         yMaxPad[counter-1]);
+    pad->SetRightMargin(0.07);
+    pad->SetTopMargin(0.01);
+    pad->SetLeftMargin(0.2);
+    pad->Draw();
+    pad->cd();
     DreamData *ProtonProton = new DreamData(Form("ProtonProton%i", counter));
     ProtonProton->SetMultiHisto(true);
     ProtonProton->SetUnitConversionData(1);
@@ -137,12 +151,8 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->SetNDivisions(505);
     ProtonProton->FemtoModelFitBands(fAnalysis[counter - 1].GetModel(), 2, 1, 3,
                                      -3000, true);
-    ProtonProton->SetLegendCoordinates(0., 0.2 , 1.0, 0.8,false);
-    TPad* tmp = (TPad*) c1->cd(counter);
-    tmp->SetRightMargin(0.07);
-    tmp->SetTopMargin(0.01);
-    tmp->SetLeftMargin(0.2);
-    ProtonProton->DrawCorrelationPlot(tmp);
+    ProtonProton->SetLegendCoordinates(0., 0.2, 1.0, 0.8, false);
+    ProtonProton->DrawCorrelationPlot(pad, 0, kBlack, 1.2);
     TLatex text;
     text.SetNDC();
     text.SetTextColor(1);
@@ -150,12 +160,12 @@ void VariationmTAnalysis::MakePlots() {
     text.DrawLatex(
         0.35,
         0.85,
-        TString::Format("#splitline{m_{T} #in}{[%.2f, %.2f] (GeV/#it{c}^{2})}", mTppBins[counter-1],
-                        mTppBins[counter]));
-    if (counter == 1) {
-      TPad* tmp2 = (TPad*) c1->cd(8);
-      ProtonProton->DrawLegendExternal(tmp2);
-    }
+        TString::Format("#splitline{m_{T} #in}{[%.2f, %.2f] (GeV/#it{c}^{2})}",
+                        mTppBins[counter - 1], mTppBins[counter]));
+//    if (counter == 1) {
+//      TPad* tmp2 = (TPad*) c1->cd(8);
+//      ProtonProton->DrawLegendExternal(tmp2);
+//    }
     counter++;
   }
   out->cd();
