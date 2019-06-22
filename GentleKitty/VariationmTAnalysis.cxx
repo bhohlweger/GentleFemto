@@ -123,9 +123,10 @@ void VariationmTAnalysis::MakePlots() {
   AxisGraph->SetPoint(0,4,1.);
   AxisGraph->SetPoint(1,204,1);
   AxisGraph->SetLineColor(kWhite);
-  AxisGraph->GetYaxis()->SetTitleOffset(1.5);
+//  AxisGraph->GetYaxis()->SetTitleOffset(1.5);
   AxisGraph->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-
+  AxisGraph->GetXaxis()->SetRangeUser(4,204);
+  AxisGraph->GetYaxis()->SetRangeUser(0.725, 4.3);
   auto c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
 //  c1->Divide(4, 2);
   int counter = 1;
