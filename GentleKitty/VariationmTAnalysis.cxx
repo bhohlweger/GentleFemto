@@ -126,7 +126,7 @@ void VariationmTAnalysis::MakePlots() {
   std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
   std::vector<float> xMinPad = { 0., 0.5, 0., 0.5, 0., 0.5, 0., 0.5 };
   std::vector<float> xMaxPad = { 0.5, 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0 };
-  std::vector<float> yMinPad = { 0.77, 0.77, 0.54, 0.54, 0.31, 0.31, 0., 0. };
+  std::vector<float> yMinPad = { 0.77, 0.77, 0.54, 0.54, 0.31, 0.25, 0., 0. };
   std::vector<float> yMaxPad = { 1.0, 1.0, 0.77, 0.77, 0.54, 0.54, 0.31, 0.31 };
   for (auto it : fSystematic) {
     c1->cd();
@@ -140,7 +140,7 @@ void VariationmTAnalysis::MakePlots() {
       if (counter < 6) {
         pad->SetBottomMargin(0.);
       } else {
-        pad->SetBottomMargin(0.08);
+        pad->SetBottomMargin(0.242);
       }
     } else {
       pad->SetRightMargin(0.);
