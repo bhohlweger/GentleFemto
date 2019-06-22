@@ -135,8 +135,8 @@ void VariationmTAnalysis::MakePlots() {
   std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
   std::vector<float> xMinPad = { 0.1, 0.4, 0., 0.5, 0., 0.5, 0., 0.5 };
   std::vector<float> xMaxPad = { 0.4, 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0 };
-  std::vector<float> yMinPad = { 0.77, 0.77, 0.54, 0.54, 0.31, 0.31, 0., 0. };
-  std::vector<float> yMaxPad = { 1.0, 1.0, 0.77, 0.77, 0.54, 0.54, 0.31, 0.31 };
+  std::vector<float> yMinPad = { 0.75, 0.75, 0.52, 0.52, 0.29, 0.29, 0., 0. };
+  std::vector<float> yMaxPad = { .98, 0.98, 0.75, 0.75, 0.52, 0.52, 0.29, 0.29 };
   for (auto it : fSystematic) {
     c1->cd();
     TPad* pad = new TPad(Form("p%u", counter), Form("p%u", counter),
@@ -152,7 +152,7 @@ void VariationmTAnalysis::MakePlots() {
       if (counter < 5) {
         pad->SetBottomMargin(0.);
       } else {
-        pad->SetBottomMargin(0.242);
+        pad->SetBottomMargin(0.06/0.29);
       }
     } else {//right sided pads
       LatexX = 0.25; 
@@ -168,7 +168,7 @@ void VariationmTAnalysis::MakePlots() {
       if (counter < 6) {
         pad->SetBottomMargin(0.);
       } else {
-        pad->SetBottomMargin(0.242);
+        pad->SetBottomMargin(0.06/0.29);
       }
     }
     pad->Draw();
