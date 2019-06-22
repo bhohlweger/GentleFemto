@@ -126,7 +126,7 @@ void VariationmTAnalysis::MakePlots() {
   std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
   std::vector<float> xMinPad = { 0., 0.5, 0., 0.5, 0., 0.5, 0., 0.5 };
   std::vector<float> xMaxPad = { 0.5, 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0 };
-  std::vector<float> yMinPad = { 0.77, 0.77, 0.54, 0.54, 0.31, 0.25, 0., 0. };
+  std::vector<float> yMinPad = { 0.77, 0.77, 0.54, 0.54, 0.31, 0.31, 0., 0. };
   std::vector<float> yMaxPad = { 1.0, 1.0, 0.77, 0.77, 0.54, 0.54, 0.31, 0.31 };
   for (auto it : fSystematic) {
     c1->cd();
@@ -134,15 +134,18 @@ void VariationmTAnalysis::MakePlots() {
                          xMinPad[counter], yMinPad[counter],
                          xMaxPad[counter], yMaxPad[counter]);
     pad->SetTopMargin(0.);
+    float LatexX = 0.; 
     if (counter % 2 == 0) {
+      LatexX = 0.35; 
       pad->SetRightMargin(0.);
       pad->SetLeftMargin(0.2);
-      if (counter < 6) {
+      if (counter < 5) {
         pad->SetBottomMargin(0.);
       } else {
         pad->SetBottomMargin(0.242);
       }
     } else {
+      LatexX = 0.25; 
       pad->SetRightMargin(0.07);
       pad->SetLeftMargin(0.);
       if (counter < 6) {
@@ -162,7 +165,7 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->SetLegendName("p-p #oplus #bar{p}-#bar{p}", "fpe");
     ProtonProton->SetLegendName("#splitline{Coulomb +}{Argonne #nu_{18} (fit)}",
                                 "l");
-    ProtonProton->SetRangePlotting(0, 200, 0.725, 4.3);
+    ProtonProton->SetRangePlotting(4, 208, 0.725, 4.3);
     ProtonProton->SetNDivisions(505);
     ProtonProton->FemtoModelFitBands(fAnalysis[counter - 1].GetModel(), 2, 1, 3,
                                      -3000, true);
@@ -172,10 +175,10 @@ void VariationmTAnalysis::MakePlots() {
     text.SetTextFont(43);
     text.SetNDC();
     text.SetTextColor(1);
-    text.SetTextSizePixels(26);
+    text.SetTextSizePixels(18);
     text.DrawLatex(
-        0.35,
-        0.85,
+        LatexX,
+        0.8,
         TString::Format("#splitline{m_{T} #in}{[%.2f, %.2f] (GeV/#it{c}^{2})}",
                         mTppBins[counter - 1], mTppBins[counter]));
 //    if (counter == 1) {
