@@ -137,9 +137,7 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->SetNDivisions(505);
     ProtonProton->FemtoModelFitBands(fAnalysis[counter - 1].GetModel(), 2, 1, 3,
                                      -3000, true);
-    ProtonProton->SetLegendCoordinates(
-        0.45, 0.65 - 0.09 * ProtonProton->GetNumberOfModels(), 0.7, 0.725,
-        false);
+    ProtonProton->SetLegendCoordinates(0., 0.2 , 1.0, 0.8,false);
     TPad* tmp = (TPad*) c1->cd(counter);
     tmp->SetRightMargin(0.07);
     tmp->SetTopMargin(0.01);
@@ -148,11 +146,11 @@ void VariationmTAnalysis::MakePlots() {
     TLatex text;
     text.SetNDC();
     text.SetTextColor(1);
-    text.SetTextSize(gStyle->GetTextSize() * 0.85);
+    text.SetTextSize(gStyle->GetTextSize() * 1.2);
     text.DrawLatex(
-        0.32,
-        0.73,
-        TString::Format("%.2f < m_{T} < %.2f (GeV/#it{c}^2)", mTppBins[counter-1],
+        0.35,
+        0.85,
+        TString::Format("#splitline{m_{T} #in}{[%.2f, %.2f] (GeV/#it{c}^{2})}", mTppBins[counter-1],
                         mTppBins[counter]));
     if (counter == 1) {
       TPad* tmp2 = (TPad*) c1->cd(8);
