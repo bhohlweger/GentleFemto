@@ -144,23 +144,25 @@ void VariationmTAnalysis::MakePlots() {
                          xMaxPad[counter], yMaxPad[counter]);
     pad->SetTopMargin(0.);
     float LatexX = 0.; 
+    //left sided pads
     if (counter % 2 == 0) {
       LatexX = 0.35; 
-      if (counter!= 2) {
-        pad->SetRightMargin(0.);
-      } else {
-        pad->SetRightMargin(0.2);
-      }
+      pad->SetRightMargin(0.);
       pad->SetLeftMargin(0.2);
       if (counter < 5) {
         pad->SetBottomMargin(0.);
       } else {
         pad->SetBottomMargin(0.242);
       }
-    } else {
+    } else {//right sided pads
       LatexX = 0.25; 
-      pad->SetRightMargin(0.07);
-      pad->SetLeftMargin(0.);
+      if (counter!=1) {
+        pad->SetLeftMargin(0.);
+        pad->SetRightMargin(0.07);
+      } else {
+        pad->SetLeftMargin(0.1/0.6);
+        pad->SetRightMargin(0.035/0.6);
+      }
       if (counter < 6) {
         pad->SetBottomMargin(0.);
       } else {
