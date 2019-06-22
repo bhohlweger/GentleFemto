@@ -126,16 +126,27 @@ void VariationmTAnalysis::MakePlots() {
   std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
   std::vector<float> xMinPad = { 0., 0.5, 0., 0.5, 0., 0.5, 0., 0.5 };
   std::vector<float> xMaxPad = { 0.5, 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0 };
-  std::vector<float> yMinPad = { 0., 0., 0.25, 0.25, 0.5, 0.5, 0.75, 0.75 };
-  std::vector<float> yMaxPad = { 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1.0, 1.0 };
+  std::vector<float> yMinPad = { 0.75, 0.75, 0.5, 0.5, 0.25, 0.25, 0., 0. };
+  std::vector<float> yMaxPad = { 1.0, 1.0, 0.75, 0.75, 0.5, 0.5, 0.25, 0.25 };
   for (auto it : fSystematic) {
     c1->cd();
     TPad* pad = new TPad(Form("p%u", counter), Form("p%u", counter),
-                         xMinPad[counter-1], yMinPad[counter-1], xMaxPad[counter-1],
-                         yMaxPad[counter-1]);
-    pad->SetRightMargin(0.07);
-    pad->SetTopMargin(0.01);
-    pad->SetLeftMargin(0.2);
+                         xMinPad[counter - 1], yMinPad[counter - 1],
+                         xMaxPad[counter - 1], yMaxPad[counter - 1]);
+    pad->SetTopMargin(0.);
+    if (counter % 2 == 0 ) {
+      pad->SetRightMargin(0.07);
+      pad->SetLeftMargin(0.);
+      if (counter < 6) {
+        pad->SetBottomMargin(0.);
+      }
+    } else {
+      pad->SetRightMargin(0.);
+      pad->SetLeftMargin(0.2);
+      if (counter < 6) {
+        pad->SetBottomMargin(0.);
+      }
+    }
     pad->Draw();
     pad->cd();
     DreamData *ProtonProton = new DreamData(Form("ProtonProton%i", counter));
