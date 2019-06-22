@@ -115,10 +115,10 @@ void VariationmTAnalysis::SetVariation(const char* VarDir) {
 
 void VariationmTAnalysis::MakePlots() {
   DreamPlot::SetStyle();
-  gStyle->SetLabelSize(14, "xyz");
-  gStyle->SetTitleSize(14, "xyz");
-  gStyle->SetTitleOffset(2., "x");
-  gStyle->SetTitleOffset(3., "y");
+  gStyle->SetLabelSize(16, "xyz");
+  gStyle->SetTitleSize(16, "xyz");
+  gStyle->SetTitleOffset(3.5, "x");
+  gStyle->SetTitleOffset(5., "y");
   auto c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
 //  c1->Divide(4, 2);
   int counter = 1;

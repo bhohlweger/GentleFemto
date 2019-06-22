@@ -143,7 +143,6 @@ void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
       }
       fSystematics->SetLineWidth(2.0);
       fSysError = new TGraphErrors();
-
       for (int i = 0; i < nBinsX; i++) {
         fSysError->SetPoint(i, fCorrelationFunction->GetBinCenter(i + 1),
                             fCorrelationFunction->GetBinContent(i + 1));
@@ -309,6 +308,8 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   fSysError->SetLineColor(kWhite);
   if (!fMultiHisto)
     fSysError->GetYaxis()->SetTitleOffset(1.5);
+  fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
+  fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
   fSysError->Draw("Ap");
   fBaseLine->Draw("same");
   TString CFName = fCorrelationFunction->GetName();
@@ -317,8 +318,6 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   } else {
     fSysError->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
   }
-  fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
-  fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
   fLegend = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend, fYMaxLegend);
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
   fLegend->SetBorderSize(0);
