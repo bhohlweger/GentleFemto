@@ -181,10 +181,12 @@ void VariationmTAnalysis::MakePlots() {
         0.8,
         TString::Format("#splitline{m_{T} #in}{[%.2f, %.2f] (GeV/#it{c}^{2})}",
                         mTppBins[counter - 1], mTppBins[counter]));
-//    if (counter == 1) {
-//      TPad* tmp2 = (TPad*) c1->cd(8);
-//      ProtonProton->DrawLegendExternal(tmp2);
-//    }
+    if (counter == 1) {
+      TPad* tmp2 = new TPad(Form("p%u", 0), Form("p%u", 0),
+                            xMinPad[0], yMinPad[0],
+                            xMaxPad[0], yMaxPad[0]);
+      ProtonProton->DrawLegendExternal(tmp2);
+    }
     counter++;
   }
   out->cd();

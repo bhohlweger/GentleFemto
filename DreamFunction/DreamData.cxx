@@ -309,17 +309,17 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   fCorrelationFunction->GetYaxis()->SetRangeUser(fYMin, fYMax);
   fSysError->SetLineColor(kWhite);
   if (!fMultiHisto)
-    fSysError->GetYaxis()->SetTitleOffset(1.5);
-  fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
-  fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
-  fSysError->Draw("Ap");
-  fBaseLine->Draw("same");
+    fCorrelationFunction->GetYaxis()->SetTitleOffset(1.5);
+//  fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
+//  fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
   TString CFName = fCorrelationFunction->GetName();
   if (CFName.Contains("MeV")) {
-    fSysError->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+    fCorrelationFunction->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   } else {
-    fSysError->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
+    fCorrelationFunction->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
   }
+  fCorrelationFunction->Draw("Ap");
+  fBaseLine->Draw("same");
   fLegend = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend, fYMaxLegend);
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
   fLegend->SetBorderSize(0);
