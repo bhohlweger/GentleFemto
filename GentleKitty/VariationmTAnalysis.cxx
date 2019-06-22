@@ -121,12 +121,13 @@ void VariationmTAnalysis::MakePlots() {
   gStyle->SetTitleOffset(5., "y");
   TGraphErrors* AxisGraph = new TGraphErrors();
   AxisGraph->SetPoint(0,4,1.);
-  AxisGraph->SetPoint(1,204,1);
+  AxisGraph->SetPoint(1,208,1);
   AxisGraph->SetLineColor(kWhite);
 //  AxisGraph->GetYaxis()->SetTitleOffset(1.5);
   AxisGraph->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  AxisGraph->GetXaxis()->SetRangeUser(4,204);
+  AxisGraph->GetXaxis()->SetRangeUser(4,208);
   AxisGraph->GetYaxis()->SetRangeUser(0.725, 4.3);
+  AxisGraph->GetXaxis()->SetNdivisions(505);
   auto c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
 //  c1->Divide(4, 2);
   int counter = 1;
@@ -191,10 +192,12 @@ void VariationmTAnalysis::MakePlots() {
         0.8,
         TString::Format("#splitline{m_{T} #in}{[%.2f, %.2f] (GeV/#it{c}^{2})}",
                         mTppBins[counter - 1], mTppBins[counter]));
-//    if (counter == 1) {
-//      TPad* tmp2 = (TPad*) c1->cd(8);
-//      ProtonProton->DrawLegendExternal(tmp2);
-//    }
+    if (counter == 1) {
+      TPad* tmp2 = new TPad(Form("p%u", 0), Form("p%u", 0),
+                            xMinPad[0], yMinPad[0],
+                            xMaxPad[0], yMaxPad[0]);
+      ProtonProton->DrawLegendExternal(tmp2);
+    }
     counter++;
   }
   out->cd();
