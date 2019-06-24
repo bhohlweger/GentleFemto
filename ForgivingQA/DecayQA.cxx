@@ -79,7 +79,7 @@ void DecayQA::InvariantMassSigma0(float massCuts, const char* name, bool isSum) 
         fAntiDecayCuts, "fHistInvMassPtRaw");
     invMassPart->Add(invMassAntiPart);
   }
-  invMassPart->RebinX(10);
+  invMassPart->RebinX(5);
   FitInvariantMassSigma0(invMassPart, massCuts, name);
 }
 
