@@ -41,3 +41,6 @@ target_link_libraries(systematicsPL tidyCATS DreamFunctions ForgivingFnct)
 
 add_executable(ppmTVariations ${PROJECT_SOURCE_DIR}/GetmTVariations.C)
 target_link_libraries(ppmTVariations tidyCATS DreamFunctions ForgivingFnct)
+
+add_executable(pLmTVariations ${PROJECT_SOURCE_DIR}/GetmTVariationspL.C)
+target_link_libraries(pLmTVariations tidyCATS DreamFunctions ForgivingFnct)
