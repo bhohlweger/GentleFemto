@@ -41,7 +41,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   }
   //This is for the CATS objects, make sure it covers the full femto range
 
-  const unsigned NumMomBins = 105;
+  const unsigned NumMomBins = 60;
   const double kMin = StoreHist->GetXaxis()->GetXmin();
   const double kMax = kMin + StoreHist->GetXaxis()->GetBinWidth(1) * NumMomBins;  //(4 is the bin width)
 
