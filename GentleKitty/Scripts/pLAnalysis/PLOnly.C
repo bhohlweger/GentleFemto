@@ -359,6 +359,10 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     for (vFrac_pL = 0; vFrac_pL < 3; ++vFrac_pL) {
       for (int iBL = 0; iBL < 3; iBL++) {
         for (int BaselineSlope = 0; BaselineSlope < 3; ++BaselineSlope) {
+          if (BaselineSlope == 1) {
+            //no pol1 baseline.
+            continue;
+          }
           std::cout
               << "\r Processing progress: "
               << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
@@ -369,8 +373,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             std::cout << HistppName.Data() << " Missing" << std::endl;
             return;
           }
-//          CATSinput->AddSystematics("C2totalsysPP.root", OliHisto_pp);
-
           //!CHANGE PATH HERE
 
           const unsigned NumSourcePars = (TheSource == TidyCats::sLevy ? 2 : 1);
