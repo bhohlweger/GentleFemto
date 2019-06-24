@@ -148,4 +148,7 @@ target_link_libraries(POnlyExtractor tidyCATS -L${DREAM_LIB_PATH} DreamFunctions
 add_executable(mTAnalysis ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/mTExtractor.C)
 target_link_libraries(mTAnalysis tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(mTPLAnalysis ${PROJECT_SOURCE_DIR}/Scripts/pLAnalysis/mTExtractor.C)
+target_link_libraries(mTPLAnalysis tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_subdirectory(Test)

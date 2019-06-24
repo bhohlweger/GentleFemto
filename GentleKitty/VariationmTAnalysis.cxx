@@ -13,15 +13,21 @@
 #include "TPad.h"
 #include <iostream>
 
-VariationmTAnalysis::VariationmTAnalysis()
-    : fAnalysis(),
+VariationmTAnalysis::VariationmTAnalysis(int nModels, int nData, int nVars)
+    : fAnalysis(nModels),
+      fnModel(nModels),
+      fnData(nData),
+      fnVars(nVars),
       fSystematic(),
       fHistname(),
+      fFileName(),
       fmTAverage(),
-      fmTRadiusSyst(new TGraphErrors()),
-      fmTRadiusStat(new TGraphErrors()) {
-  // TODO Auto-generated constructor stub
-
+      fmTRadiusSyst(),
+      fmTRadiusStat() {
+  for (int iMod = 0; iMod < fnModel; ++iMod) {
+    fmTRadiusSyst.emplace_back(new TGraphErrors());
+    fmTRadiusStat.emplace_back(new TGraphErrors());
+  }
 }
 
 VariationmTAnalysis::~VariationmTAnalysis() {
@@ -86,9 +92,9 @@ void VariationmTAnalysis::SetSystematic(const char* DataDir) {
   return;
 }
 
-void VariationmTAnalysis::SetVariation(const char* VarDir) {
-  VariationAnalysis analysis = VariationAnalysis(fHistname, 26, 81);
-  TString filename = Form("%s/OutFileVarpp.root", VarDir);
+void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
+  VariationAnalysis analysis = VariationAnalysis(fHistname, fnData, fnVars);
+  TString filename = Form("%s/%s", VarDir,fFileName);
   analysis.ReadFitFile(filename.Data());
   analysis.EvalRadius();
   float radius = analysis.GetRadMean();
@@ -99,21 +105,21 @@ void VariationmTAnalysis::SetVariation(const char* VarDir) {
     Warning("SetVariation", "No Average mT histo set, exiting \n");
     return;
   }
-  const int iPoint = fmTRadiusSyst->GetN();
+  const int iPoint = fmTRadiusSyst[iModel]->GetN();
   double mT, dummy;
   fmTAverage->GetPoint(iPoint, dummy, mT);
-  fmTRadiusSyst->SetPoint(iPoint, mT, radius);
-  fmTRadiusStat->SetPoint(iPoint, mT, radius);
-  fmTRadiusSyst->SetPointError(iPoint, fmTAverage->GetErrorY(iPoint),
-                               radiusErrSyst);
-  fmTRadiusStat->SetPointError(iPoint, fmTAverage->GetErrorY(iPoint),
-                               radiusErrStat);
+  fmTRadiusSyst[iModel]->SetPoint(iPoint, mT, radius);
+  fmTRadiusStat[iModel]->SetPoint(iPoint, mT, radius);
+  fmTRadiusSyst[iModel]->SetPointError(iPoint, fmTAverage->GetErrorY(iPoint),
+                                       radiusErrSyst);
+  fmTRadiusStat[iModel]->SetPointError(iPoint, fmTAverage->GetErrorY(iPoint),
+                                       radiusErrStat);
 
-  fAnalysis.push_back(analysis);
+  fAnalysis[iModel].push_back(analysis);
   return;
 }
 
-void VariationmTAnalysis::MakePlots() {
+void VariationmTAnalysis::MakeCFPlotsPP() {
   DreamPlot::SetStyle();
   gStyle->SetLabelSize(16, "xyz");
   gStyle->SetTitleSize(16, "xyz");
@@ -159,8 +165,8 @@ void VariationmTAnalysis::MakePlots() {
     ProtonProton->SetDrawAxis(false);
     ProtonProton->SetRangePlotting(4, 208, 0.725, 4.3);
     ProtonProton->SetNDivisions(505);
-    ProtonProton->FemtoModelFitBands(fAnalysis[counter - 1].GetModel(), 2, 1, 3,
-                                     -3000, true);
+    ProtonProton->FemtoModelFitBands(fAnalysis[0][counter - 1].GetModel(), 2, 1,
+                                     3, -3000, true);
     ProtonProton->SetLegendCoordinates(0., 0.2, 1.0, 0.8, false);
     ProtonProton->DrawCorrelationPlot(pad, 0, kBlack, 1.8);
     TLatex text;
@@ -187,32 +193,35 @@ void VariationmTAnalysis::MakePlots() {
   out->cd();
   c1->Write();
   c1->SaveAs("mTPlots.pdf");
-
+  out->Close();
+}
+void VariationmTAnalysis::MakeRadPlotsPP() {
+  TFile* out = TFile::Open("tmp.root", "update");
   auto c4 = new TCanvas("c8", "c8");
   c4->cd();
-  fmTRadiusSyst->SetLineColor(kBlack);
-  fmTRadiusSyst->SetTitle("; < m_{T} >  (MeV/#it{c}^{2}); r_{Core} (fm)");
+  fmTRadiusSyst[0]->SetLineColor(kBlack);
+  fmTRadiusSyst[0]->SetTitle("; < m_{T} >  (MeV/#it{c}^{2}); r_{Core} (fm)");
 
-  fmTRadiusSyst->GetXaxis()->SetTitleSize(22);
-  fmTRadiusSyst->GetYaxis()->SetTitleSize(22);
-  fmTRadiusSyst->GetXaxis()->SetTitleOffset(1.5);
-  fmTRadiusSyst->GetYaxis()->SetTitleOffset(1.5);
+  fmTRadiusSyst[0]->GetXaxis()->SetTitleSize(22);
+  fmTRadiusSyst[0]->GetYaxis()->SetTitleSize(22);
+  fmTRadiusSyst[0]->GetXaxis()->SetTitleOffset(1.5);
+  fmTRadiusSyst[0]->GetYaxis()->SetTitleOffset(1.5);
 
-  fmTRadiusSyst->GetXaxis()->SetLabelSize(22);
-  fmTRadiusSyst->GetYaxis()->SetLabelSize(22);
-  fmTRadiusSyst->GetXaxis()->SetLabelOffset(.02);
-  fmTRadiusSyst->GetYaxis()->SetLabelOffset(.02);
+  fmTRadiusSyst[0]->GetXaxis()->SetLabelSize(22);
+  fmTRadiusSyst[0]->GetYaxis()->SetLabelSize(22);
+  fmTRadiusSyst[0]->GetXaxis()->SetLabelOffset(.02);
+  fmTRadiusSyst[0]->GetYaxis()->SetLabelOffset(.02);
 
-  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95, 2.7);
-  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.65, 1.2);
+  fmTRadiusSyst[0]->GetXaxis()->SetRangeUser(0.95, 2.7);
+  fmTRadiusSyst[0]->GetYaxis()->SetRangeUser(0.65, 1.2);
   //  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95, 2.7);
   //  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.95, 1.55);
 
-  fmTRadiusSyst->SetMarkerColorAlpha(kBlack, 0.);
-  fmTRadiusSyst->SetLineWidth(0);
-  fmTRadiusSyst->Draw("APZ");
-  fmTRadiusSyst->SetFillColorAlpha(kBlack, 0.4);
-  fmTRadiusSyst->Draw("2Z same");
+  fmTRadiusSyst[0]->SetMarkerColorAlpha(kBlack, 0.);
+  fmTRadiusSyst[0]->SetLineWidth(0);
+  fmTRadiusSyst[0]->Draw("APZ");
+  fmTRadiusSyst[0]->SetFillColorAlpha(kBlack, 0.4);
+  fmTRadiusSyst[0]->Draw("2Z same");
   TGraphErrors fakeGraph;
   fakeGraph.SetMarkerColor(kBlack);
   fakeGraph.SetLineWidth(3);
@@ -222,18 +231,186 @@ void VariationmTAnalysis::MakePlots() {
   leg->SetFillStyle(4000);
   leg->AddEntry(&fakeGraph, "p#minus p (AV18)", "lef");
 
-  fmTRadiusStat->SetMarkerColor(kBlack);
-  fmTRadiusStat->SetLineWidth(3);
-  fmTRadiusStat->Draw("pez same");
+  fmTRadiusStat[0]->SetMarkerColor(kBlack);
+  fmTRadiusStat[0]->SetLineWidth(3);
+  fmTRadiusStat[0]->Draw("pez same");
   leg->Draw("same");
   c4->SaveAs("mTvsRad.pdf");
   c4->Write();
-  fmTRadiusSyst->SetName("mTRadiusSyst");
-  fmTRadiusSyst->Write();
-  fmTRadiusStat->SetName("mTRadiusStat");
-  fmTRadiusStat->Write();
+  fmTRadiusSyst[0]->SetName("mTRadiusSyst");
+  fmTRadiusSyst[0]->Write();
+  fmTRadiusStat[0]->SetName("mTRadiusStat");
+  fmTRadiusStat[0]->Write();
 
   out->Write();
+  out->Close();
+}
+
+void VariationmTAnalysis::MakeRadPlotsPL() {
+  TFile* out = TFile::Open("tmp.root", "update");
+  auto c4 = new TCanvas("c8", "c8");
+  c4->cd();
+  TLegend* leg = new TLegend(0.6, 0.6, 0.9, 0.9);
+  leg->SetFillStyle(4000);
+  TGraphErrors fakeGraphUsmani;
+  fakeGraphUsmani.SetLineWidth(3);
+  fakeGraphUsmani.SetDrawOption("z");
+  TGraphErrors fakeGraphNLO;
+  fakeGraphNLO.SetLineWidth(3);
+  fakeGraphNLO.SetDrawOption("z");
+  TGraphErrors fakeGraphLO;
+  fakeGraphLO.SetLineWidth(3);
+  fakeGraphLO.SetDrawOption("z");
+
+  for (int iMod = 0; iMod < fnModel; ++iMod) {
+
+    fmTRadiusSyst[iMod]->SetTitle(
+        "; < m_{T} >  (MeV/#it{c}^{2}); r_{Core} (fm)");
+    fmTRadiusSyst[iMod]->GetXaxis()->SetTitleSize(22);
+    fmTRadiusSyst[iMod]->GetYaxis()->SetTitleSize(22);
+    fmTRadiusSyst[iMod]->GetXaxis()->SetTitleOffset(1.5);
+    fmTRadiusSyst[iMod]->GetYaxis()->SetTitleOffset(1.5);
+    fmTRadiusSyst[iMod]->GetXaxis()->SetLabelSize(22);
+    fmTRadiusSyst[iMod]->GetYaxis()->SetLabelSize(22);
+    fmTRadiusSyst[iMod]->GetXaxis()->SetLabelOffset(.02);
+    fmTRadiusSyst[iMod]->GetYaxis()->SetLabelOffset(.02);
+    fmTRadiusSyst[iMod]->GetXaxis()->SetRangeUser(0.95, 2.7);
+    fmTRadiusSyst[iMod]->GetYaxis()->SetRangeUser(0.65, 1.2);
+    //  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95, 2.7);
+    //  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.95, 1.55);
+
+    fmTRadiusSyst[iMod]->SetLineWidth(0);
+    if (iMod == 0) {
+      fmTRadiusSyst[iMod]->SetLineColor(kCyan + 2);
+
+      fmTRadiusSyst[iMod]->SetMarkerColorAlpha(kCyan + 2, 0.);
+      fmTRadiusSyst[iMod]->Draw("APZ");
+
+      fmTRadiusSyst[iMod]->SetFillColorAlpha(kCyan + 2, 0.4);
+      fmTRadiusSyst[iMod]->Draw("2Z same");
+
+      fakeGraphUsmani.SetMarkerColor(kCyan + 2);
+      fakeGraphUsmani.SetFillColorAlpha(kCyan + 2, 0.4);
+      fmTRadiusStat[iMod]->SetMarkerColor(kCyan + 2);
+      leg->AddEntry(&fakeGraphUsmani, "p#minus #Lambda (Usmani)", "lef");
+      fmTRadiusStat[iMod]->SetLineWidth(3);
+    } else if (iMod == 1) {
+      fmTRadiusSyst[iMod]->SetLineColor(kRed + 1);
+
+      fmTRadiusSyst[iMod]->SetMarkerColorAlpha(kRed + 1, 0.);
+      fmTRadiusSyst[iMod]->Draw("PZSame");
+
+      fmTRadiusSyst[iMod]->SetFillColorAlpha(kRed + 1, 0.4);
+      fmTRadiusSyst[iMod]->Draw("2Z same");
+
+      fakeGraphNLO.SetMarkerColor(kRed + 1);
+      fakeGraphNLO.SetFillColorAlpha(kRed + 1, 0.4);
+      fmTRadiusStat[iMod]->SetMarkerColor(kRed + 1);
+      leg->AddEntry(&fakeGraphNLO, "p#minus #Lambda (#chi EFT NLO)", "lef");
+      fmTRadiusStat[iMod]->SetLineWidth(3);
+    } else {
+      fmTRadiusSyst[iMod]->SetLineColor(kGreen + 3);
+
+      fmTRadiusSyst[iMod]->SetMarkerColorAlpha(kGreen + 3, 0.);
+      fmTRadiusSyst[iMod]->Draw("PZSame");
+
+      fmTRadiusSyst[iMod]->SetFillColorAlpha(kGreen + 3, 0.4);
+      fmTRadiusSyst[iMod]->Draw("2Z same");
+
+      fakeGraphLO.SetMarkerColor(kGreen + 3);
+      fakeGraphLO.SetFillColorAlpha(kGreen + 3, 0.4);
+      fmTRadiusStat[iMod]->SetMarkerColor(kGreen + 3);
+      leg->AddEntry(&fakeGraphLO, "p#minus #Lambda (#chi EFT LO)", "lef");
+      fmTRadiusStat[iMod]->SetLineWidth(3);
+    }
+    fmTRadiusStat[iMod]->Draw("pez same");
+    fmTRadiusSyst[iMod]->SetName(TString::Format("mTRadiusSystMod_%u", iMod));
+    fmTRadiusSyst[iMod]->Write();
+    fmTRadiusStat[iMod]->SetName(TString::Format("mTRadiusStatMod_%u", iMod));
+    fmTRadiusStat[iMod]->Write();
+  }
+  leg->Draw("same");
+  c4->SaveAs("mTvsRad.pdf");
+  c4->Write();
+  out->Write();
+  out->Close();
+}
+
+void VariationmTAnalysis::MakeCFPlotsPL() {
+  DreamPlot::SetStyle();
+//  gStyle->SetLabelSize(16, "xyz");
+//  gStyle->SetTitleSize(16, "xyz");
+//  gStyle->SetTitleOffset(3.5, "x");
+//  gStyle->SetTitleOffset(3.5, "y");
+  TFile* out = TFile::Open("tmp.root", "recreate");
+  std::vector<float> mTppBins = { 1.08, 1.26, 1.32, 1.44, 1.65, 1.9, 4.5 };
+
+  int counter = 1;
+  for (auto it : fSystematic) {
+    int iModCounter = 0;
+    for (auto iModel : fAnalysis) {
+      auto c1 = new TCanvas(TString::Format("c%u_%u", counter, iModCounter),
+                            TString::Format("c%u_%u", counter, iModCounter), 0, 0, 650, 650);
+      c1->cd();
+      TPad *p1 = new TPad("p1", "p1", 0., 0., 1., 1.);
+      p1->SetRightMargin(0.025);
+      p1->SetTopMargin(0.025);
+      p1->SetBottomMargin(0.12);
+      p1->Draw();
+      p1->cd();
+      DreamData *ProtonLambda = new DreamData(Form("ProtonLambda%u_%u", counter, iModCounter));
+      ProtonLambda->SetMultiHisto(false);
+      ProtonLambda->SetUnitConversionData(1);
+      ProtonLambda->SetUnitConversionCATS(1);
+      ProtonLambda->SetCorrelationFunction(it.GetDefault());
+      ProtonLambda->SetSystematics(it.GetSystematicError(), 2);
+      ProtonLambda->SetLegendName("p-#Lambda #oplus #bar{p}-#bar{#Lambda}",
+                                  "fpe");
+      if (iModCounter == 0) {
+        ProtonLambda->SetLegendName("Usmani", "fl");
+        ProtonLambda->FemtoModelFitBands(fAnalysis[iModCounter][counter - 1].GetModel(), 11,
+                                         7, 0, 3244, true);
+      } else if (iModCounter == 1) {
+        ProtonLambda->SetLegendName("#chi_{EFT} NLO", "fl");
+        ProtonLambda->FemtoModelFitBands(fAnalysis[iModCounter][counter - 1].GetModel(), 1,
+                                         7, 0, 3244, true);
+      } else if (iModCounter == 2) {
+        ProtonLambda->SetLegendName("#chi_{EFT} LO", "fl");
+        ProtonLambda->FemtoModelFitBands(fAnalysis[iModCounter][counter - 1].GetModel(), 3,
+                                         7, 0, 3244, true);
+      }
+      ProtonLambda->SetDrawAxis(true);
+      ProtonLambda->SetRangePlotting(4, 208, 0.87, 2.4);
+      ProtonLambda->SetNDivisions(505);
+      ProtonLambda->SetLegendCoordinates(
+          0.4, 0.6 - 0.09 * ProtonLambda->GetNumberOfModels(), 0.7, 0.665);
+      ProtonLambda->DrawCorrelationPlot(p1);
+
+      p1->cd();
+      TLatex BeamText;
+      TLatex text;
+      BeamText.SetTextSize(gStyle->GetTextSize() * .85);
+      BeamText.SetNDC(kTRUE);
+      BeamText.DrawLatex(0.42, 0.91, Form("#bf{ALICE}"));
+      BeamText.DrawLatex(0.42, 0.85,
+                         Form("%s #sqrt{#it{s}} = %i TeV", "pp", (int) 13));
+      BeamText.DrawLatex(0.42, 0.79, "High Mult. (0-0.072% INEL)");
+      text.SetNDC();
+      text.SetTextColor(1);
+      text.SetTextSize(gStyle->GetTextSize() * 0.85);
+      text.DrawLatex(0.42, 0.73, "Gaussian + Resonance source");
+      text.DrawLatex(
+          0.42,
+          0.67,
+          TString::Format("m_{T} #in [%.2f, %.2f] (GeV/#it{c}^{2})",
+                          mTppBins[counter - 1], mTppBins[counter]));
+      out->cd();
+      c1->Write();
+      c1->SaveAs(Form("mTPlots%u_%u.pdf", counter,iModCounter));
+      iModCounter++;
+    }
+    counter++;
+  }
   out->Close();
 }
 

@@ -14,25 +14,34 @@
 
 class VariationmTAnalysis {
  public:
-  VariationmTAnalysis();
+  VariationmTAnalysis(int nModels, int nData, int nVars);
   virtual ~VariationmTAnalysis();
   void SetSystematic(const char* DataDir);
-  void SetVariation(const char* VarDir);
+  void SetVariation(const char* VarDir, int iModel);
   void SetHistName(const char* Histname) {
     fHistname = Histname;
   }
-  void MakePlots();
+  void SetFileName(const char* Filename) {
+    fFileName= Filename;
+  }
+  void MakeCFPlotsPP();
+  void MakeCFPlotsPL();
+  void MakeRadPlotsPP();
+  void MakeRadPlotsPL();
   void SetmTAverage(TGraphErrors* mTAvg) {
     fmTAverage = mTAvg;
   }
   TPad* GetFormattedPad(int counter);
  private:
-  std::vector<VariationAnalysis> fAnalysis;
+  std::vector<std::vector<VariationAnalysis>> fAnalysis;
+  const int fnModel;
+  const int fnData;
+  const int fnVars;
   std::vector<DreamSystematics> fSystematic;
   const char* fHistname;
+  const char* fFileName;
   TGraphErrors* fmTAverage;
-  TGraphErrors* fmTRadiusSyst;
-  TGraphErrors* fmTRadiusStat;
+  std::vector<TGraphErrors*> fmTRadiusSyst;
+  std::vector<TGraphErrors*> fmTRadiusStat;
 };
-
 #endif /* GENTLEKITTY_VARIATIONMTANALYSIS_H_ */
