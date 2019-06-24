@@ -26,6 +26,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                      TString OutputDir) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
+//  What potential to use: 0 = Scattering para; 1 = Usmani; 2 = NLO; 3 = LO;
   TString HistppName = HistoName.Data();
   TFile* inFile = TFile::Open(TString::Format("%s", InputFile.Data()), "READ");
   if (!inFile) {
@@ -246,8 +247,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     std::cout << "=================== \n";
     std::cout << "vFrac_pL: " << vFrac_pL << std::endl;
     std::cout << " lam_pL: " << lam_pL[vFrac_pL] << " lam_pL_fake: "
-              << lam_pL_fake[vFrac_pL] << "lam_pL_pS0" << lam_pL_pS0[vFrac_pL]
-              << "lam_pL_pXm: " << lam_pL_pXm[vFrac_pL] << std::endl;
+              << lam_pL_fake[vFrac_pL] << " lam_pL_pS0: " << lam_pL_pS0[vFrac_pL]
+              << " lam_pL_pXm: " << lam_pL_pXm[vFrac_pL] << std::endl;
     std::cout << "=================== \n";
   }
   std::cout << "lam_pXim: " << lam_pXim << " lam_pXim_pXim1530: "
@@ -476,7 +477,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                               FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
                               BaseLineRegion[iBL][1]);
 
-            fitter->AddSameSource("pLambda", "pLambda", 1);
+//            fitter->AddSameSource("pLambda", "pLambda", 1);
             fitter->AddSameSource("pSigma0", "pLambda", 1);
             fitter->AddSameSource("pXim", "pLambda", 1);
             fitter->AddSameSource("pXim1530", "pLambda", 1);
