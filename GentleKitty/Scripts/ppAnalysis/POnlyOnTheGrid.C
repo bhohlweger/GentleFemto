@@ -284,7 +284,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                                   "p_c:p_cErr:"
                                   "chisqPerndf");
 
-  Float_t ntBuffer[20];
+  Float_t ntBuffer[22];
 
   int uIter = 1;
   float total = TheSource == TidyCats::sLevy ? 54 : 81;
@@ -362,7 +362,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 
           //!CHANGE PATH HERE
 
-          const unsigned NumSourcePars = 1;
+          const unsigned NumSourcePars = (TheSource == TidyCats::sLevy ? 2 : 1);
 
           //this way you define a correlation function using a CATS object.
           //needed inputs: num source/pot pars, CATS obj
