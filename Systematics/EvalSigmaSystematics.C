@@ -10,11 +10,13 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
 
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInputSigma0();
-  CATSinput->ReadCorrelationFile(InputDir.Data(), trigger.Data(), "0");
+  CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(), "0");
   CATSinput->CountPairs(InputDir.Data(), trigger.Data(), "0");
-  CATSinput->ObtainCFs(10, 250, 400, rebin, false);
+  CATSinput->ObtainCFs(10, 250, 400, rebin, true);
   TString dataHistSigmaName = "hCk_ReweightedpSigma0MeV_0";
+  TString dataHistSBName = "hCk_ReweightedpSigmaSBUpMeV_0";
   auto dataHistSigma = CATSinput->GetCF("pSigma0", dataHistSigmaName.Data());
+  auto dataHistSB = CATSinput->GetCF("pSigmaSBUp", dataHistSBName.Data());
   const unsigned int pairCountsDefault = CATSinput->GetFemtoPairs(0, 0.2,
                                                                   "pSigma0");
   const int nProtonDefault = CATSinput->GetNProtonTotal();
@@ -26,6 +28,12 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
   protonsigma.SetUpperFitRange(500);
   protonsigma.SetBarlowUpperRange(500);
   protonsigma.SetEstimator(DreamSystematics::Uniform);
+  DreamSystematics protonSB(DreamSystematics::pSigma0);
+  protonSB.SetDefaultHist(dataHistSB);
+  protonSB.SetUpperFitRange(500);
+  protonSB.SetBarlowUpperRange(500);
+  protonSB.SetEstimator(DreamSystematics::Uniform);
+
   for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
     auto appendixVar = TString::Format("%i", i);
@@ -33,7 +41,7 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
                                             appendixVar.Data());
     CATSinputVar->CountPairs(InputDir.Data(), trigger.Data(),
                              appendixVar.Data());
-    CATSinputVar->ObtainCFs(10, 250, 400, rebin, false);
+    CATSinputVar->ObtainCFs(10, 250, 400, rebin, true);
     protonsigma.SetVarHist(
         CATSinputVar->GetCF("pSigma0", dataHistSigmaName.Data()));
     protonsigma.SetPair(pairCountsDefault,
@@ -43,6 +51,9 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
                              CATSinputVar->GetNSigma0());
     protonsigma.SetPurity(0, puritySigmaDefault, 0,
                           CATSinputVar->GetSigma0Purity());
+
+    protonSB.SetVarHist(
+        CATSinputVar->GetCF("pSigmaSBUp", dataHistSBName.Data()));
     delete CATSinputVar;
   }
   protonsigma.EvalSystematics();
@@ -50,6 +61,10 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
   protonsigma.EvalDifferenceInParticles();
   protonsigma.EvalDifferenceInPurity();
   protonsigma.WriteOutput();
+
+  protonSB.EvalSystematics();
+  protonSB.WriteOutput("Sidebands");
+
 }
 
 int main(int argc, char* argv[]) {
