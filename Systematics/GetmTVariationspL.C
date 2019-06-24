@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
                                        DefReweightedMeV);
     mTpLDists->SetKayTeeBins(mTppBins);
     mTpLDists->SetNormalization(0.24, 0.34);
-    mTpLDists->SetRebin( { 2 });
+    mTpLDists->SetRebin( { 3 });
     mTpLDists->FixShift( { true, true, true, true, true, true, true }, { 0., 0.,
                             0., 0., 0., 0., 0. });
     mTpLDists->ObtainTheCorrelationFunction(
