@@ -325,10 +325,13 @@ void DreamSystematics::ComputeUncertainty() {
   fHistSystErrRel->Reset("ICMS");
   const int nBins = fHistDefault->GetXaxis()->FindBin(fSystematicFitRangeUp);
   for (int ikstar = 1; ikstar <= nBins; ++ikstar) {
-    const int kstar = fHistDefault->GetBinCenter(ikstar);
+    const float kstar = fHistDefault->GetBinCenter(ikstar);
+    const float binwidth = fHistDefault->GetBinWidth(ikstar);
 
-    fCutTuple->Draw(Form("cf >> h%i%i", kstar,uniqueID), Form("kstar == %i", kstar));
-    TH1D* hist = (TH1D*) gROOT->FindObject(Form("h%i%i", kstar,uniqueID));
+    fCutTuple->Draw(
+        Form("cf >> h%i%i", int(kstar), uniqueID),
+        Form("std::abs(kstar - %.3f) < %.3f", kstar, 0.01 * binwidth));
+    TH1D *hist = (TH1D*) gROOT->FindObject(Form("h%i%i", int(kstar), uniqueID));
 
     double sysErr;
     switch (fErrorEstimator) {
