@@ -661,15 +661,11 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
   AB_pSigma0->SetThetaDependentSource(false);
   AB_pSigma0->SetExcludeFailedBins(false);
   DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+  TString HomeDir = gSystem->GetHomeDirectory().c_str();
   switch (pot) {
     case TidyCats::pSigma0Haidenbauer:
-#ifdef __APPLE__
       ExternalWF = Init_pSigma0_Haidenbauer(
-          "/Users/amathis/CERNHome/Sigma0/HaidenbauerWF/", AB_pSigma0);
-#else
-      ExternalWF = Init_pSigma0_Haidenbauer(
-          "/home/amathis/CERNhome/Sigma0/HaidenbauerWF/", AB_pSigma0);
-#endif
+          TString::Format("%s/CERNHome/Sigma0/HaidenbauerWF/", HomeDir.Data()), AB_pSigma0);
       for (unsigned uCh = 0; uCh < AB_pSigma0->GetNumChannels(); uCh++) {
         AB_pSigma0->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                             ExternalWF[1][uCh][0]);
@@ -677,13 +673,8 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       CleanUpWfHisto(AB_pSigma0->GetNumChannels(), ExternalWF);
       break;
     case TidyCats::pSigma0ESC16:
-#ifdef __APPLE__
-      ExternalWF = Init_pS0_ESC16(
-          "/Users/amathis/CERNHome/Sigma0/ESC16/", AB_pSigma0);
-#else
-      ExternalWF = Init_pS0_ESC16("/home/amathis/CERNhome/Sigma0/ESC16/",
+      ExternalWF = Init_pS0_ESC16(TString::Format("%s/CERNHome/Sigma0/ESC16/", HomeDir.Data()),
                                   AB_pSigma0);
-#endif
       AB_pSigma0->SetExternalWaveFunction(0, 0, ExternalWF[0][0][0],
                                           ExternalWF[1][0][0]);
       AB_pSigma0->SetExternalWaveFunction(1, 0, ExternalWF[0][1][0],
