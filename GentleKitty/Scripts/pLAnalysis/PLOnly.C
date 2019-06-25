@@ -331,15 +331,15 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     std::cout << std::endl;
     CollOut->Add(SourceDist);
   }
-//  CATS AB_pXim;
-//  tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
-//                             TidyCats::pHALQCD, 12);
-//  AB_pXim.KillTheCat();
-//
-//  CATS AB_pXim1530;
-//  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
-//                                 FeeddownSource);
-//  AB_pXim1530.KillTheCat();
+  CATS AB_pXim;
+  tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
+                             TidyCats::pHALQCD, 12);
+  AB_pXim.KillTheCat();
+
+  CATS AB_pXim1530;
+  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
+                                 FeeddownSource);
+  AB_pXim1530.KillTheCat();
 
   CATS AB_pL;
   if (vMod_pL == 1) {
@@ -383,17 +383,17 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
           //this way you define a correlation function using Lednicky.
           //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
-//          DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
-//                                          Lednicky_gauss_Sigma0);
-//          Ck_pSigma0->SetSourcePar(0, 1.12);
-//          DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
-//          Ck_pXim->SetSourcePar(0, 0.92);
-//          DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
-//          Ck_pXim1530->SetSourcePar(0, 0.92);
-//          Ck_pL->Update();
-//          Ck_pSigma0->Update();
-//          Ck_pXim->Update();
-//          Ck_pXim1530->Update();
+          DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
+                                          Lednicky_gauss_Sigma0);
+          Ck_pSigma0->SetSourcePar(0, 1.29);
+          DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
+          Ck_pXim->SetSourcePar(0, 0.92);
+          DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
+          Ck_pXim1530->SetSourcePar(0, 0.92);
+          Ck_pL->Update();
+          Ck_pSigma0->Update();
+          Ck_pXim->Update();
+          Ck_pXim1530->Update();
           if (!CATSinput->GetSigmaFile(1)) {
             std::cout << "No Sigma file 1 \n";
             return;
@@ -407,26 +407,27 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             return;
           }
           DLM_CkDecomposition CkDec_pL("pLambda",
-                                       2,*Ck_pL, CATSinput->GetSigmaFile(1));
-//          DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0,
-//          NULL);
-//          DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
-//                                         CATSinput->GetSigmaFile(3));
-//          DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530,
-//          NULL);
-//          if (!CATSinput->GetResFile(1)) {
-//            std::cout << "No Calib 1 \n";
-//            return;
-//          }
-//          if (!CATSinput->GetResFile(2)) {
-//            std::cout << "No Calib 2 \n";
-//            return;
-//          }
+                                       TheSource == TidyCats::sLevy ? 3 : 4,
+                                       *Ck_pL, CATSinput->GetSigmaFile(1));
+          DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0,
+          NULL);
+          DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
+                                         CATSinput->GetSigmaFile(3));
+          DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530,
+          NULL);
+          if (!CATSinput->GetResFile(1)) {
+            std::cout << "No Calib 1 \n";
+            return;
+          }
+          if (!CATSinput->GetResFile(2)) {
+            std::cout << "No Calib 2 \n";
+            return;
+          }
 //
           if (TheSource == TidyCats::sLevy) {
-//            CkDec_pL.AddContribution(0, lam_pL_pXm.at(vFrac_pL),
-//                                     DLM_CkDecomposition::cFeedDown,
-//                                     &CkDec_pXim, CATSinput->GetResFile(2));
+            CkDec_pL.AddContribution(0, lam_pL_pXm.at(vFrac_pL),
+                                     DLM_CkDecomposition::cFeedDown,
+                                     &CkDec_pXim, CATSinput->GetResFile(2));
             CkDec_pL.AddContribution(
                 1,
                 1. - lam_pL.at(vFrac_pL) - lam_pL_pXm.at(vFrac_pL)
@@ -435,38 +436,33 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             CkDec_pL.AddContribution(2, lam_pL_fake.at(vFrac_pL),
                                      DLM_CkDecomposition::cFake);  //0.03
           } else {
-//            CkDec_pL.AddContribution(0, lam_pL_pS0.at(vFrac_pL),
-//                                     DLM_CkDecomposition::cFeedDown,
-//                                     &CkDec_pSigma0, CATSinput->GetResFile(1));
-//            CkDec_pL.AddContribution(1, lam_pL_pXm.at(vFrac_pL),
-//                                     DLM_CkDecomposition::cFeedDown,
-//                                     &CkDec_pXim, CATSinput->GetResFile(2));
-//            CkDec_pL.AddContribution(
-//                2,
-//                1. - lam_pL.at(vFrac_pL) - lam_pL_pS0.at(vFrac_pL)
-//                    - lam_pL_pXm.at(vFrac_pL) - lam_pL_fake.at(vFrac_pL),
-//                DLM_CkDecomposition::cFeedDown);
-//            CkDec_pL.AddContribution(3, lam_pL_fake.at(vFrac_pL),
-//                                     DLM_CkDecomposition::cFake);  //0.03
+            CkDec_pL.AddContribution(0, lam_pL_pS0.at(vFrac_pL),
+                                     DLM_CkDecomposition::cFeedDown,
+                                     &CkDec_pSigma0, CATSinput->GetResFile(1));
+            CkDec_pL.AddContribution(1, lam_pL_pXm.at(vFrac_pL),
+                                     DLM_CkDecomposition::cFeedDown,
+                                     &CkDec_pXim, CATSinput->GetResFile(2));
             CkDec_pL.AddContribution(
-                0, 1. - lam_pL.at(vFrac_pL) - lam_pL_fake.at(vFrac_pL),
+                2,
+                1. - lam_pL.at(vFrac_pL) - lam_pL_pS0.at(vFrac_pL)
+                    - lam_pL_pXm.at(vFrac_pL) - lam_pL_fake.at(vFrac_pL),
                 DLM_CkDecomposition::cFeedDown);
-            CkDec_pL.AddContribution(1, lam_pL_fake.at(vFrac_pL),
+            CkDec_pL.AddContribution(3, lam_pL_fake.at(vFrac_pL),
                                      DLM_CkDecomposition::cFake);  //0.03
           }
-//
-//          if (!CATSinput->GetResFile(3)) {
-//            std::cout << "No Calib 3 \n";
-//            return;
-//          }
-//          CkDec_pXim.AddContribution(0, lam_pXim_pXim1530,
-//                                     DLM_CkDecomposition::cFeedDown,
-//                                     &CkDec_pXim1530, CATSinput->GetResFile(3));  //from Xi-(1530)
-//          CkDec_pXim.AddContribution(
-//              1, 1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
-//              DLM_CkDecomposition::cFeedDown);  //other feed-down (flat)
-//          CkDec_pXim.AddContribution(2, lam_pXim_fake,
-//                                     DLM_CkDecomposition::cFake);
+
+          if (!CATSinput->GetResFile(3)) {
+            std::cout << "No Calib 3 \n";
+            return;
+          }
+          CkDec_pXim.AddContribution(0, lam_pXim_pXim1530,
+                                     DLM_CkDecomposition::cFeedDown,
+                                     &CkDec_pXim1530, CATSinput->GetResFile(3));  //from Xi-(1530)
+          CkDec_pXim.AddContribution(
+              1, 1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
+              DLM_CkDecomposition::cFeedDown);  //other feed-down (flat)
+          CkDec_pXim.AddContribution(2, lam_pXim_fake,
+                                     DLM_CkDecomposition::cFake);
 
           DLM_Fitter1* fitter;
           if (TheSource == TidyCats::sLevy) {
@@ -474,8 +470,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pL, kMin,
                               FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
                               BaseLineRegion[iBL][1]);
-            fitter->AddSameSource("pXim", "pLambda", 2);
-            fitter->AddSameSource("pXim1530", "pLambda", 2);
+//            fitter->AddSameSource("pXim", "pLambda", 2);
+//            fitter->AddSameSource("pXim1530", "pLambda", 2);
 
             fitter->SetParameter("pLambda", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
             fitter->SetParameter("pLambda", DLM_Fitter1::p_sor1, 1.7, 1., 2.);
