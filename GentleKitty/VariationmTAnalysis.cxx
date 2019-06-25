@@ -94,7 +94,7 @@ void VariationmTAnalysis::SetSystematic(const char* DataDir) {
 
 void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
   VariationAnalysis analysis = VariationAnalysis(fHistname, fnData, fnVars);
-  TString filename = Form("%s/%s", VarDir,fFileName);
+  TString filename = Form("%s/%s", VarDir, fFileName);
   analysis.ReadFitFile(filename.Data());
   analysis.EvalRadius();
   float radius = analysis.GetRadMean();
@@ -106,6 +106,7 @@ void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
     return;
   }
   const int iPoint = fmTRadiusSyst[iModel]->GetN();
+
   double mT, dummy;
   fmTAverage->GetPoint(iPoint, dummy, mT);
   fmTRadiusSyst[iModel]->SetPoint(iPoint, mT, radius);
@@ -248,8 +249,8 @@ void VariationmTAnalysis::MakeRadPlotsPP() {
 
 void VariationmTAnalysis::MakeRadPlotsPL(const char* ppFilePath) {
   TFile* ppFile = TFile::Open(ppFilePath, "read");
-  TGraphErrors* mTppSys = (TGraphErrors*)ppFile->Get("mTRadiusSyst");
-  TGraphErrors* mTppStat = (TGraphErrors*)ppFile->Get("mTRadiusStat");
+  TGraphErrors* mTppSys = (TGraphErrors*) ppFile->Get("mTRadiusSyst");
+  TGraphErrors* mTppStat = (TGraphErrors*) ppFile->Get("mTRadiusStat");
   TFile* out = TFile::Open("tmp.root", "update");
   out->cd();
   auto c4 = new TCanvas("c8", "c8");
@@ -276,7 +277,7 @@ void VariationmTAnalysis::MakeRadPlotsPL(const char* ppFilePath) {
   mTppSys->GetXaxis()->SetLabelOffset(.02);
   mTppSys->GetYaxis()->SetLabelOffset(.02);
   mTppSys->GetXaxis()->SetRangeUser(0.95, 2.7);
-  mTppSys->GetYaxis()->SetRangeUser(0.55, 1.35);
+  mTppSys->GetYaxis()->SetRangeUser(0.3, 1.35);
 
   mTppSys->SetMarkerColorAlpha(kBlack, 0.);
   mTppSys->SetLineWidth(0);
@@ -372,7 +373,8 @@ void VariationmTAnalysis::MakeCFPlotsPL() {
     int iModCounter = 0;
     for (auto iModel : fAnalysis) {
       auto c1 = new TCanvas(TString::Format("c%u_%u", counter, iModCounter),
-                            TString::Format("c%u_%u", counter, iModCounter), 0, 0, 650, 650);
+                            TString::Format("c%u_%u", counter, iModCounter), 0,
+                            0, 650, 650);
       c1->cd();
       TPad *p1 = new TPad("p1", "p1", 0., 0., 1., 1.);
       p1->SetRightMargin(0.025);
@@ -380,7 +382,8 @@ void VariationmTAnalysis::MakeCFPlotsPL() {
       p1->SetBottomMargin(0.12);
       p1->Draw();
       p1->cd();
-      DreamData *ProtonLambda = new DreamData(Form("ProtonLambda%u_%u", counter, iModCounter));
+      DreamData *ProtonLambda = new DreamData(
+          Form("ProtonLambda%u_%u", counter, iModCounter));
       ProtonLambda->SetMultiHisto(false);
       ProtonLambda->SetUnitConversionData(1);
       ProtonLambda->SetUnitConversionCATS(1);
@@ -390,16 +393,19 @@ void VariationmTAnalysis::MakeCFPlotsPL() {
                                   "fpe");
       if (iModCounter == 0) {
         ProtonLambda->SetLegendName("Usmani", "fl");
-        ProtonLambda->FemtoModelFitBands(fAnalysis[iModCounter][counter - 1].GetModel(), 11,
-                                         7, 0, 3244, true);
+        ProtonLambda->FemtoModelFitBands(
+            fAnalysis[iModCounter][counter - 1].GetModel(), 11, 7, 0, 3244,
+            true);
       } else if (iModCounter == 1) {
         ProtonLambda->SetLegendName("#chi_{EFT} NLO", "fl");
-        ProtonLambda->FemtoModelFitBands(fAnalysis[iModCounter][counter - 1].GetModel(), 1,
-                                         7, 0, 3244, true);
+        ProtonLambda->FemtoModelFitBands(
+            fAnalysis[iModCounter][counter - 1].GetModel(), 1, 7, 0, 3244,
+            true);
       } else if (iModCounter == 2) {
         ProtonLambda->SetLegendName("#chi_{EFT} LO", "fl");
-        ProtonLambda->FemtoModelFitBands(fAnalysis[iModCounter][counter - 1].GetModel(), 3,
-                                         7, 0, 3244, true);
+        ProtonLambda->FemtoModelFitBands(
+            fAnalysis[iModCounter][counter - 1].GetModel(), 3, 7, 0, 3244,
+            true);
       }
       ProtonLambda->SetDrawAxis(true);
       ProtonLambda->SetRangePlotting(4, 208, 0.87, 2.4);
@@ -428,7 +434,7 @@ void VariationmTAnalysis::MakeCFPlotsPL() {
                           mTppBins[counter - 1], mTppBins[counter]));
       out->cd();
       c1->Write();
-      c1->SaveAs(Form("mTPlots%u_%u.pdf", counter,iModCounter));
+      c1->SaveAs(Form("mTPlots%u_%u.pdf", counter, iModCounter));
       iModCounter++;
     }
     counter++;
