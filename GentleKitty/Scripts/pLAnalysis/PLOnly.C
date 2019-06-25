@@ -384,9 +384,11 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
           DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
                                           Lednicky_gauss_Sigma0);
-          Ck_pSigma0->SetSourcePar(0, GaussSourceSize);
+          Ck_pSigma0->SetSourcePar(0, 1.12);
           DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
+          Ck_pXim->SetSourcePar(0,0.92);
           DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
+          Ck_pXim1530->SetSourcePar(0,0.92);
           Ck_pL->Update();
           Ck_pSigma0->Update();
           Ck_pXim->Update();
@@ -480,9 +482,9 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                               BaseLineRegion[iBL][1]);
 
 //            fitter->AddSameSource("pLambda", "pLambda", 1);
-            fitter->AddSameSource("pSigma0", "pLambda", 1);
-            fitter->AddSameSource("pXim", "pLambda", 1);
-            fitter->AddSameSource("pXim1530", "pLambda", 1);
+//            fitter->AddSameSource("pSigma0", "pLambda", 1);
+//            fitter->AddSameSource("pXim", "pLambda", 1);
+//            fitter->AddSameSource("pXim1530", "pLambda", 1);
 
             fitter->SetParameter("pLambda", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
           }
