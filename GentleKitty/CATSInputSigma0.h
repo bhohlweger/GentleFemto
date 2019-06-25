@@ -31,6 +31,11 @@ class CATSInputSigma0 : public CATSInput {
   float GetSigma0Purity() const {
     return fPuritySigma0;
   }
+  float GetSigma0PurityPt() const {
+    return fPuritySigma0pt;
+  }
+
+
  private:
   DreamCF* fCF_pSigma;
   DreamCF* fCF_SidebandUp;
@@ -39,6 +44,7 @@ class CATSInputSigma0 : public CATSInput {
   unsigned int fnAntiProtons;
   unsigned int fnSigma0;
   float fPuritySigma0;
+  float fPuritySigma0pt;
 };
 
 #endif /* GENTLEKITTY_CATSINPUT_H_ */

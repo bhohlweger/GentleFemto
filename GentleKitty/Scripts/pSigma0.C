@@ -146,7 +146,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     return;
   }
   histSysVar.push_back(dataHist);
-  puritySigma0.push_back(CATSinput->GetSigma0Purity());
+  puritySigma0.push_back(CATSinput->GetSigma0PurityPt());
 
   auto sidebandHistUp = CATSinput->GetCF("pSigmaSBUp",
                                          "hCk_ReweightedpSigmaSBUpMeV_0");
@@ -168,7 +168,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                                             appendixVar.Data());
     CATSinputVar->CountPairs(SystInputDir.Data(), trigger.Data(),
                              appendixVar.Data());
-    puritySigma0.push_back(CATSinputVar->GetSigma0Purity());
+    puritySigma0.push_back(CATSinputVar->GetSigma0PurityPt());
     CATSinputVar->ObtainCFs(10, 250, 400);
     auto dataHistVar = CATSinputVar->GetCF("pSigma0", dataHistName.Data());
     histSysVar.push_back(dataHistVar);

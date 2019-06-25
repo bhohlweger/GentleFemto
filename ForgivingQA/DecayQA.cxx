@@ -22,7 +22,8 @@ DecayQA::DecayQA(const char* partLatex, const char* latexProducts)
       fScaleMax(0),
       fTexOffX(0),
       fTexOffY(0),
-      fDecChannel(latexProducts) {
+      fDecChannel(latexProducts),
+      fPurity(nullptr) {
   // TODO Auto-generated constructor stub
 
 }
@@ -282,17 +283,18 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname));
   cMassBins->Divide(fDivCanX, fDivCanY);
   if (invMasspT->GetXaxis()->GetNbins() > fDivCanX * fDivCanY) {
-    std::cerr << "FitInvariantMass: Number of divisions not sufficient"
-              " to plot all pT bins: \n"
-              << "pT Bins: " << invMasspT->GetXaxis()->GetNbins() << '\n';
+    Warning("DecayQA", "FitInvariantMass: Number of divisions not sufficient to plot all pT bins: %i",  int(invMasspT->GetXaxis()->GetNbins()));
   }
   auto* Purity = new TH1F(Form("%sPurity", outname), Form("%sPurity", outname),
                           invMasspT->GetXaxis()->GetNbins(),
                           invMasspT->GetXaxis()->GetXmin(),
                           invMasspT->GetXaxis()->GetXmax());
-  Purity->GetXaxis()->SetTitle("p_{T} (GeV/#it{c})");
-  Purity->GetYaxis()->SetTitle(
+  fPurity = new TGraphErrors();
+  fPurity->SetName(Form("%sPurity", outname));
+  fPurity->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
+  fPurity->GetYaxis()->SetTitle(
       Form("Purity / %.1f (GeV/#it{c})^{-1}", Purity->GetBinWidth(1)));
+  int counter = 0;
   for (int ipT = fInvMassPtStartBin;
       ipT < invMasspT->GetXaxis()->GetNbins() + 1; ++ipT) {
     unsigned int iPad = 0;
@@ -347,6 +349,8 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
     float background = (float) fFitter->GetBackgroundCounts();
     Purity->SetBinContent(ipT, fFitter->GetPurity());
     Purity->SetBinError(ipT, fFitter->GetPurityErr());
+    fPurity->SetPoint(counter, invMasspT->GetXaxis()->GetBinCenter(ipT), fFitter->GetPurity());
+    fPurity->SetPointError(counter++, invMasspT->GetXaxis()->GetBinWidth(ipT)/2.f, fFitter->GetPurityErr());
   }
   Purity->GetYaxis()->SetRangeUser(0.1, 0.7);
   cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));

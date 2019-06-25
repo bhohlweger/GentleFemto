@@ -1,6 +1,7 @@
 #include "CATSInputSigma0.h"
 #include "ForgivingReader.h"
 #include "DecayQA.h"
+#include "TObject.h"
 #include <iostream>
 
 CATSInputSigma0::CATSInputSigma0()
@@ -10,7 +11,8 @@ CATSInputSigma0::CATSInputSigma0()
       fnProtons(0),
       fnAntiProtons(0),
       fnSigma0(0),
-      fPuritySigma0(0) {
+      fPuritySigma0(0),
+      fPuritySigma0pt(0) {
 }
 
 CATSInputSigma0::~CATSInputSigma0() {
@@ -201,13 +203,29 @@ void CATSInputSigma0::CountPairs(const char* path, const char* trigger,
     delete pTAntiProton;
   }
 
+  auto ptList = reader->GetOtherCuts("ResultQA");
+  auto pSiList = (TList*)ptList->FindObject("QA_Particle0_Particle2");
+  auto pbarSibarList = (TList*)ptList->FindObject("QA_Particle1_Particle3");
+  auto pSiptHist = (TH2F*)pSiList->FindObject("PtQA_Particle0_Particle2");
+  pSiptHist->Add((TH2F*)pbarSibarList->FindObject("PtQA_Particle1_Particle3"));
+  const float averagePtLowKstarSigma0 = pSiptHist->GetMean(2);
+  Warning("CATSInputSigma0", "Average pT at low kstar - p: %.2f - Sigma0 : %.2f", pSiptHist->GetMean(1), pSiptHist->GetMean(2));
+
   DecayQA* sigma0QA = new DecayQA("#Sigma", "#Lambda#gamma");
   sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
-  sigma0QA->SetRangesFitting(1.187, 1.199, 1.167, 1.217);
+  sigma0QA->SetRangesFitting(1.19, 1.196, 1.167, 1.217);
+  sigma0QA->SetInvMasspTStartBin(3);
+  sigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   sigma0QA->GetPeriodQASigma0(0.003, "Sigma0");
   fPuritySigma0 = sigma0QA->GetPurity();
   fnSigma0 = sigma0QA->GetSignalCounts() + sigma0QA->GetBackgroundCounts();
+
+  sigma0QA->InvariantMassSigma0(0.003, "Sigma0", false);
+  auto purityGraph = sigma0QA->GetPurityGraph();
+  fPuritySigma0pt = sigma0QA->GetPurity(averagePtLowKstarSigma0);
+  Warning("CATSInputSigma0", "pT averaged purity: %.2f, purity at the pT of the Sigma0 at low k*: %.2f", fPuritySigma0, fPuritySigma0pt);
+
   delete sigma0QA;
   delete reader;
 }

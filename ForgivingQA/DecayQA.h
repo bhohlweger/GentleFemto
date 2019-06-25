@@ -9,6 +9,7 @@
 #define FORGIVINGQA_DECAYQA_H_
 #include "TList.h"
 #include "TH2F.h"
+#include "TGraphErrors.h"
 #include "ForgivingReader.h"
 #include "ForgivingFitter.h"
 #include "MakeHistosGreat.h"
@@ -77,6 +78,12 @@ class DecayQA {
   double GetPurityErr() const {
     return fFitter->GetPurityErr();
   }
+  TGraphErrors* GetPurityGraph() const {
+    return fPurity;
+  }
+  double GetPurity(double pt) const {
+    return fPurity->Eval(pt);
+  }
  private:
   void FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                         const char* outname);
@@ -95,6 +102,7 @@ class DecayQA {
   float fTexOffY;
   const char* fPartLatex;
   const char* fDecChannel;
+  TGraphErrors *fPurity;
 };
 
 #endif /* FORGIVINGQA_DECAYQA_H_ */
