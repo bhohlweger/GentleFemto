@@ -27,7 +27,7 @@ class VariationmTAnalysis {
   void MakeCFPlotsPP();
   void MakeCFPlotsPL();
   void MakeRadPlotsPP();
-  void MakeRadPlotsPL();
+  void MakeRadPlotsPL(const char* ppFilePath);
   void SetmTAverage(TGraphErrors* mTAvg) {
     fmTAverage = mTAvg;
   }

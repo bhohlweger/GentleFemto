@@ -246,8 +246,12 @@ void VariationmTAnalysis::MakeRadPlotsPP() {
   out->Close();
 }
 
-void VariationmTAnalysis::MakeRadPlotsPL() {
+void VariationmTAnalysis::MakeRadPlotsPL(const char* ppFilePath) {
+  TFile* ppFile = TFile::Open(ppFilePath, "read");
+  TGraphErrors* mTppSys = (TGraphErrors*)ppFile->Get("mTRadiusSyst");
+  TGraphErrors* mTppStat = (TGraphErrors*)ppFile->Get("mTRadiusStat");
   TFile* out = TFile::Open("tmp.root", "update");
+  out->cd();
   auto c4 = new TCanvas("c8", "c8");
   c4->cd();
   TLegend* leg = new TLegend(0.6, 0.6, 0.9, 0.9);
@@ -262,20 +266,37 @@ void VariationmTAnalysis::MakeRadPlotsPL() {
   fakeGraphLO.SetLineWidth(3);
   fakeGraphLO.SetDrawOption("z");
 
+  mTppSys->SetTitle("; < m_{T} >  (MeV/#it{c}^{2}); r_{Core} (fm)");
+  mTppSys->GetXaxis()->SetTitleSize(22);
+  mTppSys->GetYaxis()->SetTitleSize(22);
+  mTppSys->GetXaxis()->SetTitleOffset(1.5);
+  mTppSys->GetYaxis()->SetTitleOffset(1.5);
+  mTppSys->GetXaxis()->SetLabelSize(22);
+  mTppSys->GetYaxis()->SetLabelSize(22);
+  mTppSys->GetXaxis()->SetLabelOffset(.02);
+  mTppSys->GetYaxis()->SetLabelOffset(.02);
+  mTppSys->GetXaxis()->SetRangeUser(0.95, 2.7);
+  mTppSys->GetYaxis()->SetRangeUser(0.55, 1.35);
+
+  mTppSys->SetMarkerColorAlpha(kBlack, 0.);
+  mTppSys->SetLineWidth(0);
+  mTppSys->Draw("APZ");
+  mTppSys->SetFillColorAlpha(kBlack, 0.4);
+  mTppSys->Draw("2Z same");
+  TGraphErrors fakeGraph;
+  fakeGraph.SetMarkerColor(kBlack);
+  fakeGraph.SetLineWidth(3);
+  fakeGraph.SetDrawOption("z");
+  fakeGraph.SetFillColorAlpha(kBlack, 0.4);
+
+  leg->AddEntry(&fakeGraph, "p#minus p (AV18)", "lef");
+
+  mTppStat->SetMarkerColor(kBlack);
+  mTppStat->SetLineWidth(3);
+  mTppStat->Draw("pez same");
+
   for (int iMod = 0; iMod < fnModel; ++iMod) {
 
-    fmTRadiusSyst[iMod]->SetTitle(
-        "; < m_{T} >  (MeV/#it{c}^{2}); r_{Core} (fm)");
-    fmTRadiusSyst[iMod]->GetXaxis()->SetTitleSize(22);
-    fmTRadiusSyst[iMod]->GetYaxis()->SetTitleSize(22);
-    fmTRadiusSyst[iMod]->GetXaxis()->SetTitleOffset(1.5);
-    fmTRadiusSyst[iMod]->GetYaxis()->SetTitleOffset(1.5);
-    fmTRadiusSyst[iMod]->GetXaxis()->SetLabelSize(22);
-    fmTRadiusSyst[iMod]->GetYaxis()->SetLabelSize(22);
-    fmTRadiusSyst[iMod]->GetXaxis()->SetLabelOffset(.02);
-    fmTRadiusSyst[iMod]->GetYaxis()->SetLabelOffset(.02);
-    fmTRadiusSyst[iMod]->GetXaxis()->SetRangeUser(0.95, 2.7);
-    fmTRadiusSyst[iMod]->GetYaxis()->SetRangeUser(0.65, 1.2);
     //  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95, 2.7);
     //  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.95, 1.55);
 
@@ -284,7 +305,7 @@ void VariationmTAnalysis::MakeRadPlotsPL() {
       fmTRadiusSyst[iMod]->SetLineColor(kCyan + 2);
 
       fmTRadiusSyst[iMod]->SetMarkerColorAlpha(kCyan + 2, 0.);
-      fmTRadiusSyst[iMod]->Draw("APZ");
+      fmTRadiusSyst[iMod]->Draw("PZSame");
 
       fmTRadiusSyst[iMod]->SetFillColorAlpha(kCyan + 2, 0.4);
       fmTRadiusSyst[iMod]->Draw("2Z same");
@@ -334,6 +355,7 @@ void VariationmTAnalysis::MakeRadPlotsPL() {
   c4->Write();
   out->Write();
   out->Close();
+  ppFile->Close();
 }
 
 void VariationmTAnalysis::MakeCFPlotsPL() {
