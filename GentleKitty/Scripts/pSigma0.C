@@ -413,6 +413,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     AB_pSigma0_draw.KillTheCat();
     Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
     Ck_pSigma0_draw = new DLM_Ck(1, 0, AB_pSigma0_draw);
+  } else if (potential == 5) { // flat - sideband only
+    std::cout << "Running with a flat correlation function = sideband only \n";
+    Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
+                            Flat_Residual);
+    Ck_pSigma0_draw = new DLM_Ck(1, 0, NumMomBins_pSigma_draw, kMin_pSigma_draw,
+                                 kMax_pSigma_draw, Flat_Residual);
+
   }
 
   float counter = 0;
