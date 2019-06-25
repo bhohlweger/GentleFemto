@@ -30,6 +30,7 @@ DecayQA::DecayQA(const char* partLatex, const char* latexProducts)
 
 DecayQA::~DecayQA() {
   // TODO Auto-generated destructor stub
+  delete fPurity;
 }
 
 void DecayQA::InvariantMassLambda(float CutMin, float CutMax, bool minBook) {
