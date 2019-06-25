@@ -21,9 +21,9 @@
 #include <iostream>
 #include "stdlib.h"
 
-void FitPPVariations(const unsigned& NumIter, int system, int source,
-                     int iPotential, TString InputFile, TString HistoName,
-                     TString OutputDir) {
+void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
+                     int source, int iPotential, TString InputFile,
+                     TString HistoName, TString OutputDir) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
 //  What potential to use: 0 = Scattering para; 1 = Usmani; 2 = NLO; 3 = LO;
@@ -255,8 +255,15 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   std::cout << "lam_pXim: " << lam_pXim << " lam_pXim_pXim1530: "
             << lam_pXim_pXim1530 << " lam_pXim_fake:" << lam_pXim_fake
             << std::endl;
-  const double GaussSourceSize = 1.2;
 
+  const double GaussSourceSize = 1.2;
+  //insert p-Sigma0 radius for different mT bins from r_core p-p &
+  //effective gaussian fit of the  p-Sigma0 source including resonancess.
+  std::vector<float> pSigma0Radii = { 1.473, 1.421, 1.368, 1.295, 1.220, 1.124 };
+  const double pSigma0Radius = pSigma0Radii[imTBin];
+  std::cout << "===========================\n";
+  std::cout << "==pSigma0Radius: " << pSigma0Radius << "fm ==\n";
+  std::cout << "===========================";
   CATSInput *CATSinput = new CATSInput();
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
   CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
@@ -368,7 +375,6 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
               << "\r Processing progress: "
               << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
               << std::flush;
-
           TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
           if (!OliHisto_pp) {
             std::cout << HistppName.Data() << " Missing" << std::endl;
@@ -385,7 +391,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
           DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
                                           Lednicky_gauss_Sigma0);
-          Ck_pSigma0->SetSourcePar(0, 1.29);
+          Ck_pSigma0->SetSourcePar(0, pSigma0Radius);
           DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
           Ck_pXim->SetSourcePar(0, 0.92);
           DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
@@ -589,19 +595,82 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
           ntBuffer[23] = BaseLineRegion[iBL][1];
           ntResult->Fill(ntBuffer);
 
+          DLM_Histo<double>* CkpL_pS0 = CkDec_pL.GetChildContribution(
+              (const unsigned int) 0, false);
+          DLM_Histo<double>* CkpL_pXim = CkDec_pL.GetChildContribution(
+              (const unsigned int) 1, false);
+          TGraph* grCkpL_pS0 = new TGraph();
+          grCkpL_pS0->SetName(
+              TString::Format("grCkpL_pS0_Var_%u_Iter_%u", NumIter, uIter));
+
+          TGraph* grCkpL_pS0Scaled = new TGraph();
+          grCkpL_pS0Scaled->SetName(
+              TString::Format("grCkpL_pS0Scaled_Var_%u_Iter_%u", NumIter,
+                              uIter));
+
+          TGraph* grCkpS0 = new TGraph();
+          grCkpS0->SetName(
+              TString::Format("grCkpS0_Var_%u_Iter_%u", NumIter, uIter));
+
+          TGraph* grCkpL_pXi = new TGraph();
+          grCkpL_pXi->SetName(
+              TString::Format("grCkpL_pXi_Var_%u_Iter_%u", NumIter, uIter));
+
+          TGraph* grCkpL_pXiScaled = new TGraph();
+          grCkpL_pXiScaled->SetName(
+              TString::Format("grCkpL_pXiScaled_Var_%u_Iter_%u", NumIter,
+                              uIter));
+
+          TGraph* grCkpXi = new TGraph();
+          grCkpXi->SetName(
+              TString::Format("grCkpXi_Var_%u_Iter_%u", NumIter, uIter));
+
+          for (int iBin = 0; iBin < FitResult.GetN(); iBin++) {
+            grCkpL_pS0->SetPoint(iBin, CkpL_pS0->GetBinCenter(0, iBin),
+                                 CkpL_pS0->GetBinContent(iBin));
+            grCkpL_pS0Scaled->SetPoint(
+                iBin,
+                CkpL_pS0->GetBinCenter(0, iBin),
+                1
+                    + (CkpL_pS0->GetBinContent(iBin) - 1)
+                        * lam_pL_pS0.at(vFrac_pL));
+            grCkpS0->SetPoint(
+                iBin, CkpL_pS0->GetBinCenter(0, iBin),
+                CkDec_pSigma0.EvalCk(CkpL_pS0->GetBinCenter(0, iBin)));
+
+            grCkpL_pXi->SetPoint(iBin, CkpL_pXim->GetBinCenter(0, iBin),
+                                 CkpL_pXim->GetBinContent(iBin));
+            grCkpL_pXiScaled->SetPoint(
+                iBin,
+                CkpL_pXim->GetBinCenter(0, iBin),
+                1
+                    + (CkpL_pXim->GetBinContent(iBin) - 1)
+                        * lam_pL_pXm.at(vFrac_pL));
+            grCkpXi->SetPoint(
+                iBin, CkpL_pXim->GetBinCenter(0, iBin),
+                CkDec_pXim.EvalCk(CkpL_pXim->GetBinCenter(0, iBin)));
+          }
+
           TList* outList = new TList();
           outList->SetOwner();
           outList->SetName(
               TString::Format("Graph_Var_%u_iter_%u", NumIter, uIter));
           outList->Add(pointerFitResult);
+          outList->Add(grCkpL_pS0);
+          outList->Add(grCkpL_pS0Scaled);
+          outList->Add(grCkpS0);
+
+          outList->Add(grCkpL_pXi);
+          outList->Add(grCkpL_pXiScaled);
+          outList->Add(grCkpXi);
           CollOut->Add(outList);
 
           uIter++;
 
           delete Ck_pL;
-//          delete Ck_pSigma0;
-//          delete Ck_pXim;
-//          delete Ck_pXim1530;
+          delete Ck_pSigma0;
+          delete Ck_pXim;
+          delete Ck_pXim1530;
           delete fitter;
         }
       }
@@ -617,7 +686,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 
 int main(int argc, char *argv[]) {
   FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                  argv[5], argv[6], argv[7]);
+                  atoi(argv[5]), argv[6], argv[7], argv[8]);
   return 0;
 }
 
