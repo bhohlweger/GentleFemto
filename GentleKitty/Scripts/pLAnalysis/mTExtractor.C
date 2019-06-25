@@ -4,7 +4,7 @@ int main(int argc, char* argv[])   {
 //  gROOT->ProcessLine("gErrorIgnoreLevel = 2001");
   const char* DataDir = argv[1];
   const char* FitDir = argv[2];
-  const int nMTBins = 2;
+  const int nMTBins = 6;
   TString avgmTFile = TString::Format("%s/AveragemT.root",DataDir);
   TFile* mTFile = TFile::Open(avgmTFile, "READ");
   if (!mTFile) {
@@ -33,6 +33,6 @@ int main(int argc, char* argv[])   {
     analyser->SetVariation(mTFitDirLO.Data(),2);
   }
   analyser->MakeCFPlotsPL();
-  analyser->MakeRadPlotsPL();
+  analyser->MakeRadPlotsPL("/media/schmollweger/HartDisk/cernbox/HM13TeV/AnalysisData/RandomSystematics_mT/fits/pp/190719_test/tmp.root");
   return 1;
 }
