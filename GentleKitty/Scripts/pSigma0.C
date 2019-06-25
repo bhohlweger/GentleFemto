@@ -25,13 +25,13 @@
 #include "DreamSystematics.h"
 
 /// Number of parameters for the sideband fit
-const int nSidebandPars = 6;
+const int nSidebandPars = 5;
 
 /// =====================================================================================
 /// Fit for the sidebands
 auto sidebandFit =
     [ ] (double *x, double *p) {
-      return p[0] + p[1] * x[0] + p[2] * x[0] * x[0] + p[3] * x[0] * x[0] *x[0] + std::exp(p[4] + p[5] * x[0]);
+      return p[0] + p[1] * x[0] + p[2] * x[0] * x[0] *x[0] + std::exp(p[3] + p[4] * x[0]);
     };
 
 /// =====================================================================================
@@ -498,12 +498,11 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
           auto SBmerge = side->GetSideBands(5);
           auto sideband = new TF1(Form("sideband_%i", iterID), sidebandFit, 0,
                                   650, nSidebandPars);
-          sideband->SetParameter(0, -1.5);
+          sideband->SetParameter(0, 1.);
           sideband->SetParameter(1, 0.);
           sideband->SetParameter(2, 0);
-          sideband->SetParameter(3, 0.1);
-          sideband->SetParameter(4, 1);
-          sideband->SetParameter(5, 0);
+          sideband->SetParameter(3, -0.1);
+          sideband->SetParameter(4, 0.);
           SBmerge->Fit(sideband, "FSNRMQ");
 
           DLM_Ck* Ck_SideBand = new DLM_Ck(0, nSidebandPars, NumMomBins_pSigma,
