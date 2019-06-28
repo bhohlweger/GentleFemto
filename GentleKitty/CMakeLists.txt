@@ -109,16 +109,16 @@ target_link_libraries(DrawCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(EvalpXiCurves ${PROJECT_SOURCE_DIR}/Scripts/pXiAnalysis/EvalpXiCurves.C)
 target_link_libraries(EvalpXiCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(pSigma0 ${PROJECT_SOURCE_DIR}/Scripts/pSigma0_single.C)
+add_executable(pSigma0 ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/pSigma0_single.C)
 target_link_libraries(pSigma0 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(pSigma0exclusion ${PROJECT_SOURCE_DIR}/Scripts/pSigma0exclusion.C)
+add_executable(pSigma0exclusion ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/pSigma0exclusion.C)
 target_link_libraries(pSigma0exclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(PlotSigmaExclusion ${PROJECT_SOURCE_DIR}/Scripts/plotSigmaExclusion.C)
+add_executable(PlotSigmaExclusion ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/plotSigmaExclusion.C)
 target_link_libraries(PlotSigmaExclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/plotSigmaModels.C)
+add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/plotSigmaModels.C)
 target_link_libraries(PlotSigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(POnlymT ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnlymT.C)
@@ -139,7 +139,7 @@ target_link_libraries(TestCats2 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(LambdaPars ${PROJECT_SOURCE_DIR}/Scripts/LambdaPars.C)
 target_link_libraries(LambdaPars tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(SourceMtMaker ${PROJECT_SOURCE_DIR}/Scripts/SourceMtMaker.C)
+add_executable(SourceMtMaker ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/SourceMtMaker.C)
 target_link_libraries(SourceMtMaker tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(POnlyExtractor ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnlyExtractor.C)
