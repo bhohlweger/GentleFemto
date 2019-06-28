@@ -121,6 +121,9 @@ target_link_libraries(PlotSigmaExclusion tidyCATS -L${DREAM_LIB_PATH} DreamFunct
 add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/plotSigmaModels.C)
 target_link_libraries(PlotSigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(SigmaSidebandInvestigator ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/pSigmaSidebands.C)
+target_link_libraries(SigmaSidebandInvestigator tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(POnlymT ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnlymT.C)
 target_link_libraries(POnlymT tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
