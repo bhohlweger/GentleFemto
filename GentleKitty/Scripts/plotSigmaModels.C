@@ -328,6 +328,25 @@ void plotProtonLambda(double* radius, float momBins, float kmin, float kmax) {
 }
 
 /// =====================================================================================
+void FillWaveGraph(CATS &kitty, TGraph *gr) {
+  for (unsigned int i = 0; i < kitty.GetNumMomBins(); ++i) {
+    const float mom = kitty.GetMomentum(i);
+    gr->SetPoint(i, mom, kitty.GetCorrFun(i));
+  }
+}
+
+/// =====================================================================================
+void FillWaveGraph(CATS &kitty, TGraph *gr, std::vector<float> weights) {
+  int channel = 0;
+  for (auto &it : weights) {
+    kitty.SetChannelWeight(channel++, it);
+
+  }
+  kitty.KillTheCat();
+  FillWaveGraph(kitty, gr);
+}
+
+/// =====================================================================================
 int main(int argc, char* argv[]) {
   DreamPlot::SetStyle();
   double* radius = new double[1];
@@ -490,6 +509,28 @@ int main(int argc, char* argv[]) {
   grTripletHaidenbauer->SetLineStyle(2);
   DreamPlot::SetStyleGraph(grTripletHaidenbauer, 20, kBlue + 2);
 
+  auto grpS0Haidenbauer = new TGraph();
+  grpS0Haidenbauer->SetLineWidth(2);
+  grpS0Haidenbauer->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  DreamPlot::SetStyleGraph(grpS0Haidenbauer, 20, kBlack);
+  auto grpS0pLHaidenbauer = new TGraph();
+  grpS0pLHaidenbauer->SetLineWidth(2);
+  grpS0pLHaidenbauer->SetLineStyle(3);
+  DreamPlot::SetStyleGraph(grpS0pLHaidenbauer, 20, kGreen + 2);
+  auto grpS0nSplusHaidenbauer = new TGraph();
+  grpS0nSplusHaidenbauer->SetLineWidth(2);
+  grpS0nSplusHaidenbauer->SetLineStyle(3);
+  DreamPlot::SetStyleGraph(grpS0nSplusHaidenbauer, 20, kBlue + 2);
+  auto grpLambdaHaidenbauer = new TGraph();
+  grpLambdaHaidenbauer->SetLineWidth(2);
+  grpLambdaHaidenbauer->SetLineStyle(2);
+  DreamPlot::SetStyleGraph(grpLambdaHaidenbauer, 20, kGreen + 2);
+  auto grnSPlusHaidenbauer = new TGraph();
+  grnSPlusHaidenbauer->SetLineWidth(2);
+  grnSPlusHaidenbauer->SetLineStyle(2);
+  DreamPlot::SetStyleGraph(grnSPlusHaidenbauer, 20, kBlue + 2);
+
+
   auto grTotalESC16 = new TGraph();
   grTotalESC16->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
   DreamPlot::SetStyleGraph(grTotalESC16, 20, kBlack);
@@ -512,60 +553,21 @@ int main(int argc, char* argv[]) {
     grTripletLednicky->SetPoint(i, mom, cf_tripletLednicky);
   }
 
-  for (unsigned int i = 0; i < Ck_Haidenbauer->GetNbins(); ++i) {
-    const float mom = Kitty.GetMomentum(i);
-    grTotalHaidenbauer->SetPoint(i, mom, Kitty.GetCorrFun(i));
-  }
-  Kitty.SetChannelWeight(0, 0);
-  Kitty.SetChannelWeight(1, 0);
-  Kitty.SetChannelWeight(2, 0);
-  Kitty.SetChannelWeight(3, 0);
-  Kitty.SetChannelWeight(4, 0);
-  Kitty.SetChannelWeight(5, 0);
-  Kitty.SetChannelWeight(0, 1);
-  Kitty.KillTheCat();
-  for (unsigned int i = 0; i < Ck_Haidenbauer->GetNbins(); ++i) {
-    const float mom = Kitty.GetMomentum(i);
-    grSingletHaidenbauer->SetPoint(i, mom, Kitty.GetCorrFun(i));
-  }
-  Kitty.SetChannelWeight(0, 0);
-  Kitty.SetChannelWeight(1, 0);
-  Kitty.SetChannelWeight(2, 0);
-  Kitty.SetChannelWeight(3, 0);
-  Kitty.SetChannelWeight(4, 0);
-  Kitty.SetChannelWeight(5, 0);
-  Kitty.SetChannelWeight(1, 1);
-  Kitty.KillTheCat();
-  for (unsigned int i = 0; i < Ck_Haidenbauer->GetNbins(); ++i) {
-    grTripletHaidenbauer->SetPoint(i, Kitty.GetMomentum(i),
-                                   Kitty.GetCorrFun(i));
-  }
+  FillWaveGraph(Kitty, grTotalHaidenbauer);
+  FillWaveGraph(ResonantKitty, grTotalResonantHaidenbauer);
 
-  for (unsigned int i = 0; i < Ck_ResonantHaidenbauer->GetNbins(); ++i) {
-    grTotalResonantHaidenbauer->SetPoint(i, Kitty.GetMomentum(i),
-                                         ResonantKitty.GetCorrFun(i));
-  }
+  FillWaveGraph(Kitty, grSingletHaidenbauer, { 1, 0, 0, 0, 0, 0 });
+  FillWaveGraph(Kitty, grTripletHaidenbauer, { 0, 1, 0, 0, 0, 0 });
+  FillWaveGraph(Kitty, grpS0Haidenbauer, { 0.25, 0.75, 0, 0, 0, 0 });
+  FillWaveGraph(Kitty, grpLambdaHaidenbauer, { 0, 0, 0.25, 0.75, 0, 0 });
+  FillWaveGraph(Kitty, grnSPlusHaidenbauer, { 0, 0, 0, 0, 0.25, 0.75 });
+  FillWaveGraph(Kitty, grpS0pLHaidenbauer, { 0.25, 0.75, 0.25, 0.75, 0, 0 });
+  FillWaveGraph(Kitty, grpS0nSplusHaidenbauer, { 0.25, 0.75, 0.25, 0.75, 0.25, 0.75 });
 
-  for (unsigned int i = 0; i < KittyESC16.GetNumMomBins(); ++i) {
-    grTotalESC16->SetPoint(i, KittyESC16.GetMomentum(i),
-                           KittyESC16.GetCorrFun(i));
-  }
-  KittyESC16.SetChannelWeight(0, 0);
-  KittyESC16.SetChannelWeight(1, 0);
-  KittyESC16.SetChannelWeight(0, 1);
-  KittyESC16.KillTheCat();
-  for (unsigned int i = 0; i < KittyESC16.GetNumMomBins(); ++i) {
-    grSingletESC16->SetPoint(i, KittyESC16.GetMomentum(i),
-                             KittyESC16.GetCorrFun(i));
-  }
-  KittyESC16.SetChannelWeight(0, 0);
-  KittyESC16.SetChannelWeight(1, 0);
-  KittyESC16.SetChannelWeight(1, 1);
-  KittyESC16.KillTheCat();
-  for (unsigned int i = 0; i < KittyESC16.GetNumMomBins(); ++i) {
-    grTripletESC16->SetPoint(i, KittyESC16.GetMomentum(i),
-                             KittyESC16.GetCorrFun(i));
-  }
+  FillWaveGraph(KittyESC16, grTotalESC16);
+  FillWaveGraph(KittyESC16, grSingletESC16, { 1, 0 });
+  FillWaveGraph(KittyESC16, grTripletESC16, { 0, 1 });
+
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Plotting
@@ -665,4 +667,29 @@ int main(int argc, char* argv[]) {
   leg4->AddEntry(grTotalESC16, "ESC16", "l");
   leg4->Draw("same");
   compareCF->Print("allCF.pdf");
+
+  auto HaidenbauerDecomp = new TCanvas();
+  grpS0Haidenbauer->Draw("AL");
+  grpS0Haidenbauer->GetXaxis()->SetRangeUser(0, 350);
+  grpS0Haidenbauer->GetYaxis()->SetRangeUser(0, yup);
+  grpLambdaHaidenbauer->Draw("Lsame");
+  grnSPlusHaidenbauer->Draw("Lsame");
+  grpS0pLHaidenbauer->Draw("Lsame");
+  grTotalHaidenbauer->SetLineColor(kRed + 1 );
+  grTotalHaidenbauer->Draw("lsame");
+  grpS0nSplusHaidenbauer->Draw("Lsame");
+  auto leg5 = new TLegend(0.65, 0.44, 0.5, 0.84);
+  leg5->SetBorderSize(0);
+  leg5->SetTextFont(42);
+  leg5->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg5->SetHeader(Form("#it{r}_{0} = %.3f fm", radius[0]));
+  leg5->AddEntry(grpS0Haidenbauer, "p#minus#Sigma^{0} (no CC)", "l");
+  leg5->AddEntry(grpLambdaHaidenbauer, "p#minus#Lambda (CC)", "l");
+  leg5->AddEntry(grnSPlusHaidenbauer, "n#minus#Sigma^{+} (CC)", "l");
+  leg5->AddEntry(grpS0pLHaidenbauer, "p#minus#Sigma^{0} + p#minus#Lambda (CC)", "l");
+  leg5->AddEntry(grpS0nSplusHaidenbauer, "p#minus#Sigma^{0} +n#minus#Sigma^{+} (CC)", "l");
+  leg5->AddEntry(grTotalHaidenbauer, "p#minus#Sigma^{0} (with CC)", "l");
+  leg5->Draw("same");
+  HaidenbauerDecomp->Print("CF_HaidenbauerDecomp.pdf");
+
 }
