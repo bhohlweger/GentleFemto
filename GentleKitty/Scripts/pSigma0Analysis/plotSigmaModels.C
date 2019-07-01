@@ -264,6 +264,10 @@ void plotProtonLambda(double* radius, float momBins, float kmin, float kmax) {
   grTotalESC16->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
   DreamPlot::SetStyleGraph(grTotalESC16, 20, kBlack);
   grTotalESC16->SetLineWidth(2);
+  auto grTotalNSC97f = new TGraph();
+  grTotalNSC97f->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  DreamPlot::SetStyleGraph(grTotalNSC97f, 20, kBlack);
+  grTotalNSC97f->SetLineWidth(2);
 
   auto TotalHaidenbauer = new DLM_Ck(1, 4, momBins, kmin, kmax,
                                   Lednicky_SingletTriplet);
@@ -304,23 +308,39 @@ void plotProtonLambda(double* radius, float momBins, float kmin, float kmax) {
     grTotalESC16->SetPoint(i, mom, TotalESC16->Eval(mom));
   }
 
+  auto TotalNSC97f = new DLM_Ck(1, 4, momBins, kmin, kmax,
+                                Lednicky_SingletTriplet);
+  TotalNSC97f->SetPotPar(0, 2.51);
+  TotalNSC97f->SetPotPar(1, 3.03);
+  TotalNSC97f->SetPotPar(2, 1.75);
+  TotalNSC97f->SetPotPar(3, 3.32);
+  TotalNSC97f->SetSourcePar(0, radius[0]);
+  TotalNSC97f->Update();
+  for (unsigned int i = 0; i < TotalNSC97f->GetNbins(); ++i) {
+    const float mom = TotalNSC97f->GetBinCenter(0, i);
+    grTotalNSC97f->SetPoint(i, mom, TotalNSC97f->Eval(mom));
+  }
+
   auto compareCF = new TCanvas();
   grTotalESC16->SetLineColor(kGreen + 2);
   grTotalHaidenbauer->SetLineColor(kAzure);
   grTotalLednicky->SetLineColor(kRed + 1 );
+  grTotalNSC97f->SetLineColor(kOrange + 2);
   grTotalHaidenbauer->Draw("AL");
   grTotalHaidenbauer->GetXaxis()->SetRangeUser(0, kmax);
   grTotalHaidenbauer->GetYaxis()->SetRangeUser(0.6, 3.5);
   grTotalESC16->Draw("lsame");
-//  grTotalLednicky->Draw("lsame");
-  auto leg4 = new TLegend(0.65, 0.68, 0.5, 0.84);
+  grTotalLednicky->Draw("lsame");
+  grTotalNSC97f->Draw("lsame");
+  auto leg4 = new TLegend(0.65, 0.52, 0.5, 0.84);
   leg4->SetBorderSize(0);
   leg4->SetTextFont(42);
   leg4->SetTextSize(gStyle->GetTextSize() * 0.9);
   leg4->SetHeader(Form("#it{r}_{0} = %.3f fm", radius[0]));
-//  leg4->AddEntry(grTotalLednicky, "fss2", "l");
+  leg4->AddEntry(grTotalLednicky, "fss2", "l");
   leg4->AddEntry(grTotalHaidenbauer, "#chiEFT (NLO)", "l");
   leg4->AddEntry(grTotalESC16, "ESC16", "l");
+  leg4->AddEntry(grTotalNSC97f, "NSC97f", "l");
   leg4->Draw("same");
   compareCF->Print("allCF_protonLambda.pdf");
 
@@ -387,6 +407,15 @@ int main(int argc, char* argv[]) {
   auto Ck_ESC16 = new DLM_Ck(1, 0, KittyESC16);
   Ck_ESC16->SetSourcePar(0, radius[0]);
   Ck_ESC16->Update();
+
+  // NSC97f
+  CATS KittyNSC97f;
+  tidy->GetCatsProtonSigma0(&KittyNSC97f, momBins, kmin, kmax,
+                            TidyCats::sGaussian, TidyCats::pSigma0NSC97f);
+  KittyNSC97f.KillTheCat();
+  auto Ck_NSC97f = new DLM_Ck(1, 0, KittyNSC97f);
+  Ck_NSC97f->SetSourcePar(0, radius[0]);
+  Ck_NSC97f->Update();
 
   // Haidenbauer with resonances
   CATS ResonantKitty;
@@ -544,6 +573,19 @@ int main(int argc, char* argv[]) {
   grTripletESC16->SetLineStyle(2);
   DreamPlot::SetStyleGraph(grTripletESC16, 20, kBlue + 2);
 
+  auto grTotalNSC97f = new TGraph();
+  grTotalNSC97f->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grTotalNSC97f->SetLineWidth(2);
+  DreamPlot::SetStyleGraph(grTotalNSC97f, 20, kBlack);
+  auto grSingletNSC97f = new TGraph();
+  grSingletNSC97f->SetLineWidth(2);
+  grSingletNSC97f->SetLineStyle(2);
+  DreamPlot::SetStyleGraph(grSingletNSC97f, 20, kRed + 2);
+  auto grTripletNSC97f= new TGraph();
+  grTripletNSC97f->SetLineWidth(2);
+  grTripletNSC97f->SetLineStyle(2);
+  DreamPlot::SetStyleGraph(grTripletNSC97f, 20, kBlue + 2);
+
   double cf_singletLednicky, cf_tripletLednicky;
   for (unsigned int i = 0; i < Ck_Lednicky->GetNbins(); ++i) {
     const float mom = Ck_Lednicky->GetBinCenter(0, i);
@@ -567,6 +609,10 @@ int main(int argc, char* argv[]) {
   FillWaveGraph(KittyESC16, grTotalESC16);
   FillWaveGraph(KittyESC16, grSingletESC16, { 1, 0 });
   FillWaveGraph(KittyESC16, grTripletESC16, { 0, 1 });
+
+  FillWaveGraph(KittyNSC97f, grTotalNSC97f);
+  FillWaveGraph(KittyNSC97f, grSingletNSC97f, { 1, 0 });
+  FillWaveGraph(KittyNSC97f, grTripletNSC97f, { 0, 1 });
 
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -648,23 +694,35 @@ int main(int argc, char* argv[]) {
   leg->Draw("same");
   h->Print("CF_ESC16.pdf");
 
+  auto i = new TCanvas();
+  grTotalNSC97f->Draw("AL");
+  grTotalNSC97f->GetXaxis()->SetRangeUser(0, kmax);
+  grTotalNSC97f->GetYaxis()->SetRangeUser(ylow, yup);
+  grSingletNSC97f->Draw("lsame");
+  grTripletNSC97f->Draw("lsame");
+  leg->Draw("same");
+  i->Print("CF_NSC97f.pdf");
+
   auto compareCF = new TCanvas();
   grTotalESC16->SetLineColor(kGreen + 2);
   grTotalHaidenbauer->SetLineColor(kAzure);
   grTotalLednicky->SetLineColor(kRed + 1 );
+  grTotalNSC97f->SetLineColor(kOrange + 2 );
   grTotalESC16->Draw("AL");
   grTotalESC16->GetXaxis()->SetRangeUser(0, kmax);
   grTotalESC16->GetYaxis()->SetRangeUser(0.6, 2.25);
   grTotalHaidenbauer->Draw("lsame");
-//  grTotalLednicky->Draw("lsame");
-  auto leg4 = new TLegend(0.65, 0.68, 0.5, 0.84);
+  grTotalLednicky->Draw("lsame");
+  grTotalNSC97f->Draw("lsame");
+  auto leg4 = new TLegend(0.65, 0.52, 0.5, 0.84);
   leg4->SetBorderSize(0);
   leg4->SetTextFont(42);
   leg4->SetTextSize(gStyle->GetTextSize() * 0.9);
   leg4->SetHeader(Form("#it{r}_{0} = %.3f fm", radius[0]));
-//  leg4->AddEntry(grTotalLednicky, "Lednicky coupled channel (fss2)", "l");
+  leg4->AddEntry(grTotalLednicky, "fss2 (Lednicky)", "l");
   leg4->AddEntry(grTotalHaidenbauer, "#chiEFT (NLO)", "l");
   leg4->AddEntry(grTotalESC16, "ESC16", "l");
+  leg4->AddEntry(grTotalNSC97f, "NSC97f", "l");
   leg4->Draw("same");
   compareCF->Print("allCF.pdf");
 

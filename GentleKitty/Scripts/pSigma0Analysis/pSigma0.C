@@ -413,7 +413,27 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     AB_pSigma0_draw.KillTheCat();
     Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
     Ck_pSigma0_draw = new DLM_Ck(1, 0, AB_pSigma0_draw);
-  } else if (potential == 5) { // flat - sideband only
+  } else if (potential == 5) {  // Haidenbauer WF
+    std::cout << "Running with the NSC97f potential \n";
+    // NSC97f is valid up to 350 MeV, therefore we have to adopt
+    double kMax_pSigma_NSC97f = kMin_pSigma;
+    int NumMomBins_pSigma_NSC97f = 0;
+    while (kMax_pSigma_NSC97f < 348 - binwidth) {
+      kMax_pSigma_NSC97f += binwidth;
+      ++NumMomBins_pSigma_NSC97f;
+    }
+    tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_NSC97f,
+                              kMin_pSigma, kMax_pSigma_NSC97f,
+                              TidyCats::sGaussian, TidyCats::pSigma0NSC97f);
+
+    tidy->GetCatsProtonSigma0(&AB_pSigma0_draw, NumMomBins_pSigma_draw,
+                              kMin_pSigma_draw, kMax_pSigma_draw,
+                              TidyCats::sGaussian, TidyCats::pSigma0NSC97f);
+    AB_pSigma0.KillTheCat();
+    AB_pSigma0_draw.KillTheCat();
+    Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
+    Ck_pSigma0_draw = new DLM_Ck(1, 0, AB_pSigma0_draw);
+  }else if (potential == 6) { // flat - sideband only
     std::cout << "Running with a flat correlation function = sideband only \n";
     Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             Flat_Residual);

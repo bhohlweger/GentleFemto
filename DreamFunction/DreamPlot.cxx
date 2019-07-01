@@ -291,7 +291,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      //fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0, 0, 3205, true, false);
+      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0, 0, 3385, true, false);
     }
   } else {
     std::cout << "No Lednicky file!  \n";
@@ -313,18 +313,32 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
   auto ESC16File = TFile::Open(Form("%s/Param_pSigma0_4.root", fitPath));
   if (ESC16File) {
     auto esc16band = (TGraphErrors*) ESC16File->Get("CF_fit");
-    auto sideband = (TGraphErrors*) ESC16File->Get("CF_sidebands");
     if (!esc16band) {
       std::cout << "No ESC16 \n";
-    } else if (!sideband) {
-      std::cout << "No sideband \n";
     } else {
       fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0, 0, 3352, true, false);
-      fProtonSigma->FemtoModelFitBands(sideband, kGray + 2, 0.5, true);
     }
   } else {
     std::cout << "No ESC16 file!  \n";
   }
+
+  auto NSC97fFile = TFile::Open(Form("%s/Param_pSigma0_5.root", fitPath));
+  if (NSC97fFile) {
+    auto NSC97fband = (TGraphErrors*) NSC97fFile->Get("CF_fit");
+    auto sideband = (TGraphErrors*) NSC97fFile->Get("CF_sidebands");
+    if (!NSC97fband) {
+      std::cout << "No NSC97f \n";
+    } else if (!sideband) {
+      std::cout << "No sideband \n";
+    } else {
+      fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange + 2, 0, 0, 3315,
+                                       true, false);
+      fProtonSigma->FemtoModelFitBands(sideband, kGray + 2, 0.5, true);
+    }
+  } else {
+    std::cout << "No NSC97f file!  \n";
+  }
+
   return;
 }
 
@@ -504,19 +518,21 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName(
       "p#minus #Sigma^{0} #oplus #bar{p}#minus #bar{#Sigma^{0}}", "fpe");
-//  fProtonSigma->SetLegendName("Lednicky coupled channel", "fl");
+  fProtonSigma->SetLegendName("fss2 (Lednicky)", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
   fProtonSigma->SetLegendName("ESC16", "fl");
+  fProtonSigma->SetLegendName("NSC97f", "fl");
   fProtonSigma->SetLegendName("p#minus (#Lambda#gamma) background", "l");
-  fProtonSigma->SetRangePlotting(0, 360, 0.925, 1.5);
+  fProtonSigma->SetRangePlotting(0, 360, 0.925, 1.6);
   fProtonSigma->SetNDivisions(505);
+  const float leftX = 0.505;
   const float upperY = 0.755;
   fProtonSigma->SetLegendCoordinates(
-      0.45, upperY - 0.08 * fProtonSigma->GetNumberOfModels(), 0.7, upperY);
+      leftX, upperY - 0.08 * fProtonSigma->GetNumberOfModels(), 0.7, upperY);
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
   fProtonSigma->DrawCorrelationPlot(c, 13, kBlue + 3, 0.9);
-  DrawSystemInfo(c, false, 0.46, 2);
+  DrawSystemInfo(c, false, leftX + 0.01, 2);
   c->cd();
   c->SaveAs(Form("%s/CF_pSigma_prelim.pdf", fitPath));
 }

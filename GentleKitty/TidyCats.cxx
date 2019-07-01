@@ -681,6 +681,16 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
                                           ExternalWF[1][1][0]);
       CleanUpWfHisto(AB_pSigma0->GetNumChannels(), ExternalWF);
       break;
+    case TidyCats::pSigma0NSC97f:
+      ExternalWF = Init_pSigma0_Haidenbauer(
+          TString::Format("%s/CERNHome/Sigma0/NSC97f/", HomeDir.Data()),
+          AB_pSigma0);
+      for (unsigned uCh = 0; uCh < AB_pSigma0->GetNumChannels(); uCh++) {
+        AB_pSigma0->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
+                                            ExternalWF[1][uCh][0]);
+      }
+      CleanUpWfHisto(AB_pSigma0->GetNumChannels(), ExternalWF);
+      break;
     default:
       std::cout << "Potential not implemented \n";
       break;
