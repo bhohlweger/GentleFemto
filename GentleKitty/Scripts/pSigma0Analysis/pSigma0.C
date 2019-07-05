@@ -65,12 +65,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   TRandom3 rangen(0);
   TidyCats* tidy = new TidyCats();  // for some reason we need this for the thing to compile
 
-  int nArguments = 34;
+  int nArguments = 35;
   TString varList =
       TString::Format(
           "IterID:femtoFitRange:BLSlope:ppRadius:bl_a:bl_a_err:bl_b:bl_b_err:"
           "sb_p0:sb_p0_err:sb_p1:sb_p1_err:sb_p2:sb_p2_err:sb_p3:sb_p3_err:sb_p4:sb_p4_err:sb_p5:sb_p5_err:"
-          "primaryContrib:fakeContrib:SBnormDown:SBnormUp:"
+          "purity:primaryContrib:fakeContrib:SBnormDown:SBnormUp:"
           "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma250:nSigma200:nSigma150:CFneg")
           .Data();
   if (potential == 0) {
@@ -252,8 +252,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
             << "\n";
 
   // sideband fit normalization range systematic variation
-  const std::vector<double> sidebandNormDown = { { 300, 250, 350 } };
-  const std::vector<double> sidebandNormUp = { { 500, 450, 550 } };
+  const std::vector<double> sidebandNormDown = { { 250, 200, 300 } };
+  const std::vector<double> sidebandNormUp = { { 400, 350, 450 } };
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Fit the sideband
@@ -262,12 +262,18 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   side->SetSideBandFile(InputDir.Data(), trigger.Data(), suffix.Data());
 
   /// Prefit for the baseline
-  auto PrefitDefault = (TH1F*) dataHist->Clone(
+  const float baselineFitRangeLow = 250;
+  const float baselineFitRangeUp = 600;
+  side->SetNormalizationRange(250, 400);
+  side->SideBandCFs();
+  auto SBmerge = side->GetSideBands(5);
+
+  auto PrefitDefault = (TH1F*) SBmerge->Clone(
       Form("%s_prefit", dataHist->GetName()));
-  auto funct_0_Default = new TF1("myPol0", "pol0", 250, 750);
+  auto funct_0_Default = new TF1("myPol0", "pol0", baselineFitRangeLow, baselineFitRangeUp);
   PrefitDefault->Fit(funct_0_Default, "FSNRMQ");
 
-  TF1* funct_1_Default = new TF1("myPol1", "pol1", 250, 750);
+  TF1* funct_1_Default = new TF1("myPol1", "pol1", baselineFitRangeLow, baselineFitRangeUp);
   PrefitDefault->Fit(funct_1_Default, "FSNRMQ");
   gMinuit->SetErrorDef(1);  // 1 corresponds to 1 sigma contour, 4 to 2 sigma
   auto grPrefitContour_Default = (TGraph*) gMinuit->Contour(40, 0, 1);
@@ -454,12 +460,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     auto currentHist = histSysVar[systDataIter];
 
     /// Prefit for the baseline
-    auto Prefit = (TH1F*) currentHist->Clone(
+    side->SetNormalizationRange(250, 400);
+    side->SideBandCFs();
+    auto SBprefit = side->GetSideBands(5);
+    auto Prefit = (TH1F*) SBprefit->Clone(
         Form("%i_%s_prefit", int(systDataIter), currentHist->GetName()));
-    auto funct_0 = new TF1("myPol0", "pol0", 250, 750);
+    auto funct_0 = new TF1("myPol0", "pol0", baselineFitRangeLow, baselineFitRangeUp);
     Prefit->Fit(funct_0, "FSNRMQ");
 
-    TF1* funct_1 = new TF1("myPol1", "pol1", 250, 750);
+    TF1* funct_1 = new TF1("myPol1", "pol1", baselineFitRangeLow, baselineFitRangeUp);
     Prefit->Fit(funct_1, "FSNRMQ");
     gMinuit->SetErrorDef(1);  // 1 corresponds to 1 sigma contour, 4 to 2 sigma
     auto grPrefitContour = (TGraph*) gMinuit->Contour(40, 0, 1);
@@ -792,47 +801,36 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               param->mkdir(TString::Format("Graph_%i", iterID));
               param->cd(TString::Format("Graph_%i", iterID));
 
-              /// beautification
-              DreamPlot::SetStyleHisto(currentHist, 24, kBlack);
               currentHist->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
-              DreamPlot::SetStyleHisto(SBmerge, 20, kRed + 2);
-              SBmerge->SetTitle(";#it{k}* (MeV/#it{c}); C_{sideband}(#it{k}*)");
-              DreamPlot::SetStyleHisto(sidebandHistLow, 26, kGreen + 2);
+              SBmerge->SetTitle(
+                  ";#it{k}* (MeV/#it{c}); C_{p#minus(#Lambda#gamma)}(#it{k}*)");
               sidebandHistLow->SetTitle(
                   ";#it{k}* (MeV/#it{c}); C_{sideband, low}(#it{k}*)");
-              DreamPlot::SetStyleHisto(sidebandHistUp, 26, kCyan + 2);
               sidebandHistUp->SetTitle(
                   ";#it{k}* (MeV/#it{c}); C_{sideband, up}(#it{k}*)");
-              sideband->SetLineWidth(2);
-              sideband->SetLineStyle(2);
-              sideband->SetLineColor(kGray + 1);
-              FitResult_pSigma0.SetLineWidth(2);
-              FitResult_pSigma0.SetLineColor(kRed + 2);
-              grCFSigmaSideband.SetLineWidth(2);
-              grCFSigmaSideband.SetLineStyle(2);
-              grCFSigmaSideband.SetLineColor(kGray + 1);
 
               if (fastPlot || iterID == 0) {
-                dataHist->Write();
-              }
-
-              grCFSigmaExtrapolate.Write();
-              grCFSigmaSidebandExtrapolate.Write();
-              grCFSigmaSideband.Write();
-              FitResult_pSigma0.Write(Form("Fit_%i", iterID));
-              currentHist->SetName(
-                  TString::Format("HistCF_Var_%i", int(systDataIter)));
-              currentHist->Write();
-
-              if (fastPlot || iterID == 0) {
-                grCFSigmaRaw.Write();
-                grCFSigmaMain.Write();
-                grCFSigmaFeed.Write();
-                grPrefitContour->Write("fitContour");
-                sideband->Write(Form("SidebandFitNotScaled_%i", iterID));
-                SBmerge->Write(Form("SidebandMerged_%i", iterID));
-                sidebandHistLow->Write("SidebandLow");
-                sidebandHistUp->Write("SidebandUp");
+                /// beautification
+                DreamPlot::SetStyleHisto(currentHist, 24, kBlack);
+                DreamPlot::SetStyleHisto(SBmerge, 20, kRed + 2);
+                DreamPlot::SetStyleHisto(sidebandHistLow, 26, kGreen + 2);
+                DreamPlot::SetStyleHisto(sidebandHistUp, 26, kCyan + 2);
+                currentHist->GetXaxis()->SetTitleSize(28);
+                currentHist->GetYaxis()->SetTitleSize(28);
+                SBmerge->GetXaxis()->SetTitleSize(28);
+                SBmerge->GetYaxis()->SetTitleSize(28);
+                sidebandHistLow->GetXaxis()->SetTitleSize(28);
+                sidebandHistLow->GetYaxis()->SetTitleSize(28);
+                sidebandHistUp->GetXaxis()->SetTitleSize(28);
+                sidebandHistUp->GetYaxis()->SetTitleSize(28);
+                sideband->SetLineWidth(2);
+                sideband->SetLineStyle(2);
+                sideband->SetLineColor(kGray + 1);
+                FitResult_pSigma0.SetLineWidth(2);
+                FitResult_pSigma0.SetLineColor(kRed + 2);
+                grCFSigmaSideband.SetLineWidth(2);
+                grCFSigmaSideband.SetLineStyle(2);
+                grCFSigmaSideband.SetLineColor(kGray + 1);
 
                 auto c = new TCanvas("DefaultFit", "DefaultFit");
                 currentHist->GetXaxis()->SetRangeUser(0., 350);
@@ -890,37 +888,81 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 }
 
                 auto d = new TCanvas("SidebandFit", "SidebandFit");
-                SBmerge->GetXaxis()->SetRangeUser(0., 350);
+                SBmerge->GetXaxis()->SetRangeUser(0, 600);
                 SBmerge->GetYaxis()->SetRangeUser(0.8, 1.6);
                 SBmerge->Draw();
                 sideband->Draw("l3same");
                 d->Write("CFsideband");
                 if (debugPlots) {
                   d->Print(Form("%s/CF_pSideband.pdf", OutputDir.Data()));
+
+                  auto e = new TCanvas("Sidebands", "Sidebands");
+                  SBmerge->Draw();
+                  sideband->Draw("l3same");
+                  sidebandHistLow->Draw("same");
+                  sidebandHistUp->Draw("same");
+                  auto leg = new TLegend(0.5, 0.6, 0.88, 0.85);
+                  leg->SetTextFont(42);
+                  leg->SetTextSize(0.05);
+                  leg->AddEntry(sidebandHistLow, "Sideband low", "pe");
+                  leg->AddEntry(sidebandHistUp, "Sideband up", "pe");
+                  leg->AddEntry(SBmerge, "Sideband merged", "pe");
+                  leg->AddEntry(sideband, "Fit", "l");
+                  leg->Draw("same");
+                  e->Write("CFsideband");
+                  e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
+                  delete e;
+
+                  auto f = new TCanvas("baseline");
+                  SBmerge->Draw();
+                  SBmerge->GetXaxis()->SetRangeUser(0, 600);
+                  SBmerge->GetYaxis()->SetTitle("C(#it{k}*)");
+                  currentHist->Draw("same");
+                  currentHist->GetXaxis()->SetRangeUser(0, 600);
+                  const int nBins = prefit_a_Default.size();
+                  TF1* baselines[nBins];
+                  for(int i=0; i< nBins; ++i) {
+                    baselines[i] = new TF1(Form("baseline_%i", i), "pol1", 0, 900);
+                    baselines[i]->SetParameter(0, prefit_a_Default[i]);
+                    baselines[i]->SetParameter(1, prefit_b_Default[i]);
+                    baselines[i]->SetLineColor(kGreen+2);
+                    baselines[i]->Draw("same");
+                  }
+                  auto leg2 = new TLegend(0.4, 0.68, 0.6, 0.85);
+                  leg2->SetTextFont(42);
+                  leg2->SetTextSize(0.05);
+                  leg2->AddEntry(currentHist, "p#minus#Sigma^{0}", "pe");
+                  leg2->AddEntry(SBmerge, "p#minus(#Lambda#gamma) sideband (unscaled)", "pe");
+                  leg2->AddEntry(baselines[0], "Baseline fits", "l");
+                  leg2->Draw("same");
+                  f->Write("baseline");
+                  f->Print(Form("%s/CF_baseline.pdf", OutputDir.Data()));
+                  delete f;
                 }
 
-                auto e = new TCanvas("Sidebands", "Sidebands");
-                SBmerge->Draw();
-                sideband->Draw("l3same");
-                sidebandHistLow->Draw("same");
-                sidebandHistUp->Draw("same");
-                auto leg = new TLegend(0.5, 0.6, 0.88, 0.85);
-                leg->SetTextFont(42);
-                leg->SetTextSize(0.05);
-                leg->AddEntry(sidebandHistLow, "Sideband low", "pe");
-                leg->AddEntry(sidebandHistUp, "Sideband up", "pe");
-                leg->AddEntry(SBmerge, "Sideband merged", "pe");
-                leg->AddEntry(sideband, "Fit", "l");
-                leg->Draw("same");
-                e->Write("CFsideband");
-                if (debugPlots) {
-                  e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
+                if (fastPlot || iterID == 0) {
+                  dataHist->Write();
                 }
+                grCFSigmaRaw.Write();
+                grCFSigmaMain.Write();
+                grCFSigmaFeed.Write();
+                grPrefitContour->Write("fitContour");
+                sideband->Write(Form("SidebandFitNotScaled_%i", iterID));
+                SBmerge->Write(Form("SidebandMerged_%i", iterID));
+                sidebandHistLow->Write("SidebandLow");
+                sidebandHistUp->Write("SidebandUp");
+
+                grCFSigmaExtrapolate.Write();
+                grCFSigmaSidebandExtrapolate.Write();
+                grCFSigmaSideband.Write();
+                FitResult_pSigma0.Write(Form("Fit_%i", iterID));
+                currentHist->SetName(
+                    TString::Format("HistCF_Var_%i", int(systDataIter)));
+                currentHist->Write();
 
                 delete c;
-                delete info;
                 delete d;
-                delete e;
+                delete info;
               }
 
               param->cd();
@@ -944,31 +986,32 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               ntBuffer[17] = sideband->GetParError(4);
               ntBuffer[18] = sideband->GetParameter(5);
               ntBuffer[19] = sideband->GetParError(5);
-              ntBuffer[20] = primaryContr;
-              ntBuffer[21] = sidebandContr;
-              ntBuffer[22] = sidebandNormDown[sbNormIter];
-              ntBuffer[23] = sidebandNormUp[sbNormIter];
-              ntBuffer[24] = chi2;
-              ntBuffer[25] = pval;
-              ntBuffer[26] = Chi2_pSigma0_250;
-              ntBuffer[27] = (float) EffNumBins_pSigma0_250;
-              ntBuffer[28] = Chi2_pSigma0_250 / double(EffNumBins_pSigma0_250);
-              ntBuffer[29] = pvalpSigma0_250;
-              ntBuffer[30] = nSigmapSigma0_250;
-              ntBuffer[31] = nSigmapSigma0_200;
-              ntBuffer[32] = nSigmapSigma0_150;
-              ntBuffer[33] = (float) isCFneg;
+              ntBuffer[20] = sigmaPurity;
+              ntBuffer[21] = primaryContr;
+              ntBuffer[22] = sidebandContr;
+              ntBuffer[23] = sidebandNormDown[sbNormIter];
+              ntBuffer[24] = sidebandNormUp[sbNormIter];
+              ntBuffer[25] = chi2;
+              ntBuffer[26] = pval;
+              ntBuffer[27] = Chi2_pSigma0_250;
+              ntBuffer[28] = (float) EffNumBins_pSigma0_250;
+              ntBuffer[29] = Chi2_pSigma0_250 / double(EffNumBins_pSigma0_250);
+              ntBuffer[30] = pvalpSigma0_250;
+              ntBuffer[31] = nSigmapSigma0_250;
+              ntBuffer[32] = nSigmapSigma0_200;
+              ntBuffer[33] = nSigmapSigma0_150;
+              ntBuffer[34] = (float) isCFneg;
               if (potential == 0) {
-                ntBuffer[34] = d0;
-                ntBuffer[35] = REf0inv;
-                ntBuffer[36] = IMf0inv;
+                ntBuffer[35] = d0;
+                ntBuffer[36] = REf0inv;
+                ntBuffer[37] = IMf0inv;
               } else if (potential == 1) {
-                ntBuffer[34] = deltap0;
-                ntBuffer[35] = deltap1;
-                ntBuffer[36] = deltap2;
-                ntBuffer[37] = etap0;
-                ntBuffer[38] = etap1;
-                ntBuffer[39] = etap2;
+                ntBuffer[35] = deltap0;
+                ntBuffer[36] = deltap1;
+                ntBuffer[37] = deltap2;
+                ntBuffer[38] = etap0;
+                ntBuffer[39] = etap1;
+                ntBuffer[40] = etap2;
               }
 
               ntResult->Fill(ntBuffer);
