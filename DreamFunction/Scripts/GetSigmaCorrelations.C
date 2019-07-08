@@ -8,7 +8,7 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
                           const char* suffixChar) {
   TString appendix = TString::Format("%s", trigger);
   TString suffix = TString::Format("%s", suffixChar);
-  const int nPairs = (suffix == "0") ? 12 : 8;
+  const int nPairs = (suffix == "0") ? 15 : 8;
   ReadDreamFile* DreamFile = new ReadDreamFile(nPairs, nPairs);
   DreamFile->SetAnalysisFile(filename, appendix.Data(), suffix.Data());
 
@@ -21,20 +21,28 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
   DreamPair* ApASigma = new DreamPair("AntiPart", 0.25, 0.4);
 
   DreamCF* CF_SidebandUp = new DreamCF();
-  DreamPair* pSiSBup = new DreamPair("Part_SB_up", 0.3, 0.5);
-  DreamPair* ApaSiSBup = new DreamPair("AntiPart_SB_up", 0.3, 0.5);
+  DreamPair* pSiSBup = new DreamPair("Part_SB_up", 0.25, 0.4);
+  DreamPair* ApaSiSBup = new DreamPair("AntiPart_SB_up", 0.25, 0.4);
 
   DreamCF* CF_SidebandLow = new DreamCF();
-  DreamPair* pSiSBlow = new DreamPair("Part_SB_low", 0.3, 0.5);
-  DreamPair* ApaSiSBlow = new DreamPair("AntiPart_SB_low", 0.3, 0.5);
+  DreamPair* pSiSBlow = new DreamPair("Part_SB_low", 0.25, 0.4);
+  DreamPair* ApaSiSBlow = new DreamPair("AntiPart_SB_low", 0.25, 0.4);
 
   DreamCF* CF_pSigmaLambda = new DreamCF();
-  DreamPair* pLambdaSigma = new DreamPair("PartDaughter", 0.24, 0.34);
-  DreamPair* ApALambdaSigma = new DreamPair("AntiPartDaughter", 0.24, 0.34);
+  DreamPair* pLambdaSigma = new DreamPair("PartDaughter", 0.25, 0.4);
+  DreamPair* ApALambdaSigma = new DreamPair("AntiPartDaughter", 0.25, 0.4);
 
   DreamCF* CF_pLambda = new DreamCF();
-  DreamPair* pLambda = new DreamPair("PartDaughter", 0.24, 0.34);
-  DreamPair* ApALambda = new DreamPair("AntiPartDaughter", 0.24, 0.34);
+  DreamPair* pLambda = new DreamPair("PartDaughter", 0.25, 0.4);
+  DreamPair* ApALambda = new DreamPair("AntiPartDaughter", 0.25, 0.4);
+
+  DreamCF* CF_pSigmaPhoton = new DreamCF();
+  DreamPair* pPhotonSigma = new DreamPair("PartDaughter", 0.25, 0.4);
+  DreamPair* ApPhotonSigma = new DreamPair("AntiPartDaughter", 0.25, 0.4);
+
+  DreamCF* CF_pPhoton= new DreamCF();
+  DreamPair* pPhoton = new DreamPair("PartDaughter", 0.25, 0.4);
+  DreamPair* ApPhoton= new DreamPair("AntiPartDaughter", 0.25, 0.4);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
@@ -57,6 +65,12 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
 
     pLambda->SetPair(DreamFile->GetPairDistributions(0, 10, ""));
     ApALambda->SetPair(DreamFile->GetPairDistributions(1, 11, ""));
+
+    pPhotonSigma->SetPair(DreamFile->GetPairDistributions(0, 12, ""));
+    ApPhotonSigma->SetPair(DreamFile->GetPairDistributions(1, 13, ""));
+
+    pPhoton->SetPair(DreamFile->GetPairDistributions(0, 14, ""));
+    ApPhoton->SetPair(DreamFile->GetPairDistributions(1, 14, ""));
   }
 
   std::cout << "=========================" << std::endl;
@@ -80,6 +94,12 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
 
     pLambda->ShiftForEmpty(pLambda->GetPair());
     ApALambda->ShiftForEmpty(ApALambda->GetPair());
+
+    pPhotonSigma->ShiftForEmpty(pPhotonSigma->GetPair());
+    ApPhotonSigma->ShiftForEmpty(ApPhotonSigma->GetPair());
+
+    pPhoton->ShiftForEmpty(pPhoton->GetPair());
+    ApPhoton->ShiftForEmpty(ApPhoton->GetPair());
   }
 
   std::cout << "=========================" << std::endl;
@@ -115,24 +135,35 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
 
   if (suffix == "0") {
     pLambdaSigma->FixShift(pLambdaSigma->GetPairShiftedEmpty(0),
-                           pLambdaSigma->GetPairShiftedEmpty(0),
                            ApALambdaSigma->GetPairShiftedEmpty(0),
-                           pLambdaSigma->GetFirstBin(),
                            ApALambdaSigma->GetFirstBin());
+
     ApALambdaSigma->FixShift(ApALambdaSigma->GetPairShiftedEmpty(0),
                              pLambdaSigma->GetPairShiftedEmpty(0),
-                             ApALambdaSigma->GetPairShiftedEmpty(0),
-                             pLambdaSigma->GetFirstBin(),
-                             ApALambdaSigma->GetFirstBin());
+                             pLambdaSigma->GetFirstBin());
 
     pLambda->FixShift(pLambda->GetPairShiftedEmpty(0),
-                      pLambda->GetPairShiftedEmpty(0),
-                      ApALambda->GetPairShiftedEmpty(0), pLambda->GetFirstBin(),
+                      ApALambda->GetPairShiftedEmpty(0),
                       ApALambda->GetFirstBin());
+
     ApALambda->FixShift(ApALambda->GetPairShiftedEmpty(0),
                         pLambda->GetPairShiftedEmpty(0),
-                        ApALambda->GetPairShiftedEmpty(0),
-                        pLambda->GetFirstBin(), ApALambda->GetFirstBin());
+                        pLambda->GetFirstBin());
+
+    pPhotonSigma->FixShift(pPhotonSigma->GetPairShiftedEmpty(0),
+                           ApPhotonSigma->GetPairShiftedEmpty(0),
+                           ApPhotonSigma->GetFirstBin());
+
+    ApPhotonSigma->FixShift(ApPhotonSigma->GetPairShiftedEmpty(0),
+                            pPhotonSigma->GetPairShiftedEmpty(0),
+                            pPhotonSigma->GetFirstBin());
+
+    pPhoton->FixShift(pPhoton->GetPairShiftedEmpty(0),
+                      ApPhoton->GetPairShiftedEmpty(0),
+                      ApPhoton->GetFirstBin());
+
+    ApPhoton->FixShift(ApPhoton->GetPairShiftedEmpty(0),
+                       pPhoton->GetPairShiftedEmpty(0), pPhoton->GetFirstBin());
   }
 
   std::cout << "=========================" << std::endl;
@@ -154,6 +185,10 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
       ApALambdaSigma->Rebin(ApALambdaSigma->GetPairFixShifted(0), rebin[iReb]);
       pLambda->Rebin(pLambda->GetPairFixShifted(0), rebin[iReb]);
       ApALambda->Rebin(ApALambda->GetPairFixShifted(0), rebin[iReb]);
+      pPhotonSigma->Rebin(pPhotonSigma->GetPairFixShifted(0), rebin[iReb]);
+      ApPhotonSigma->Rebin(ApPhotonSigma->GetPairFixShifted(0), rebin[iReb]);
+      pPhoton->Rebin(pPhoton->GetPairFixShifted(0), rebin[iReb]);
+      ApPhoton->Rebin(ApPhoton->GetPairFixShifted(0), rebin[iReb]);
     }
     std::cout << "==Weighting==" << std::endl;
     pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(iReb), 0.2, 0.9);
@@ -167,10 +202,14 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
                                        0.9);
       ApALambdaSigma->ReweightMixedEvent(ApALambdaSigma->GetPairRebinned(iReb),
                                          0.2, 0.9);
-      pLambda->ReweightMixedEvent(pLambda->GetPairRebinned(iReb), 0.2,
+      pLambda->ReweightMixedEvent(pLambda->GetPairRebinned(iReb), 0.2, 0.9);
+      ApALambda->ReweightMixedEvent(ApALambda->GetPairRebinned(iReb), 0.2, 0.9);
+      pPhotonSigma->ReweightMixedEvent(pPhotonSigma->GetPairRebinned(iReb), 0.2,
                                        0.9);
-      ApALambda->ReweightMixedEvent(ApALambda->GetPairRebinned(iReb),
-                                         0.2, 0.9);
+      ApPhotonSigma->ReweightMixedEvent(ApPhotonSigma->GetPairRebinned(iReb),
+                                        0.2, 0.9);
+      pPhoton->ReweightMixedEvent(pPhoton->GetPairRebinned(iReb), 0.2, 0.9);
+      ApPhoton->ReweightMixedEvent(ApPhoton->GetPairRebinned(iReb), 0.2, 0.9);
     }
   }
   pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
@@ -197,6 +236,15 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
     pLambda->Rebin(pLambda->GetPair(), 5);
     ApALambda->Rebin(ApALambda->GetPair(), 4);
     ApALambda->Rebin(ApALambda->GetPair(), 5);
+
+    pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 4);
+    pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 5);
+    ApPhotonSigma->Rebin(ApPhotonSigma->GetPair(), 4);
+    ApPhotonSigma->Rebin(ApPhotonSigma->GetPair(), 5);
+    pPhoton->Rebin(pPhoton->GetPair(), 4);
+    pPhoton->Rebin(pPhoton->GetPair(), 5);
+    ApPhoton->Rebin(ApPhoton->GetPair(), 4);
+    ApPhoton->Rebin(ApPhoton->GetPair(), 5);
   }
 
   std::cout << "=========================" << std::endl;
@@ -241,5 +289,15 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
     CF_pLambda->GetCorrelations();
     CF_pLambda->WriteOutput(
         Form("%s/CFOutput_pLambda.root", foldername.Data()));
+
+    CF_pSigmaPhoton->SetPairs(pPhotonSigma, ApPhotonSigma);
+    CF_pSigmaPhoton->GetCorrelations();
+    CF_pSigmaPhoton->WriteOutput(
+        Form("%s/CFOutput_pPhotonSigma.root", foldername.Data()));
+
+    CF_pPhoton->SetPairs(pPhoton, ApPhoton);
+    CF_pPhoton->GetCorrelations();
+    CF_pPhoton->WriteOutput(
+        Form("%s/CFOutput_pPhoton.root", foldername.Data()));
   }
 }
