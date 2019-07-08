@@ -285,7 +285,7 @@ int main(int argc, char *argv[]) {
   const CATSLambdaParam lambdaParam(proton, lambda);
 
   // Lambda parameters and momentum resolution
-  DLM_CkDecomposition CkDec_pL("pL", 0, *Ck_pL, CATSinput->GetSigmaFile(1));
+  DLM_CkDecomposition CkDec_pL("pL", 1, *Ck_pL, CATSinput->GetSigmaFile(1));
   CkDec_pL.AddContribution(
       0, 1. - lambdaParam.GetLambdaParam(CATSLambdaParam::Primary),
       DLM_CkDecomposition::cFake);
@@ -302,6 +302,16 @@ int main(int argc, char *argv[]) {
   }
 
   auto grSidebandSmeared = GetSmearedCF(grSideband, histSmear);
+
+  // check with inverted axes
+  auto histSmearInv = (TH2F*)histSmear->Clone("histSmearInv");
+  for (int i = 0; i<histSmear->GetNbinsX(); ++i) {
+    for (int j = 0; j<histSmear->GetNbinsY(); ++j) {
+      histSmearInv->SetBinContent(j, i, histSmear->GetBinContent(i, j));
+    }
+  }
+  auto grSidebandSmearedInv = GetSmearedCF(grSideband, histSmearInv);
+
 
 //  auto c = new TCanvas();
 //  SBmerge->Draw();
@@ -320,6 +330,7 @@ int main(int argc, char *argv[]) {
   grSidebandRaw->Write("p-Lambda raw");
   grSideband->Write("p-Lambda smeared");
   grSidebandSmeared->Write("p-Lambda smeared with Photon");
+  grSidebandSmearedInv->Write("p-Lambda ing");
   SBmerge->Write();
   CATSinput->GetSigmaFile(1)->Write();
 
