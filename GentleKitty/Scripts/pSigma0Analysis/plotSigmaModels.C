@@ -707,7 +707,7 @@ int main(int argc, char* argv[]) {
   grTotalESC16->SetLineColor(kGreen + 2);
   grTotalHaidenbauer->SetLineColor(kAzure);
   grTotalLednicky->SetLineColor(kRed + 1 );
-  grTotalNSC97f->SetLineColor(kOrange + 2 );
+  grTotalNSC97f->SetLineColor(kCyan + 3);
   grTotalESC16->Draw("AL");
   grTotalESC16->GetXaxis()->SetRangeUser(0, kmax);
   grTotalESC16->GetYaxis()->SetRangeUser(0.6, 2.25);
@@ -733,7 +733,7 @@ int main(int argc, char* argv[]) {
   grpLambdaHaidenbauer->Draw("Lsame");
   grnSPlusHaidenbauer->Draw("Lsame");
   grpS0pLHaidenbauer->Draw("Lsame");
-  grTotalHaidenbauer->SetLineColor(kRed + 1 );
+  grTotalHaidenbauer->SetLineColor(kRed + 1);
   grTotalHaidenbauer->Draw("lsame");
   grpS0nSplusHaidenbauer->Draw("Lsame");
   auto leg5 = new TLegend(0.65, 0.44, 0.5, 0.84);
