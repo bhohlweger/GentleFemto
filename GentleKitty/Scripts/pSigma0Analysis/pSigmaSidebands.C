@@ -3,7 +3,7 @@
 #include "SidebandSigma.h"
 #include "CATSInputSigma0.h"
 #include "CATSLambdaParam.h"
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TCanvas.h"
 #include "DLM_Source.h"
 #include "DLM_Potentials.h"
@@ -16,6 +16,8 @@
 #include "TLorentzVector.h"
 #include "TNtuple.h"
 #include "TSystem.h"
+#include "TRandom3.h"
+#include "TGenPhaseSpace.h"
 
 float GetkStar(const TLorentzVector &Part1Momentum,
                const TLorentzVector &Part2Momentum) {
@@ -47,15 +49,15 @@ float GetkStar(const TLorentzVector &Part1Momentum,
   return results * 1000.;  // in MeV
 }
 
-TH2F* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
+TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
                             TString &suffix, int nParticles) {
   auto file = TFile::Open(Form("%s/AnalysisResults.root", InputDir.Data()));
   auto filename = TString::Format("%s/SmearSideband.root", InputDir.Data());
 
   if (TFile::Open(filename)) {
     std::cout << "Using smearing matrix from existing file\n";
-    auto outfile = TFile::Open( filename);
-    auto histSmear = (TH2F*) outfile->Get("histSmear");
+    auto outfile = TFile::Open(filename);
+    auto histSmear = (TH2D*) outfile->Get("histSmear");
     outfile->Close();
     return histSmear;
   } else {
@@ -69,9 +71,9 @@ TH2F* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
     TDirectory *protonDir = file->GetDirectory(protonName);
     auto protonList = (TList *) protonDir->Get(protonName);
     protonList = (TList *) protonList->FindObject("after");
-    auto protonpT = (TH1F*) protonList->FindObject("pTDist_after");
-    auto protoneta = (TH1F*) protonList->FindObject("EtaDist_after");
-    auto protonphi = (TH1F*) protonList->FindObject("phiDist_after");
+    auto protonpT = (TH1D*) protonList->FindObject("pTDist_after");
+    auto protoneta = (TH1D*) protonList->FindObject("EtaDist_after");
+    auto protonphi = (TH1D*) protonList->FindObject("phiDist_after");
     auto protonMass = TDatabasePDG::Instance()->GetParticle(2212)->Mass();
     outfile->cd();
     protonpT->Write("protonpT");
@@ -86,9 +88,9 @@ TH2F* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
     auto lambdaList = (TList *) lambdaDir->Get(lambdaName);
     lambdaList = (TList *) lambdaList->FindObject("v0Cuts");
     lambdaList = (TList *) lambdaList->FindObject("after");
-    auto lambdapT = (TH1F*) lambdaList->FindObject("pTDist_after");
-    auto lambdaeta = (TH1F*) lambdaList->FindObject("EtaDist_after");
-    auto lambdaphi = (TH1F*) lambdaList->FindObject("PhiDist_after");
+    auto lambdapT = (TH1D*) lambdaList->FindObject("pTDist_after");
+    auto lambdaeta = (TH1D*) lambdaList->FindObject("EtaDist_after");
+    auto lambdaphi = (TH1D*) lambdaList->FindObject("PhiDist_after");
     auto lambdaMass = TDatabasePDG::Instance()->GetParticle(3122)->Mass();
     outfile->cd();
     lambdapT->Write("lambdapT");
@@ -101,40 +103,75 @@ TH2F* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
     photonName += suffix;
     TDirectory *photonDir = file->GetDirectory(photonName);
     auto photonList = (TList *) photonDir->Get(photonName);
-    auto photonpT = (TH1F*) photonList->FindObject("fHistV0Pt");
-    auto photonetaphi = (TH2F*) photonList->FindObject("fHistEtaPhi");
-    auto photoneta = (TH1F*) photonetaphi->ProjectionX();
-    auto photonphi = (TH1F*) photonetaphi->ProjectionY();
+    auto photonpT = (TH1D*) photonList->FindObject("fHistV0Pt");
+    auto photonetaphi = (TH2D*) photonList->FindObject("fHistEtaPhi");
+    auto photoneta = (TH1D*) photonetaphi->ProjectionX();
+    auto photonphi = (TH1D*) photonetaphi->ProjectionY();
     outfile->cd();
     photonpT->Write("photonpT");
     photoneta->Write("photonEta");
     photonphi->Write("photonPhi");
 
+    TLorentzVector trueSigmaPart;
     TString sigmaName = trigger;
     sigmaName += "Sigma0Cuts";
     sigmaName += suffix;
     TDirectory *sigmaDir = file->GetDirectory(sigmaName);
     auto sigmaList = (TList *) sigmaDir->Get(sigmaName);
-    auto sigmaMassRec = (TH1F*) sigmaList->FindObject("fHistInvMass");
+    auto sigmaMassRec = (TH1D*) sigmaList->FindObject("fHistInvMass");
+    auto sigmapT = (TH1D*) sigmaList->FindObject("fHistMassCutPt");
+    auto sigmaetaphi = (TH2D*) sigmaList->FindObject("fHistEtaPhi");
+    auto sigmaeta = (TH1D*) sigmaetaphi->ProjectionX();
+    auto sigmaphi = (TH1D*) sigmaetaphi->ProjectionY();
     sigmaMassRec->Write("sigmaMassRec");
     float entries = sigmaMassRec->Integral(sigmaMassRec->FindBin(1.2),
                                            sigmaMassRec->FindBin(1.25));
     auto sigmaMass = TDatabasePDG::Instance()->GetParticle(3212)->Mass();
+    const float purity = 0.346;
 
     TLorentzVector sigmaPart;
-    auto histSigma = new TH1F("histSigma", "", 1000, 1, 2);
+    auto histSigma = new TH1D("histSigma", "", 1000, 1, 2);
+    auto histSigmaSigma = new TH1D("histSigmaSigma", "", 1000, 1, 2);
     auto histSmear =
-        new TH2F(
+        new TH2D(
             "histSmear",
             "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
             500, 0, 1000, 500, 0, 1000);
+
+    auto histSmearSigma =
+        new TH2D(
+            "histSmearSigma",
+            "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
+            500, 0, 1000, 500, 0, 1000);
+
+    auto histSmearFull100 =
+        new TH2D(
+            "histSmearFull100",
+            "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
+            500, 0, 1000, 500, 0, 1000);
+
+    auto histSmearFull200 =
+        new TH2D(
+            "histSmearFull200",
+            "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
+            500, 0, 1000, 500, 0, 1000);
+
+    auto histSmearFull =
+        new TH2D(
+            "histSmearFull",
+            "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
+            500, 0, 1000, 500, 0, 1000);
+
     auto relMom = new TNtuple("relMom", "relMom", "pSigma:pLambda:pPhoton");
 
     float counter = 0;
     int modulo = (nParticles > 10000) ? nParticles / 10000 : 1;
     int i = 0;
-    float kstarpSigma, kstarpLambda;
+    float kstarpSigma, kstarpLambda, kstarpSigmaSigma, kstarpLambdaSigma;
     float nCount = nParticles;
+    TGenPhaseSpace eventSigma0;
+    TLorentzVector lambdaSigmaDecay;
+    double sigmaDecay[2] = { lambdaMass, 0.};
     while (i < nParticles) {
       protonPart.SetPtEtaPhiM(protonpT->GetRandom(), protoneta->GetRandom(),
                               protonphi->GetRandom(), protonMass);
@@ -144,32 +181,69 @@ TH2F* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
                               photonphi->GetRandom(), 0);
       sigmaPart = photonPart + lambdaPart;
       histSigma->Fill(sigmaPart.M());
+      histSigmaSigma->Fill(sigmaPart.M());
+
+      kstarpSigma = GetkStar(protonPart, sigmaPart);
+      kstarpLambda = GetkStar(protonPart, lambdaPart);
+      histSmearFull->Fill(kstarpSigma, kstarpLambda);
+
+      if (std::abs(sigmaPart.M() - sigmaMass) < 0.01) {
+        histSmearFull100->Fill(kstarpSigma, kstarpLambda);
+      }
+      if (std::abs(sigmaPart.M() - sigmaMass) < 0.02) {
+        histSmearFull200->Fill(kstarpSigma, kstarpLambda);
+      }
+
       if (std::abs(sigmaPart.M() - sigmaMass) > 0.005) {
         continue;
       }
 
-      kstarpSigma = GetkStar(protonPart, sigmaPart);
-      kstarpLambda = GetkStar(protonPart, lambdaPart);
+      // let's add a true sigma
+      if (gRandom->Uniform() < purity) {
+        trueSigmaPart.SetPtEtaPhiM(sigmapT->GetRandom(), sigmaeta->GetRandom(),
+                                   sigmaphi->GetRandom(),
+                                   gRandom->Gaus(sigmaMass, 0.0015));
+        histSigmaSigma->Fill(trueSigmaPart.M());
+
+        eventSigma0.SetDecay(trueSigmaPart, 2, sigmaDecay);
+        eventSigma0.Generate();
+        lambdaSigmaDecay = *(eventSigma0.GetDecay(0));
+        kstarpSigmaSigma = GetkStar(protonPart, trueSigmaPart);
+        kstarpLambdaSigma = GetkStar(protonPart, lambdaSigmaDecay);
+        histSmearSigma->Fill(kstarpSigmaSigma, kstarpLambdaSigma);
+      }
 
       relMom->Fill(kstarpSigma, kstarpLambda, GetkStar(protonPart, photonPart));
       histSmear->Fill(kstarpSigma, kstarpLambda);
+      histSmearSigma->Fill(kstarpSigma, kstarpLambda);
       ++i;
       if ((i % 100) == 0)
         std::cout << "\r " << 100. / nCount * i << "%";
     }
+
     histSigma->Scale(
         entries
             / histSigma->Integral(histSigma->FindBin(1.2),
                                   histSigma->FindBin(1.25)));
+
+    histSigmaSigma->Scale(
+        entries
+            / histSigmaSigma->Integral(histSigmaSigma->FindBin(1.2),
+                                       histSigmaSigma->FindBin(1.25)));
     histSigma->Write();
+    histSigmaSigma->Write();
     histSmear->Write();
+    histSmearSigma->Write();
+    histSmearFull100->Write();
+    histSmearFull200->Write();
+    histSmearFull->Write();
     relMom->Write();
     outfile->Close();
     return histSmear;
   }
 }
 
-TGraph *GetSmearedCF(TGraph* CF, TH2F* matrix) {
+TGraph *GetSmearedCF(TGraph* CF, TH2D* matrix) {
   //Define new Histogram which have dimension according to the yaxis (new momentum axis):
   const int nbins_original = matrix->GetXaxis()->GetNbins();
   const Int_t nbins_transformed = matrix->GetYaxis()->GetNbins();
@@ -304,14 +378,13 @@ int main(int argc, char *argv[]) {
   auto grSidebandSmeared = GetSmearedCF(grSideband, histSmear);
 
   // check with inverted axes
-  auto histSmearInv = (TH2F*)histSmear->Clone("histSmearInv");
-  for (int i = 0; i<histSmear->GetNbinsX(); ++i) {
-    for (int j = 0; j<histSmear->GetNbinsY(); ++j) {
+  auto histSmearInv = (TH2D*) histSmear->Clone("histSmearInv");
+  for (int i = 0; i < histSmear->GetNbinsX(); ++i) {
+    for (int j = 0; j < histSmear->GetNbinsY(); ++j) {
       histSmearInv->SetBinContent(j, i, histSmear->GetBinContent(i, j));
     }
   }
   auto grSidebandSmearedInv = GetSmearedCF(grSideband, histSmearInv);
-
 
 //  auto c = new TCanvas();
 //  SBmerge->Draw();
