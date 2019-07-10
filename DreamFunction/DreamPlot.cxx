@@ -15,6 +15,7 @@ DreamPlot::DreamPlot()
       fLambdaLambda(nullptr),
       fProtonXi(nullptr),
       fProtonSigma(nullptr),
+      fProtonSigmaSideband(nullptr),
       fRadius(0),
       fRadiusStat(0),
       fRadiusSysUp(0),
@@ -27,6 +28,7 @@ DreamPlot::DreamPlot()
   fLambdaLambda = new DreamData("LambdaLambda");
   fProtonXi = new DreamData("ProtonXi");
   fProtonSigma = new DreamData("ProtonSigma0");
+  fProtonSigmaSideband = new DreamData("ProtonSigma0Sidebands");
 }
 
 DreamPlot::~DreamPlot() {
@@ -121,6 +123,20 @@ void DreamPlot::ReadDataSigma(const char* PathToDataFolder,
   fProtonSigma->SetSystematics(
       (TF1*) CFFile_Sys->Get("SystError"),
       fProtonSigma->GetCorrelationFunction()->GetBinWidth(1) / 6.f);
+}
+
+void DreamPlot::ReadSidebandSigma(const char* PathToFitFolder,
+                                  const char* PathToSysFolder) {
+  auto fitFile = TFile::Open(Form("%s/Param_pSigma0_2.root", PathToFitFolder));
+  auto histSideband = (TH1F*) fitFile->Get("SidebandMerged_0");
+  histSideband->SetName(Form("%sMeV", histSideband->GetName()));
+  fProtonSigmaSideband->SetCorrelationFunction(histSideband);
+
+  auto CFFile_Sys = TFile::Open(
+      Form("%s/SystematicsSidebands_pSigma0.root", PathToSysFolder));
+  fProtonSigmaSideband->SetSystematics(
+      (TF1*) CFFile_Sys->Get("SystError"),
+      fProtonSigmaSideband->GetCorrelationFunction()->GetBinWidth(1) / 6.f);
 }
 
 void DreamPlot::ReadSimulation(const char* PathToSimFolder, int binWidth) {
@@ -326,17 +342,22 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
   if (NSC97fFile) {
     auto NSC97fband = (TGraphErrors*) NSC97fFile->Get("CF_fit");
     auto sideband = (TGraphErrors*) NSC97fFile->Get("CF_sidebands");
+    auto sidebandUnscaled = (TGraphErrors*) NSC97fFile->Get("CF_genuineSidebands");
     if (!NSC97fband) {
       std::cout << "No NSC97f \n";
     } else if (!sideband) {
       std::cout << "No sideband \n";
+    } else if (!sidebandUnscaled) {
+      std::cout << "No sideband (unscaled) \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange + 2, 0, 0, 3315,
+      TColor myColor;
+      fProtonSigma->FemtoModelFitBands(NSC97fband, myColor.GetColor(178,223,138), 0, 0, 3315,
                                        true, false);
       fProtonSigma->FemtoModelFitBands(sideband, kGray + 2, 0.5, true);
+      fProtonSigmaSideband->FemtoModelFitBands(sidebandUnscaled, kGray + 2, 0.5, true);
     }
   } else {
-    std::cout << "No NSC97f file!  \n";
+    std::cout << "No NSC97f file! \n";
   }
 
   return;
@@ -517,24 +538,42 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   c->SetRightMargin(right);
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName(
-      "p#minus #Sigma^{0} #oplus #bar{p}#minus #bar{#Sigma^{0}}", "fpe");
-  fProtonSigma->SetLegendName("fss2 (Lednicky)", "fl");
+      "p#minus#kern[-0.65]{ }#Sigma^{0} #oplus #bar{p}#minus#kern[-0.65]{ }#bar{#Sigma^{0}}", "fpe");
+  fProtonSigma->SetLegendName("fss2 (Lednick#acute{y})", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
   fProtonSigma->SetLegendName("ESC16", "fl");
   fProtonSigma->SetLegendName("NSC97f", "fl");
-  fProtonSigma->SetLegendName("p#minus (#Lambda#gamma) background", "l");
-  fProtonSigma->SetRangePlotting(0, 360, 0.925, 1.6);
+  fProtonSigma->SetLegendName("p#minus#kern[-0.65]{ }(#Lambda#gamma) background", "l");
+  fProtonSigma->SetRangePlotting(0, 360, 0.9, 1.7);
   fProtonSigma->SetNDivisions(505);
-  const float leftX = 0.505;
-  const float upperY = 0.755;
+  const float leftX = 0.485;
+  const float upperY = 0.815;
   fProtonSigma->SetLegendCoordinates(
-      leftX, upperY - 0.08 * fProtonSigma->GetNumberOfModels(), 0.7, upperY);
+      leftX, upperY - 0.075 * (fProtonSigma->GetNumberOfModels() + 1), 0.7, upperY);
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
   fProtonSigma->DrawCorrelationPlot(c, 13, kBlue + 3, 0.9);
-  DrawSystemInfo(c, false, leftX + 0.01, 2);
+  DrawSystemInfo(c, false, leftX + 0.01, 0);
   c->cd();
-  c->SaveAs(Form("%s/CF_pSigma_prelim.pdf", fitPath));
+  c->SaveAs(Form("%s/CF_pSigma.pdf", fitPath));
+
+  auto d = new TCanvas("CFpSigmaSideband", "CFpSigmaSideband", 0, 0, 650, 550);
+  d->SetRightMargin(right);
+  d->SetTopMargin(top);
+  fProtonSigmaSideband->SetLegendName(
+      "p#minus#kern[-0.65]{ }(#Lambda#gamma) #oplus #bar{p}#minus#kern[-0.65]{ }(#bar{#Lambda}#gamma)", "fpe");
+  fProtonSigmaSideband->SetLegendName("Parametrization", "l");
+  fProtonSigmaSideband->SetRangePlotting(0, 360, 0.9, 1.7);
+  fProtonSigmaSideband->SetNDivisions(505);
+  fProtonSigmaSideband->SetLegendCoordinates(
+      leftX, upperY - 0.075 * (fProtonSigmaSideband->GetNumberOfModels() + 1), 0.7, upperY);
+  // Necessary fix to get the right unit on the axes
+  fProtonSigmaSideband->SetUnitConversionData(2);
+  fProtonSigmaSideband->DrawCorrelationPlot(d, 13, kBlue + 3, 0.9);
+  DrawSystemInfo(d, false, leftX + 0.01, 0);
+  d->cd();
+  d->SaveAs(Form("%s/CF_pSigma_sideband.pdf", fitPath));
+
 }
 
 void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin,
@@ -575,6 +614,11 @@ void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin,
       BeamText.DrawLatex(
           xMin,
           0.78, "High Mult. (0-0.072% INEL)");
+    } else if (isPreliminary ==0 && !plotRadius) {
+      BeamText.SetTextSize(gStyle->GetTextSize() * .9);
+            BeamText.DrawLatex(xMin, 0.9, Form("ALICE %s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));      BeamText.DrawLatex(
+                xMin,
+                0.84, "High Mult. (0#kern[-0.65]{ }-#kern[-0.65]{ }0.072#kern[-0.4]{ }% INEL)");
     } else {
       BeamText.DrawLatex(
           xMin,

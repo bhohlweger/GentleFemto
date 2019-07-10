@@ -47,6 +47,10 @@ class ForgivingFitter {
                            const char* part);
   void FitInvariantMassSigma(TH1F* histo, float massCuts,
                              int lineColor = kBlue + 4);
+  TF1* GetBackgroundFunction() const { return fContinousBackGround; }
+  TF1* GetSingleGaussian() const { return fSingleGaussian; }
+  TF1* GetDoubleGaussian() const { return fDoubleGaussian; }
+  TF1* GetFullFitFunction() const { return fFullFitFnct; }
  private:
   void CreateBackgroundFunction();
   void CreateContinousBackgroundFunction();

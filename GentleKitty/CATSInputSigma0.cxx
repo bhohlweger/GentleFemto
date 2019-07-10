@@ -203,13 +203,19 @@ void CATSInputSigma0::CountPairs(const char* path, const char* trigger,
     delete pTAntiProton;
   }
 
+  float averagePtLowKstarSigma0 = 0;
   auto ptList = reader->GetOtherCuts("ResultQA");
   auto pSiList = (TList*)ptList->FindObject("QA_Particle0_Particle2");
   auto pbarSibarList = (TList*)ptList->FindObject("QA_Particle1_Particle3");
-  auto pSiptHist = (TH2F*)pSiList->FindObject("PtQA_Particle0_Particle2");
-  pSiptHist->Add((TH2F*)pbarSibarList->FindObject("PtQA_Particle1_Particle3"));
-  const float averagePtLowKstarSigma0 = pSiptHist->GetMean(2);
-  Warning("CATSInputSigma0", "Average pT at low kstar - p: %.2f - Sigma0 : %.2f", pSiptHist->GetMean(1), pSiptHist->GetMean(2));
+  if (pSiList && pbarSibarList) {
+    auto pSiptHist = (TH2F*) pSiList->FindObject("PtQA_Particle0_Particle2");
+    pSiptHist->Add(
+        (TH2F*) pbarSibarList->FindObject("PtQA_Particle1_Particle3"));
+    averagePtLowKstarSigma0 = pSiptHist->GetMean(2);
+    Warning("CATSInputSigma0",
+            "Average pT at low kstar - p: %.2f - Sigma0 : %.2f",
+            pSiptHist->GetMean(1), pSiptHist->GetMean(2));
+  }
 
   DecayQA* sigma0QA = new DecayQA("#Sigma", "#Lambda#gamma");
   sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));

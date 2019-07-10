@@ -330,7 +330,7 @@ void DreamSystematics::ComputeUncertainty() {
 
     fCutTuple->Draw(
         Form("cf >> h%i%i", int(kstar), uniqueID),
-        Form("std::abs(kstar - %.3f) < %.3f", kstar, 0.01 * binwidth));
+        Form("TMath::Abs(kstar - %.3f) < %.3f", kstar, 0.01 * binwidth));
     TH1D *hist = (TH1D*) gROOT->FindObject(Form("h%i%i", int(kstar), uniqueID));
 
     double sysErr;

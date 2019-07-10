@@ -148,6 +148,8 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lin
   fContinousBackGround->SetParameter(1, fBackGround->GetParameter(1));
   fContinousBackGround->SetParameter(2, fBackGround->GetParameter(2));
   fContinousBackGround->SetParameter(3, fBackGround->GetParameter(3));
+  fContinousBackGround->SetLineStyle(2);
+  fContinousBackGround->SetLineColor(kGreen + 2);
   TH1F *signalOnly = getSignalHisto(fContinousBackGround, histo,
                                     fBkgRangeMin * 0.8, fBkgRangeMax * 1.2,
                                     Form("%s_signal_only", histo->GetName()));
@@ -169,7 +171,6 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lin
   fFullFitFnct = new TF1("fFullFitFnct", "fBackground2 + fSignalSingleGauss",
                          fBkgRangeMin * 0.5, fBkgRangeMax * 2);
   fFullFitFnct->SetLineColor(lineColor);
-  fFullFitFnct->SetLineStyle(2);
   fFullFitFnct->SetNpx(1000);
   fFullFitFnct->FixParameter(0, fBackGround->GetParameter(0));
   fFullFitFnct->FixParameter(1, fBackGround->GetParameter(1));
@@ -192,12 +193,10 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lin
   const double rangeMax = fMeanMass + massCuts;
 
   // Get refitted Background function
-  auto background = new TF1("fBackground_refit", "pol3", fBkgRangeMin * 0.5,
-                            fBkgRangeMax * 2);
-  background->SetParameter(0, fFullFitFnct->GetParameter(0));
-  background->SetParameter(1, fFullFitFnct->GetParameter(1));
-  background->SetParameter(2, fFullFitFnct->GetParameter(2));
-  background->SetParameter(3, fFullFitFnct->GetParameter(3));
+  fContinousBackGround->SetParameter(0, fFullFitFnct->GetParameter(0));
+  fContinousBackGround->SetParameter(1, fFullFitFnct->GetParameter(1));
+  fContinousBackGround->SetParameter(2, fFullFitFnct->GetParameter(2));
+  fContinousBackGround->SetParameter(3, fFullFitFnct->GetParameter(3));
 
   auto signal = new TF1("fSignal", "gaus(0)", fBkgRangeMin * 0.5,
                         fBkgRangeMax * 2);
@@ -208,7 +207,7 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lin
   fSignalCounts = signal->Integral(rangeMin, rangeMax)
       / double(histo->GetBinWidth(1));
 
-  fBackgroundCounts = background->Integral(rangeMin, rangeMax)
+  fBackgroundCounts = fContinousBackGround->Integral(rangeMin, rangeMax)
       / double(histo->GetBinWidth(1));
 
   fSignalCountsErr = signal->IntegralError(
@@ -216,7 +215,7 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lin
       fullFit->GetCovarianceMatrix().GetMatrixArray())
       / double(histo->GetBinWidth(1));
 
-  fBackgroundCountsErr = background->IntegralError(
+  fBackgroundCountsErr = fContinousBackGround->IntegralError(
       rangeMin, rangeMax, fullFit->GetParams(),
       fullFit->GetCovarianceMatrix().GetMatrixArray())
       / double(histo->GetBinWidth(1));

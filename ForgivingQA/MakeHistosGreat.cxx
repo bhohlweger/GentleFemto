@@ -10,6 +10,7 @@
 #include "TStyle.h"
 #include "TGaxis.h"
 #include "TLatex.h"
+#include "TLegend.h"
 std::vector<int> fFillColors = { kGray + 1, kRed - 10, kBlue - 9, kGreen - 8,
     kMagenta - 9, kOrange - 9, kCyan - 8, kYellow - 7 };
 std::vector<int> fColors = { kBlack, kRed + 1, kBlue + 2, kGreen + 3, kMagenta
@@ -275,6 +276,46 @@ void MakeHistosGreat::DrawPerformance(ForgivingFitter* fit, TPad* pad,
   Label.DrawLatex(
       xPos, yPos - offset * counter++,
       Form("Purity = %.1f %%", signal / (signal + background) * 100.f));
+}
+
+void MakeHistosGreat::DrawPublication(ForgivingFitter* fit, TPad* pad,
+                                      const char* part, float xPos, float yPos,
+                                      float pTmin, float pTmax) {
+  TH1F* hist = nullptr;
+  if(pad->GetListOfPrimitives()->At(0)) {
+    hist = (TH1F*)pad->GetListOfPrimitives()->At(0);
+  }
+
+  TString partString = TString::Format("%s", part);
+  float signal = (float) fit->GetSignalCounts();
+  float background = (float) fit->GetBackgroundCounts();
+  pad->cd();
+  const float offset = 0.065;
+  float counter = 0;
+  TLatex Label;
+  Label.SetNDC(kTRUE);
+  Label.SetTextSize(gStyle->GetTextSize() * 0.9);
+  Label.DrawLatex(xPos, yPos - offset * counter++, "ALICE pp #sqrt{s} = 13 TeV");
+  Label.DrawLatex(xPos, yPos - offset * counter++, "High Mult. (0#kern[-0.65]{ }-#kern[-0.65]{ }0.072#kern[-0.4]{ }% INEL)");
+  if (pTmin > 0 && pTmax > 0) {
+    Label.DrawLatex(xPos, yPos - offset * counter++,
+                    Form("%.1f < #it{p}_{T} < %.1f GeV/#it{c}", pTmin, pTmax));
+  }
+  if(partString == TString("#Sigma^{0} + #bar{#Sigma^{0}}")) {
+    Label.DrawLatex(xPos, yPos - offset * counter++, "#Sigma^{0} #rightarrow #Lambda#gamma, #bar{#Sigma^{0}} #rightarrow #bar{#Lambda}#gamma");
+  } else if(partString == TString("#bar{#Sigma^{0}}")) {
+    Label.DrawLatex(xPos, yPos - offset * counter++, "#bar{#Sigma^{0}} #rightarrow #bar{#Lambda}#gamma");
+  } else if(partString == TString("#Sigma^{0}")) {
+    Label.DrawLatex(xPos, yPos - offset * counter++, "#Sigma^{0} #rightarrow #Lambda#gamma");
+  }
+  auto leg = new TLegend(xPos - 0.005, yPos - offset * (counter - 0.75), xPos + 0.2, yPos - offset * (counter + 2));
+  leg->SetBorderSize(0);
+  leg->SetTextFont(42);
+  leg->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg->AddEntry(hist, "Data (stat. uncert.)", "PE");
+  leg->AddEntry(fit->GetFullFitFunction(), "Signal fit", "l");
+  leg->AddEntry(fit->GetBackgroundFunction(), "Background fit", "l");
+  leg->Draw("same");
 }
 
 void MakeHistosGreat::DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax, int color) {

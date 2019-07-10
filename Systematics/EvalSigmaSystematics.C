@@ -1,6 +1,7 @@
 #include "CATSInputSigma0.h"
 #include "DreamPlot.h"
 #include "DreamSystematics.h"
+#include "SidebandSigma.h"
 #include "TCanvas.h"
 #include <iostream>
 
@@ -16,12 +17,18 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
   TString dataHistSigmaName = "hCk_ReweightedpSigma0MeV_0";
   TString dataHistSBName = "hCk_ReweightedpSigmaSBUpMeV_0";
   auto dataHistSigma = CATSinput->GetCF("pSigma0", dataHistSigmaName.Data());
-  auto dataHistSB = CATSinput->GetCF("pSigmaSBUp", dataHistSBName.Data());
   const unsigned int pairCountsDefault = CATSinput->GetFemtoPairs(0, 0.2,
                                                                   "pSigma0");
   const int nProtonDefault = CATSinput->GetNProtonTotal();
   const int nSigmaDefault = CATSinput->GetNSigma0();
   const float puritySigmaDefault = CATSinput->GetSigma0Purity();
+
+  auto side = new SidebandSigma();
+  side->SetRebin(rebin * 10);
+  side->SetSideBandFile(InputDir.Data(), trigger.Data(), "0");
+  side->SetNormalizationRange(250, 400);
+  side->SideBandCFs();
+  auto dataHistSB = side->GetSideBands(5);
 
   DreamSystematics protonsigma(DreamSystematics::pSigma0);
   protonsigma.SetDefaultHist(dataHistSigma);
@@ -52,9 +59,16 @@ void SigmaEvalSystematics(TString InputDir, TString trigger) {
     protonsigma.SetPurity(0, puritySigmaDefault, 0,
                           CATSinputVar->GetSigma0Purity());
 
-    protonSB.SetVarHist(
-        CATSinputVar->GetCF("pSigmaSBUp", dataHistSBName.Data()));
+    auto sideVar = new SidebandSigma();
+    sideVar->SetRebin(rebin * 10);
+    sideVar->SetSideBandFile(InputDir.Data(), trigger.Data(), appendixVar.Data());
+    sideVar->SetNormalizationRange(250, 400);
+    sideVar->SideBandCFs();
+    auto dataHistSB = sideVar->GetSideBands(5);
+
+    protonSB.SetVarHist(sideVar->GetSideBands(5));
     delete CATSinputVar;
+    delete sideVar;
   }
   protonsigma.EvalSystematics();
   protonsigma.EvalDifferenceInPairs();

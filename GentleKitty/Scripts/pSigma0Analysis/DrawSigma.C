@@ -68,8 +68,9 @@ void EvalError(TNtuple *tuple, const int ikstar, TGraph* histCF,
   double kVal, CFval;
   histCF->GetPoint(ikstar, kVal, CFval);
 
-  tuple->Draw("modelVal >> h", Form("std::abs(kstar - %.3f) < 1e-3", kVal));
+  tuple->Draw("modelVal >> h", Form("TMath::Abs(kstar - %.3f) < 1e-1", kVal));
   TH1F* hist = (TH1F*) gROOT->FindObject("h");
+  if(hist->GetEntries() == 0) return;
 
   double binLow = hist->GetXaxis()->GetBinLowEdge(
       hist->FindFirstBinAbove(0.1, 1));
@@ -95,7 +96,6 @@ void EvalError(TNtuple *tuple, const int ikstar, TGraph* histCF,
     delete c;
   }
 
-  //std::cout << ikstar << " " << kVal << " " << CFval << " " << DefaultVal << "\n";
   grOut->SetPoint(ikstar, kVal, DefaultVal);
   grOut->SetPointError(ikstar, 0, DeltaCoulomb);
 
@@ -111,7 +111,9 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 
   DreamPlot::SetStyle(false, true);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
+  TString sidebandHistName = "SidebandMerged_0";
   TH1F* CF_Histo;
+  TH1F* CF_Sideband;
   TGraph* CF_Model;
   TGraph* CF_Sidebands;
 
@@ -153,6 +155,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   auto file = TFile::Open(graphfilename.Data(), "update");
   auto fit = new TNtuple("fit", "fit", "kstar:modelVal");
   auto sideband = new TNtuple("sideband", "sideband", "kstar:modelVal");
+  auto genuineSideband = new TNtuple("genuineSideband", "genuineSideband", "kstar:modelVal");
 
   auto c1 = new TCanvas("CF_var", "CF_var");
   TIter next(file->GetListOfKeys());
@@ -181,6 +184,12 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
         CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
         DreamPlot::SetStyleHisto(hist, 24, kBlack);
         CF_Histo->Draw();
+      } else if (histName.Contains(sidebandHistName)) {
+        CF_Sideband = hist;
+        if (!CF_Sideband) {
+          std::cout << "ERROR: No default sideband histogram found!\n";
+          return;
+        }
       }
     }
 
@@ -200,6 +209,14 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
         for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
           Graph->GetPoint(iPnt, x, y);
           sideband->Fill(x, y);
+        }
+      }
+
+      if (graphName.Contains("GenuineSideBand_")) {
+        double x, y;
+        for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
+          Graph->GetPoint(iPnt, x, y);
+          genuineSideband->Fill(x, y);
         }
       }
 
@@ -250,6 +267,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   c1->Write();
   fit->Write();
   sideband->Write();
+  genuineSideband->Write();
 
   auto resultTuple = (TNtuple*) file->Get("fitResult");
   std::array<double, 3> nSigma250;
@@ -270,12 +288,15 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   grCF->SetName("CF_fit");
   auto grSidebands = new TGraphErrors();
   grSidebands->SetName("CF_sidebands");
+  auto grGenuineSidebands = new TGraphErrors();
+  grGenuineSidebands->SetName("CF_genuineSidebands");
 
   double x, y;
   for (int ikstar = 0; ikstar < CF_Model->GetN(); ++ikstar) {
     CF_Model->GetPoint(ikstar, x, y);
     EvalError(fit, ikstar, CF_Model, grCF, debugPlots, varFolder);
     EvalError(sideband, ikstar, CF_Model, grSidebands, debugPlots, varFolder);
+    EvalError(genuineSideband, ikstar, CF_Model, grGenuineSidebands, debugPlots, varFolder);
   }
 
   file->cd();
@@ -324,6 +345,8 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   c->Write();
   grCF->Write();
   grSidebands->Write();
+  grGenuineSidebands->Write();
+  CF_Sideband->Write();
 
   delete histDummy;
   delete c;

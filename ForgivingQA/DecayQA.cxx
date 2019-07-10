@@ -261,11 +261,12 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   auto* invMass = (TH1F*) invMasspT->ProjectionY(Form("InvMass%s", outname), 0,
                                                  -1, "e");
   TPad* intPad = (TPad*) cMassIntegrated->cd();
-  fFitter->FitInvariantMassSigma(invMass, massCuts, kRed + 1);
+  fFitter->FitInvariantMassSigma(invMass, massCuts);
   const double CutMin = fFitter->GetMeanMass() - massCuts;
   const double CutMax = fFitter->GetMeanMass() + massCuts;
+  double peakVal = invMass->GetBinContent(invMass->GetXaxis()->FindBin(fFitter->GetMeanMass()));
   invMass->GetXaxis()->SetRangeUser(1.172, 1.212);
-  invMass->GetYaxis()->SetRangeUser(0, invMass->GetMaximum() * 1.8);
+  invMass->GetYaxis()->SetRangeUser(0, peakVal * 2.1);
   invMass->GetXaxis()->SetMaxDigits(2);
   invMass->GetXaxis()->SetNdivisions(505);
   invMass->GetYaxis()->SetMaxDigits(1);
@@ -275,13 +276,15 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
   fHairyPlotter->FormatHistogram(invMass, 2, 8, 1.1);
   fHairyPlotter->DrawOnPad( { invMass }, intPad, "P");
-  fHairyPlotter->DrawPerformance(fFitter, intPad, fPartLatex, 0.205, 0.87, 1, 10);
+  fHairyPlotter->DrawPublication(fFitter, intPad, fPartLatex, 0.205, 0.87, 1, 10);
   fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0,
                           invMass->GetMaximum() * 0.5, kTeal + 3);
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,
                           invMass->GetMaximum() * 0.5, kTeal + 3);
+  fFitter->GetBackgroundFunction()->Draw("same");
   cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
-  auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname));
+  auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname), 0,
+                                0, 650, 550);
   cMassBins->Divide(fDivCanX, fDivCanY);
   if (invMasspT->GetXaxis()->GetNbins() > fDivCanX * fDivCanY) {
     Warning("DecayQA", "FitInvariantMass: Number of divisions not sufficient to plot all pT bins: %i",  int(invMasspT->GetXaxis()->GetNbins()));
@@ -314,7 +317,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
     double CutMaxpT = fFitter->GetMeanMass() + massCuts;
     double peakVal = invMasspTBin->GetBinContent(invMasspTBin->GetXaxis()->FindBin(fFitter->GetMeanMass()));
     invMasspTBin->GetXaxis()->SetRangeUser(1.172, 1.212);
-    invMasspTBin->GetYaxis()->SetRangeUser(0, peakVal * 1.8);
+    invMasspTBin->GetYaxis()->SetRangeUser(0, peakVal * 2.1);
     invMasspTBin->GetXaxis()->SetTitle(
         Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
     invMasspTBin->GetYaxis()->SetTitle(
@@ -334,13 +337,15 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
     fHairyPlotter->DrawLine(CurrentPad, CutMaxpT, CutMaxpT, 0, peakVal * 0.85,
                             kTeal + 3);
 
-    auto cpt = new TCanvas();
+    auto cpt = new TCanvas(Form("cInt%i%s", ipT, outname),
+                           Form("cInt%i%s", ipT, outname), 0, 0, 650, 550);
     cpt->SetTopMargin(0.05);
     cpt->SetRightMargin(0.025);
     TPad *intPadpt = (TPad*) cpt->cd();
     fHairyPlotter->FormatHistogram(invMasspTBin, 2, 8, 1.1);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, intPadpt, "P");
-    fHairyPlotter->DrawPerformance(fFitter, intPadpt, fPartLatex, 0.205, 0.87,
+    fFitter->GetBackgroundFunction()->Draw("same");
+    fHairyPlotter->DrawPublication(fFitter, intPadpt, fPartLatex, 0.205, 0.87,
                                    invMasspT->GetXaxis()->GetBinLowEdge(ipT),
                                    invMasspT->GetXaxis()->GetBinUpEdge(ipT));
     cpt->SaveAs(Form("InvInt%s_%i.pdf", outname, iPad));

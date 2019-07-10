@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) {
   PlotMe->SetCollisionSystem(globalBeamEnergy, globalCollisionSystem,
                              globalEventGenerator);
   PlotMe->ReadDataSigma(expBaseDir, sysBaseDir);
+  PlotMe->ReadSidebandSigma(catsBaseDir, sysBaseDir);
   PlotMe->ReadFitSigma(catsBaseDir);
   PlotMe->DrawCorrelationFunctionSigma(catsBaseDir);
   return 0;

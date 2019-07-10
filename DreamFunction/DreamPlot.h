@@ -15,6 +15,7 @@ class DreamPlot {
   void ReadData(const char* PathToDataFolder, const char* PathToSysFolder,
                 int binWidth, int UnitConvData);
   void ReadDataSigma(const char* PathToDataFolder, const char* PathToSysFolder);
+  void ReadSidebandSigma(const char* PathToFitFolder, const char* PathToSysFolder);
   void ReadSimulation(const char* PathToSimFolder, int binWidth);
   void ReadFit(const char* fitPath, int UnitConvCATS);
   void ReadFitSigma(const char* fitPath);
@@ -58,6 +59,7 @@ class DreamPlot {
   DreamData* fLambdaLambda;
   DreamData* fProtonXi;
   DreamData* fProtonSigma;
+  DreamData* fProtonSigmaSideband;
   float fRadius;
   float fRadiusStat;
   float fRadiusSysUp;

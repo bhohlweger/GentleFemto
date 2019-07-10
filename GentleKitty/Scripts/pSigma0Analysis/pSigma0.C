@@ -532,6 +532,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
           side->SideBandCFs();
           auto SBmerge = side->GetSideBands(5);
+          SBmerge->SetName(Form("SidebandMerged_%i", iterID));
           auto sideband = new TF1(Form("sideband_%i", iterID), sidebandFit, 0,
                                   650, nSidebandPars);
           sideband->SetParameter(0, 1.);
@@ -758,6 +759,10 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               TGraph grCFSigmaSidebandExtrapolate;
               grCFSigmaSidebandExtrapolate.SetName(
                   Form("SBExtrapolate_%i", iterID));
+              TGraph grCFSigmaGenuineSidebandExtrapolate;
+              grCFSigmaGenuineSidebandExtrapolate.SetName(
+                  Form("GenuineSideBand_%i", iterID));
+
 
               for (int i = 0; i < NumMomBins_pSigma_draw; ++i) {
                 const float mom = Ck_pSigma0_draw->GetBinCenter(0, i);
@@ -775,6 +780,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                     mom,
                     (((Ck_SideBand_draw->Eval(mom) - 1.) * sidebandContr) + 1)
                         * baseline);
+                grCFSigmaGenuineSidebandExtrapolate.SetPoint(
+                    i, mom, Ck_SideBand_draw->Eval(mom));
               }
 
               double mom, ck;
@@ -940,9 +947,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                   delete f;
                 }
 
-                if (fastPlot || iterID == 0) {
-                  dataHist->Write();
-                }
+                dataHist->Write();
+
                 grCFSigmaRaw.Write();
                 grCFSigmaMain.Write();
                 grCFSigmaFeed.Write();
@@ -952,18 +958,19 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 sidebandHistLow->Write("SidebandLow");
                 sidebandHistUp->Write("SidebandUp");
 
-                grCFSigmaExtrapolate.Write();
-                grCFSigmaSidebandExtrapolate.Write();
-                grCFSigmaSideband.Write();
-                FitResult_pSigma0.Write(Form("Fit_%i", iterID));
-                currentHist->SetName(
-                    TString::Format("HistCF_Var_%i", int(systDataIter)));
-                currentHist->Write();
-
                 delete c;
                 delete d;
                 delete info;
               }
+
+              grCFSigmaExtrapolate.Write();
+              grCFSigmaSidebandExtrapolate.Write();
+              grCFSigmaGenuineSidebandExtrapolate.Write();
+              grCFSigmaSideband.Write();
+              FitResult_pSigma0.Write(Form("Fit_%i", iterID));
+              currentHist->SetName(
+                  TString::Format("HistCF_Var_%i", int(systDataIter)));
+              currentHist->Write();
 
               param->cd();
               ntBuffer[0] = iterID;

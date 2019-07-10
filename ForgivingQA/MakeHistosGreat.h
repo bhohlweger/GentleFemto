@@ -41,6 +41,9 @@ class MakeHistosGreat {
   void DrawPerformance(ForgivingFitter* fit, TPad* pad, const char* part,
                        float xPos, float yPos, float pTmin = -1, float pTmax =
                            -1);
+  void DrawPublication(ForgivingFitter* fit, TPad* pad, const char* part,
+                       float xPos, float yPos, float pTmin = -1, float pTmax =
+                           -1);
   void DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax, int color =  kOrange - 1);
  private:
   bool fTightMargin;
