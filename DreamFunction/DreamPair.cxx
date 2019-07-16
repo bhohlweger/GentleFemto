@@ -246,7 +246,7 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherPair1,
   FixShift(pair, otherDist, kMin, true);
 }
 
-void DreamPair::Rebin(DreamDist* pair, int rebin) {
+void DreamPair::Rebin(DreamDist* pair, int rebin, bool seMean) {
   DreamDist* Rebinned = new DreamDist(pair, Form("_Rebinned_%i", rebin));
   Rebinned->GetSEDist()->Rebin(rebin);
   if (Rebinned->GetSEMultDist())
@@ -254,12 +254,16 @@ void DreamPair::Rebin(DreamDist* pair, int rebin) {
   Rebinned->GetMEDist()->Rebin(rebin);
   if (Rebinned->GetMEMultDist())
     Rebinned->GetMEMultDist()->Rebin2D(rebin, 1);
-  Rebinned->Calculate_CF(fNormLeft, fNormRight);
+  if (seMean) {
+    Rebinned->Calculate_CF(fNormLeft, fNormRight, pair->GetSEDist());
+  } else {
+    Rebinned->Calculate_CF(fNormLeft, fNormRight);
+  }
   fPairRebinned.push_back(Rebinned);
   return;
 }
 
-void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
+void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax, DreamDist* pairNotRebinned) {
   DreamDist* PairReweighted = new DreamDist(pair, "_Reweighted");
 
   TH1F* SE = pair->GetSEDist();
@@ -320,7 +324,11 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax) {
   //  MultProjMEReweighted->SetLineStyle(4);
   //  MultProjMEReweighted->Scale(1./MultProjMEReweighted->Integral());
   //  MultProjMEReweighted->DrawCopy("same");
-  PairReweighted->Calculate_CF(fNormLeft, fNormRight);
+  if (pairNotRebinned) {
+    PairReweighted->Calculate_CF(fNormLeft, fNormRight, pairNotRebinned->GetSEDist());
+  } else {
+    PairReweighted->Calculate_CF(fNormLeft, fNormRight);
+  }
   fPairReweighted.push_back(PairReweighted);
   delete MultProjSE;
   delete MultProjME;

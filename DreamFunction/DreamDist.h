@@ -9,6 +9,7 @@
 #define DREAMFUNCTION_DREAMDIST_H_
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TGraphAsymmErrors.h"
 #include "TList.h"
 class DreamDist {
  public:
@@ -47,6 +48,9 @@ class DreamDist {
     return fCF;
   }
   ;
+  TGraphAsymmErrors* GetGrCF() {
+    return fGrCF;
+  }
   void WriteOutput(TList *Outlist) {
     Outlist->Add(fSE);
     if (fSEMult)
@@ -55,16 +59,18 @@ class DreamDist {
     if (fMEMult)
       Outlist->Add(fMEMult);
     Outlist->Add(fCF);
+    Outlist->Add(fGrCF);
   }
   ;
   unsigned int GetFemtoPairs(float kMin, float kMax);
-  void Calculate_CF(float normleft, float normright);
+  void Calculate_CF(float normleft, float normright, TH1F* hSEnorebin = nullptr);
  private:
   TH1F* fSE;
   TH2F* fSEMult;
   TH1F* fME;
   TH2F* fMEMult;
   TH1F* fCF;
+  TGraphAsymmErrors *fGrCF;
 };
 
 #endif /* DREAMFUNCTION_DREAMDIST_H_ */

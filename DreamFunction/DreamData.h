@@ -12,6 +12,7 @@
 #include "TCanvas.h"
 #include "TGraph.h"
 #include "TGraphErrors.h"
+#include "TGraphAsymmErrors.h"
 #include <vector>
 
 class DreamData {
@@ -23,6 +24,9 @@ class DreamData {
     fCorrelationFunction = CF;
   }
   ;
+  void SetCorrelationGraph(TGraphAsymmErrors* graph) {
+    fCorrelationGraph = graph;
+  }
   const TH1F* GetCorrelationFunction() {
     return fCorrelationFunction;
   }
@@ -122,7 +126,8 @@ class DreamData {
   TH1F* fCorrelationFunction;
   TH1F* fCorrelationFunctionSimulation;
   TH1F* fSystematics;
-  TGraphErrors* fSysError;
+  TGraphAsymmErrors* fCorrelationGraph;
+  TGraphAsymmErrors* fSysError;
   TF1* fBaseLine;
   bool fDrawAxis;
   float fXMin;

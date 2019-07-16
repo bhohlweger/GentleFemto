@@ -13,6 +13,7 @@
 
 DreamCF::DreamCF()
     : fCF(),
+      fGrCF(),
       fRatio(),
       fPairOne(nullptr),
       fPairTwo(nullptr) {
@@ -21,6 +22,9 @@ DreamCF::DreamCF()
 
 DreamCF::~DreamCF() {
   for (auto it : fCF) {
+    delete it;
+  }
+  for (auto it : fGrCF) {
     delete it;
   }
   for (auto it : fRatio) {
@@ -47,15 +51,17 @@ void DreamCF::GetCorrelations(const char* pairName) {
         Warning("DreamCF", "No Pair 2 Set, only setting Pair 1!");
         //existence already checked
         fCF.push_back(fPairOne->GetPair()->GetCF());
+        fGrCF.push_back(fPairOne->GetPair()->GetGrCF());
       }
     }
   } else {
     Warning("DreamCF", "No Pair 1 Set, only setting Pair 2");
-    if (fPairTwo && fPairTwo->GetPair())
+    if (fPairTwo && fPairTwo->GetPair()) {
       fCF.push_back(fPairTwo->GetPair()->GetCF());
-    else
+      fGrCF.push_back(fPairTwo->GetPair()->GetGrCF());
+    } else {
       Warning("DreamCF", "No Pair 2 set either");
-
+    }
   }
   if (fPairOne && fPairTwo) {
     if (fPairOne->GetNDists() == fPairTwo->GetNDists()) {
@@ -108,10 +114,20 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
                           CFSumName.Data());
       if (CFSum) {
         fCF.push_back(CFSum);
+        auto CFgrSum = AddCF(CFSum, {{fPairOne, fPairTwo}}, Form("Gr%s", CFSumName.Data()));
         TString CFSumMeVName = Form("%sMeV_%i", name, iIter);
         TH1F* CFMeVSum = ConvertToOtherUnit(CFSum, 1000, CFSumMeVName.Data());
         if (CFMeVSum) {
           fCF.push_back(CFMeVSum);
+        }
+        if (CFgrSum) {
+          fGrCF.push_back(CFgrSum);
+          TString CFSumMeVName = Form("%sMeV", CFgrSum->GetName());
+          auto CFMeVSum = ConvertToOtherUnit(CFgrSum, 1000,
+                                             CFSumMeVName.Data());
+          if (CFMeVSum) {
+            fGrCF.push_back(CFMeVSum);
+          }
         }
       } else {
         if (PartPair->GetCF()) {
@@ -156,6 +172,10 @@ void DreamCF::WriteOutput(const char* name) {
 void DreamCF::WriteOutput(TFile* output, bool closeFile) {
   output->cd();
   for (auto& it : fCF) {
+    it->Write();
+    delete it;
+  }
+  for (auto& it : fGrCF) {
     it->Write();
     delete it;
   }
@@ -235,6 +255,59 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
     }
   }
   return hist_CF_sum;
+}
+
+TGraphAsymmErrors* DreamCF::AddCF(TH1F* histSum, std::vector<DreamPair*> pairs, const char* name) {
+  TGraphAsymmErrors* hist_CF_sum = new TGraphAsymmErrors(histSum);
+  hist_CF_sum->Set(0);
+
+  TList *list = new TList;
+  for (auto it : pairs) {
+    list->Add(it->GetPair()->GetSEDist());
+  }
+  TH1F *histSE = (TH1F*) pairs.at(0)->GetPair()->GetSEDist()->Clone(
+      Form("%s_cloneForMixed", pairs.at(0)->GetPair()->GetSEDist()->GetName()));
+  histSE->Reset();
+  histSE->Merge(list);
+
+  // Shift the center of the bin in x according to the same event distribution
+  // In case of very large bins, this can have a sizeable effect!
+  int counter = 0;
+  float xVal, xErrRight, xErrLeft, centrVal;
+  for (int i = 1; i <= histSum->GetNbinsX(); ++i) {
+    if (histSum->GetBinContent(i) == 0)
+      continue;
+    // In case we have a SE distribution available we use the mean in that k* bin
+    centrVal = histSum->GetBinCenter(i);
+    histSE->GetXaxis()->SetRangeUser(
+        histSum->GetBinLowEdge(i),
+        histSum->GetBinLowEdge(i) + histSum->GetBinWidth(i));
+    xVal = histSE->GetMean();
+    xErrLeft = xVal - centrVal + histSum->GetBinWidth(i) / 2.;
+    xErrRight = centrVal - xVal + histSum->GetBinWidth(i) / 2.;
+    hist_CF_sum->SetPoint(counter, xVal, histSum->GetBinContent(i));
+    hist_CF_sum->SetPointError(counter++, xErrLeft, xErrRight,
+                               histSum->GetBinError(i),
+                               histSum->GetBinError(i));
+  }
+  delete list;
+  return hist_CF_sum;
+}
+
+TGraphAsymmErrors* DreamCF::ConvertToOtherUnit(TGraphAsymmErrors* HistCF, int Scale, const char* name) {
+  int nBins = HistCF->GetN();
+  TGraphAsymmErrors* hist_CF_MeV = new TGraphAsymmErrors();
+  hist_CF_MeV->SetName(name);
+  double x, y;
+  for (int i=0; i<nBins; ++i) {
+    HistCF->GetPoint(i, x, y);
+    hist_CF_MeV->SetPoint(i, x * 1000.f, y);
+    hist_CF_MeV->SetPointError(i, HistCF->GetErrorXlow(i) * 1000.f,
+                               HistCF->GetErrorXhigh(i) * 1000.f,
+                               HistCF->GetErrorYlow(i),
+                               HistCF->GetErrorYhigh(i));
+  }
+  return hist_CF_MeV;
 }
 
 TH1F* DreamCF::ConvertToOtherUnit(TH1F* HistCF, int Scale, const char* name) {

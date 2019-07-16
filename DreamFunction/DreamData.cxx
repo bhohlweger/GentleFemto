@@ -13,6 +13,7 @@ DreamData::DreamData(const char* particlePair)
     : fName(particlePair),
       fCorrelationFunction(nullptr),
       fCorrelationFunctionSimulation(nullptr),
+      fCorrelationGraph(nullptr),
       fSystematics(nullptr),
       fSysError(nullptr),
       fBaseLine(new TF1(Form("%sBaseLine", particlePair), "pol1", 0, 1000)),
@@ -104,14 +105,34 @@ void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
             iBin, y * parameters->Eval(x / (float) fUnitConversionData));
       }
       fSystematics->SetLineWidth(2.0);
-      fSysError = new TGraphErrors();
+      fSysError = new TGraphAsymmErrors();
 
       for (int i = 0; i < nBinsX; i++) {
         fSysError->SetPoint(i, fCorrelationFunction->GetBinCenter(i + 1),
                             fCorrelationFunction->GetBinContent(i + 1));
-        fSysError->SetPointError(i, errorwidth,
+        fSysError->SetPointError(i, errorwidth, errorwidth,
+                                 fSystematics->GetBinContent(i + 1),
                                  fSystematics->GetBinContent(i + 1));
       }
+      TGraph *grFakeSys = new TGraph();
+      SetStyleGraph(grFakeSys, 2, 0);
+      grFakeSys->SetFillColor(fFillColors[0]);
+      grFakeSys->SetLineColor(fFillColors[0]);
+      grFakeSys->SetLineWidth(0);
+      fFakeGraph.push_back(grFakeSys);
+    } else if (fCorrelationGraph) {
+      // TODO inplement
+      fSysError = new TGraphAsymmErrors();
+      double x, y;
+      for (int i = 0; i < fCorrelationGraph->GetN(); ++i) {
+        fCorrelationGraph->GetPoint(i, x, y);
+        fSysError->SetPoint(i, x, y);
+        fSysError->SetPointError(
+            i, errorwidth, errorwidth,
+            y * parameters->Eval(x / (float) fUnitConversionData),
+            y * parameters->Eval(x / (float) fUnitConversionData));
+      }
+
       TGraph *grFakeSys = new TGraph();
       SetStyleGraph(grFakeSys, 2, 0);
       grFakeSys->SetFillColor(fFillColors[0]);
@@ -143,11 +164,12 @@ void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
             iBin, y * parameters->GetBinContent(parameters->FindBin(x)));
       }
       fSystematics->SetLineWidth(2.0);
-      fSysError = new TGraphErrors();
+      fSysError = new TGraphAsymmErrors();
       for (int i = 0; i < nBinsX; i++) {
         fSysError->SetPoint(i, fCorrelationFunction->GetBinCenter(i + 1),
                             fCorrelationFunction->GetBinContent(i + 1));
-        fSysError->SetPointError(i, errorwidth,
+        fSysError->SetPointError(i, errorwidth, errorwidth,
+                                 fSystematics->GetBinContent(i + 1),
                                  fSystematics->GetBinContent(i + 1));
       }
       TGraph *grFakeSys = new TGraph();
@@ -303,9 +325,25 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
                                     const int systematicsColor,
                                     const float legendTextScale) {
   c->cd();
-  SetStyleHisto(fCorrelationFunction, 2, color);
-  fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
-  fCorrelationFunction->GetYaxis()->SetRangeUser(fYMin, fYMax);
+  TString CFName;
+  Color_t markerColor;
+  int markerStyle;
+  if (fCorrelationFunction) {
+    SetStyleHisto(fCorrelationFunction, 2, color);
+    fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
+    fCorrelationFunction->GetYaxis()->SetRangeUser(fYMin, fYMax);
+    CFName = fCorrelationFunction->GetName();
+    markerColor = fCorrelationFunction->GetMarkerColor();
+    markerStyle = fCorrelationFunction->GetMarkerStyle();
+  } else if (fCorrelationGraph) {
+    SetStyleGraph(fCorrelationGraph, 2, color);
+    fCorrelationGraph->GetXaxis()->SetRangeUser(fXMin, fXMax);
+    fCorrelationGraph->GetYaxis()->SetRangeUser(fYMin, fYMax);
+    fCorrelationGraph->SetMarkerSize(1);
+    CFName = fCorrelationGraph->GetName();
+    markerColor = fCorrelationGraph->GetMarkerColor();
+    markerStyle = fCorrelationGraph->GetMarkerStyle();
+  }
   fSysError->SetLineColor(kWhite);
   if (!fMultiHisto)
     fSysError->GetYaxis()->SetTitleOffset(1.5);
@@ -313,7 +351,7 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
   if(fDrawAxis)fSysError->Draw("Ap");
   fBaseLine->Draw("same");
-  TString CFName = fCorrelationFunction->GetName();
+
   if (CFName.Contains("MeV")) {
     fSysError->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   } else {
@@ -326,8 +364,8 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   fLegend->SetTextSize(gStyle->GetTextSize() * legendTextScale);
   int legendCounter = 1;
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
-  fFakeGraph[0]->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
-  fFakeGraph[0]->SetMarkerColor(fCorrelationFunction->GetMarkerColor());
+  fFakeGraph[0]->SetMarkerStyle(markerStyle);
+  fFakeGraph[0]->SetMarkerColor(markerColor);
   fFakeGraph[0]->SetFillColorAlpha(systematicsColor, 0.4);
   fLegend->AddEntry(fFakeGraph[0], fLegendName[0], fLegendOption[0]);
 //  leg->AddEntry(fBaseLine, "Baseline", "l");
@@ -347,7 +385,11 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   }
   fSysError->SetFillColorAlpha(systematicsColor, 0.4);
   fSysError->Draw("2 same");
-  fCorrelationFunction->DrawCopy("pe same");
+  if(fCorrelationFunction) {
+    fCorrelationFunction->DrawCopy("pe same");
+  } else if (fCorrelationGraph) {
+    fCorrelationGraph->Draw("pez same");
+  }
   if (fDrawLegend)
     fLegend->Draw("same");
   if (fInlet) {

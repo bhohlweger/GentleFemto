@@ -116,27 +116,24 @@ void DreamPlot::ReadData(const char* PathToDataFolder,
 void DreamPlot::ReadDataSigma(const char* PathToDataFolder,
                               const char* PathToSysFolder) {
   auto CFFile = TFile::Open(Form("%s/CFOutput_pSigma.root", PathToDataFolder));
+  fProtonSigma->SetCorrelationGraph(
+      (TGraphAsymmErrors*) CFFile->Get("Graph_from_hCk_Reweighted_3MeV"));
   auto CFFile_Sys = TFile::Open(
       Form("%s/Systematics_pSigma0.root", PathToSysFolder));
-  fProtonSigma->SetCorrelationFunction(
-      (TH1F*) CFFile->Get("hCk_ReweightedMeV_3"));
   fProtonSigma->SetSystematics(
-      (TF1*) CFFile_Sys->Get("SystError"),
-      fProtonSigma->GetCorrelationFunction()->GetBinWidth(1) / 6.f);
+      (TF1*) CFFile_Sys->Get("SystError"), 6.5);
 }
 
 void DreamPlot::ReadSidebandSigma(const char* PathToFitFolder,
                                   const char* PathToSysFolder) {
   auto fitFile = TFile::Open(Form("%s/Param_pSigma0_2.root", PathToFitFolder));
-  auto histSideband = (TH1F*) fitFile->Get("SidebandMerged_0");
+  auto histSideband = (TGraphAsymmErrors*) fitFile->Get("SidebandMerged_0");
   histSideband->SetName(Form("%sMeV", histSideband->GetName()));
-  fProtonSigmaSideband->SetCorrelationFunction(histSideband);
+  fProtonSigmaSideband->SetCorrelationGraph(histSideband);
 
   auto CFFile_Sys = TFile::Open(
       Form("%s/SystematicsSidebands_pSigma0.root", PathToSysFolder));
-  fProtonSigmaSideband->SetSystematics(
-      (TF1*) CFFile_Sys->Get("SystError"),
-      fProtonSigmaSideband->GetCorrelationFunction()->GetBinWidth(1) / 6.f);
+  fProtonSigmaSideband->SetSystematics((TF1*) CFFile_Sys->Get("SystError"), 6.5);
 }
 
 void DreamPlot::ReadSimulation(const char* PathToSimFolder, int binWidth) {
@@ -350,8 +347,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else if (!sidebandUnscaled) {
       std::cout << "No sideband (unscaled) \n";
     } else {
-      TColor myColor;
-      fProtonSigma->FemtoModelFitBands(NSC97fband, myColor.GetColor(178,223,138), 0, 0, 3315,
+      fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange -3, 0, 0, 3315,
                                        true, false);
       fProtonSigma->FemtoModelFitBands(sideband, kGray + 2, 0.5, true);
       fProtonSigmaSideband->FemtoModelFitBands(sidebandUnscaled, kGray + 2, 0.5, true);
