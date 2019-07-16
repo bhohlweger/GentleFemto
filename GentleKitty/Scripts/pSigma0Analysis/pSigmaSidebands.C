@@ -213,7 +213,7 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
         histSmearSigma->Fill(kstarpSigmaSigma, kstarpLambdaSigma);
       }
 
-      relMom->Fill(kstarpSigma, kstarpLambda, GetkStar(protonPart, photonPart));
+      if (i % 1000 == 0) relMom->Fill(kstarpSigma, kstarpLambda, GetkStar(protonPart, photonPart));
       histSmear->Fill(kstarpSigma, kstarpLambda);
       histSmearSigma->Fill(kstarpSigma, kstarpLambda);
       ++i;
@@ -294,7 +294,7 @@ int main(int argc, char *argv[]) {
   side->SetNormalizationRange(sidebandNormDown, sidebandNormUp);
 
   side->SideBandCFs();
-  auto SBmerge = side->GetSideBands(5);
+  auto SBmerge = side->GetSideBandGraph(5);
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Get the smearing matrix
@@ -351,7 +351,7 @@ int main(int argc, char *argv[]) {
       { { (1. - protonPrimary) * protonSecondary, (1. - protonPrimary)
           * (1 - protonSecondary) } });
 
-  const double lambdaPurity = 0.95;
+  const double lambdaPurity = 0.946;
   const double lambdaPrimary = 0.619493;
   const Particle lambda(lambdaPurity, lambdaPrimary,
                         { { 1.f - lambdaPrimary } });
