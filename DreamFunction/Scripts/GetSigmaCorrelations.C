@@ -174,77 +174,77 @@ void GetSigmaCorrelations(const char* filename, const char* trigger,
 
   for (size_t iReb = 0; iReb < rebin.size(); ++iReb) {
     std::cout << "==Rebinning==" << std::endl;
-    pSigma->Rebin(pSigma->GetPairFixShifted(0), rebin[iReb]);
-    ApASigma->Rebin(ApASigma->GetPairFixShifted(0), rebin[iReb]);
-    pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), rebin[iReb]);
-    ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), rebin[iReb]);
-    pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), rebin[iReb]);
-    ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), rebin[iReb]);
+    pSigma->Rebin(pSigma->GetPairFixShifted(0), rebin[iReb], true);
+    ApASigma->Rebin(ApASigma->GetPairFixShifted(0), rebin[iReb], true);
+    pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), rebin[iReb], true);
+    ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), rebin[iReb], true);
+    pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), rebin[iReb], true);
+    ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), rebin[iReb], true);
     if (suffix == "0") {
-      pLambdaSigma->Rebin(pLambdaSigma->GetPairFixShifted(0), rebin[iReb]);
-      ApALambdaSigma->Rebin(ApALambdaSigma->GetPairFixShifted(0), rebin[iReb]);
-      pLambda->Rebin(pLambda->GetPairFixShifted(0), rebin[iReb]);
-      ApALambda->Rebin(ApALambda->GetPairFixShifted(0), rebin[iReb]);
-      pPhotonSigma->Rebin(pPhotonSigma->GetPairFixShifted(0), rebin[iReb]);
-      ApPhotonSigma->Rebin(ApPhotonSigma->GetPairFixShifted(0), rebin[iReb]);
-      pPhoton->Rebin(pPhoton->GetPairFixShifted(0), rebin[iReb]);
-      ApPhoton->Rebin(ApPhoton->GetPairFixShifted(0), rebin[iReb]);
+      pLambdaSigma->Rebin(pLambdaSigma->GetPairFixShifted(0), rebin[iReb], true);
+      ApALambdaSigma->Rebin(ApALambdaSigma->GetPairFixShifted(0), rebin[iReb], true);
+      pLambda->Rebin(pLambda->GetPairFixShifted(0), rebin[iReb], true);
+      ApALambda->Rebin(ApALambda->GetPairFixShifted(0), rebin[iReb], true);
+      pPhotonSigma->Rebin(pPhotonSigma->GetPairFixShifted(0), rebin[iReb], true);
+      ApPhotonSigma->Rebin(ApPhotonSigma->GetPairFixShifted(0), rebin[iReb], true);
+      pPhoton->Rebin(pPhoton->GetPairFixShifted(0), rebin[iReb], true);
+      ApPhoton->Rebin(ApPhoton->GetPairFixShifted(0), rebin[iReb], true);
     }
     std::cout << "==Weighting==" << std::endl;
-    pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(iReb), 0.2, 0.9);
-    ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(iReb), 0.2, 0.9);
-    pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(iReb), 0.2, 0.9);
-    ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(iReb), 0.2, 0.9);
-    pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(iReb), 0.2, 0.9);
-    ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(iReb), 0.2, 0.9);
+    pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(iReb), 0.2, 0.9, pSigma->GetPair());
+    ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(iReb), 0.2, 0.9, ApASigma->GetPair());
+    pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(iReb), 0.2, 0.9, pSiSBup->GetPair());
+    ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(iReb), 0.2, 0.9, ApaSiSBup->GetPair());
+    pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(iReb), 0.2, 0.9, pSiSBlow->GetPair());
+    ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(iReb), 0.2, 0.9, ApaSiSBlow->GetPair());
     if (suffix == "0") {
       pLambdaSigma->ReweightMixedEvent(pLambdaSigma->GetPairRebinned(iReb), 0.2,
-                                       0.9);
+                                       0.9, pLambdaSigma->GetPair());
       ApALambdaSigma->ReweightMixedEvent(ApALambdaSigma->GetPairRebinned(iReb),
-                                         0.2, 0.9);
-      pLambda->ReweightMixedEvent(pLambda->GetPairRebinned(iReb), 0.2, 0.9);
-      ApALambda->ReweightMixedEvent(ApALambda->GetPairRebinned(iReb), 0.2, 0.9);
+                                         0.2, 0.9, ApALambdaSigma->GetPair());
+      pLambda->ReweightMixedEvent(pLambda->GetPairRebinned(iReb), 0.2, 0.9, pLambda->GetPair());
+      ApALambda->ReweightMixedEvent(ApALambda->GetPairRebinned(iReb), 0.2, 0.9, ApALambda->GetPair());
       pPhotonSigma->ReweightMixedEvent(pPhotonSigma->GetPairRebinned(iReb), 0.2,
-                                       0.9);
+                                       0.9, pPhotonSigma->GetPair());
       ApPhotonSigma->ReweightMixedEvent(ApPhotonSigma->GetPairRebinned(iReb),
-                                        0.2, 0.9);
-      pPhoton->ReweightMixedEvent(pPhoton->GetPairRebinned(iReb), 0.2, 0.9);
-      ApPhoton->ReweightMixedEvent(ApPhoton->GetPairRebinned(iReb), 0.2, 0.9);
+                                        0.2, 0.9, ApPhotonSigma->GetPair());
+      pPhoton->ReweightMixedEvent(pPhoton->GetPairRebinned(iReb), 0.2, 0.9, pPhoton->GetPair());
+      ApPhoton->ReweightMixedEvent(ApPhoton->GetPairRebinned(iReb), 0.2, 0.9, ApPhoton->GetPair());
     }
   }
-  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
-  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9, pp->GetPair());
+  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9, ApAp->GetPair());
 
-  pSigma->Rebin(pSigma->GetPair(), 4);
-  pSigma->Rebin(pSigma->GetPair(), 5);
-  ApASigma->Rebin(ApASigma->GetPair(), 4);
-  ApASigma->Rebin(ApASigma->GetPair(), 5);
-  pSiSBup->Rebin(pSiSBup->GetPair(), 4);
-  pSiSBup->Rebin(pSiSBup->GetPair(), 5);
-  ApaSiSBup->Rebin(ApaSiSBup->GetPair(), 4);
-  ApaSiSBup->Rebin(ApaSiSBup->GetPair(), 5);
-  pSiSBlow->Rebin(pSiSBlow->GetPair(), 4);
-  pSiSBlow->Rebin(pSiSBlow->GetPair(), 5);
-  ApaSiSBlow->Rebin(ApaSiSBlow->GetPair(), 4);
-  ApaSiSBlow->Rebin(ApaSiSBlow->GetPair(), 5);
+  pSigma->Rebin(pSigma->GetPair(), 4, true);
+  pSigma->Rebin(pSigma->GetPair(), 5, true);
+  ApASigma->Rebin(ApASigma->GetPair(), 4, true);
+  ApASigma->Rebin(ApASigma->GetPair(), 5, true);
+  pSiSBup->Rebin(pSiSBup->GetPair(), 4, true);
+  pSiSBup->Rebin(pSiSBup->GetPair(), 5, true);
+  ApaSiSBup->Rebin(ApaSiSBup->GetPair(), 4, true);
+  ApaSiSBup->Rebin(ApaSiSBup->GetPair(), 5, true);
+  pSiSBlow->Rebin(pSiSBlow->GetPair(), 4, true);
+  pSiSBlow->Rebin(pSiSBlow->GetPair(), 5, true);
+  ApaSiSBlow->Rebin(ApaSiSBlow->GetPair(), 4, true);
+  ApaSiSBlow->Rebin(ApaSiSBlow->GetPair(), 5, true);
   if (suffix == "0") {
-    pLambdaSigma->Rebin(pLambdaSigma->GetPair(), 4);
-    pLambdaSigma->Rebin(pLambdaSigma->GetPair(), 5);
-    ApALambdaSigma->Rebin(ApALambdaSigma->GetPair(), 4);
-    ApALambdaSigma->Rebin(ApALambdaSigma->GetPair(), 5);
-    pLambda->Rebin(pLambda->GetPair(), 4);
-    pLambda->Rebin(pLambda->GetPair(), 5);
-    ApALambda->Rebin(ApALambda->GetPair(), 4);
-    ApALambda->Rebin(ApALambda->GetPair(), 5);
+    pLambdaSigma->Rebin(pLambdaSigma->GetPair(), 4, true);
+    pLambdaSigma->Rebin(pLambdaSigma->GetPair(), 5, true);
+    ApALambdaSigma->Rebin(ApALambdaSigma->GetPair(), 4, true);
+    ApALambdaSigma->Rebin(ApALambdaSigma->GetPair(), 5, true);
+    pLambda->Rebin(pLambda->GetPair(), 4, true);
+    pLambda->Rebin(pLambda->GetPair(), 5, true);
+    ApALambda->Rebin(ApALambda->GetPair(), 4, true);
+    ApALambda->Rebin(ApALambda->GetPair(), 5, true);
 
-    pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 4);
-    pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 5);
-    ApPhotonSigma->Rebin(ApPhotonSigma->GetPair(), 4);
-    ApPhotonSigma->Rebin(ApPhotonSigma->GetPair(), 5);
-    pPhoton->Rebin(pPhoton->GetPair(), 4);
-    pPhoton->Rebin(pPhoton->GetPair(), 5);
-    ApPhoton->Rebin(ApPhoton->GetPair(), 4);
-    ApPhoton->Rebin(ApPhoton->GetPair(), 5);
+    pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 4, true);
+    pPhotonSigma->Rebin(pPhotonSigma->GetPair(), 5, true);
+    ApPhotonSigma->Rebin(ApPhotonSigma->GetPair(), 4, true);
+    ApPhotonSigma->Rebin(ApPhotonSigma->GetPair(), 5, true);
+    pPhoton->Rebin(pPhoton->GetPair(), 4, true);
+    pPhoton->Rebin(pPhoton->GetPair(), 5, true);
+    ApPhoton->Rebin(ApPhoton->GetPair(), 4, true);
+    ApPhoton->Rebin(ApPhoton->GetPair(), 5, true);
   }
 
   std::cout << "=========================" << std::endl;

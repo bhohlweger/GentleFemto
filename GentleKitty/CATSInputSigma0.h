@@ -1,6 +1,7 @@
 #ifndef GENTLEKITTY_CATSINPUTSIGMA0_H_
 #define GENTLEKITTY_CATSINPUTSIGMA0_H_
 #include "CATSInput.h"
+#include "TGraphAsymmErrors.h"
 
 class CATSInputSigma0 : public CATSInput {
  public:
@@ -15,6 +16,7 @@ class CATSInputSigma0 : public CATSInput {
   void CountPairs(const char* path, const char* trigger,
                   const char* suffixChar);
   TH1F* GetCF(TString pair, TString hist);
+  TGraphAsymmErrors* GetCFGr(TString pair, TString hist);
   unsigned int GetFemtoPairs(float kMin, float kMax, TString pair);
   unsigned int GetNProtons() const {
     return fnProtons;

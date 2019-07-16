@@ -25,13 +25,13 @@
 #include "DreamSystematics.h"
 
 /// Number of parameters for the sideband fit
-const int nSidebandPars = 5;
+const int nSidebandPars = 4;
 
 /// =====================================================================================
 /// Fit for the sidebands
 auto sidebandFit =
     [ ] (double *x, double *p) {
-      return p[0] + p[1] * x[0] + p[2] * x[0] * x[0] *x[0] + std::exp(p[3] + p[4] * x[0]);
+      return p[0] + p[1] * x[0] + std::exp(p[2] + p[3] * x[0]);
     };
 
 /// =====================================================================================
@@ -126,7 +126,10 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input
   std::vector<TH1F*> histSysVar;
-  std::vector<float> puritySigma0;
+  std::vector<TGraphAsymmErrors*> grSysVar;
+  std::vector<TH1F*> histSidebandSysVar;
+  std::vector<TGraphAsymmErrors*> grSidebandSysVar;
+  std::vector<double> puritySigma0;
 
   TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
   CATSInputSigma0 *CATSinput = new CATSInputSigma0();
@@ -140,12 +143,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   CATSinput->CountPairs(InputDir.Data(), trigger.Data(), suffix.Data());
   CATSinput->ObtainCFs(10, 250, 400);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
+  TString dataGrName = "Graph_from_hCk_ReweightedpSigma0_0MeV";
   auto dataHist = CATSinput->GetCF("pSigma0", dataHistName.Data());
+  auto dataGr = CATSinput->GetCFGr("pSigma0", dataGrName.Data());
   if (!dataHist) {
     std::cerr << "ERROR pSigma0 fitter: p-Sigma0 histogram missing\n";
     return;
   }
   histSysVar.push_back(dataHist);
+  grSysVar.push_back(dataGr);
   puritySigma0.push_back(CATSinput->GetSigma0PurityPt());
 
   auto sidebandHistUp = CATSinput->GetCF("pSigmaSBUp",
@@ -156,10 +162,20 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     std::cerr << "ERROR pSigma0 fitter: p-pSigmaSB histogram missing\n";
     return;
   }
+  const int nSidebandHist = 5;
+  const int rebinSideband = 10;
+  auto side = new SidebandSigma();
+  side->SetRebin(rebinSideband);
+  side->SetSideBandFile(InputDir.Data(), trigger.Data(), suffix.Data());
+  side->SetNormalizationRange(250, 400);
+  side->SideBandCFs();
+  auto histSideband = side->GetSideBands(nSidebandHist);
+  auto grSideband = side->GetSideBandGraph(nSidebandHist);
+  histSidebandSysVar.push_back(histSideband);
+  grSidebandSysVar.push_back(grSideband);
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input for the systematic variations
-
   DreamSystematics protonsigma(DreamSystematics::pSigma0);
   for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
@@ -171,14 +187,27 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     puritySigma0.push_back(CATSinputVar->GetSigma0PurityPt());
     CATSinputVar->ObtainCFs(10, 250, 400);
     auto dataHistVar = CATSinputVar->GetCF("pSigma0", dataHistName.Data());
+    auto dataGrVar = CATSinputVar->GetCFGr("pSigma0", dataGrName.Data());
     histSysVar.push_back(dataHistVar);
+    grSysVar.push_back(dataGrVar);
     delete CATSinputVar;
+    auto sideVar = new SidebandSigma();
+    sideVar->SetRebin(rebinSideband);
+    sideVar->SetSideBandFile(InputDir.Data(), trigger.Data(), appendixVar.Data());
+    sideVar->SetNormalizationRange(250, 400);
+    sideVar->SideBandCFs();
+    histSidebandSysVar.push_back(sideVar->GetSideBands(nSidebandHist));
+    grSidebandSysVar.push_back(sideVar->GetSideBandGraph(nSidebandHist));
   }
 
   if (puritySigma0.size() != histSysVar.size()) {
     std::cout << "ERROR: No matching hist/purity found \n";
     return;
   }
+
+  // dump the purity
+  std::cout << "Purity Sigma0:\n";
+  PrintVars(puritySigma0);
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Set up the CATS ranges, lambda parameters, etc.
@@ -257,19 +286,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Fit the sideband
-  auto side = new SidebandSigma();
-  side->SetRebin(10);
-  side->SetSideBandFile(InputDir.Data(), trigger.Data(), suffix.Data());
 
   /// Prefit for the baseline
   const float baselineFitRangeLow = 250;
   const float baselineFitRangeUp = 600;
-  side->SetNormalizationRange(250, 400);
-  side->SideBandCFs();
-  auto SBmerge = side->GetSideBands(5);
 
-  auto PrefitDefault = (TH1F*) SBmerge->Clone(
-      Form("%s_prefit", dataHist->GetName()));
+  auto PrefitDefault = (TH1F*) histSideband->Clone(
+      Form("%s_prefit", histSideband->GetName()));
   auto funct_0_Default = new TF1("myPol0", "pol0", baselineFitRangeLow, baselineFitRangeUp);
   PrefitDefault->Fit(funct_0_Default, "FSNRMQ");
 
@@ -439,7 +462,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     AB_pSigma0_draw.KillTheCat();
     Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
     Ck_pSigma0_draw = new DLM_Ck(1, 0, AB_pSigma0_draw);
-  }else if (potential == 6) { // flat - sideband only
+  } else if (potential == 6) {  // flat - sideband only
     std::cout << "Running with a flat correlation function = sideband only \n";
     Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             Flat_Residual);
@@ -458,13 +481,14 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   for (size_t systDataIter = 0; systDataIter < histSysVar.size();
       ++systDataIter) {
     auto currentHist = histSysVar[systDataIter];
+    auto currentGr = grSysVar[systDataIter];
+    auto currentSidebandHist = histSidebandSysVar[systDataIter];
+    auto currentSidebandGr = grSidebandSysVar[systDataIter];
+    kMin_pSigma = currentHist->GetBinCenter(1) - binwidth / 2.;
 
     /// Prefit for the baseline
-    side->SetNormalizationRange(250, 400);
-    side->SideBandCFs();
-    auto SBprefit = side->GetSideBands(5);
-    auto Prefit = (TH1F*) SBprefit->Clone(
-        Form("%i_%s_prefit", int(systDataIter), currentHist->GetName()));
+    auto Prefit = (TH1F*) currentSidebandHist->Clone(
+        Form("%i_%s_prefit", int(systDataIter), currentSidebandHist->GetName()));
     auto funct_0 = new TF1("myPol0", "pol0", baselineFitRangeLow, baselineFitRangeUp);
     Prefit->Fit(funct_0, "FSNRMQ");
 
@@ -494,8 +518,8 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     delete Prefit;
 
     /// Lambda parameters
-    std::vector<CATSLambdaParam> lambdaParams;
-
+    static std::vector<CATSLambdaParam> lambdaParams;
+    lambdaParams.resize(0);
     const double sigmaPurity = puritySigma0[systDataIter];
     const Particle sigma0(sigmaPurity, sigmaPrimary, { { 0 } });
 
@@ -531,15 +555,14 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                                       sidebandNormUp[sbNormIter]);
 
           side->SideBandCFs();
-          auto SBmerge = side->GetSideBands(5);
+          auto SBmerge = side->GetSideBandGraph(5);
           SBmerge->SetName(Form("SidebandMerged_%i", iterID));
           auto sideband = new TF1(Form("sideband_%i", iterID), sidebandFit, 0,
                                   650, nSidebandPars);
           sideband->SetParameter(0, 1.);
           sideband->SetParameter(1, 0.);
-          sideband->SetParameter(2, 0);
-          sideband->SetParameter(3, -0.1);
-          sideband->SetParameter(4, 0.);
+          sideband->SetParameter(2, -0.5);
+          sideband->SetParameter(3, -0.01);
           SBmerge->Fit(sideband, "FSNRMQ");
 
           DLM_Ck* Ck_SideBand = new DLM_Ck(0, nSidebandPars, NumMomBins_pSigma,
@@ -592,6 +615,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               DLM_CkDecomposition CkDec_SideBand_draw("pSigma0SideBandDraw", 0,
                                                       *Ck_SideBand_draw,
                                                       nullptr);
+
               float sidebandContr = lambdaParams[lambdaIter].GetLambdaParam(
                   CATSLambdaParam::Fake, CATSLambdaParam::Primary, 0, 0);
               sidebandContr += lambdaParams[lambdaIter].GetLambdaParam(
@@ -689,28 +713,17 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               double EffNumBins_pSigma0_200 = 0;
               double Chi2_pSigma0_150 = 0;
               double EffNumBins_pSigma0_150 = 0;
-              int maxkStarBin = currentHist->FindBin(250);
-              for (unsigned uBin = 1; uBin <= maxkStarBin; uBin++) {
+              double mom, dataY, dataErr, theoryX, theoryY;
 
-                double mom = currentHist->GetBinCenter(uBin);
-                //double dataX;
-                double dataY;
-                double dataErr;
-                double theoryX;
-                double theoryY;
+              for (int iPoint = 0; iPoint <= currentGr->GetN(); ++iPoint) {
+                currentGr->GetPoint(iPoint, mom, dataY);
+                dataErr = currentGr->GetErrorY(iPoint);
 
                 if (mom > femtoFitRegionUp[femtoFitIter]) {
                   continue;
                 }
 
-                FitResult_pSigma0.GetPoint(uBin - 1, theoryX, theoryY);
-                if (mom != theoryX) {
-                  std::cerr << "PROBLEM Sigma0 " << mom << '\t' << theoryX
-                            << std::endl;
-                  return;
-                }
-                dataY = currentHist->GetBinContent(uBin);
-                dataErr = currentHist->GetBinError(uBin);
+                theoryY = FitResult_pSigma0.Eval(mom);
                 if (mom < 250) {
                   Chi2_pSigma0_250 += (dataY - theoryY) * (dataY - theoryY)
                       / (dataErr * dataErr);
@@ -763,7 +776,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               grCFSigmaGenuineSidebandExtrapolate.SetName(
                   Form("GenuineSideBand_%i", iterID));
 
-
               for (int i = 0; i < NumMomBins_pSigma_draw; ++i) {
                 const float mom = Ck_pSigma0_draw->GetBinCenter(0, i);
                 const float baseline = bl_a + bl_b * mom;
@@ -784,7 +796,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                     i, mom, Ck_SideBand_draw->Eval(mom));
               }
 
-              double mom, ck;
+              double ck;
               for (unsigned int i = 0; i < FitResult_pSigma0.GetN(); ++i) {
                 FitResult_pSigma0.GetPoint(i, mom, ck);
                 const float baseline = bl_a + bl_b * mom;
@@ -808,7 +820,7 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               param->mkdir(TString::Format("Graph_%i", iterID));
               param->cd(TString::Format("Graph_%i", iterID));
 
-              currentHist->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+              currentGr->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
               SBmerge->SetTitle(
                   ";#it{k}* (MeV/#it{c}); C_{p#minus(#Lambda#gamma)}(#it{k}*)");
               sidebandHistLow->SetTitle(
@@ -818,12 +830,12 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
               if (fastPlot || iterID == 0) {
                 /// beautification
-                DreamPlot::SetStyleHisto(currentHist, 24, kBlack);
-                DreamPlot::SetStyleHisto(SBmerge, 20, kRed + 2);
+                DreamPlot::SetStyleGraph(currentGr, 24, kBlue + 3);
+                DreamPlot::SetStyleGraph(SBmerge, 20, kRed + 2);
                 DreamPlot::SetStyleHisto(sidebandHistLow, 26, kGreen + 2);
                 DreamPlot::SetStyleHisto(sidebandHistUp, 26, kCyan + 2);
-                currentHist->GetXaxis()->SetTitleSize(28);
-                currentHist->GetYaxis()->SetTitleSize(28);
+                currentGr->GetXaxis()->SetTitleSize(28);
+                currentGr->GetYaxis()->SetTitleSize(28);
                 SBmerge->GetXaxis()->SetTitleSize(28);
                 SBmerge->GetYaxis()->SetTitleSize(28);
                 sidebandHistLow->GetXaxis()->SetTitleSize(28);
@@ -840,9 +852,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 grCFSigmaSideband.SetLineColor(kGray + 1);
 
                 auto c = new TCanvas("DefaultFit", "DefaultFit");
-                currentHist->GetXaxis()->SetRangeUser(0., 350);
-                currentHist->GetYaxis()->SetRangeUser(0.8, 1.6);
-                currentHist->Draw();
+                currentGr->GetXaxis()->SetRangeUser(0., 350);
+                currentGr->GetYaxis()->SetRangeUser(0.8, 1.6);
+                currentGr->Draw("APEZ");
                 FitResult_pSigma0.Draw("l3same");
                 grCFSigmaSideband.Draw("l3same");
 
@@ -897,14 +909,14 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 auto d = new TCanvas("SidebandFit", "SidebandFit");
                 SBmerge->GetXaxis()->SetRangeUser(0, 600);
                 SBmerge->GetYaxis()->SetRangeUser(0.8, 1.6);
-                SBmerge->Draw();
+                SBmerge->Draw("APEZ");
                 sideband->Draw("l3same");
                 d->Write("CFsideband");
                 if (debugPlots) {
                   d->Print(Form("%s/CF_pSideband.pdf", OutputDir.Data()));
 
                   auto e = new TCanvas("Sidebands", "Sidebands");
-                  SBmerge->Draw();
+                  SBmerge->Draw("APEZ");
                   sideband->Draw("l3same");
                   sidebandHistLow->Draw("same");
                   sidebandHistUp->Draw("same");
@@ -921,33 +933,32 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                   delete e;
 
                   auto f = new TCanvas("baseline");
-                  SBmerge->Draw();
+                  SBmerge->Draw("APEZ");
                   SBmerge->GetXaxis()->SetRangeUser(0, 600);
                   SBmerge->GetYaxis()->SetTitle("C(#it{k}*)");
-                  currentHist->Draw("same");
-                  currentHist->GetXaxis()->SetRangeUser(0, 600);
+                  currentGr->Draw("pezsame");
+                  currentGr->GetXaxis()->SetRangeUser(0, 600);
                   const int nBins = prefit_a_Default.size();
                   TF1* baselines[nBins];
-                  for(int i=0; i< nBins; ++i) {
+                  for (int i = 0; i < nBins; ++i) {
                     baselines[i] = new TF1(Form("baseline_%i", i), "pol1", 0, 900);
                     baselines[i]->SetParameter(0, prefit_a_Default[i]);
                     baselines[i]->SetParameter(1, prefit_b_Default[i]);
-                    baselines[i]->SetLineColor(kGreen+2);
+                    baselines[i]->SetLineColor(kGreen + 2);
                     baselines[i]->Draw("same");
                   }
                   auto leg2 = new TLegend(0.4, 0.68, 0.6, 0.85);
                   leg2->SetTextFont(42);
                   leg2->SetTextSize(0.05);
-                  leg2->AddEntry(currentHist, "p#minus#Sigma^{0}", "pe");
+                  leg2->AddEntry(currentGr, "p#minus#Sigma^{0}", "pe");
                   leg2->AddEntry(SBmerge, "p#minus(#Lambda#gamma) sideband (unscaled)", "pe");
                   leg2->AddEntry(baselines[0], "Baseline fits", "l");
                   leg2->Draw("same");
-                  f->Write("baseline");
                   f->Print(Form("%s/CF_baseline.pdf", OutputDir.Data()));
                   delete f;
                 }
 
-                dataHist->Write();
+                dataGr->Write();
 
                 grCFSigmaRaw.Write();
                 grCFSigmaMain.Write();
@@ -968,9 +979,9 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               grCFSigmaGenuineSidebandExtrapolate.Write();
               grCFSigmaSideband.Write();
               FitResult_pSigma0.Write(Form("Fit_%i", iterID));
-              currentHist->SetName(
+              currentGr->SetName(
                   TString::Format("HistCF_Var_%i", int(systDataIter)));
-              currentHist->Write();
+              currentGr->Write();
 
               param->cd();
               ntBuffer[0] = iterID;

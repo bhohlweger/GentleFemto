@@ -10,8 +10,12 @@ class SidebandSigma : public SideBandFit {
   void SetSideBandFile(const char* path, const char* trigger,
                        const char* suffix);
   void SideBandCFs();
+  TGraphAsymmErrors* GetSideBandGraph(int iHist) {
+    return (iHist < fSidebandCFGr.size() ? fSidebandCFGr.at(iHist) : nullptr);
+  }
 
  private:
   ReadDreamFile* fAnalysisFile;
+  std::vector<TGraphAsymmErrors*> fSidebandCFGr;
 };
 #endif

@@ -121,19 +121,19 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
   }
 
   if (rebinSyst != 1) {
-    pp->Rebin(pp->GetPairFixShifted(0), rebinSyst);
-    ApAp->Rebin(ApAp->GetPairFixShifted(0), rebinSyst);
+    pp->Rebin(pp->GetPairFixShifted(0), rebinSyst, true);
+    ApAp->Rebin(ApAp->GetPairFixShifted(0), rebinSyst, true);
   }
 
-  pSigma->Rebin(pSigma->GetPairFixShifted(0), rebin * rebinSyst);
-  ApASigma->Rebin(ApASigma->GetPairFixShifted(0), rebin * rebinSyst);
+  pSigma->Rebin(pSigma->GetPairFixShifted(0), rebin * rebinSyst, true);
+  ApASigma->Rebin(ApASigma->GetPairFixShifted(0), rebin * rebinSyst, true);
 
   if (isAllCF) {
-    pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), rebin * rebinSyst);
-    ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), rebin * rebinSyst);
+    pSiSBup->Rebin(pSiSBup->GetPairFixShifted(0), rebin * rebinSyst, true);
+    ApaSiSBup->Rebin(ApaSiSBup->GetPairFixShifted(0), rebin * rebinSyst, true);
 
-    pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), rebin * rebinSyst);
-    ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), rebin * rebinSyst);
+    pSiSBlow->Rebin(pSiSBlow->GetPairFixShifted(0), rebin * rebinSyst, true);
+    ApaSiSBlow->Rebin(ApaSiSBlow->GetPairFixShifted(0), rebin * rebinSyst, true);
   }
 
   if (rebinSyst != 1) {
@@ -144,15 +144,15 @@ void CATSInputSigma0::ObtainCFs(int rebin, float normleft, float normright,
     ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
   }
 
-  pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(0), 0.2, 0.9);
-  ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(0), 0.2, 0.9);
+  pSigma->ReweightMixedEvent(pSigma->GetPairRebinned(0), 0.2, 0.9, pSigma->GetPair());
+  ApASigma->ReweightMixedEvent(ApASigma->GetPairRebinned(0), 0.2, 0.9, ApASigma->GetPair());
 
   if (isAllCF) {
-    pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(0), 0.2, 0.9);
-    ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(0), 0.2, 0.9);
+    pSiSBup->ReweightMixedEvent(pSiSBup->GetPairRebinned(0), 0.2, 0.9, pSiSBup->GetPair());
+    ApaSiSBup->ReweightMixedEvent(ApaSiSBup->GetPairRebinned(0), 0.2, 0.9, ApaSiSBup->GetPair());
 
-    pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(0), 0.2, 0.9);
-    ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(0), 0.2, 0.9);
+    pSiSBlow->ReweightMixedEvent(pSiSBlow->GetPairRebinned(0), 0.2, 0.9, pSiSBlow->GetPair());
+    ApaSiSBlow->ReweightMixedEvent(ApaSiSBlow->GetPairRebinned(0), 0.2, 0.9, ApaSiSBlow->GetPair());
   }
 
   fCF_pp->SetPairs(pp, ApAp);
@@ -274,6 +274,46 @@ TH1F* CATSInputSigma0::GetCF(TString pair, TString hist) {
               << " does not exist? \n";
   }
   return (TH1F*) output->Clone(Form("%sCloned", output->GetName()));
+}
+
+TGraphAsymmErrors* CATSInputSigma0::GetCFGr(TString pair, TString hist) {
+  TGraphAsymmErrors* output = nullptr;
+  if (pair == TString("pp")) {
+    for (const auto &it : fCF_pp->GetCorrelationFunctionGraphs()) {
+      TString itName = it->GetName();
+      if (hist == itName) {
+        output = it;
+      }
+    }
+  } else if (pair == TString("pSigma0")) {
+    for (const auto &it : fCF_pSigma->GetCorrelationFunctionGraphs()) {
+      TString itName = it->GetName();
+      if (hist == itName) {
+        output = it;
+      }
+    }
+  } else if (pair == TString("pSigmaSBUp")) {
+    for (const auto &it : fCF_SidebandUp->GetCorrelationFunctionGraphs()) {
+      TString itName = it->GetName();
+      if (hist == itName) {
+        output = it;
+      }
+    }
+  } else if (pair == TString("pSigmaSBLow")) {
+    for (const auto &it : fCF_SidebandLow->GetCorrelationFunctionGraphs()) {
+      TString itName = it->GetName();
+      if (hist == itName) {
+        output = it;
+      }
+    }
+  } else {
+    std::cout << pair << " does not exist\n";
+  }
+  if (!output) {
+    std::cout << "Danger! Histogram not set, maybe histname " << hist
+              << " does not exist? \n";
+  }
+  return (TGraphAsymmErrors*) output->Clone(Form("%sCloned", output->GetName()));
 }
 
 unsigned int CATSInputSigma0::GetFemtoPairs(float kMin, float kMax,

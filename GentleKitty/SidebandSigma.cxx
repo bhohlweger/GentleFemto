@@ -6,11 +6,16 @@
 #include "TF1.h"
 
 SidebandSigma::SidebandSigma()
-    : fAnalysisFile() {
+    : fAnalysisFile(),
+      fSidebandCFGr() {
 }
 
 SidebandSigma::~SidebandSigma() {
   delete fAnalysisFile;
+  for (auto it : fSidebandCFGr) {
+    delete it;
+  }
+  fSidebandCFGr.resize(0);
 }
 
 void SidebandSigma::SetSideBandFile(const char* path, const char* trigger,
@@ -58,14 +63,14 @@ void SidebandSigma::SideBandCFs() {
     }
     itCounter++;
   }
+  int iPair = 0;
   for (auto it : fSideBands) {
     it->FixShift(it->GetPair(), fSideBands[iPos]->GetPair(), minVal, true);
-    it->Rebin(it->GetPair(), fRebin);
-    it->Rebin(it->GetPairFixShifted(0), fRebin);
-    it->ReweightMixedEvent(it->GetPairRebinned(0), 0.2, 0.9);
+    it->Rebin(it->GetPair(), fRebin, true);
+    it->Rebin(it->GetPairFixShifted(0), fRebin, true);
+    it->ReweightMixedEvent(it->GetPairRebinned(0), 0.2, 0.9, fSideBands[iPair++]->GetPair());
   }
 
-  DreamCF* unitConv = new DreamCF();
   TH1F* CF1Reweighted = fSideBands[0]->GetReweighted().at(0)->GetCF();
   TH1F* CF2Reweighted = fSideBands[1]->GetReweighted().at(0)->GetCF();
   TH1F* CF3Reweighted = fSideBands[2]->GetReweighted().at(0)->GetCF();
@@ -81,8 +86,15 @@ void SidebandSigma::SideBandCFs() {
                                         CF4Rebinned_NoShift, "RebinnedNoShift");
   fSideBandCFs.push_back(SideBandSumRebinNoShift);
   fSideBandCFs.push_back(
-      unitConv->ConvertToOtherUnit(SideBandSumRebinNoShift, 1000,
+      DreamCF::ConvertToOtherUnit(SideBandSumRebinNoShift, 1000,
                                    "RebinnedNoShift_MeV"));
+  TGraphAsymmErrors * grSideBandSumRebinNoShift = DreamCF::AddCF(
+      SideBandSumRebinNoShift,
+      { { fSideBands[0], fSideBands[1], fSideBands[2], fSideBands[3]} },
+      Form("Gr%s", SideBandSumRebinNoShift->GetName()));
+  fSidebandCFGr.push_back(grSideBandSumRebinNoShift);
+  fSidebandCFGr.push_back(DreamCF::ConvertToOtherUnit(grSideBandSumRebinNoShift, 1000,
+                                                      "RebinnedNoShift_MeV"));
   TH1F* CF1Rebinned_Shift = fSideBands[0]->GetRebinned().at(1)->GetCF();
   TH1F* CF2Rebinned_Shift = fSideBands[1]->GetRebinned().at(1)->GetCF();
   TH1F* CF3Rebinned_Shift = fSideBands[2]->GetRebinned().at(1)->GetCF();
@@ -92,15 +104,28 @@ void SidebandSigma::SideBandCFs() {
                                       "RebinnedShift");
   fSideBandCFs.push_back(SideBandSumRebinShift);
   fSideBandCFs.push_back(
-      unitConv->ConvertToOtherUnit(SideBandSumRebinShift, 1000,
+      DreamCF::ConvertToOtherUnit(SideBandSumRebinShift, 1000,
                                    "RebinnedShift_MeV"));
+  TGraphAsymmErrors *grSideBandSumRebinShift = DreamCF::AddCF(
+      SideBandSumRebinShift,
+      { { fSideBands[0], fSideBands[1], fSideBands[2], fSideBands[3]} },
+      Form("Gr%s", SideBandSumRebinShift->GetName()));
+  fSidebandCFGr.push_back(grSideBandSumRebinShift);
+  fSidebandCFGr.push_back(DreamCF::ConvertToOtherUnit(grSideBandSumRebinShift, 1000,
+                                                      "RebinnedShift_MeV"));
 
   TH1F* SideBandSumReweighted = AddCF(CF1Reweighted, CF2Reweighted,
                                       CF3Reweighted, CF4Reweighted,
                                       "Reweighted");
   fSideBandCFs.push_back(SideBandSumReweighted);
   fSideBandCFs.push_back(
-      unitConv->ConvertToOtherUnit(SideBandSumReweighted, 1000,
+      DreamCF::ConvertToOtherUnit(SideBandSumReweighted, 1000,
                                    "Reweighted_MeV"));
-  delete unitConv;
+  TGraphAsymmErrors *grSideBandSumReweighted = DreamCF::AddCF(
+      SideBandSumReweighted,
+      { { fSideBands[0], fSideBands[1], fSideBands[2], fSideBands[3]} },
+      Form("Gr%s", SideBandSumReweighted->GetName()));
+  fSidebandCFGr.push_back(grSideBandSumReweighted);
+  fSidebandCFGr.push_back(DreamCF::ConvertToOtherUnit(grSideBandSumReweighted, 1000,
+                                                      "Reweighted_MeV"));
 }

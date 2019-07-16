@@ -110,10 +110,10 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
 
   DreamPlot::SetStyle(false, true);
-  TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
+  TString dataHistName = "Graph_from_hCk_ReweightedpSigma0_0MeV";
   TString sidebandHistName = "SidebandMerged_0";
-  TH1F* CF_Histo;
-  TH1F* CF_Sideband;
+  TGraphAsymmErrors* CF_Histo;
+  TGraphAsymmErrors* CF_Sideband;
   TGraph* CF_Model;
   TGraph* CF_Sidebands;
 
@@ -158,6 +158,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   auto genuineSideband = new TNtuple("genuineSideband", "genuineSideband", "kstar:modelVal");
 
   auto c1 = new TCanvas("CF_var", "CF_var");
+  auto c2 = new TCanvas("CF_sideband_var", "CFsideband_var");
   TIter next(file->GetListOfKeys());
   TKey *key;
   while ((key = (TKey*) next())) {
@@ -170,10 +171,11 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     TKey *nextkey;
     while ((nextkey = (TKey*) nextnext())) {
 
-      auto hist = (TH1F*) nextkey->ReadObj();
-      TString histName = Form("%s", hist->GetName());
+      auto gr = (TGraphAsymmErrors*) nextkey->ReadObj();
+      auto hist = (TGraphAsymmErrors*) nextkey->ReadObj();
+      TString histName = Form("%s", gr->GetName());
       if (histName.Contains(dataHistName)) {
-        CF_Histo = hist;
+        CF_Histo = gr;
         if (!CF_Histo) {
           std::cout << "ERROR: No default histogram found!\n";
           return;
@@ -182,10 +184,16 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
         CF_Histo->GetXaxis()->SetRangeUser(0, 600);
         CF_Histo->GetYaxis()->SetRangeUser(0.8, 1.6);
         CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-        DreamPlot::SetStyleHisto(hist, 24, kBlack);
-        CF_Histo->Draw();
+        DreamPlot::SetStyleGraph(CF_Histo, 24, kBlue + 3);
+        CF_Histo->Draw("APEZ");
       } else if (histName.Contains(sidebandHistName)) {
+        c2->cd();
         CF_Sideband = hist;
+        CF_Sideband->GetXaxis()->SetRangeUser(0, 600);
+        CF_Sideband->GetYaxis()->SetRangeUser(0.8, 1.6);
+        CF_Sideband->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+        DreamPlot::SetStyleGraph(CF_Sideband, 24, kBlue + 3);
+        CF_Sideband->Draw("APEZ");
         if (!CF_Sideband) {
           std::cout << "ERROR: No default sideband histogram found!\n";
           return;
@@ -215,7 +223,11 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       if (graphName.Contains("GenuineSideBand_")) {
         double x, y;
         for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
+          c2->cd();
           Graph->GetPoint(iPnt, x, y);
+          Graph->SetLineColor(kGray + 2);
+          Graph->SetLineStyle(0);
+          Graph->Draw("L3same");
           genuineSideband->Fill(x, y);
         }
       }
@@ -246,6 +258,8 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
                etap2));
     } else {
       c1->Print(Form("%s/CF_pSigma_model_%i.pdf", varFolder.Data(), potential));
+      c2->Print(
+          Form("%s/CF_Sideband_model_%i.pdf", varFolder.Data(), potential));
     }
     CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
     if (potential == 0) {
@@ -260,6 +274,8 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     } else {
       c1->Print(
           Form("%s/CF_pSigma_model_zoom_%i.pdf", varFolder.Data(), potential));
+      c2->Print(
+          Form("%s/CF_Sideband_model_zoom_%i.pdf", varFolder.Data(), potential));
     }
   }
 
@@ -306,7 +322,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
                             350);
   histDummy->GetYaxis()->SetRangeUser(0.8, 1.6);
   histDummy->Draw();
-  CF_Histo->Draw("same");
+  CF_Histo->Draw("pezsame");
   grCF->Draw("L3same");
   grCF->SetLineColor(kRed + 2);
   grCF->SetFillColor(kRed + 2);
