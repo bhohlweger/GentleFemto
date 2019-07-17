@@ -349,329 +349,337 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   AB_pXim1530.KillTheCat();
 
   CATS AB_pL;
-  if (vMod_pL == 1) {
-    tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
-                              TidyCats::pUsmani);
-    AB_pL.KillTheCat();
-  } else if (vMod_pL == 2) {
-    tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
-                              TidyCats::pNLOWF);
-    AB_pL.KillTheCat();
-  } else if (vMod_pL == 3) {
-    tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
-                              TidyCats::pLOWF);
-    AB_pL.KillTheCat();
-  }
+  for (vMod_pL = 1; vMod_pL < 4; ++vMod_pL) {
+    if (vMod_pL == 1) {
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+                                TidyCats::pUsmani);
+      AB_pL.KillTheCat();
+    } else if (vMod_pL == 2) {
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+                                TidyCats::pNLOWF);
+      AB_pL.KillTheCat();
+    } else if (vMod_pL == 3) {
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+                                TidyCats::pLOWF);
+      AB_pL.KillTheCat();
+    }
+    for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
+      for (vFrac_pL = 0; vFrac_pL < 3; ++vFrac_pL) {
+        for (int iBL = 0; iBL < 3; iBL++) {
+          for (int BaselineSlope = 0; BaselineSlope < 3; ++BaselineSlope) {
+            if (BaselineSlope == 1) {
+              //no pol1 baseline.
+              continue;
+            }
+            std::cout
+                << "\r Processing progress: "
+                << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
+                << std::flush;
+            TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
+            if (!OliHisto_pp) {
+              std::cout << HistppName.Data() << " Missing" << std::endl;
+              return;
+            }
+            //!CHANGE PATH HERE
 
-  for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
-    for (vFrac_pL = 0; vFrac_pL < 3; ++vFrac_pL) {
-      for (int iBL = 0; iBL < 3; iBL++) {
-        for (int BaselineSlope = 0; BaselineSlope < 3; ++BaselineSlope) {
-          if (BaselineSlope == 1) {
-            //no pol1 baseline.
-            continue;
-          }
-          std::cout
-              << "\r Processing progress: "
-              << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
-              << std::flush;
-          TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
-          if (!OliHisto_pp) {
-            std::cout << HistppName.Data() << " Missing" << std::endl;
-            return;
-          }
-          //!CHANGE PATH HERE
+            const unsigned NumSourcePars =
+                (TheSource == TidyCats::sLevy ? 2 : 1);
 
-          const unsigned NumSourcePars = (TheSource == TidyCats::sLevy ? 2 : 1);
-
-          //this way you define a correlation function using a CATS object.
-          //needed inputs: num source/pot pars, CATS obj
-          DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
-          //this way you define a correlation function using Lednicky.
-          //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
-          DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
-                                          Lednicky_gauss_Sigma0);
-          Ck_pSigma0->SetSourcePar(0, pSigma0Radius);
-          DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
-          Ck_pXim->SetSourcePar(0, 0.92);
-          DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
-          Ck_pXim1530->SetSourcePar(0, 0.92);
-          Ck_pL->Update();
-          Ck_pSigma0->Update();
-          Ck_pXim->Update();
-          Ck_pXim1530->Update();
-          if (!CATSinput->GetSigmaFile(1)) {
-            std::cout << "No Sigma file 1 \n";
-            return;
-          }
-          if (!CATSinput->GetSigmaFile(2)) {
-            std::cout << "No Sigma file 2 \n";
-            return;
-          }
-          if (!CATSinput->GetSigmaFile(3)) {
-            std::cout << "No Sigma file 3 \n";
-            return;
-          }
-          DLM_CkDecomposition CkDec_pL("pLambda",
-                                       TheSource == TidyCats::sLevy ? 3 : 4,
-                                       *Ck_pL, CATSinput->GetSigmaFile(1));
-          DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0,
-          NULL);
-          DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
-                                         CATSinput->GetSigmaFile(3));
-          DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530,
-          NULL);
-          if (!CATSinput->GetResFile(1)) {
-            std::cout << "No Calib 1 \n";
-            return;
-          }
-          if (!CATSinput->GetResFile(2)) {
-            std::cout << "No Calib 2 \n";
-            return;
-          }
+            //this way you define a correlation function using a CATS object.
+            //needed inputs: num source/pot pars, CATS obj
+            DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
+            //this way you define a correlation function using Lednicky.
+            //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
+            DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
+                                            Lednicky_gauss_Sigma0);
+            Ck_pSigma0->SetSourcePar(0, pSigma0Radius);
+            DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
+            Ck_pXim->SetSourcePar(0, 0.92);
+            DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
+            Ck_pXim1530->SetSourcePar(0, 0.92);
+            Ck_pL->Update();
+            Ck_pSigma0->Update();
+            Ck_pXim->Update();
+            Ck_pXim1530->Update();
+            if (!CATSinput->GetSigmaFile(1)) {
+              std::cout << "No Sigma file 1 \n";
+              return;
+            }
+            if (!CATSinput->GetSigmaFile(2)) {
+              std::cout << "No Sigma file 2 \n";
+              return;
+            }
+            if (!CATSinput->GetSigmaFile(3)) {
+              std::cout << "No Sigma file 3 \n";
+              return;
+            }
+            DLM_CkDecomposition CkDec_pL("pLambda",
+                                         TheSource == TidyCats::sLevy ? 3 : 4,
+                                         *Ck_pL, CATSinput->GetSigmaFile(1));
+            DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0,
+            NULL);
+            DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
+                                           CATSinput->GetSigmaFile(3));
+            DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530,
+            NULL);
+            if (!CATSinput->GetResFile(1)) {
+              std::cout << "No Calib 1 \n";
+              return;
+            }
+            if (!CATSinput->GetResFile(2)) {
+              std::cout << "No Calib 2 \n";
+              return;
+            }
 //
-          if (TheSource == TidyCats::sLevy) {
-            CkDec_pL.AddContribution(0, lam_pL_pXm.at(vFrac_pL),
-                                     DLM_CkDecomposition::cFeedDown,
-                                     &CkDec_pXim, CATSinput->GetResFile(2));
-            CkDec_pL.AddContribution(
-                1,
-                1. - lam_pL.at(vFrac_pL) - lam_pL_pXm.at(vFrac_pL)
-                    - lam_pL_fake.at(vFrac_pL),
-                DLM_CkDecomposition::cFeedDown);
-            CkDec_pL.AddContribution(2, lam_pL_fake.at(vFrac_pL),
-                                     DLM_CkDecomposition::cFake);  //0.03
-          } else {
-            CkDec_pL.AddContribution(0, lam_pL_pS0.at(vFrac_pL),
-                                     DLM_CkDecomposition::cFeedDown,
-                                     &CkDec_pSigma0, CATSinput->GetResFile(1));
-            CkDec_pL.AddContribution(1, lam_pL_pXm.at(vFrac_pL),
-                                     DLM_CkDecomposition::cFeedDown,
-                                     &CkDec_pXim, CATSinput->GetResFile(2));
-            CkDec_pL.AddContribution(
-                2,
-                1. - lam_pL.at(vFrac_pL) - lam_pL_pS0.at(vFrac_pL)
-                    - lam_pL_pXm.at(vFrac_pL) - lam_pL_fake.at(vFrac_pL),
-                DLM_CkDecomposition::cFeedDown);
-            CkDec_pL.AddContribution(3, lam_pL_fake.at(vFrac_pL),
-                                     DLM_CkDecomposition::cFake);  //0.03
-          }
+            if (TheSource == TidyCats::sLevy) {
+              CkDec_pL.AddContribution(0, lam_pL_pXm.at(vFrac_pL),
+                                       DLM_CkDecomposition::cFeedDown,
+                                       &CkDec_pXim, CATSinput->GetResFile(2));
+              CkDec_pL.AddContribution(
+                  1,
+                  1. - lam_pL.at(vFrac_pL) - lam_pL_pXm.at(vFrac_pL)
+                      - lam_pL_fake.at(vFrac_pL),
+                  DLM_CkDecomposition::cFeedDown);
+              CkDec_pL.AddContribution(2, lam_pL_fake.at(vFrac_pL),
+                                       DLM_CkDecomposition::cFake);  //0.03
+            } else {
+              CkDec_pL.AddContribution(0, lam_pL_pS0.at(vFrac_pL),
+                                       DLM_CkDecomposition::cFeedDown,
+                                       &CkDec_pSigma0,
+                                       CATSinput->GetResFile(1));
+              CkDec_pL.AddContribution(1, lam_pL_pXm.at(vFrac_pL),
+                                       DLM_CkDecomposition::cFeedDown,
+                                       &CkDec_pXim, CATSinput->GetResFile(2));
+              CkDec_pL.AddContribution(
+                  2,
+                  1. - lam_pL.at(vFrac_pL) - lam_pL_pS0.at(vFrac_pL)
+                      - lam_pL_pXm.at(vFrac_pL) - lam_pL_fake.at(vFrac_pL),
+                  DLM_CkDecomposition::cFeedDown);
+              CkDec_pL.AddContribution(3, lam_pL_fake.at(vFrac_pL),
+                                       DLM_CkDecomposition::cFake);  //0.03
+            }
 
-          if (!CATSinput->GetResFile(3)) {
-            std::cout << "No Calib 3 \n";
-            return;
-          }
-          CkDec_pXim.AddContribution(0, lam_pXim_pXim1530,
-                                     DLM_CkDecomposition::cFeedDown,
-                                     &CkDec_pXim1530, CATSinput->GetResFile(3));  //from Xi-(1530)
-          CkDec_pXim.AddContribution(
-              1, 1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
-              DLM_CkDecomposition::cFeedDown);  //other feed-down (flat)
-          CkDec_pXim.AddContribution(2, lam_pXim_fake,
-                                     DLM_CkDecomposition::cFake);
+            if (!CATSinput->GetResFile(3)) {
+              std::cout << "No Calib 3 \n";
+              return;
+            }
+            CkDec_pXim.AddContribution(0, lam_pXim_pXim1530,
+                                       DLM_CkDecomposition::cFeedDown,
+                                       &CkDec_pXim1530,
+                                       CATSinput->GetResFile(3));  //from Xi-(1530)
+            CkDec_pXim.AddContribution(
+                1, 1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
+                DLM_CkDecomposition::cFeedDown);  //other feed-down (flat)
+            CkDec_pXim.AddContribution(2, lam_pXim_fake,
+                                       DLM_CkDecomposition::cFake);
 
-          DLM_Fitter1* fitter;
-          if (TheSource == TidyCats::sLevy) {
-            fitter = new DLM_Fitter1(1);
-            fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pL, kMin,
-                              FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
-                              BaseLineRegion[iBL][1]);
+            DLM_Fitter1* fitter;
+            if (TheSource == TidyCats::sLevy) {
+              fitter = new DLM_Fitter1(1);
+              fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pL, kMin,
+                                FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
+                                BaseLineRegion[iBL][1]);
 //            fitter->AddSameSource("pXim", "pLambda", 2);
 //            fitter->AddSameSource("pXim1530", "pLambda", 2);
 
-            fitter->SetParameter("pLambda", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
-            fitter->SetParameter("pLambda", DLM_Fitter1::p_sor1, 1.7, 1., 2.);
-          } else {
-            fitter = new DLM_Fitter1(1);
+              fitter->SetParameter("pLambda", DLM_Fitter1::p_sor0, 1.4, 0.5,
+                                   2.5);
+              fitter->SetParameter("pLambda", DLM_Fitter1::p_sor1, 1.7, 1., 2.);
+            } else {
+              fitter = new DLM_Fitter1(1);
 
-            fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pL, kMin,
-                              FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
-                              BaseLineRegion[iBL][1]);
+              fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pL, kMin,
+                                FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
+                                BaseLineRegion[iBL][1]);
 
 //            fitter->AddSameSource("pLambda", "pLambda", 1);
 //            fitter->AddSameSource("pSigma0", "pLambda", 1);
 //            fitter->AddSameSource("pXim", "pLambda", 1);
 //            fitter->AddSameSource("pXim1530", "pLambda", 1);
 
-            fitter->SetParameter("pLambda", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
-          }
-          fitter->SetOutputDir(OutputDir.Data());
-
-          fitter->SetSeparateBL(0, false);
-          fitter->SetParameter("pLambda", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
-          if (BaselineSlope == 1) {
-            fitter->SetParameter("pLambda", DLM_Fitter1::p_b, 1e-4, -2e-3,
-                                 2e-3);
-            fitter->FixParameter("pLambda", DLM_Fitter1::p_c, 0);
-          } else if (BaselineSlope == 2) {
-            fitter->SetParameter("pLambda", DLM_Fitter1::p_b, 1e-4, -2e-3,
-                                 2e-3);
-            fitter->SetParameter("pLambda", DLM_Fitter1::p_c, 1e-5, -1e-4,
-                                 1e-4);
-          } else {
-            fitter->FixParameter("pLambda", DLM_Fitter1::p_b, 0);
-            fitter->FixParameter("pLambda", DLM_Fitter1::p_c, 0);
-          }
-
-          fitter->FixParameter("pLambda", DLM_Fitter1::p_Cl, -1);
-
-          CkDec_pL.Update();
-//          CkDec_pXim.Update();
-          fitter->GoBabyGo();
-
-          TGraph FitResult;
-          FitResult.SetName(
-              TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
-          fitter->GetFitGraph(0, FitResult);
-          c1->cd();
-          TGraph* pointerFitResult = new TGraph(FitResult);
-          pointerFitResult->SetName(
-              TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
-          pointerFitResult->SetLineWidth(2);
-          pointerFitResult->SetLineColor(kRed);
-          pointerFitResult->SetMarkerStyle(24);
-          pointerFitResult->SetMarkerColor(kRed);
-          pointerFitResult->SetMarkerSize(1);
-          pointerFitResult->Draw("CP, same");
-
-          double Chi2 = 0;
-          unsigned EffNumBins = 0;
-          if (BaselineSlope == 0) {
-            EffNumBins = -2;  // radius and normalization
-          } else if (BaselineSlope == 0) {
-            EffNumBins = -3;  // radius, normalization and slope
-          } else if (BaselineSlope == 0) {
-            EffNumBins = -4;  // radius, normalization, slope and skewness
-          }
-          for (unsigned uBin = 0; uBin < 50; uBin++) {
-
-            double mom = AB_pL.GetMomentum(uBin);
-            double dataY;
-            double dataErr;
-            double theoryX;
-            double theoryY;
-
-            if (mom > FemtoRegion[vFemReg])
-              continue;
-
-            FitResult.GetPoint(uBin, theoryX, theoryY);
-            if (mom != theoryX) {
-              std::cout << mom << '\t' << theoryX << std::endl;
-              printf("  PROBLEM pp!\n");
+              fitter->SetParameter("pLambda", DLM_Fitter1::p_sor0, 1.4, 0.5,
+                                   2.5);
             }
-            dataY = OliHisto_pp->GetBinContent(uBin + 1);
-            dataErr = OliHisto_pp->GetBinError(uBin + 1);
-            if (dataErr < 1e-5) {
-              std::cout << dataErr << '\t' << "WARNING POINT NOT CONSIDERED \n";
-              continue;
+            fitter->SetOutputDir(OutputDir.Data());
+
+            fitter->SetSeparateBL(0, false);
+            fitter->SetParameter("pLambda", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
+            if (BaselineSlope == 1) {
+              fitter->SetParameter("pLambda", DLM_Fitter1::p_b, 1e-4, -2e-3,
+                                   2e-3);
+              fitter->FixParameter("pLambda", DLM_Fitter1::p_c, 0);
+            } else if (BaselineSlope == 2) {
+              fitter->SetParameter("pLambda", DLM_Fitter1::p_b, 1e-4, -2e-3,
+                                   2e-3);
+              fitter->SetParameter("pLambda", DLM_Fitter1::p_c, 1e-5, -1e-4,
+                                   1e-4);
+            } else {
+              fitter->FixParameter("pLambda", DLM_Fitter1::p_b, 0);
+              fitter->FixParameter("pLambda", DLM_Fitter1::p_c, 0);
             }
-            Chi2 += (dataY - theoryY) * (dataY - theoryY) / (dataErr * dataErr);
-            EffNumBins++;
+
+            fitter->FixParameter("pLambda", DLM_Fitter1::p_Cl, -1);
+
+            CkDec_pL.Update();
+            CkDec_pXim.Update();
+            fitter->GoBabyGo();
+
+            TGraph FitResult;
+            FitResult.SetName(
+                TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
+            fitter->GetFitGraph(0, FitResult);
+            c1->cd();
+            TGraph* pointerFitResult = new TGraph(FitResult);
+            pointerFitResult->SetName(
+                TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
+            pointerFitResult->SetLineWidth(2);
+            pointerFitResult->SetLineColor(kRed);
+            pointerFitResult->SetMarkerStyle(24);
+            pointerFitResult->SetMarkerColor(kRed);
+            pointerFitResult->SetMarkerSize(1);
+            pointerFitResult->Draw("CP, same");
+
+            double Chi2 = 0;
+            unsigned EffNumBins = 0;
+            if (BaselineSlope == 0) {
+              EffNumBins = -2;  // radius and normalization
+            } else if (BaselineSlope == 0) {
+              EffNumBins = -3;  // radius, normalization and slope
+            } else if (BaselineSlope == 0) {
+              EffNumBins = -4;  // radius, normalization, slope and skewness
+            }
+            for (unsigned uBin = 0; uBin < 50; uBin++) {
+
+              double mom = AB_pL.GetMomentum(uBin);
+              double dataY;
+              double dataErr;
+              double theoryX;
+              double theoryY;
+
+              if (mom > FemtoRegion[vFemReg])
+                continue;
+
+              FitResult.GetPoint(uBin, theoryX, theoryY);
+              if (mom != theoryX) {
+                std::cout << mom << '\t' << theoryX << std::endl;
+                printf("  PROBLEM pp!\n");
+              }
+              dataY = OliHisto_pp->GetBinContent(uBin + 1);
+              dataErr = OliHisto_pp->GetBinError(uBin + 1);
+              if (dataErr < 1e-5) {
+                std::cout << dataErr << '\t'
+                          << "WARNING POINT NOT CONSIDERED \n";
+                continue;
+              }
+              Chi2 += (dataY - theoryY) * (dataY - theoryY)
+                  / (dataErr * dataErr);
+              EffNumBins++;
+            }
+
+            ntBuffer[0] = NumIter;
+            ntBuffer[1] = uIter;
+            ntBuffer[2] = FemtoRegion[vFemReg];
+            ntBuffer[3] = vMod_pL;
+            ntBuffer[4] = BaselineSlope;
+            ntBuffer[5] = 0.;
+            ntBuffer[6] = 0.;
+            ntBuffer[7] = lam_pL.at(vFrac_pL);
+            ntBuffer[8] = lam_pL_pS0.at(vFrac_pL);
+            ntBuffer[9] = lam_pL_pXm.at(vFrac_pL);
+            ntBuffer[10] = TheSource;
+            ntBuffer[11] = fitter->GetParameter("pLambda", DLM_Fitter1::p_sor0);
+            ntBuffer[12] = fitter->GetParError("pLambda", DLM_Fitter1::p_sor0);
+            ntBuffer[13] = fitter->GetParameter("pLambda", DLM_Fitter1::p_sor1);
+            ntBuffer[14] = fitter->GetParError("pLambda", DLM_Fitter1::p_sor1);
+            ntBuffer[15] = fitter->GetParameter("pLambda", DLM_Fitter1::p_a);
+            ntBuffer[16] = fitter->GetParError("pLambda", DLM_Fitter1::p_a);
+            ntBuffer[17] = fitter->GetParameter("pLambda", DLM_Fitter1::p_b);
+            ntBuffer[18] = fitter->GetParError("pLambda", DLM_Fitter1::p_b);
+            ntBuffer[19] = fitter->GetParameter("pLambda", DLM_Fitter1::p_c);
+            ntBuffer[20] = fitter->GetParError("pLambda", DLM_Fitter1::p_c);
+            ntBuffer[21] = Chi2 / EffNumBins;
+            ntBuffer[22] = BaseLineRegion[iBL][0];
+            ntBuffer[23] = BaseLineRegion[iBL][1];
+            ntResult->Fill(ntBuffer);
+
+            DLM_Histo<double>* CkpL_pS0 = CkDec_pL.GetChildContribution(
+                (const unsigned int) 0, false);
+            DLM_Histo<double>* CkpL_pXim = CkDec_pL.GetChildContribution(
+                (const unsigned int) 1, false);
+            TGraph* grCkpL_pS0 = new TGraph();
+            grCkpL_pS0->SetName(
+                TString::Format("grCkpL_pS0_Var_%u_Iter_%u", NumIter, uIter));
+
+            TGraph* grCkpL_pS0Scaled = new TGraph();
+            grCkpL_pS0Scaled->SetName(
+                TString::Format("grCkpL_pS0Scaled_Var_%u_Iter_%u", NumIter,
+                                uIter));
+
+            TGraph* grCkpS0 = new TGraph();
+            grCkpS0->SetName(
+                TString::Format("grCkpS0_Var_%u_Iter_%u", NumIter, uIter));
+
+            TGraph* grCkpL_pXi = new TGraph();
+            grCkpL_pXi->SetName(
+                TString::Format("grCkpL_pXi_Var_%u_Iter_%u", NumIter, uIter));
+
+            TGraph* grCkpL_pXiScaled = new TGraph();
+            grCkpL_pXiScaled->SetName(
+                TString::Format("grCkpL_pXiScaled_Var_%u_Iter_%u", NumIter,
+                                uIter));
+
+            TGraph* grCkpXi = new TGraph();
+            grCkpXi->SetName(
+                TString::Format("grCkpXi_Var_%u_Iter_%u", NumIter, uIter));
+
+            for (int iBin = 0; iBin < FitResult.GetN(); iBin++) {
+              grCkpL_pS0->SetPoint(iBin, CkpL_pS0->GetBinCenter(0, iBin),
+                                   CkpL_pS0->GetBinContent(iBin));
+              grCkpL_pS0Scaled->SetPoint(
+                  iBin,
+                  CkpL_pS0->GetBinCenter(0, iBin),
+                  1
+                      + (CkpL_pS0->GetBinContent(iBin) - 1)
+                          * lam_pL_pS0.at(vFrac_pL));
+              grCkpS0->SetPoint(
+                  iBin, CkpL_pS0->GetBinCenter(0, iBin),
+                  CkDec_pSigma0.EvalCk(CkpL_pS0->GetBinCenter(0, iBin)));
+
+              grCkpL_pXi->SetPoint(iBin, CkpL_pXim->GetBinCenter(0, iBin),
+                                   CkpL_pXim->GetBinContent(iBin));
+              grCkpL_pXiScaled->SetPoint(
+                  iBin,
+                  CkpL_pXim->GetBinCenter(0, iBin),
+                  1
+                      + (CkpL_pXim->GetBinContent(iBin) - 1)
+                          * lam_pL_pXm.at(vFrac_pL));
+              grCkpXi->SetPoint(
+                  iBin, CkpL_pXim->GetBinCenter(0, iBin),
+                  CkDec_pXim.EvalCk(CkpL_pXim->GetBinCenter(0, iBin)));
+            }
+
+            TList* outList = new TList();
+            outList->SetOwner();
+            outList->SetName(
+                TString::Format("Graph_Var_%u_iter_%u", NumIter, uIter));
+            outList->Add(pointerFitResult);
+            outList->Add(grCkpL_pS0);
+            outList->Add(grCkpL_pS0Scaled);
+            outList->Add(grCkpS0);
+
+            outList->Add(grCkpL_pXi);
+            outList->Add(grCkpL_pXiScaled);
+            outList->Add(grCkpXi);
+            CollOut->Add(outList);
+
+            uIter++;
+
+            delete Ck_pL;
+            delete Ck_pSigma0;
+            delete Ck_pXim;
+            delete Ck_pXim1530;
+            delete fitter;
           }
-
-          ntBuffer[0] = NumIter;
-          ntBuffer[1] = uIter;
-          ntBuffer[2] = FemtoRegion[vFemReg];
-          ntBuffer[3] = vMod_pL;
-          ntBuffer[4] = BaselineSlope;
-          ntBuffer[5] = 0.;
-          ntBuffer[6] = 0.;
-          ntBuffer[7] = lam_pL.at(vFrac_pL);
-          ntBuffer[8] = lam_pL_pS0.at(vFrac_pL);
-          ntBuffer[9] = lam_pL_pXm.at(vFrac_pL);
-          ntBuffer[10] = TheSource;
-          ntBuffer[11] = fitter->GetParameter("pLambda", DLM_Fitter1::p_sor0);
-          ntBuffer[12] = fitter->GetParError("pLambda", DLM_Fitter1::p_sor0);
-          ntBuffer[13] = fitter->GetParameter("pLambda", DLM_Fitter1::p_sor1);
-          ntBuffer[14] = fitter->GetParError("pLambda", DLM_Fitter1::p_sor1);
-          ntBuffer[15] = fitter->GetParameter("pLambda", DLM_Fitter1::p_a);
-          ntBuffer[16] = fitter->GetParError("pLambda", DLM_Fitter1::p_a);
-          ntBuffer[17] = fitter->GetParameter("pLambda", DLM_Fitter1::p_b);
-          ntBuffer[18] = fitter->GetParError("pLambda", DLM_Fitter1::p_b);
-          ntBuffer[19] = fitter->GetParameter("pLambda", DLM_Fitter1::p_c);
-          ntBuffer[20] = fitter->GetParError("pLambda", DLM_Fitter1::p_c);
-          ntBuffer[21] = Chi2 / EffNumBins;
-          ntBuffer[22] = BaseLineRegion[iBL][0];
-          ntBuffer[23] = BaseLineRegion[iBL][1];
-          ntResult->Fill(ntBuffer);
-
-          DLM_Histo<double>* CkpL_pS0 = CkDec_pL.GetChildContribution(
-              (const unsigned int) 0, false);
-          DLM_Histo<double>* CkpL_pXim = CkDec_pL.GetChildContribution(
-              (const unsigned int) 1, false);
-          TGraph* grCkpL_pS0 = new TGraph();
-          grCkpL_pS0->SetName(
-              TString::Format("grCkpL_pS0_Var_%u_Iter_%u", NumIter, uIter));
-
-          TGraph* grCkpL_pS0Scaled = new TGraph();
-          grCkpL_pS0Scaled->SetName(
-              TString::Format("grCkpL_pS0Scaled_Var_%u_Iter_%u", NumIter,
-                              uIter));
-
-          TGraph* grCkpS0 = new TGraph();
-          grCkpS0->SetName(
-              TString::Format("grCkpS0_Var_%u_Iter_%u", NumIter, uIter));
-
-          TGraph* grCkpL_pXi = new TGraph();
-          grCkpL_pXi->SetName(
-              TString::Format("grCkpL_pXi_Var_%u_Iter_%u", NumIter, uIter));
-
-          TGraph* grCkpL_pXiScaled = new TGraph();
-          grCkpL_pXiScaled->SetName(
-              TString::Format("grCkpL_pXiScaled_Var_%u_Iter_%u", NumIter,
-                              uIter));
-
-          TGraph* grCkpXi = new TGraph();
-          grCkpXi->SetName(
-              TString::Format("grCkpXi_Var_%u_Iter_%u", NumIter, uIter));
-
-          for (int iBin = 0; iBin < FitResult.GetN(); iBin++) {
-            grCkpL_pS0->SetPoint(iBin, CkpL_pS0->GetBinCenter(0, iBin),
-                                 CkpL_pS0->GetBinContent(iBin));
-            grCkpL_pS0Scaled->SetPoint(
-                iBin,
-                CkpL_pS0->GetBinCenter(0, iBin),
-                1
-                    + (CkpL_pS0->GetBinContent(iBin) - 1)
-                        * lam_pL_pS0.at(vFrac_pL));
-            grCkpS0->SetPoint(
-                iBin, CkpL_pS0->GetBinCenter(0, iBin),
-                CkDec_pSigma0.EvalCk(CkpL_pS0->GetBinCenter(0, iBin)));
-
-            grCkpL_pXi->SetPoint(iBin, CkpL_pXim->GetBinCenter(0, iBin),
-                                 CkpL_pXim->GetBinContent(iBin));
-            grCkpL_pXiScaled->SetPoint(
-                iBin,
-                CkpL_pXim->GetBinCenter(0, iBin),
-                1
-                    + (CkpL_pXim->GetBinContent(iBin) - 1)
-                        * lam_pL_pXm.at(vFrac_pL));
-            grCkpXi->SetPoint(
-                iBin, CkpL_pXim->GetBinCenter(0, iBin),
-                CkDec_pXim.EvalCk(CkpL_pXim->GetBinCenter(0, iBin)));
-          }
-
-          TList* outList = new TList();
-          outList->SetOwner();
-          outList->SetName(
-              TString::Format("Graph_Var_%u_iter_%u", NumIter, uIter));
-          outList->Add(pointerFitResult);
-          outList->Add(grCkpL_pS0);
-          outList->Add(grCkpL_pS0Scaled);
-          outList->Add(grCkpS0);
-
-          outList->Add(grCkpL_pXi);
-          outList->Add(grCkpL_pXiScaled);
-          outList->Add(grCkpXi);
-          CollOut->Add(outList);
-
-          uIter++;
-
-          delete Ck_pL;
-          delete Ck_pSigma0;
-          delete Ck_pXim;
-          delete Ck_pXim1530;
-          delete fitter;
         }
       }
     }
