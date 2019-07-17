@@ -45,90 +45,39 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 }
 
 /// =====================================================================================
-void PrintVars(const std::vector<double> &vec) {
-  for (const auto &it : vec) {
-    std::cout << " " << it;
-  }
-  std::cout << "\n";
-}
-
-/// =====================================================================================
-void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
-               TString trigger, TString suffix, TString OutputDir,
-               const int potential, std::vector<double> params) {
-  bool batchmode = true;
-  bool debugPlots = false;
+void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
+               TString OutputDir, const int potential) {
+  bool batchmode = false;
+  bool debugPlots = true;
   double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
 
   DreamPlot::SetStyle();
-  bool fastPlot = (NumIter == 0) ? true : false;
   TRandom3 rangen(0);
   TidyCats* tidy = new TidyCats();  // for some reason we need this for the thing to compile
 
-  int nArguments = 35;
+  int nArguments = 24;
   TString varList =
       TString::Format(
-          "IterID:femtoFitRange:BLSlope:ppRadius:bl_a:bl_a_err:bl_b:bl_b_err:"
-          "sb_p0:sb_p0_err:sb_p1:sb_p1_err:sb_p2:sb_p2_err:sb_p3:sb_p3_err:sb_p4:sb_p4_err:sb_p5:sb_p5_err:"
-          "purity:primaryContrib:fakeContrib:SBnormDown:SBnormUp:"
-          "chi2NDFGlobal:pvalGlobal:chi2Local:ndf:chi2NDF:pval:nSigma250:nSigma200:nSigma150:CFneg")
+          "IterID:femtoFitRange:ppRadius:bl_a:bl_b:purity:primaryContrib:fakeContrib:SBfitVal:"
+          "sb_p0:sb_p0_err:sb_p1:sb_p1_err:sb_p2:sb_p2_err:sb_p3:sb_p3_err:"
+          "chi2Local:ndf:chi2NDF:pval:nSigma250:nSigma200:nSigma150")
           .Data();
-  if (potential == 0) {
-    varList += ":d0:REf0inv:IMf0inv";
-    nArguments += 3;
-  } else if (potential == 1) {
-    varList += ":deltap0:deltap1:deltap2:etap0:etap1:etap2";
-    nArguments += 6;
-  }
-
   TNtuple* ntResult = new TNtuple("fitResult", "fitResult", varList.Data());
 
   Float_t ntBuffer[nArguments];
   int iterID = 0;
   bool useBaseline = true;
 
-  TString graphfilename;
-  if (potential == 0) {
-    if (params.size() != 3) {
-      std::cout << "ERROR: Wrong number of scattering parameters\n";
-      return;
-    }
-    d0 = params[0];
-    REf0inv = params[1];
-    IMf0inv = params[2];
-
-    graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
-                                    OutputDir.Data(), potential, d0, REf0inv,
-                                    IMf0inv);
-  } else if (potential == 1) {
-    if (params.size() != 6) {
-      std::cout << "ERROR: Wrong number of parameters for delta/eta\n";
-      return;
-    }
-    deltap0 = params[0];
-    deltap1 = params[1];
-    deltap2 = params[2];
-    etap0 = params[3];
-    etap1 = params[4];
-    etap2 = params[5];
-
-    graphfilename = TString::Format(
-        "%s/Param_pSigma0_%i_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.root",
-        OutputDir.Data(), potential, deltap0, deltap1, deltap2, etap0, etap1,
-        etap2);
-
-  } else {
-    graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
-                                    OutputDir.Data(), potential);
-  }
+  TString graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
+                                          OutputDir.Data(), potential);
   auto param = new TFile(graphfilename, "RECREATE");
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input
-  std::vector<TH1F*> histSysVar;
-  std::vector<TGraphAsymmErrors*> grSysVar;
-  std::vector<TH1F*> histSidebandSysVar;
-  std::vector<TGraphAsymmErrors*> grSidebandSysVar;
+  std::vector<TH1F> histSysVar;
+  std::vector<TH1F> histSidebandSysVar;
+  std::vector<TGraphAsymmErrors> grSysVar;
+  std::vector<TGraphAsymmErrors> grSidebandSysVar;
   std::vector<double> puritySigma0;
 
   TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
@@ -138,46 +87,13 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   CATSinput->ReadResFile();
   CATSinput->SetSigmaFileName("Sample6_MeV_compact.root");
   CATSinput->ReadSigmaFile();
-  CATSinput->ReadSigma0CorrelationFile(InputDir.Data(), trigger.Data(),
-                                       suffix.Data());
-  CATSinput->CountPairs(InputDir.Data(), trigger.Data(), suffix.Data());
-  CATSinput->ObtainCFs(10, 250, 400);
   TString dataHistName = "hCk_ReweightedpSigma0MeV_0";
   TString dataGrName = "Graph_from_hCk_ReweightedpSigma0_0MeV";
-  auto dataHist = CATSinput->GetCF("pSigma0", dataHistName.Data());
-  auto dataGr = CATSinput->GetCFGr("pSigma0", dataGrName.Data());
-  if (!dataHist) {
-    std::cerr << "ERROR pSigma0 fitter: p-Sigma0 histogram missing\n";
-    return;
-  }
-  histSysVar.push_back(dataHist);
-  grSysVar.push_back(dataGr);
-  puritySigma0.push_back(CATSinput->GetSigma0PurityPt());
-
-  auto sidebandHistUp = CATSinput->GetCF("pSigmaSBUp",
-                                         "hCk_ReweightedpSigmaSBUpMeV_0");
-  auto sidebandHistLow = CATSinput->GetCF("pSigmaSBLow",
-                                          "hCk_ReweightedpSigmaSBLowMeV_0");
-  if (!sidebandHistLow || !sidebandHistUp) {
-    std::cerr << "ERROR pSigma0 fitter: p-pSigmaSB histogram missing\n";
-    return;
-  }
   const int nSidebandHist = 5;
   const int rebinSideband = 10;
-  auto side = new SidebandSigma();
-  side->SetRebin(rebinSideband);
-  side->SetSideBandFile(InputDir.Data(), trigger.Data(), suffix.Data());
-  side->SetNormalizationRange(250, 400);
-  side->SideBandCFs();
-  auto histSideband = side->GetSideBands(nSidebandHist);
-  auto grSideband = side->GetSideBandGraph(nSidebandHist);
-  histSidebandSysVar.push_back(histSideband);
-  grSidebandSysVar.push_back(grSideband);
 
-  /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  /// CATS input for the systematic variations
   DreamSystematics protonsigma(DreamSystematics::pSigma0);
-  for (int i = 1; i <= protonsigma.GetNumberOfVars(); ++i) {
+  for (int i = 0; i <= protonsigma.GetNumberOfVars(); ++i) {
     auto CATSinputVar = new CATSInputSigma0();
     auto appendixVar = TString::Format("%i", i);
     CATSinputVar->ReadSigma0CorrelationFile(SystInputDir.Data(), trigger.Data(),
@@ -188,26 +104,21 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
     CATSinputVar->ObtainCFs(10, 250, 400);
     auto dataHistVar = CATSinputVar->GetCF("pSigma0", dataHistName.Data());
     auto dataGrVar = CATSinputVar->GetCFGr("pSigma0", dataGrName.Data());
-    histSysVar.push_back(dataHistVar);
-    grSysVar.push_back(dataGrVar);
+    histSysVar.push_back(*dataHistVar);
+    grSysVar.push_back(*dataGrVar);
     delete CATSinputVar;
     auto sideVar = new SidebandSigma();
     sideVar->SetRebin(rebinSideband);
-    sideVar->SetSideBandFile(InputDir.Data(), trigger.Data(), appendixVar.Data());
+    sideVar->SetSideBandFile(InputDir.Data(), trigger.Data(),
+                             appendixVar.Data());
     sideVar->SetNormalizationRange(250, 400);
     sideVar->SideBandCFs();
-    histSidebandSysVar.push_back(sideVar->GetSideBands(nSidebandHist));
-    grSidebandSysVar.push_back(sideVar->GetSideBandGraph(nSidebandHist));
+    histSidebandSysVar.push_back(*(sideVar->GetSideBands(nSidebandHist)));
+    grSidebandSysVar.push_back(*(sideVar->GetSideBandGraph(nSidebandHist)));
+    delete sideVar;
   }
 
-  if (puritySigma0.size() != histSysVar.size()) {
-    std::cout << "ERROR: No matching hist/purity found \n";
-    return;
-  }
-
-  // dump the purity
-  std::cout << "Purity Sigma0:\n";
-  PrintVars(puritySigma0);
+  TH1F *dataHist = &histSysVar[0];
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Set up the CATS ranges, lambda parameters, etc.
@@ -225,11 +136,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   std::cout << "kMax: " << kMax_pSigma << std::endl;
   std::cout << "Binwidth: " << binwidth << std::endl;
   std::cout << "NumMomBins: " << NumMomBins_pSigma << std::endl;
-  std::cout << "DRAWING\n";
-  std::cout << "kMin: " << kMin_pSigma_draw << std::endl;
-  std::cout << "kMax: " << kMax_pSigma_draw << std::endl;
-  std::cout << "NumMomBins: " << NumMomBins_pSigma_draw << std::endl;
-  std::cout << "Binwidth : " << drawBinWidth << std::endl;
 
   // pp radius systematic variations
   const double resonancesRadius = 1.154;
@@ -280,121 +186,16 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
             << 1 - lambdaParamDefaultPrimary - lambdaParamDefaultSideband
             << "\n";
 
-  // sideband fit normalization range systematic variation
-  const std::vector<double> sidebandNormDown = { { 250, 200, 300 } };
-  const std::vector<double> sidebandNormUp = { { 400, 350, 450 } };
+  // sideband fit range systematic variation
+  const std::vector<double> sidebandFitRange = { { 650, 600, 700 } };
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  /// Fit the sideband
-
-  /// Prefit for the baseline
-  const float baselineFitRangeLow = 250;
-  const float baselineFitRangeUp = 600;
-
-  auto PrefitDefault = (TH1F*) histSideband->Clone(
-      Form("%s_prefit", histSideband->GetName()));
-  auto funct_0_Default = new TF1("myPol0", "pol0", baselineFitRangeLow, baselineFitRangeUp);
-  PrefitDefault->Fit(funct_0_Default, "FSNRMQ");
-
-  TF1* funct_1_Default = new TF1("myPol1", "pol1", baselineFitRangeLow, baselineFitRangeUp);
-  PrefitDefault->Fit(funct_1_Default, "FSNRMQ");
-  gMinuit->SetErrorDef(1);  // 1 corresponds to 1 sigma contour, 4 to 2 sigma
-  auto grPrefitContour_Default = (TGraph*) gMinuit->Contour(40, 0, 1);
-
-  std::vector<double> prefit_a_Default;
-  prefit_a_Default.emplace_back(funct_0_Default->GetParameter(0));
-  prefit_a_Default.emplace_back(funct_1_Default->GetParameter(0));
-  prefit_a_Default.emplace_back(
-      TMath::MinElement(grPrefitContour_Default->GetN(),
-                        grPrefitContour_Default->GetX()));
-  prefit_a_Default.emplace_back(
-      TMath::MaxElement(grPrefitContour_Default->GetN(),
-                        grPrefitContour_Default->GetX()));
-
-  std::vector<double> prefit_b_Default;
-  prefit_b_Default.emplace_back(0);
-  prefit_b_Default.emplace_back(funct_1_Default->GetParameter(1));
-  prefit_b_Default.emplace_back(
-      grPrefitContour_Default->Eval(prefit_a_Default[2]));
-  prefit_b_Default.emplace_back(
-      grPrefitContour_Default->Eval(prefit_a_Default[3]));
-
-  std::cout << "Result of the prefit to constrain the baseline\n";
-  for (size_t i = 0; i < prefit_a_Default.size(); ++i) {
-    std::cout << i << " a: " << prefit_a_Default[i] << " b: "
-              << prefit_b_Default[i] << "\n";
-  }
-
-  if (debugPlots) {
-    auto c = new TCanvas();
-    DreamPlot::SetStyleGraph(grPrefitContour_Default);
-    grPrefitContour_Default->SetTitle("; #it{a}; #it{b}");
-    grPrefitContour_Default->SetLineStyle(2);
-    auto grDots = new TGraph();
-    DreamPlot::SetStyleGraph(grDots, 20, kRed + 2);
-    for (size_t i = 0; i < prefit_a_Default.size(); ++i) {
-      grDots->SetPoint(i, prefit_a_Default[i], prefit_b_Default[i]);
-    }
-    grPrefitContour_Default->Draw("AL");
-    grDots->Draw("PEsame");
-    c->Print(Form("%s/Prefit_%i.pdf", OutputDir.Data(), potential));
-    delete grDots;
-    delete c;
-  }
-
-  delete funct_0_Default;
-  delete funct_1_Default;
-  delete PrefitDefault;
-
-  if (NumIter != 0) {
-    std::cout << "\n\nStarting the systematic variations\n";
-    std::cout << "Number of systematic variations of the data: "
-              << histSysVar.size() << "\n";
-    std::cout << "Number of variations of the fit region: "
-              << femtoFitRegionUp.size() << "\n";
-    PrintVars(femtoFitRegionUp);
-    std::cout << "Number of variations of the baseline:   "
-              << prefit_a_Default.size() << "\n";
-    PrintVars(prefit_a_Default);
-    PrintVars(prefit_b_Default);
-    std::cout << "Number of variations of the source size : "
-              << sourceSize.size() << "\n";
-    PrintVars(sourceSize);
-    std::cout << "Number of variations of the sideband normalization: "
-              << sidebandNormDown.size() << "\n";
-    PrintVars(sidebandNormDown);
-    PrintVars(sidebandNormUp);
-    std::cout << "Number of variations of the lambda param: "
-              << protonSecondary.size() << "\n";
-    PrintVars(protonSecondary);
-    std::cout << "\n";
-  }
-
-  // Set up the model, fitter, etc.
+  /// Set up the model, fitter, etc.
   DLM_Ck* Ck_pSigma0;
   DLM_Ck* Ck_pSigma0_draw;
   CATS AB_pSigma0;
   CATS AB_pSigma0_draw;
-  if (potential == 0) {  //  Effective Lednicky with scattering parameters
-    std::cout << "Running with scattering parameters - d0 = " << d0
-              << " fm - Re(f0^-1) = " << REf0inv << " fm^-1 - Im(f0^-1) = "
-              << IMf0inv << "\n";
-    Ck_pSigma0 = new DLM_Ck(1, 3, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
-                            ComplexLednicky_Singlet_InvScatLen);
-    Ck_pSigma0_draw = new DLM_Ck(1, 3, NumMomBins_pSigma_draw, kMin_pSigma_draw,
-                                 kMax_pSigma_draw,
-                                 ComplexLednicky_Singlet_InvScatLen);
-  } else if (potential == 1) {  // Effective Lednicky with delta/eta
-    std::cout << "Running with delta/eta parametrization \n";
-    std::cout << "Delta: " << deltap0 << " " << deltap1 << " " << deltap2
-              << "\n";
-    std::cout << "Eta  : " << etap0 << " " << etap1 << " " << etap2 << "\n";
-    Ck_pSigma0 = new DLM_Ck(1, 6, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
-                            LednickySingletScatAmplitude);
-    Ck_pSigma0_draw = new DLM_Ck(1, 6, NumMomBins_pSigma_draw, kMin_pSigma_draw,
-                                 kMax_pSigma_draw,
-                                 LednickySingletScatAmplitude);
-  } else if (potential == 2) {  // Lednicky coupled channel model fss2
+  if (potential == 2) {  // Lednicky coupled channel model fss2
     std::cout << "Running with coupled Lednicky \n";
     Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins_pSigma, kMin_pSigma, kMax_pSigma,
                             Lednicky_gauss_Sigma0);
@@ -472,27 +273,29 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
   }
 
   float counter = 0;
-  float total = histSysVar.size() * femtoFitRegionUp.size()
-      * prefit_a_Default.size() * sidebandNormDown.size();
+  float total = histSysVar.size() * femtoFitRegionUp.size() * 4
+      * sidebandFitRange.size();
+
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Systematic variations
 
   // 1. Systematic variations of the data
   for (size_t systDataIter = 0; systDataIter < histSysVar.size();
       ++systDataIter) {
-    auto currentHist = histSysVar[systDataIter];
-    auto currentGr = grSysVar[systDataIter];
-    auto currentSidebandHist = histSidebandSysVar[systDataIter];
-    auto currentSidebandGr = grSidebandSysVar[systDataIter];
+    TH1F* currentHist = &histSysVar[systDataIter];
+    TGraphAsymmErrors *currentGr = &grSysVar[systDataIter];
+    TH1F* currentSidebandHist = &histSidebandSysVar[systDataIter];
+    TGraphAsymmErrors *currentSidebandGr = &grSidebandSysVar[systDataIter];
     kMin_pSigma = currentHist->GetBinCenter(1) - binwidth / 2.;
 
     /// Prefit for the baseline
     auto Prefit = (TH1F*) currentSidebandHist->Clone(
-        Form("%i_%s_prefit", int(systDataIter), currentSidebandHist->GetName()));
-    auto funct_0 = new TF1("myPol0", "pol0", baselineFitRangeLow, baselineFitRangeUp);
+        Form("%i_%s_prefit", int(systDataIter),
+             currentSidebandHist->GetName()));
+    auto funct_0 = new TF1("myPol0", "pol0", 250, 600);
     Prefit->Fit(funct_0, "FSNRMQ");
 
-    TF1* funct_1 = new TF1("myPol1", "pol1", baselineFitRangeLow, baselineFitRangeUp);
+    TF1* funct_1 = new TF1("myPol1", "pol1", 250, 600);
     Prefit->Fit(funct_1, "FSNRMQ");
     gMinuit->SetErrorDef(1);  // 1 corresponds to 1 sigma contour, 4 to 2 sigma
     auto grPrefitContour = (TGraph*) gMinuit->Contour(40, 0, 1);
@@ -548,22 +351,16 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
         }
 
         // 4. Sideband normalization
-        for (size_t sbNormIter = 0; sbNormIter < sidebandNormDown.size();
+        for (size_t sbNormIter = 0; sbNormIter < sidebandFitRange.size();
             ++sbNormIter) {
 
-          side->SetNormalizationRange(sidebandNormDown[sbNormIter],
-                                      sidebandNormUp[sbNormIter]);
-
-          side->SideBandCFs();
-          auto SBmerge = side->GetSideBandGraph(5);
-          SBmerge->SetName(Form("SidebandMerged_%i", iterID));
           auto sideband = new TF1(Form("sideband_%i", iterID), sidebandFit, 0,
-                                  650, nSidebandPars);
+                                  sidebandFitRange[sbNormIter], nSidebandPars);
           sideband->SetParameter(0, 1.);
           sideband->SetParameter(1, 0.);
           sideband->SetParameter(2, -0.5);
           sideband->SetParameter(3, -0.01);
-          SBmerge->Fit(sideband, "FSNRMQ");
+          currentSidebandHist->Fit(sideband, "NRMQ");
 
           DLM_Ck* Ck_SideBand = new DLM_Ck(0, nSidebandPars, NumMomBins_pSigma,
                                            kMin_pSigma, kMax_pSigma,
@@ -575,14 +372,15 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                                                 kMax_pSigma_draw,
                                                 sidebandFitCATS);
 
-          for (unsigned i = 0; i < sideband->GetNumberFreeParameters(); ++i) {
+          for (unsigned i = 0; i < nSidebandPars; ++i) {
             Ck_SideBand->SetPotPar(i, sideband->GetParameter(i));
             Ck_SideBand_draw->SetPotPar(i, sideband->GetParameter(i));
           }
           Ck_SideBand->Update();
           Ck_SideBand_draw->Update();
 
-          std::cout << "\r Processing progress: "
+          std::cout
+              << "\r Processing progress: "
               << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
               << std::flush;
 
@@ -669,18 +467,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot3, 0);
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot4, 0);
               fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot5, 0);
-              if (potential == 0) {
-                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, REf0inv);
-                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, IMf0inv);
-                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, d0);
-              } else if (potential == 1) {
-                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot0, deltap0);
-                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot1, deltap1);
-                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot2, deltap2);
-                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot3, etap0);
-                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot4, etap1);
-                fitter->FixParameter("pSigma0", DLM_Fitter1::p_pot5, etap2);
-              }
 
               fitter->GoBabyGo();
 
@@ -696,9 +482,6 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                                                           DLM_Fitter1::p_b);
               const double Cl = fitter->GetParameter("pSigma0",
                                                      DLM_Fitter1::p_c);
-              const double chi2 = fitter->GetChi2Ndf();
-              const double pval = fitter->GetPval();
-              const bool isCFneg = fitter->CheckNegativeCk();
 
               TGraph FitResult_pSigma0;
               FitResult_pSigma0.SetName(
@@ -728,17 +511,16 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                   Chi2_pSigma0_250 += (dataY - theoryY) * (dataY - theoryY)
                       / (dataErr * dataErr);
                   ++EffNumBins_pSigma0_250;
-                  if (mom < 200) {
-                    Chi2_pSigma0_200 += (dataY - theoryY) * (dataY - theoryY)
-                        / (dataErr * dataErr);
-                    ++EffNumBins_pSigma0_200;
-                    if (mom < 150) {
-                      Chi2_pSigma0_150 += (dataY - theoryY) * (dataY - theoryY)
-                          / (dataErr * dataErr);
-                      ++EffNumBins_pSigma0_150;
-
-                    }
-                  }
+                }
+                if (mom < 200) {
+                  Chi2_pSigma0_200 += (dataY - theoryY) * (dataY - theoryY)
+                      / (dataErr * dataErr);
+                  ++EffNumBins_pSigma0_200;
+                }
+                if (mom < 150) {
+                  Chi2_pSigma0_150 += (dataY - theoryY) * (dataY - theoryY)
+                      / (dataErr * dataErr);
+                  ++EffNumBins_pSigma0_150;
                 }
               }
               double pvalpSigma0_250 = TMath::Prob(
@@ -821,27 +603,17 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               param->cd(TString::Format("Graph_%i", iterID));
 
               currentGr->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
-              SBmerge->SetTitle(
+              currentSidebandGr->SetTitle(
                   ";#it{k}* (MeV/#it{c}); C_{p#minus(#Lambda#gamma)}(#it{k}*)");
-              sidebandHistLow->SetTitle(
-                  ";#it{k}* (MeV/#it{c}); C_{sideband, low}(#it{k}*)");
-              sidebandHistUp->SetTitle(
-                  ";#it{k}* (MeV/#it{c}); C_{sideband, up}(#it{k}*)");
 
-              if (fastPlot || iterID == 0) {
+              if (iterID == 0) {
                 /// beautification
                 DreamPlot::SetStyleGraph(currentGr, 24, kBlue + 3);
-                DreamPlot::SetStyleGraph(SBmerge, 20, kRed + 2);
-                DreamPlot::SetStyleHisto(sidebandHistLow, 26, kGreen + 2);
-                DreamPlot::SetStyleHisto(sidebandHistUp, 26, kCyan + 2);
+                DreamPlot::SetStyleGraph(currentSidebandGr, 20, kRed + 2);
                 currentGr->GetXaxis()->SetTitleSize(28);
                 currentGr->GetYaxis()->SetTitleSize(28);
-                SBmerge->GetXaxis()->SetTitleSize(28);
-                SBmerge->GetYaxis()->SetTitleSize(28);
-                sidebandHistLow->GetXaxis()->SetTitleSize(28);
-                sidebandHistLow->GetYaxis()->SetTitleSize(28);
-                sidebandHistUp->GetXaxis()->SetTitleSize(28);
-                sidebandHistUp->GetYaxis()->SetTitleSize(28);
+                currentSidebandGr->GetXaxis()->SetTitleSize(28);
+                currentSidebandGr->GetYaxis()->SetTitleSize(28);
                 sideband->SetLineWidth(2);
                 sideband->SetLineStyle(2);
                 sideband->SetLineColor(kGray + 1);
@@ -851,99 +623,20 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                 grCFSigmaSideband.SetLineStyle(2);
                 grCFSigmaSideband.SetLineColor(kGray + 1);
 
-                auto c = new TCanvas("DefaultFit", "DefaultFit");
-                currentGr->GetXaxis()->SetRangeUser(0., 350);
-                currentGr->GetYaxis()->SetRangeUser(0.8, 1.6);
-                currentGr->Draw("APEZ");
-                FitResult_pSigma0.Draw("l3same");
-                grCFSigmaSideband.Draw("l3same");
-
-                auto info = new TPaveText(0.5, useBaseline ? 0.505 : 0.58, 0.88,
-                                          0.85, "blNDC");
-                info->SetBorderSize(0);
-                info->SetTextSize(0.04);
-                info->SetFillColor(kWhite);
-                info->SetTextFont(42);
-                TString SOURCE_NAME = "Gauss";
-                double Yoffset = 1.2;
-                info->AddText(
-                    TString::Format(
-                        "#it{r}_{%s} = %.3f #pm %.3f fm", SOURCE_NAME.Data(),
-                        fitter->GetParameter("pSigma0", DLM_Fitter1::p_sor0),
-                        fitter->GetParError("pSigma0", DLM_Fitter1::p_sor0)));
-                info->AddText(
-                    TString::Format("#it{a} = %.3f #pm %.3f", bl_a, bl_a_err));
-
-                if (useBaseline) {
-                  info->AddText(
-                      TString::Format(
-                          "#it{b} = (%.3f #pm %.3f ) #times 10^{-4}",
-                          bl_b * 1e4, bl_b_err * 1e4));
-                }
-                info->AddText(
-                    TString::Format(
-                        "#chi_{loc}^{2}/ndf=%.1f/%.0f = %.3f", Chi2_pSigma0_250,
-                        EffNumBins_pSigma0_250,
-                        Chi2_pSigma0_250 / double(EffNumBins_pSigma0_250)));
-                info->AddText(
-                    TString::Format("#it{p}_{val}=%.3f, n_{#sigma}=%.3f",
-                                    pvalpSigma0_250, nSigmapSigma0_250));
-
-                info->Draw("same");
-                c->Write("CFplot");
                 if (debugPlots) {
-                  if (potential == 0) {
-                    c->Print(
-                        Form("%s/CF_pSigma0_%.3f_%.3f_%.3f.pdf",
-                             OutputDir.Data(), d0, REf0inv, IMf0inv));
-                  } else if (potential == 1) {
-                    c->Print(
-                        Form("%s/CF_pSigma0_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
-                             OutputDir.Data(), deltap0, deltap1, deltap2, etap0,
-                             etap1, etap2));
-                  } else {
-                    c->Print(Form("%s/CF_pSigma0.pdf", OutputDir.Data()));
-                  }
-                }
-
-                auto d = new TCanvas("SidebandFit", "SidebandFit");
-                SBmerge->GetXaxis()->SetRangeUser(0, 600);
-                SBmerge->GetYaxis()->SetRangeUser(0.8, 1.6);
-                SBmerge->Draw("APEZ");
-                sideband->Draw("l3same");
-                d->Write("CFsideband");
-                if (debugPlots) {
-                  d->Print(Form("%s/CF_pSideband.pdf", OutputDir.Data()));
-
-                  auto e = new TCanvas("Sidebands", "Sidebands");
-                  SBmerge->Draw("APEZ");
-                  sideband->Draw("l3same");
-                  sidebandHistLow->Draw("same");
-                  sidebandHistUp->Draw("same");
-                  auto leg = new TLegend(0.5, 0.6, 0.88, 0.85);
-                  leg->SetTextFont(42);
-                  leg->SetTextSize(0.05);
-                  leg->AddEntry(sidebandHistLow, "Sideband low", "pe");
-                  leg->AddEntry(sidebandHistUp, "Sideband up", "pe");
-                  leg->AddEntry(SBmerge, "Sideband merged", "pe");
-                  leg->AddEntry(sideband, "Fit", "l");
-                  leg->Draw("same");
-                  e->Write("CFsideband");
-                  e->Print(Form("%s/CF_pSideband_all.pdf", OutputDir.Data()));
-                  delete e;
-
                   auto f = new TCanvas("baseline");
-                  SBmerge->Draw("APEZ");
-                  SBmerge->GetXaxis()->SetRangeUser(0, 600);
-                  SBmerge->GetYaxis()->SetTitle("C(#it{k}*)");
+                  currentSidebandGr->Draw("APEZ");
+                  currentSidebandGr->GetXaxis()->SetRangeUser(0, 600);
+                  currentSidebandGr->GetYaxis()->SetTitle("C(#it{k}*)");
                   currentGr->Draw("pezsame");
                   currentGr->GetXaxis()->SetRangeUser(0, 600);
-                  const int nBins = prefit_a_Default.size();
+                  const int nBins = prefit_a.size();
                   TF1* baselines[nBins];
                   for (int i = 0; i < nBins; ++i) {
-                    baselines[i] = new TF1(Form("baseline_%i", i), "pol1", 0, 900);
-                    baselines[i]->SetParameter(0, prefit_a_Default[i]);
-                    baselines[i]->SetParameter(1, prefit_b_Default[i]);
+                    baselines[i] = new TF1(Form("baseline_%i", i), "pol1", 0,
+                                           900);
+                    baselines[i]->SetParameter(0, prefit_a[i]);
+                    baselines[i]->SetParameter(1, prefit_b[i]);
                     baselines[i]->SetLineColor(kGreen + 2);
                     baselines[i]->Draw("same");
                   }
@@ -951,27 +644,40 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
                   leg2->SetTextFont(42);
                   leg2->SetTextSize(0.05);
                   leg2->AddEntry(currentGr, "p#minus#Sigma^{0}", "pe");
-                  leg2->AddEntry(SBmerge, "p#minus(#Lambda#gamma) sideband (unscaled)", "pe");
+                  leg2->AddEntry(currentSidebandGr,
+                                 "p#minus(#Lambda#gamma) sideband (unscaled)",
+                                 "pe");
                   leg2->AddEntry(baselines[0], "Baseline fits", "l");
                   leg2->Draw("same");
                   f->Print(Form("%s/CF_baseline.pdf", OutputDir.Data()));
                   delete f;
+
+                    auto g = new TCanvas();
+                  DreamPlot::SetStyleGraph (grPrefitContour);
+                  grPrefitContour->SetTitle("; #it{a}; #it{b}");
+                  grPrefitContour->SetLineStyle(2);
+                  auto grDots = new TGraph();
+                  DreamPlot::SetStyleGraph(grDots, 20, kRed + 2);
+                  for (size_t i = 0; i < prefit_a.size(); ++i) {
+                    grDots->SetPoint(i, prefit_a[i],
+                                     prefit_b[i]);
+                  }
+                  grPrefitContour->Draw("AL");
+                  grDots->Draw("PEsame");
+                  g->Print(
+                      Form("%s/Prefit_%i.pdf", OutputDir.Data(), potential));
+                  delete grDots;
+                  delete g;
                 }
 
-                dataGr->Write();
-
+                currentGr->Write();
                 grCFSigmaRaw.Write();
                 grCFSigmaMain.Write();
                 grCFSigmaFeed.Write();
                 grPrefitContour->Write("fitContour");
                 sideband->Write(Form("SidebandFitNotScaled_%i", iterID));
-                SBmerge->Write(Form("SidebandMerged_%i", iterID));
-                sidebandHistLow->Write("SidebandLow");
-                sidebandHistUp->Write("SidebandUp");
-
-                delete c;
-                delete d;
-                delete info;
+                currentSidebandGr->SetName(Form("SidebandMerged_%i", iterID));
+                currentSidebandGr->Write();
               }
 
               grCFSigmaExtrapolate.Write();
@@ -986,61 +692,32 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
               param->cd();
               ntBuffer[0] = iterID;
               ntBuffer[1] = femtoFitRegionUp[femtoFitIter];
-              ntBuffer[2] = (float) blIter;
-              ntBuffer[3] = sourceSize[sizeIter];
-              ntBuffer[4] = bl_a;
-              ntBuffer[5] = bl_a_err;
-              ntBuffer[6] = bl_b;
-              ntBuffer[7] = bl_b_err;
-              ntBuffer[8] = sideband->GetParameter(0);
-              ntBuffer[9] = sideband->GetParError(0);
-              ntBuffer[10] = sideband->GetParameter(1);
-              ntBuffer[11] = sideband->GetParError(1);
-              ntBuffer[12] = sideband->GetParameter(2);
-              ntBuffer[13] = sideband->GetParError(2);
-              ntBuffer[14] = sideband->GetParameter(3);
-              ntBuffer[15] = sideband->GetParError(3);
-              ntBuffer[16] = sideband->GetParameter(4);
-              ntBuffer[17] = sideband->GetParError(4);
-              ntBuffer[18] = sideband->GetParameter(5);
-              ntBuffer[19] = sideband->GetParError(5);
-              ntBuffer[20] = sigmaPurity;
-              ntBuffer[21] = primaryContr;
-              ntBuffer[22] = sidebandContr;
-              ntBuffer[23] = sidebandNormDown[sbNormIter];
-              ntBuffer[24] = sidebandNormUp[sbNormIter];
-              ntBuffer[25] = chi2;
-              ntBuffer[26] = pval;
-              ntBuffer[27] = Chi2_pSigma0_250;
-              ntBuffer[28] = (float) EffNumBins_pSigma0_250;
-              ntBuffer[29] = Chi2_pSigma0_250 / double(EffNumBins_pSigma0_250);
-              ntBuffer[30] = pvalpSigma0_250;
-              ntBuffer[31] = nSigmapSigma0_250;
-              ntBuffer[32] = nSigmapSigma0_200;
-              ntBuffer[33] = nSigmapSigma0_150;
-              ntBuffer[34] = (float) isCFneg;
-              if (potential == 0) {
-                ntBuffer[35] = d0;
-                ntBuffer[36] = REf0inv;
-                ntBuffer[37] = IMf0inv;
-              } else if (potential == 1) {
-                ntBuffer[35] = deltap0;
-                ntBuffer[36] = deltap1;
-                ntBuffer[37] = deltap2;
-                ntBuffer[38] = etap0;
-                ntBuffer[39] = etap1;
-                ntBuffer[40] = etap2;
-              }
-
+              ntBuffer[2] = sourceSize[sizeIter];
+              ntBuffer[3] = bl_a;
+              ntBuffer[4] = bl_b;
+              ntBuffer[5] = sigmaPurity;
+              ntBuffer[6] = primaryContr;
+              ntBuffer[7] = sidebandContr;
+              ntBuffer[8] = sidebandFitRange[sbNormIter];
+              ntBuffer[9] = sideband->GetParameter(0);
+              ntBuffer[10] = sideband->GetParError(0);
+              ntBuffer[11] = sideband->GetParameter(1);
+              ntBuffer[12] = sideband->GetParError(1);
+              ntBuffer[13] = sideband->GetParameter(2);
+              ntBuffer[14] = sideband->GetParError(2);
+              ntBuffer[15] = sideband->GetParameter(3);
+              ntBuffer[16] = sideband->GetParError(3);
+              ntBuffer[17] = Chi2_pSigma0_250;
+              ntBuffer[18] = (float) EffNumBins_pSigma0_250;
+              ntBuffer[19] = Chi2_pSigma0_250 / double(EffNumBins_pSigma0_250);
+              ntBuffer[20] = pvalpSigma0_250;
+              ntBuffer[21] = nSigmapSigma0_250;
+              ntBuffer[22] = nSigmapSigma0_200;
+              ntBuffer[23] = nSigmapSigma0_150;
               ntResult->Fill(ntBuffer);
               ++iterID;
 
               delete fitter;
-
-              if (NumIter == 0) {
-                std::cout << "Skipping all systematic variations \n";
-                goto exitThroughTheGiftShop;
-              }
             }
           }
           delete sideband;
@@ -1050,12 +727,10 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
       }
     }
   }
-  exitThroughTheGiftShop:
 
   ntResult->Write();
   param->Close();
 
-  delete side;
   delete CATSinput;
   delete ntResult;
   delete param;
@@ -1066,35 +741,10 @@ void FitSigma0(const unsigned& NumIter, TString InputDir, TString SystInputDir,
 
 /// =====================================================================================
 void FitSigma0(char *argv[]) {
-  const unsigned& NumIter = atoi(argv[1]);
-  TString InputDir = argv[2];
-  TString SystDir = argv[3];
-  TString trigger = argv[4];
-  TString suffix = argv[5];
-  TString OutputDir = argv[6];
-  const int potential = atoi(argv[7]);
-  std::vector<double> params;
-  if (potential == 0) {
-    if (!argv[8] || !argv[9] || !argv[10]) {
-      std::cout << "ERROR: Missing the scattering parameters\n";
-      return;
-    }
-    params.push_back(atof(argv[8]));  // d0
-    params.push_back(atof(argv[9]));  // REf0inv
-    params.push_back(atof(argv[10]));  // IMf0inv
-  } else if (potential == 1) {
-    if (!argv[8] || !argv[9] || !argv[10] || !argv[11] || !argv[12]
-        || !argv[13]) {
-      std::cout << "ERROR: Missing the parameters for delta/eta\n";
-      return;
-    }
-    params.push_back(atof(argv[8]));   // deltap0
-    params.push_back(atof(argv[9]));   // deltap1
-    params.push_back(atof(argv[10]));   // deltap2
-    params.push_back(atof(argv[11]));  // etap0
-    params.push_back(atof(argv[12]));  // etap1
-    params.push_back(atof(argv[13]));  // etap2
-  }
-  FitSigma0(NumIter, InputDir, SystDir, trigger, suffix, OutputDir, potential,
-            params);
+  TString InputDir = argv[1];
+  TString SystDir = argv[2];
+  TString trigger = argv[3];
+  TString OutputDir = argv[4];
+  const int potential = atoi(argv[5]);
+  FitSigma0(InputDir, SystDir, trigger, OutputDir, potential);
 }

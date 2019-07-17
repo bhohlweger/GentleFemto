@@ -78,7 +78,7 @@ void EvalError(TNtuple *tuple, const int ikstar, TGraph* histCF,
   double DeltaCoulomb = (binLow - binUp) / TMath::Sqrt(12);
   double DefaultVal = (binUp + binLow) / 2.;
 
-  if (debugPlot) {
+  if (debugPlot && kVal < 350) {
     auto gr = new TGraphErrors();
     DreamPlot::SetStyleGraph(gr, 20, kRed + 2);
     gr->SetLineWidth(2);
@@ -104,8 +104,7 @@ void EvalError(TNtuple *tuple, const int ikstar, TGraph* histCF,
 
 // =========================================
 // Draw all systematic variations available
-void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
-               std::vector<double> params) {
+void DrawSigma(TString varFolder, const int& potential) {
   bool debugPlots = false;
   double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
 
@@ -117,41 +116,8 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
   TGraph* CF_Model;
   TGraph* CF_Sidebands;
 
-  TString graphfilename;
-  if (potential == 0) {
-    if (params.size() != 3) {
-      std::cout << "ERROR: Wrong number of scattering parameters\n";
-      return;
-    }
-    d0 = params[0];
-    REf0inv = params[1];
-    IMf0inv = params[2];
-
-    graphfilename = TString::Format("%s/Param_pSigma0_%i_%.3f_%.3f_%.3f.root",
-                                    varFolder.Data(), potential, d0, REf0inv,
-                                    IMf0inv);
-  } else if (potential == 1) {
-    if (params.size() != 6) {
-      std::cout << "ERROR: Wrong number of parameters for delta/eta\n";
-      return;
-    }
-    deltap0 = params[0];
-    deltap1 = params[1];
-    deltap2 = params[2];
-    etap0 = params[3];
-    etap1 = params[4];
-    etap2 = params[5];
-
-    graphfilename = TString::Format(
-        "%s/Param_pSigma0_%i_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.root",
-        varFolder.Data(), potential, deltap0, deltap1, deltap2, etap0, etap1,
-        etap2);
-
-  } else {
-    graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
+  TString graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
                                     varFolder.Data(), potential);
-  }
-
   auto file = TFile::Open(graphfilename.Data(), "update");
   auto fit = new TNtuple("fit", "fit", "kstar:modelVal");
   auto sideband = new TNtuple("sideband", "sideband", "kstar:modelVal");
@@ -182,7 +148,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
         }
         c1->cd();
         CF_Histo->GetXaxis()->SetRangeUser(0, 600);
-        CF_Histo->GetYaxis()->SetRangeUser(0.8, 1.6);
+        CF_Histo->GetYaxis()->SetRangeUser(0.8, 1.7);
         CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
         DreamPlot::SetStyleGraph(CF_Histo, 24, kBlue + 3);
         CF_Histo->Draw("APEZ");
@@ -190,7 +156,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
         c2->cd();
         CF_Sideband = hist;
         CF_Sideband->GetXaxis()->SetRangeUser(0, 600);
-        CF_Sideband->GetYaxis()->SetRangeUser(0.8, 1.6);
+        CF_Sideband->GetYaxis()->SetRangeUser(0.8, 1.7);
         CF_Sideband->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
         DreamPlot::SetStyleGraph(CF_Sideband, 24, kBlue + 3);
         CF_Sideband->Draw("APEZ");
@@ -246,37 +212,19 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
     }
   }
 
+  c1->cd();
+  CF_Histo->Draw("pezsame");
+  c2->cd();
+  CF_Sideband->Draw("pezsame");
+
   if (debugPlots) {
-    if (potential == 0) {
-      c1->Print(
-          Form("%s/CF_pSigma_model_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
-               REf0inv, IMf0inv));
-    } else if (potential == 1) {
-      c1->Print(
-          Form("%s/CF_pSigma_model_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
-               varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1,
-               etap2));
-    } else {
-      c1->Print(Form("%s/CF_pSigma_model_%i.pdf", varFolder.Data(), potential));
-      c2->Print(
-          Form("%s/CF_Sideband_model_%i.pdf", varFolder.Data(), potential));
-    }
+    c1->Print(Form("%s/CF_pSigma_model_%i.pdf", varFolder.Data(), potential));
+    c2->Print(Form("%s/CF_Sideband_model_%i.pdf", varFolder.Data(), potential));
     CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
-    if (potential == 0) {
-      c1->Print(
-          Form("%s/CF_pSigma_model_zoom_%.3f_%.3f_%.3f.pdf", varFolder.Data(),
-               d0, REf0inv, IMf0inv));
-    } else if (potential == 1) {
-      c1->Print(
-          Form("%s/CF_pSigma_model_zoom_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
-               varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1,
-               etap2));
-    } else {
-      c1->Print(
-          Form("%s/CF_pSigma_model_zoom_%i.pdf", varFolder.Data(), potential));
-      c2->Print(
-          Form("%s/CF_Sideband_model_zoom_%i.pdf", varFolder.Data(), potential));
-    }
+    c1->Print(
+        Form("%s/CF_pSigma_model_zoom_%i.pdf", varFolder.Data(), potential));
+    c2->Print(
+        Form("%s/CF_Sideband_model_zoom_%i.pdf", varFolder.Data(), potential));
   }
 
   file->cd();
@@ -347,17 +295,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
       0.66,
       TString::Format("n#sigma_{150} = %.1f / %.1f / %.1f", nSigma150[0],
                       nSigma150[1], nSigma150[2]));
-  if (potential == 0) {
-    c->Print(
-        Form("%s/CF_pSigma_fit_%.3f_%.3f_%.3f.pdf", varFolder.Data(), d0,
-             REf0inv, IMf0inv));
-  } else if (potential == 1) {
-    c->Print(
-        Form("%s/CF_pSigma_fit_%.1f_%.4f_%.7f_%.2f_%.5f_%.8f.pdf",
-             varFolder.Data(), deltap0, deltap1, deltap2, etap0, etap1, etap2));
-  } else {
     c->Print(Form("%s/CF_pSigma_fit_%i.pdf", varFolder.Data(), potential));
-  }
   c->Write();
   grCF->Write();
   grSidebands->Write();
@@ -378,30 +316,7 @@ void DrawSigma(const unsigned& NumIter, TString varFolder, const int& potential,
 // =========================================
 // Draw all systematic variations available
 void DrawSigma(char *argv[]) {
-  const unsigned& NumIter = atoi(argv[1]);
-  TString varFolder = argv[6];
-  const int potential = atoi(argv[7]);
-  std::vector<double> params;
-  if (potential == 0) {
-    if (!argv[8] || !argv[9] || !argv[10]) {
-      std::cout << "ERROR: Missing the scattering parameters\n";
-      return;
-    }
-    params.push_back(atof(argv[8]));  // d0
-    params.push_back(atof(argv[9]));  // REf0inv
-    params.push_back(atof(argv[10]));  // IMf0inv
-  } else if (potential == 1) {
-    if (!argv[8] || !argv[9] || !argv[10] || !argv[11] || !argv[12]
-        || !argv[13]) {
-      std::cout << "ERROR: Missing the parameters for delta/eta\n";
-      return;
-    }
-    params.push_back(atof(argv[8]));   // deltap0
-    params.push_back(atof(argv[9]));   // deltap1
-    params.push_back(atof(argv[10]));   // deltap2
-    params.push_back(atof(argv[11]));  // etap0
-    params.push_back(atof(argv[12]));  // etap1
-    params.push_back(atof(argv[13]));  // etap2
-  }
-  DrawSigma(NumIter, varFolder, potential, params);
+  TString OutputDir = argv[4];
+  const int potential = atoi(argv[5]);
+  DrawSigma(OutputDir, potential);
 }
