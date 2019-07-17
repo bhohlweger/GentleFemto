@@ -18,16 +18,18 @@ int main(int argc, char* argv[])   {
     return -1;
   }
 
-  VariationmTAnalysis* analyser = new VariationmTAnalysis();
+  VariationmTAnalysis* analyser = new VariationmTAnalysis(1,26,81);
   analyser->SetHistName("hCk_RebinnedppVar");
+  analyser->SetFileName("OutFileVarpp.root");
   analyser->SetmTAverage(avgmT);
   //this implies a folder structure following mTBin_[1,2,3,....]
   for (int imt = 1; imt <= nMTBins; ++imt) {
     TString mTDataDir = Form("%s/mTBin_%u",DataDir,imt);
     analyser->SetSystematic(mTDataDir.Data());
     TString mTFitDir = Form("%s/mTBin_%u",FitDir,imt);
-    analyser->SetVariation(mTFitDir.Data());
+    analyser->SetVariation(mTFitDir.Data(),0);
   }
-  analyser->MakePlots();
+  analyser->MakeCFPlotsPP();
+  analyser->MakeRadPlotsPP();
   return 1;
 }
