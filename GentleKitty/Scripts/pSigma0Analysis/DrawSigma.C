@@ -221,6 +221,7 @@ void DrawSigma(TString varFolder, const int& potential) {
     c1->Print(Form("%s/CF_pSigma_model_%i.pdf", varFolder.Data(), potential));
     c2->Print(Form("%s/CF_Sideband_model_%i.pdf", varFolder.Data(), potential));
     CF_Histo->GetYaxis()->SetRangeUser(0.9, 1.1);
+    CF_Sideband->GetYaxis()->SetRangeUser(0.9, 1.1);
     c1->Print(
         Form("%s/CF_pSigma_model_zoom_%i.pdf", varFolder.Data(), potential));
     c2->Print(

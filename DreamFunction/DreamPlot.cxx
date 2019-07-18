@@ -349,8 +349,8 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else {
       fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange -3, 0, 0, 3315,
                                        true, false);
-      fProtonSigma->FemtoModelFitBands(sideband, kGray + 2, 0.5, true);
-      fProtonSigmaSideband->FemtoModelFitBands(sidebandUnscaled, kGray + 2, 0.5, true);
+      fProtonSigma->FemtoModelFitBands(sideband, kGray + 1, 0.5, true);
+      fProtonSigmaSideband->FemtoModelFitBands(sidebandUnscaled, kGray + 1, 0.5, true);
     }
   } else {
     std::cout << "No NSC97f file! \n";
@@ -527,7 +527,7 @@ void DreamPlot::DrawCorrelationFunctions() {
 
 void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   SetStyle();
-  gStyle->SetHatchesSpacing(0.55);
+  gStyle->SetHatchesSpacing(0.75);
   const float right = 0.025;
   const float top = 0.025;
   auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 550);
