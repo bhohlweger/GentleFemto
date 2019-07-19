@@ -14,6 +14,26 @@ void LambdaPP() {
   params.PrintLambdaParams();
 }
 
+void LambdaPL() {
+  double PurityProton = 0.9943;
+  double PrimProton = 0.873;
+  double SecLamProton = 0.089;  //Fraction of Lambdas
+  double SecSigmaProton = 1. - PrimProton - SecLamProton;
+
+  const Particle proton(PurityProton, PrimProton, { SecLamProton, SecSigmaProton });
+
+  double PurityLambda = 0.96;
+  double PrimLambda = 0.54/0.92;
+  double SecSigLambda = 0.18/0.92;
+  double SecXimLambda = 0.10/0.92;
+  double SecXi0Lambda0 = 0.10/0.92;
+
+  const Particle Lambda(PurityLambda, PrimLambda, { SecSigLambda, SecXimLambda, SecXi0Lambda0 });
+
+  CATSLambdaParam params(proton, Lambda);
+  std::cout << "LAMBDA PL \n";
+  params.PrintLambdaParams();
+}
 void LambdaPXi() {
   double PurityProton = 0.9943;
   double PrimProton = 0.873;
@@ -69,6 +89,7 @@ void LambdaPXi() {
 
 int main(int argc, char* argv[]) {
   LambdaPP();
+  LambdaPL();
   LambdaPXi();
   return 0;
 }
