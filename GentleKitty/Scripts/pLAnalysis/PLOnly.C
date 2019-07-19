@@ -41,7 +41,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   }
   //This is for the CATS objects, make sure it covers the full femto range
 
-  const unsigned NumMomBins = 60;
+  const unsigned NumMomBins = 20;
   const double kMin = StoreHist->GetXaxis()->GetXmin();
   const double kMax = kMin + StoreHist->GetXaxis()->GetBinWidth(1) * NumMomBins;  //(4 is the bin width)
 
@@ -323,21 +323,6 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   StoreHist->GetXaxis()->SetRangeUser(0, 1000);
   CollOut->Add(StoreHist);
 
-  if (tidy->GetSourceProtonProton()) {
-    TGraph* SourceDist = new TGraph();
-    SourceDist->SetName(TString::Format("SourceDist_NumIter_%i", NumIter));
-    for (int iRad = 0; iRad < 200; ++iRad) {
-      std::cout << "\r Source progress: "
-                << TString::Format("%.1f %%", (iRad + 1) / 200 * 100.f).Data()
-                << std::flush;
-      double rad = 0.04 * iRad;
-      double pars[5] = { 0, rad, 0, 1.2, 1.7 };
-      SourceDist->SetPoint(iRad, rad,
-                           tidy->GetSourceProtonProton()->Eval(pars));
-    }
-    std::cout << std::endl;
-    CollOut->Add(SourceDist);
-  }
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
