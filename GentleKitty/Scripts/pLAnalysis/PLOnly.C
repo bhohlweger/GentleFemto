@@ -20,10 +20,14 @@
 
 #include <iostream>
 #include "stdlib.h"
+#include <chrono>
+#include <ctime>
 
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
                      int source, int iPotential, TString InputFile,
                      TString HistoName, TString OutputDir) {
+  auto start = std::chrono::system_clock::now();
+
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
 //  What potential to use: 0 = Scattering para; 1 = Usmani; 2 = NLO; 3 = LO;
@@ -356,10 +360,16 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
               //no pol1 baseline.
               continue;
             }
+
+            // Some computation here
+            auto end = std::chrono::system_clock::now();
+
+            std::chrono::duration<double> elapsed_seconds = end - start;
+
             std::cout
                 << "\r Processing progress: "
                 << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
-                << std::flush;
+                << " elapsed time: " << elapsed_seconds.count()/60. << std::flush;
             TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
             if (!OliHisto_pp) {
               std::cout << HistppName.Data() << " Missing" << std::endl;

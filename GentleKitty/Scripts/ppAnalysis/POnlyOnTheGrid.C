@@ -20,9 +20,12 @@
 
 #include <iostream>
 #include "stdlib.h"
+#include <chrono>
+#include <ctime>
 
 void FitPPVariations(const unsigned& NumIter, int system, int source,
                      TString InputFile, TString HistoName, TString OutputDir) {
+  auto start = std::chrono::system_clock::now();
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
   TString HistppName = HistoName.Data();
@@ -348,10 +351,15 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
       for (vFrac_pp_pL = 0; vFrac_pp_pL < 3; ++vFrac_pp_pL) {
         for (int BaselineSlope = 0; BaselineSlope < 3; ++BaselineSlope) {
+          // Some computation here
+          auto end = std::chrono::system_clock::now();
+
+          std::chrono::duration<double> elapsed_seconds = end - start;
+
           std::cout
               << "\r Processing progress: "
               << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
-              << std::flush;
+              << " elapsed time: " << elapsed_seconds.count()/60. << std::flush;
 
           TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
           if (!OliHisto_pp) {
