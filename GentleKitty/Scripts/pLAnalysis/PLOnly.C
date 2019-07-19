@@ -303,7 +303,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   Float_t ntBuffer[24];
 
   int uIter = 1;
-  float total = 54;
+  float total = 162;
   int counter = 1;
   int vFemReg;  //which femto region we use for pp (1 = default)
   int vMod_pL = iPotential;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
@@ -533,7 +533,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
             } else if (BaselineSlope == 0) {
               EffNumBins = -4;  // radius, normalization, slope and skewness
             }
-            for (unsigned uBin = 0; uBin < 50; uBin++) {
+            for (unsigned uBin = 0; uBin < NumMomBins; uBin++) {
 
               double mom = AB_pL.GetMomentum(uBin);
               double dataY;
