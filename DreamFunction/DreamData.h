@@ -104,6 +104,11 @@ class DreamData {
     fLegendOption.push_back(option);
   }
   ;
+  void SetLegendName(std::vector<const char*> name, std::vector<const char*> option) {
+    fLegendName = name;
+    fLegendOption = option;
+  }
+  ;
   void SetUnitConversionData(int unit) {
     fUnitConversionData = unit;
   }
