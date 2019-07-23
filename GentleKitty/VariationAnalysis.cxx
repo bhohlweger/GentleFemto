@@ -104,10 +104,10 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
           Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
                iFitVar));
       TH1F* chiSq = (TH1F*) gROOT->FindObject("chisq");
-      if (chiSq->GetMean() > 15.) {
+      if (chiSq->GetMean() > 30.) {
         Warning(
             "ReadFitFile",
-            Form("Chisq (%.1f) larger than 15, ignoring fit",
+            Form("Chisq (%.1f) larger than 30, ignoring fit",
                  chiSq->GetMean()));
         delete chiSq;
         continue;
