@@ -419,14 +419,17 @@ void DreamPlot::SetStyle(bool graypalette, bool title) {
 
 void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->GetXaxis()->SetLabelSize(28);
-  histo->GetXaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetTitleSize(28);
   histo->GetXaxis()->SetLabelOffset(0.01);
   histo->GetXaxis()->SetTitleOffset(1.2);
   histo->GetXaxis()->SetLabelFont(43);
+  histo->GetXaxis()->SetTitleFont(43);
   histo->GetYaxis()->SetLabelSize(28);
-  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetYaxis()->SetTitleSize(28);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
+  histo->GetYaxis()->SetLabelFont(43);
+  histo->GetYaxis()->SetTitleFont(43);
   histo->SetMarkerStyle(marker);
   histo->SetMarkerColor(color);
   histo->SetLineColor(color);
