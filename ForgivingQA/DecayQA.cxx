@@ -108,6 +108,9 @@ void DecayQA::GetPeriodQASigma0(float massCuts, const char* period) {
                                                           "fHistInvMassPtRaw");
   invMasspT->Add(invMassAntiPart);
   auto invMass = (TH1F*) invMasspT->ProjectionY("InvMassClone", 0, -1, "e");
+  if (invMasspT->GetEntries() < 12000) {
+    return;
+  }
   fFitter->FitInvariantMassSigma(invMass, massCuts);
 }
 

@@ -189,7 +189,7 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
     v0QA->SetCanvasDivisions(5, 2);
     v0QA->SetIMHistoScale(1.75, 0.8, 0.35);
     v0QA->SetRangesFitting(1.109, 1.121, 1.09, 1.15);
-    v0QA->GetPeriodQASigma(1.112, 1.120, it.Data());
+    v0QA->GetPeriodQA(1.112, 1.120, { "v0Cuts" }, "InvMassPt");
     float purity = v0QA->GetPurity();
     float purityErr = v0QA->GetPurityErr();
     if (purity > 1E-6) {
@@ -204,7 +204,7 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
     antiv0QA->SetCanvasDivisions(5, 2);
     antiv0QA->SetIMHistoScale(1.75, 0.8, 0.35);
     antiv0QA->SetRangesFitting(1.109, 1.121, 1.09, 1.15);
-    antiv0QA->GetPeriodQASigma(1.112, 1.120, it.Data());
+    antiv0QA->GetPeriodQA(1.112, 1.120, { "v0Cuts" }, "InvMassPt");
     purity = antiv0QA->GetPurity();
     purityErr = antiv0QA->GetPurityErr();
     if (purity > 1E-6) {
@@ -242,6 +242,8 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
   histPurityAntiLambda->Fit("pol0");
   d->Print("PeriodQAAntiLambda.pdf");
   auto e = new TCanvas();
+  histPuritySigma->SetMinimum(20);
+  histPuritySigma->SetMaximum(50);
   histPuritySigma->Draw("PE");
   histPuritySigma->Fit("pol0");
   e->Print("PeriodQASigma.pdf");
