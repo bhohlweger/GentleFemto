@@ -18,9 +18,19 @@ VariationmTAnalysis::VariationmTAnalysis(int nModels, int nData, int nVars)
       fnModel(nModels),
       fnData(nData),
       fnVars(nVars),
-      fSystematic(),
+      fmTBins(),
       fHistname(),
       fFileName(),
+      fDataName(),
+      fDataOption(),
+      fModelName(),
+      fModelOption(),
+      fSourceName(),
+      fColor(),
+      fTextXMin(0.32),
+      fXmin(4),
+      fXmax(250),
+      fSystematic(),
       fmTAverage(),
       fmTRadiusSyst(),
       fmTRadiusStat() {
@@ -119,8 +129,79 @@ void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
   fAnalysis[iModel].push_back(analysis);
   return;
 }
+void VariationmTAnalysis::MakeCFPlotsSingleBand() {
+  DreamPlot::SetStyle();
+//  gStyle->SetLabelSize(16, "xyz");
+//  gStyle->SetTitleSize(16, "xyz");
+//  gStyle->SetTitleOffset(3.5, "x");
+//  gStyle->SetTitleOffset(3.5, "y");
+  TCanvas* c1;
+  std::vector<const char*> LegNames;
+  LegNames.push_back(fDataName);
+  LegNames.insert(LegNames.end(), fModelName.begin(), fModelName.end());
+  std::vector<const char*> LegOptions;
+  LegOptions.push_back(fDataOption);
+  LegOptions.insert(LegOptions.end(), fModelOption.begin(), fModelOption.end());
 
-void VariationmTAnalysis::MakeCFPlotsPP() {
+  c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
+  int counter = 1;
+  TFile* out = TFile::Open("tmp.root", "recreate");
+  for (auto it : fSystematic) {
+    TPad* pad;
+    float LatexX = 0.;
+    c1 = new TCanvas(Form("c_%u", counter), Form("c_%u", counter), 0, 0, 650,
+                     650);
+    pad = (TPad*) c1->cd(counter);
+    pad->SetRightMargin(0.025);
+    pad->SetTopMargin(0.025);
+    pad->SetBottomMargin(0.12);
+    pad->Draw();
+    pad->cd();
+    DreamData *Data = new DreamData(Form("Data_%i", counter));
+    Data->SetMultiHisto(false);
+    Data->SetUnitConversionData(1);
+    Data->SetUnitConversionCATS(1);
+    Data->SetCorrelationFunction(it.GetDefault());
+    Data->SetSystematics(it.GetSystematicError(), 2);
+    Data->SetLegendName(LegNames, LegOptions);
+    Data->SetDrawAxis(true);
+    Data->SetRangePlotting(fXmin, fXmax, 0.9, it.GetDefault()->GetMaximum()*1.2); //ranges
+    Data->SetNDivisions(505);
+    for (int iMod = 0; iMod < fnModel; ++iMod) {
+      Data->FemtoModelFitBands(fAnalysis[iMod][counter - 1].GetModel(), fColor[iMod], 1, 3,
+                               -3000, true); //Model colors
+    }
+    float legXmin = fTextXMin-0.02;
+    Data->SetLegendCoordinates(legXmin, 0.67 - 0.09 * Data->GetNumberOfModels(),
+                               legXmin + 0.4, 0.725);
+    Data->DrawCorrelationPlot(pad);
+    pad->cd();
+    TLatex BeamText;
+    BeamText.SetTextSize(gStyle->GetTextSize() * .85);
+    BeamText.SetNDC(kTRUE);
+    BeamText.DrawLatex(fTextXMin, 0.91,
+                       Form("ALICE %s #sqrt{#it{s}} = %i TeV", "pp", (int) 13));
+    BeamText.DrawLatex(fTextXMin, 0.85, "High Mult. (0-0.072% INEL)");
+
+    TLatex text;
+    text.SetNDC();
+    text.SetTextColor(1);
+    text.SetTextSize(gStyle->GetTextSize() * 0.85);
+    text.DrawLatex(fTextXMin, 0.79, fSourceName);
+    text.DrawLatex(
+        fTextXMin,
+        0.73,
+        TString::Format("m_{T} #in [%.2f, %.2f] (GeV/#it{c}^{2})",
+                        fmTBins[counter - 1], fmTBins[counter]));
+    out->cd();
+    c1->Write();
+    c1->SaveAs(Form("mTBin_%u.pdf", counter));
+    counter++;
+  }
+  out->Close();
+}
+
+void VariationmTAnalysis::MakeOnePanelPlots() {
   DreamPlot::SetStyle();
   gStyle->SetLabelSize(16, "xyz");
   gStyle->SetTitleSize(16, "xyz");
@@ -196,168 +277,17 @@ void VariationmTAnalysis::MakeCFPlotsPP() {
   c1->SaveAs("mTPlots.pdf");
   out->Close();
 }
-void VariationmTAnalysis::MakeRadPlotsPP() {
-  TFile* out = TFile::Open("tmp.root", "update");
-  auto c4 = new TCanvas("c8", "c8");
-  c4->cd();
-  fmTRadiusSyst[0]->SetLineColor(kBlack);
-  fmTRadiusSyst[0]->SetTitle("; < m_{T} >  (MeV/#it{c}^{2}); r_{Core} (fm)");
 
-  fmTRadiusSyst[0]->GetXaxis()->SetTitleSize(22);
-  fmTRadiusSyst[0]->GetYaxis()->SetTitleSize(22);
-  fmTRadiusSyst[0]->GetXaxis()->SetTitleOffset(1.5);
-  fmTRadiusSyst[0]->GetYaxis()->SetTitleOffset(1.5);
-
-  fmTRadiusSyst[0]->GetXaxis()->SetLabelSize(22);
-  fmTRadiusSyst[0]->GetYaxis()->SetLabelSize(22);
-  fmTRadiusSyst[0]->GetXaxis()->SetLabelOffset(.02);
-  fmTRadiusSyst[0]->GetYaxis()->SetLabelOffset(.02);
-
-  fmTRadiusSyst[0]->GetXaxis()->SetRangeUser(0.95, 2.7);
-  fmTRadiusSyst[0]->GetYaxis()->SetRangeUser(0.65, 1.2);
-  //  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95, 2.7);
-  //  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.95, 1.55);
-
-  fmTRadiusSyst[0]->SetMarkerColorAlpha(kBlack, 0.);
-  fmTRadiusSyst[0]->SetLineWidth(0);
-  fmTRadiusSyst[0]->Draw("APZ");
-  fmTRadiusSyst[0]->SetFillColorAlpha(kBlack, 0.4);
-  fmTRadiusSyst[0]->Draw("2Z same");
-  TGraphErrors fakeGraph;
-  fakeGraph.SetMarkerColor(kBlack);
-  fakeGraph.SetLineWidth(3);
-  fakeGraph.SetDrawOption("z");
-  fakeGraph.SetFillColorAlpha(kBlack, 0.4);
-  TLegend* leg = new TLegend(0.6, 0.6, 0.9, 0.9);
-  leg->SetFillStyle(4000);
-  leg->AddEntry(&fakeGraph, "p#minus p (AV18)", "lef");
-
-  fmTRadiusStat[0]->SetMarkerColor(kBlack);
-  fmTRadiusStat[0]->SetLineWidth(3);
-  fmTRadiusStat[0]->Draw("pez same");
-  leg->Draw("same");
-  c4->SaveAs("mTvsRad.pdf");
-  c4->Write();
+void VariationmTAnalysis::StoreRadvsmT(const char* fileName) {
+  TFile* out = TFile::Open(fileName, "recreate");
   fmTRadiusSyst[0]->SetName("mTRadiusSyst");
   fmTRadiusSyst[0]->Write();
   fmTRadiusStat[0]->SetName("mTRadiusStat");
   fmTRadiusStat[0]->Write();
-
   out->Write();
   out->Close();
 }
 
-void VariationmTAnalysis::MakeRadPlotsPL(const char* ppFilePath) {
-  TFile* ppFile = TFile::Open(ppFilePath, "read");
-  TGraphErrors* mTppSys = (TGraphErrors*) ppFile->Get("mTRadiusSyst");
-  TGraphErrors* mTppStat = (TGraphErrors*) ppFile->Get("mTRadiusStat");
-  TFile* out = TFile::Open("tmp.root", "update");
-  out->cd();
-  auto c4 = new TCanvas("c8", "c8");
-  c4->cd();
-  TLegend* leg = new TLegend(0.6, 0.6, 0.9, 0.9);
-  leg->SetFillStyle(4000);
-  TGraphErrors fakeGraphUsmani;
-  fakeGraphUsmani.SetLineWidth(3);
-  fakeGraphUsmani.SetDrawOption("z");
-  TGraphErrors fakeGraphNLO;
-  fakeGraphNLO.SetLineWidth(3);
-  fakeGraphNLO.SetDrawOption("z");
-  TGraphErrors fakeGraphLO;
-  fakeGraphLO.SetLineWidth(3);
-  fakeGraphLO.SetDrawOption("z");
-
-  mTppSys->SetTitle("; < m_{T} >  (MeV/#it{c}^{2}); r_{Core} (fm)");
-  mTppSys->GetXaxis()->SetTitleSize(22);
-  mTppSys->GetYaxis()->SetTitleSize(22);
-  mTppSys->GetXaxis()->SetTitleOffset(1.5);
-  mTppSys->GetYaxis()->SetTitleOffset(1.5);
-  mTppSys->GetXaxis()->SetLabelSize(22);
-  mTppSys->GetYaxis()->SetLabelSize(22);
-  mTppSys->GetXaxis()->SetLabelOffset(.02);
-  mTppSys->GetYaxis()->SetLabelOffset(.02);
-  mTppSys->GetXaxis()->SetRangeUser(0.95, 2.7);
-  mTppSys->GetYaxis()->SetRangeUser(0.3, 1.35);
-
-  mTppSys->SetMarkerColorAlpha(kBlack, 0.);
-  mTppSys->SetLineWidth(0);
-  mTppSys->Draw("APZ");
-  mTppSys->SetFillColorAlpha(kBlack, 0.4);
-  mTppSys->Draw("2Z same");
-  TGraphErrors fakeGraph;
-  fakeGraph.SetMarkerColor(kBlack);
-  fakeGraph.SetLineWidth(3);
-  fakeGraph.SetDrawOption("z");
-  fakeGraph.SetFillColorAlpha(kBlack, 0.4);
-
-  leg->AddEntry(&fakeGraph, "p#minus p (AV18)", "lef");
-
-  mTppStat->SetMarkerColor(kBlack);
-  mTppStat->SetLineWidth(3);
-  mTppStat->Draw("pez same");
-
-  for (int iMod = 0; iMod < fnModel; ++iMod) {
-
-    //  fmTRadiusSyst->GetXaxis()->SetRangeUser(0.95, 2.7);
-    //  fmTRadiusSyst->GetYaxis()->SetRangeUser(0.95, 1.55);
-
-    fmTRadiusSyst[iMod]->SetLineWidth(0);
-    if (iMod == 0) {
-      fmTRadiusSyst[iMod]->SetLineColor(kCyan + 2);
-
-      fmTRadiusSyst[iMod]->SetMarkerColorAlpha(kCyan + 2, 0.);
-      fmTRadiusSyst[iMod]->Draw("PZSame");
-
-      fmTRadiusSyst[iMod]->SetFillColorAlpha(kCyan + 2, 0.4);
-      fmTRadiusSyst[iMod]->Draw("2Z same");
-
-      fakeGraphUsmani.SetMarkerColor(kCyan + 2);
-      fakeGraphUsmani.SetFillColorAlpha(kCyan + 2, 0.4);
-      fmTRadiusStat[iMod]->SetMarkerColor(kCyan + 2);
-      leg->AddEntry(&fakeGraphUsmani, "p#minus #Lambda (Usmani)", "lef");
-      fmTRadiusStat[iMod]->SetLineWidth(3);
-    } else if (iMod == 1) {
-      fmTRadiusSyst[iMod]->SetLineColor(kRed + 1);
-
-      fmTRadiusSyst[iMod]->SetMarkerColorAlpha(kRed + 1, 0.);
-      fmTRadiusSyst[iMod]->Draw("PZSame");
-
-      fmTRadiusSyst[iMod]->SetFillColorAlpha(kRed + 1, 0.4);
-      fmTRadiusSyst[iMod]->Draw("2Z same");
-
-      fakeGraphNLO.SetMarkerColor(kRed + 1);
-      fakeGraphNLO.SetFillColorAlpha(kRed + 1, 0.4);
-      fmTRadiusStat[iMod]->SetMarkerColor(kRed + 1);
-      leg->AddEntry(&fakeGraphNLO, "p#minus #Lambda (#chi EFT NLO)", "lef");
-      fmTRadiusStat[iMod]->SetLineWidth(3);
-    } else {
-      fmTRadiusSyst[iMod]->SetLineColor(kGreen + 3);
-
-      fmTRadiusSyst[iMod]->SetMarkerColorAlpha(kGreen + 3, 0.);
-      fmTRadiusSyst[iMod]->Draw("PZSame");
-
-      fmTRadiusSyst[iMod]->SetFillColorAlpha(kGreen + 3, 0.4);
-      fmTRadiusSyst[iMod]->Draw("2Z same");
-
-      fakeGraphLO.SetMarkerColor(kGreen + 3);
-      fakeGraphLO.SetFillColorAlpha(kGreen + 3, 0.4);
-      fmTRadiusStat[iMod]->SetMarkerColor(kGreen + 3);
-      leg->AddEntry(&fakeGraphLO, "p#minus #Lambda (#chi EFT LO)", "lef");
-      fmTRadiusStat[iMod]->SetLineWidth(3);
-    }
-    fmTRadiusStat[iMod]->Draw("pez same");
-    fmTRadiusSyst[iMod]->SetName(TString::Format("mTRadiusSystMod_%u", iMod));
-    fmTRadiusSyst[iMod]->Write();
-    fmTRadiusStat[iMod]->SetName(TString::Format("mTRadiusStatMod_%u", iMod));
-    fmTRadiusStat[iMod]->Write();
-  }
-  leg->Draw("same");
-  c4->SaveAs("mTvsRad.pdf");
-  c4->Write();
-  out->Write();
-  out->Close();
-  ppFile->Close();
-}
 
 void VariationmTAnalysis::MakeCFPlotsPL() {
   DreamPlot::SetStyle();
