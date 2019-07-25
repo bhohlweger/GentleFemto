@@ -126,9 +126,9 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
   int NumMomBins_pSigma = int(600 / binwidth);
   double kMin_pSigma = dataHist->GetBinCenter(1) - binwidth / 2.;
   double kMax_pSigma = kMin_pSigma + binwidth * NumMomBins_pSigma;
-  int NumMomBins_pSigma_draw = 25;
-  double kMin_pSigma_draw = -9.99;
-  double kMax_pSigma_draw = 490.01;
+  int NumMomBins_pSigma_draw = 50;
+  double kMin_pSigma_draw = -4.99;
+  double kMax_pSigma_draw = 495.01;
   const float drawBinWidth = float(kMax_pSigma_draw - kMin_pSigma_draw)
       / float(NumMomBins_pSigma_draw);
 

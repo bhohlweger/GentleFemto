@@ -40,9 +40,9 @@ int main(int argc, char* argv[]) {
   DreamPlot::SetStyle();
   double* radius = new double[1];
   radius[0] = 1.154;
-  int momBins = 40;
-  int kmin = -4.99;
-  int kmax = 395.01;
+  int momBins = 80;
+  int kmin = -2.49;
+  int kmax = 397.51;
 
   const int colorfss2 = kRed + 1;
   const int colorchiEFT = kAzure;
