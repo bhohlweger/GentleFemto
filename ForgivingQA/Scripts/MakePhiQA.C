@@ -35,7 +35,13 @@ int main(int argc, char* argv[]) {
   protonQA->PlotPID();
 
   // analogous for the Kaons
-
+  TrackQA* kaonQA = new TrackQA();
+  kaonQA->SetTrackCuts((TList*) list->FindObject("Particle1"));
+  kaonQA->SetAntiTrackCuts((TList*) list->FindObject("Particle2"));
+  kaonQA->PlotKinematic(((TList*) list->FindObject("Particle2")), "AntiKaon");
+  kaonQA->PlotPID(((TList*) list->FindObject("Particle2")), "AntiKaon");
+  kaonQA->PlotKinematic(((TList*) list->FindObject("Particle1")), "Kaon");
+  kaonQA->PlotPID(((TList*) list->FindObject("Particle1")), "Kaon");
 
   DecayQA* v0QA = new DecayQA("#varphi","K^{-}K^{+}");
   v0QA->SetCanvasDivisions(4, 2);
