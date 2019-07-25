@@ -542,7 +542,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
   fProtonSigma->SetLegendName("ESC16", "fl");
   fProtonSigma->SetLegendName("NSC97f", "fl");
-  fProtonSigma->SetLegendName("p#minus#kern[-0.65]{ }(#Lambda#gamma) background", "l");
+  fProtonSigma->SetLegendName("p#minus#kern[-0.25]{ }(#Lambda#gamma) background", "l");
   fProtonSigma->SetRangePlotting(0, 360, 0.9, 1.7);
   fProtonSigma->SetNDivisions(505);
   const float leftX = 0.485;
