@@ -31,7 +31,7 @@ const int nSidebandPars = 4;
 /// Fit for the sidebands
 auto sidebandFit =
     [ ] (double *x, double *p) {
-      return p[0] + p[1] * x[0] + std::exp(p[2] + p[3] * x[0]);
+      return p[0] + p[1] * std::exp(-0.5*std::pow(((x[0]-p[2])/p[3]), 2));
     };
 
 /// =====================================================================================
@@ -357,10 +357,11 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
           auto sideband = new TF1(Form("sideband_%i", iterID), sidebandFit, 0,
                                   sidebandFitRange[sbNormIter], nSidebandPars);
           sideband->SetParameter(0, 1.);
-          sideband->SetParameter(1, 0.);
-          sideband->SetParameter(2, -0.5);
-          sideband->SetParameter(3, -0.01);
-          currentSidebandHist->Fit(sideband, "NRMQ");
+          sideband->SetParameter(1, 0.4);
+          sideband->SetParLimits(1, 0.4, 0.9);
+          sideband->SetParameter(2, -70);
+          sideband->SetParameter(3, 135);
+          currentSidebandGr->Fit(sideband, "NRMQEX0");
 
           DLM_Ck* Ck_SideBand = new DLM_Ck(0, nSidebandPars, NumMomBins_pSigma,
                                            kMin_pSigma, kMax_pSigma,

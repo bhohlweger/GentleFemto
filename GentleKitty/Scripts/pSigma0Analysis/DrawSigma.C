@@ -271,13 +271,13 @@ void DrawSigma(TString varFolder, const int& potential) {
                             350);
   histDummy->GetYaxis()->SetRangeUser(0.8, 1.6);
   histDummy->Draw();
-  CF_Histo->Draw("pezsame");
   grCF->Draw("L3same");
   grCF->SetLineColor(kRed + 2);
   grCF->SetFillColor(kRed + 2);
   grSidebands->Draw("l3 same");
   grSidebands->SetFillColorAlpha(kBlack, 0.5);
   grSidebands->SetLineColorAlpha(kBlack, 0.0);
+  CF_Histo->Draw("pezsame");
   TLatex BeamText;
   BeamText.SetNDC(kTRUE);
   BeamText.SetTextSize(0.8 * gStyle->GetTextSize());
@@ -296,7 +296,15 @@ void DrawSigma(TString varFolder, const int& potential) {
       0.66,
       TString::Format("n#sigma_{150} = %.1f / %.1f / %.1f", nSigma150[0],
                       nSigma150[1], nSigma150[2]));
-    c->Print(Form("%s/CF_pSigma_fit_%i.pdf", varFolder.Data(), potential));
+  c->Print(Form("%s/CF_pSigma_fit_%i.pdf", varFolder.Data(), potential));
+
+  auto d = new TCanvas("pSigma0Sideband");
+  histDummy->Draw();
+  grGenuineSidebands->Draw("L3same");
+  grGenuineSidebands->SetLineColor(kRed + 2);
+  grGenuineSidebands->SetFillColor(kRed + 2);
+  CF_Sideband->Draw("pezsame");
+  d->Print(Form("%s/CF_pSigma_sideband_%i.pdf", varFolder.Data(), potential));
   c->Write();
   grCF->Write();
   grSidebands->Write();
@@ -305,6 +313,7 @@ void DrawSigma(TString varFolder, const int& potential) {
 
   delete histDummy;
   delete c;
+  delete d;
   delete grSidebands;
   delete grCF;
   delete c1;
