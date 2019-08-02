@@ -9,6 +9,7 @@
 #include "TLegend.h"
 #include "TStyle.h"
 #include "TLine.h"
+#include "TGaxis.h"
 DreamData::DreamData(const char* particlePair)
     : fName(particlePair),
       fCorrelationFunction(nullptr),
@@ -16,8 +17,10 @@ DreamData::DreamData(const char* particlePair)
       fCorrelationGraph(nullptr),
       fSystematics(nullptr),
       fSysError(nullptr),
+      fDummyHist(nullptr),
       fBaseLine(new TF1(Form("%sBaseLine", particlePair), "pol1", 0, 1000)),
       fDrawAxis(true),
+      fForceAxis(false),
       fXMin(0),
       fXMax(0.5),
       fYMin(0),
@@ -274,14 +277,27 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
   }
 }
 
-void DreamData::FemtoModelDeviations(TGraphErrors* grDeviation, int color) {
+void DreamData::FemtoModelDeviations(TGraphErrors* grDeviation, int color, bool useDefaultColors) {
 //  SetStyleGraph(grDeviation, 2, color);
   grDeviation->SetMarkerStyle(fMarkers[0]);
-  grDeviation->SetMarkerColor(fColors[color]);
-  grDeviation->SetLineColor(fColors[color]);
-  grDeviation->SetFillColor(fColors[color]);
+  grDeviation->SetMarkerColor(useDefaultColors ? fColors[color] : color);
+  grDeviation->SetLineColor(useDefaultColors ? fColors[color] : color);
+  grDeviation->SetFillColor(useDefaultColors ? fColors[color] : color);
   fFemtoDeviation.push_back(grDeviation);
 }
+
+void DreamData::FemtoModelDeviations(TGraphErrors *grDeviation, int color,
+                                     int lineStyle, double lineWidth,
+                                     int fillStyle, bool useDefaultColors) {
+  grDeviation->SetLineColor(useDefaultColors ? fColors[color] : color);
+  grDeviation->SetFillColor(useDefaultColors ? fColors[color] : color);
+  grDeviation->SetLineWidth(lineWidth);
+  grDeviation->SetLineStyle(lineStyle);
+  if (fillStyle > 0)
+    grDeviation->SetFillStyle(fillStyle);
+  fFemtoDeviation.push_back(grDeviation);
+}
+
 
 void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   if (fMultiHisto) {
@@ -349,14 +365,28 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
     fSysError->GetYaxis()->SetTitleOffset(1.5);
   fSysError->GetXaxis()->SetRangeUser(fXMin, fXMax);
   fSysError->GetYaxis()->SetRangeUser(fYMin, fYMax);
-  if(fDrawAxis)fSysError->Draw("Ap");
-  fBaseLine->Draw("same");
 
   if (CFName.Contains("MeV")) {
     fSysError->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   } else {
     fSysError->SetTitle("; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)");
   }
+
+  if (fDrawAxis) {
+    if (fForceAxis) {
+      fDummyHist = new TH1F("dummyHist", fSysError->GetTitle(), 100, fXMin, fXMax);
+      fDummyHist->SetMinimum(fYMin);
+      fDummyHist->SetMaximum(fYMax);
+      fDummyHist->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
+      fDummyHist->SetLineColor(kWhite);
+      fDummyHist->Draw();
+      fSysError->Draw("p same");
+    } else {
+      fSysError->Draw("Ap");
+    }
+  }
+  fBaseLine->Draw("same");
+
   fLegend = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend, fYMaxLegend);
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
   fLegend->SetBorderSize(0);
@@ -479,7 +509,12 @@ void DreamData::SetStyleGraphMulti(TGraph *histo, int marker, int color) {
 
 void DreamData::DrawDeviationPerBin(TPad* c) {
   c->cd();
-  TString CFName = fCorrelationFunction->GetName();
+  TString CFName;
+  if(fCorrelationFunction) {
+    CFName = fCorrelationFunction->GetName();
+  } else if ( fCorrelationGraph) {
+    CFName = fCorrelationGraph->GetName();
+  }
   TGraphErrors* GraphAxis = (TGraphErrors*) fSysError->Clone("Dummy");
   GraphAxis->Clear();
   GraphAxis->GetYaxis()->SetTitle("n#sigma_{local}");
@@ -496,6 +531,134 @@ void DreamData::DrawDeviationPerBin(TPad* c) {
     GraphAxis->DrawClone("AP");
     it->Draw("L3 same");
     lineOne.DrawLine(fXMin, 0, fXMax, 0);
+  }
+}
+
+void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSigmaMax) {
+  TH1F* histDummy;
+  TGraphErrors* grDummy;
+  if (fForceAxis) {
+    histDummy = (TH1F*) fDummyHist->Clone("Dummy2");
+    histDummy->Reset();
+    histDummy->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
+    histDummy->GetYaxis()->SetTitle("n_{#sigma, local}");
+    histDummy->GetYaxis()->CenterTitle(true);
+    histDummy->GetYaxis()->SetTickLength(0);
+    histDummy->GetXaxis()->SetTitleOffset(6.);
+    histDummy->GetYaxis()->SetTitleOffset(2.5);
+    histDummy->GetYaxis()->SetLabelSize(0.);
+    fDummyHist->GetYaxis()->SetTitleOffset(2.5);
+  } else {
+    grDummy = (TGraphErrors*) fSysError->Clone("Dummy2");
+    grDummy->Clear();
+    grDummy->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
+    grDummy->GetYaxis()->SetTitle("n_{#sigma, local}");
+    grDummy->GetYaxis()->CenterTitle(true);
+    grDummy->GetYaxis()->SetTickLength(0);
+    grDummy->GetXaxis()->SetTitleOffset(6.);
+    grDummy->GetYaxis()->SetTitleOffset(2.5);
+    grDummy->GetYaxis()->SetLabelSize(0.);
+    fSysError->GetYaxis()->SetTitleOffset(2.5);
+  }
+  c->Update();
+  const float ticklength =
+      (fForceAxis) ?
+          histDummy->GetXaxis()->GetTickLength() :
+          grDummy->GetXaxis()->GetTickLength();
+  const float ticklengthY = fSysError->GetYaxis()->GetTickLength();
+  float ymin = 100;
+  float ymax = -100.;
+  for (auto it : fFemtoDeviation) {
+    if(ymin > it->GetYaxis()->GetXmin()) {
+      ymin = it->GetYaxis()->GetXmin();
+    }
+    if(ymax < it->GetYaxis()->GetXmax()) {
+      ymax = it->GetYaxis()->GetXmax();
+    }
+  }
+  ymin = std::round(ymin);
+  ymax = std::round(ymax);
+  if(ymax > std::abs(ymin)) {
+    ymin = -1 * ymax;
+  } else {
+    ymax = std::abs(ymin);
+  }
+  float xMaxVal;
+  if (fForceAxis) {
+    histDummy->GetYaxis()->SetRangeUser(ymin - 0.5, ymax + 0.5);
+    xMaxVal = fXMax;
+  } else {
+    grDummy->GetYaxis()->SetRangeUser(ymin - 0.5, ymax + 0.5);
+    xMaxVal = grDummy->GetXaxis()->GetXmax();
+  }
+  TLine lineOne = TLine(fXMin, 1, fXMax, 1);
+  lineOne.SetLineWidth(2);
+  lineOne.SetLineColor(kBlack);
+  lineOne.SetLineStyle(2);
+
+  TGaxis *axis1 = new TGaxis( fXMin, -1. * nSigmaMax, fXMin, nSigmaMax, -1. * nSigmaMax, nSigmaMax, 202,"", ticklengthY); // redraw the axis to have control over the labels
+  axis1->SetName("weloveroot");
+  axis1->SetLabelFont((fForceAxis) ?
+      histDummy->GetXaxis()->GetLabelFont() :
+      grDummy->GetXaxis()->GetLabelFont());
+  axis1->SetLabelSize((fForceAxis) ?
+      histDummy->GetXaxis()->GetLabelSize() :
+      grDummy->GetXaxis()->GetLabelSize());
+  axis1->SetLabelOffset((fForceAxis) ?
+      histDummy->GetXaxis()->GetLabelOffset() :
+      grDummy->GetXaxis()->GetLabelOffset());
+
+  TGaxis *axis2 = new TGaxis( fXMax, -1. * nSigmaMax, fXMax, nSigmaMax, -1. * nSigmaMax, nSigmaMax, 202,"+L", ticklengthY); // redraw the axis to have control over the labels
+  axis2->SetName("rootisthebest");
+  axis2->SetLabelSize(0);
+
+  const float otherPadHeight = 1. - yup;
+
+  const float bottomMargin = 0.4 * 0.5/(yup - ylow);
+  const float scalePadHeight = float(fFemtoDeviation.size() - 1. - bottomMargin) / float(fFemtoDeviation.size() - 1);
+  const float padHeight = (yup - ylow) / (fFemtoDeviation.size());
+  const int nPads = fFemtoDeviation.size();
+  TPad* pad[nPads];
+  int counter = 0;
+  for (auto it : fFemtoDeviation) {
+    float currentPadHeight = padHeight;
+    if (counter != fFemtoDeviation.size() - 1) {
+      currentPadHeight *= scalePadHeight;
+      ylow = yup - currentPadHeight;
+    } else {
+      currentPadHeight *= (1. + bottomMargin);
+      ylow = yup - currentPadHeight;
+      ylow = (ylow < 0) ? 0. : ylow;
+    }
+    pad[counter] = new TPad(Form("pad_%i", counter), Form("pad_%i", counter), 0., ylow, 1., yup);
+    pad[counter]->cd();
+    pad[counter]->SetRightMargin(c->GetRightMargin());
+    pad[counter]->SetTopMargin(0.);
+    if(counter != fFemtoDeviation.size() - 1) {
+      pad[counter]->SetBottomMargin(0.);
+    } else {
+      pad[counter]->SetBottomMargin(bottomMargin);
+    }
+
+    if (fForceAxis) {
+      histDummy->GetXaxis()->SetTickLength(
+          ticklength * otherPadHeight / currentPadHeight);  // magic scaling - same length as on the large pad!
+      histDummy->DrawClone();
+    } else {
+      grDummy->GetXaxis()->SetTickLength(
+          ticklength * otherPadHeight / currentPadHeight);  // magic scaling - same length as on the large pad!
+      grDummy->DrawClone("AP");
+    }
+    axis1->SetTickLength(ticklengthY);
+    axis1->SetTickSize(ticklengthY);
+    axis1->DrawClone("same");
+    axis2->DrawClone("same");
+    it->DrawClone("f2");
+    lineOne.DrawLine(fXMin, 0, xMaxVal, 0);
+    c->cd();
+    pad[counter]->DrawClone();
+    yup = ylow;
+    counter++;
   }
 }
 

@@ -47,16 +47,21 @@ class DreamData {
                           bool useDefaultColors = true);
   void FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
                           float colorAlpha, bool addtoLegend);
-  void FemtoModelDeviations(TGraphErrors* grDeviation, int color);
+  void FemtoModelDeviations(TGraphErrors* grDeviation, int color, bool useDefaultColors = true);
+  void FemtoModelDeviations(TGraphErrors *grDeviation, int color, int lineStyle,
+                            double lineWidth, int fillStyle,
+                            bool useDefaultColors = true);
   void SetStyleHisto(TH1 *histo, int marker, int color);
   void SetStyleMultiHisto(TH1 *histo, int marker, int color);
   void DrawCorrelationPlot(TPad* c, const int color = 0,
                            const int systematicsColor = kBlack,
                            const float legendTextScale = 0.96);
   void DrawDeviationPerBin(TPad* c);
+  void DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSigmaMax);
   void SetDrawAxis(bool drawAxis) {
     fDrawAxis = drawAxis;
   }
+  void SetForceAxisRanges(bool force) { fForceAxis = force; }
   void SetRangePlotting(float xMin, float xMax, float yMin, float yMax) {
     fXMin = xMin;
     fXMax = xMax;
@@ -133,8 +138,10 @@ class DreamData {
   TH1F* fSystematics;
   TGraphAsymmErrors* fCorrelationGraph;
   TGraphAsymmErrors* fSysError;
+  TH1F* fDummyHist;
   TF1* fBaseLine;
   bool fDrawAxis;
+  bool fForceAxis;
   float fXMin;
   float fXMax;
   float fYMin;
