@@ -16,6 +16,78 @@
 #include "TLegend.h"
 #include <iostream>
 
+TGraphErrors* FlattenModel(TGraphAsymmErrors* data, TGraphErrors* model) {
+  TGraphErrors* grOut = new TGraphErrors();
+  grOut->SetName(Form("%s_flat", model->GetName()));
+  double kVal, Ck;
+  for (int ikstar = 0; ikstar < data->GetN(); ++ikstar) {
+    model->GetPoint(ikstar, kVal, Ck);
+    if (kVal > 400) continue;
+    double CkErr = model->GetErrorY(ikstar);
+//    double CkData = RefHist->Eval(kVal);
+//    double CkErrStatData = RefHist->GetBinError(iDataBin);
+//
+//    double deviation = (Ck - CkData) / CkErrStatData;
+//    double err = CkErr / CkErrStatData;
+
+    grOut->SetPoint(ikstar, kVal, 0);
+    grOut->SetPointError(ikstar, 0, CkErr);
+  }
+  return grOut;
+}
+
+
+TGraphErrors* DeviationPerBin(TGraphAsymmErrors* data, TGraphErrors* model) {
+  TGraphErrors* grOut = new TGraphErrors();
+  grOut->SetName(Form("%s_deviation", model->GetName()));
+  double kVal, CkData, kValModel, CkModel;
+  double Ck, CkErr;
+
+  double diffModelData;
+  for (int ikstar = 0; ikstar < data->GetN(); ++ikstar) {
+    diffModelData = 100;
+    data->GetPoint(ikstar, kVal, CkData);
+    double CkErrStatData = data->GetErrorY(ikstar);
+    if (kVal > 400) continue;
+
+    Ck = model->Eval(kVal);
+    for (int ikstarModel = 0; ikstarModel < model->GetN(); ++ikstarModel) {
+      model->GetPoint(ikstarModel, kValModel, CkModel);
+      if(std::abs(kValModel - kVal) < diffModelData) {
+        CkErr = std::abs(model->GetErrorY(ikstar));
+        diffModelData = std::abs(kValModel - kVal);
+      }
+    }
+    double deviation = (Ck - CkData) / CkErrStatData;
+    double err = CkErr / CkErrStatData;
+
+    grOut->SetPoint(
+        ikstar,
+        kVal - data->GetErrorXlow(ikstar)
+            + (data->GetErrorXlow(ikstar) + data->GetErrorXhigh(ikstar)) / 2.f,
+        deviation);
+    grOut->SetPointError(
+        ikstar,
+        (data->GetErrorXlow(ikstar) + data->GetErrorXhigh(ikstar)) / 2.f, err);
+  }
+  return grOut;
+}
+
+TGraphAsymmErrors* DataModelDeviation(TGraphAsymmErrors* data, TGraphErrors* model) {
+  TGraphAsymmErrors* grOut = new TGraphAsymmErrors();
+  grOut->SetName(Form("%s_flat", data->GetName()));
+  double kVal, Ck;
+  for (int ikstar = 0; ikstar < data->GetN(); ++ikstar) {
+    data->GetPoint(ikstar, kVal, Ck);
+    if (kVal > 400) continue;
+    double modelVal = model->Eval(kVal);
+
+    grOut->SetPoint(ikstar, kVal, Ck - modelVal);
+    grOut->SetPointError(ikstar, data->GetErrorXlow(ikstar), data->GetErrorXhigh(ikstar), data->GetErrorYlow(ikstar), data->GetErrorYhigh(ikstar));
+  }
+  return grOut;
+}
+
 void nSigmaMaker(TNtuple* resultTuple, int upperRange, bool debugPlot,
                  TString varFolder, int potential,
                  std::array<double, 3> &nSigma) {
@@ -264,6 +336,10 @@ void DrawSigma(TString varFolder, const int& potential) {
     EvalError(genuineSideband, ikstar, CF_Model, grGenuineSidebands, debugPlots, varFolder);
   }
 
+  auto grFlatModel = FlattenModel(CF_Histo, grCF);
+  auto grDataModelDiff = DataModelDeviation(CF_Histo, grCF);
+  auto grDeviation = DeviationPerBin(CF_Histo, grCF);
+
   file->cd();
   auto c = new TCanvas("pSigma0Correlation");
   auto histDummy = new TH1F("histDummy",
@@ -310,6 +386,10 @@ void DrawSigma(TString varFolder, const int& potential) {
   grSidebands->Write();
   grGenuineSidebands->Write();
   CF_Sideband->Write();
+
+  grFlatModel->Write();
+  grDataModelDiff->Write();
+  grDeviation->Write();
 
   delete histDummy;
   delete c;

@@ -52,7 +52,7 @@ class DreamPlot {
   static void SetStyleGraph(TGraph *histo, int marker = 20, int color = kBlue + 2);
   void DrawCorrelationFunctions();
   void DrawCorrelationFunctionSigma(const char* fitPath);
-  void DrawSystemInfo(TCanvas* c, bool plotRadius = true, float xMin = 0.35,
+  void DrawSystemInfo(TPad* c, bool plotRadius = true, float xMin = 0.35,
                       int isPreliminary = 0);
   DreamData* fProtonProton;
   DreamData* fProtonLambda;

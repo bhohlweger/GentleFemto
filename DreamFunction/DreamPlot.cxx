@@ -301,10 +301,13 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
   auto ledniFile = TFile::Open(Form("%s/Param_pSigma0_2.root", fitPath));
   if (ledniFile) {
     auto ledniband = (TGraphErrors*) ledniFile->Get("CF_fit");
+    auto lednibandFlat = (TGraphErrors*) ledniFile->Get("CF_fit_deviation");
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
     } else {
       fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0, 0, 3385, true, false);
+      fProtonSigma->FemtoModelDeviations(lednibandFlat, kRed + 1, 0, 0, 3385,
+                                         false);
     }
   } else {
     std::cout << "No Lednicky file!  \n";
@@ -313,11 +316,14 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
   auto haidenbauerFile = TFile::Open(Form("%s/Param_pSigma0_3.root", fitPath));
   if (haidenbauerFile) {
     auto haidenbauerband = (TGraphErrors*) haidenbauerFile->Get("CF_fit");
+    auto haidenbauerbandFlat = (TGraphErrors*) ledniFile->Get("CF_fit_deviation");
     if (!haidenbauerband) {
       std::cout << "No coupled Lednicky \n";
     } else {
       fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure, 0, 0, 3325,
                                        true, false);
+      fProtonSigma->FemtoModelDeviations(haidenbauerbandFlat, kAzure, 0, 0,
+                                         3325, false);
     }
   } else {
     std::cout << "No Haidenbauer file!  \n";
@@ -326,10 +332,12 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
   auto ESC16File = TFile::Open(Form("%s/Param_pSigma0_4.root", fitPath));
   if (ESC16File) {
     auto esc16band = (TGraphErrors*) ESC16File->Get("CF_fit");
+    auto esc16bandFlat = (TGraphErrors*) ESC16File->Get("CF_fit_deviation");
     if (!esc16band) {
       std::cout << "No ESC16 \n";
     } else {
       fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0, 0, 3352, true, false);
+      fProtonSigma->FemtoModelDeviations(esc16bandFlat, kGreen + 2, 0, 0, 3352, false);
     }
   } else {
     std::cout << "No ESC16 file!  \n";
@@ -338,6 +346,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
   auto NSC97fFile = TFile::Open(Form("%s/Param_pSigma0_5.root", fitPath));
   if (NSC97fFile) {
     auto NSC97fband = (TGraphErrors*) NSC97fFile->Get("CF_fit");
+    auto NSC97fbandFlat = (TGraphErrors*) NSC97fFile->Get("CF_fit_deviation");
     auto sideband = (TGraphErrors*) NSC97fFile->Get("CF_sidebands");
     auto sidebandUnscaled = (TGraphErrors*) NSC97fFile->Get("CF_genuineSidebands");
     if (!NSC97fband) {
@@ -347,8 +356,9 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else if (!sidebandUnscaled) {
       std::cout << "No sideband (unscaled) \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange -3, 0, 0, 3315,
+      fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange - 3, 0, 0, 3315,
                                        true, false);
+      fProtonSigma->FemtoModelDeviations(NSC97fbandFlat, kOrange - 3, 0, 0, 3315, false);
       fProtonSigma->FemtoModelFitBands(sideband, kGray + 1, 0.5, true);
       fProtonSigmaSideband->FemtoModelFitBands(sidebandUnscaled, kGray + 1, 0.5, true);
     }
@@ -533,7 +543,11 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   gStyle->SetHatchesSpacing(0.75);
   const float right = 0.025;
   const float top = 0.025;
-  auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 550);
+  auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 1000);
+  TPad *p1 = new TPad("p1", "p1", 0., 0.45, 1., 1.);
+  p1->SetBottomMargin(0.0);
+  p1->SetRightMargin(right);
+  p1->SetTopMargin(top);
   c->SetRightMargin(right);
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName(
@@ -543,18 +557,23 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   fProtonSigma->SetLegendName("ESC16", "fl");
   fProtonSigma->SetLegendName("NSC97f", "fl");
   fProtonSigma->SetLegendName("p#minus#kern[-0.25]{ }(#Lambda#gamma) background", "l");
-  fProtonSigma->SetRangePlotting(0, 360, 0.9, 1.7);
-  fProtonSigma->SetNDivisions(505);
+  fProtonSigma->SetRangePlotting(0, 365, 0.85, 1.7);
+  fProtonSigma->SetNDivisions(504);
+  fProtonSigma->SetForceAxisRanges(true);
   const float leftX = 0.485;
   const float upperY = 0.815;
   fProtonSigma->SetLegendCoordinates(
       leftX, upperY - 0.075 * (fProtonSigma->GetNumberOfModels() + 1), 0.7, upperY);
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
-  fProtonSigma->DrawCorrelationPlot(c, 13, kBlue + 3, 0.9);
-  DrawSystemInfo(c, false, leftX + 0.01, 0);
+  fProtonSigma->DrawCorrelationPlot(p1, 13, kBlue + 3, 0.9);
+
+  DrawSystemInfo(p1, false, leftX + 0.01, 0);
   c->cd();
+  p1->Draw();
+  fProtonSigma->DrawDeviationPerBin(c, 0, .45, 3);
   c->SaveAs(Form("%s/CF_pSigma.pdf", fitPath));
+  c->SaveAs(Form("%s/CF_pSigma.root", fitPath));
 
   auto d = new TCanvas("CFpSigmaSideband", "CFpSigmaSideband", 0, 0, 650, 550);
   d->SetRightMargin(right);
@@ -562,8 +581,9 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   fProtonSigmaSideband->SetLegendName(
       "p#minus#kern[-0.65]{ }(#Lambda#gamma) #oplus #bar{p}#minus#kern[-0.65]{ }(#bar{#Lambda}#gamma)", "fpe");
   fProtonSigmaSideband->SetLegendName("Parametrization", "l");
-  fProtonSigmaSideband->SetRangePlotting(0, 360, 0.9, 1.7);
-  fProtonSigmaSideband->SetNDivisions(505);
+  fProtonSigmaSideband->SetRangePlotting(0, 365, 0.9, 1.7);
+  fProtonSigmaSideband->SetNDivisions(504);
+  fProtonSigmaSideband->SetForceAxisRanges(true);
   fProtonSigmaSideband->SetLegendCoordinates(
       leftX, upperY - 0.075 * (fProtonSigmaSideband->GetNumberOfModels() + 1), 0.7, upperY);
   // Necessary fix to get the right unit on the axes
@@ -572,10 +592,10 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   DrawSystemInfo(d, false, leftX + 0.01, 0);
   d->cd();
   d->SaveAs(Form("%s/CF_pSigma_sideband.pdf", fitPath));
-
+  d->SaveAs(Form("%s/CF_pSigma_sideband.root", fitPath));
 }
 
-void DreamPlot::DrawSystemInfo(TCanvas* c, bool plotRadius, float xMin,
+void DreamPlot::DrawSystemInfo(TPad* c, bool plotRadius, float xMin,
                                int isPreliminary) {
   c->cd();
   TLatex BeamText;
