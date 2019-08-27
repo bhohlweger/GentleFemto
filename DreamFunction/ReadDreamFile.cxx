@@ -70,8 +70,13 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
     std::cout << "no dir results " << Form("%sResults%s", Prefix, Addon)
               << std::endl;
   }
-  TList *Results;
+  TList *Results = nullptr;
   dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
+  if (!Results) {
+    std::cout << "No results List for " << Form("%sResults%s", Prefix, Addon) << std::endl;
+    dirResults->ls();
+    return;
+  }
   ExtractResults(Results);
   TIter next(Results);
   TObject *obj = nullptr;
