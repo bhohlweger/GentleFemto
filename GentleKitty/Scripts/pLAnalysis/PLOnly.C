@@ -155,7 +155,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
   // etc.
 
-  std::vector<double> Variation = { 0.8, 1.0, 1.2 };
+  std::vector<double> Variation = { 0.95, 1.0, 1.05};
   Particle Proton[3];  // 1) variation of the Secondary Comp.
   Particle Lambda[3][3];  // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
   Particle Xi[3][3];  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
