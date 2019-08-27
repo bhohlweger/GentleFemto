@@ -5,14 +5,16 @@
 #include "TStyle.h"
 #include "TLatex.h"
 
-void DrawRadiusVsMT(const char* filepp, const char* sourceName);
+void DrawRadiusVsMT(const char* filepp, const char* filepL,
+                    const char* sourceName);
 
 int main(int argc, char* argv[]) {
 //  gROOT->ProcessLine("gErrorIgnoreLevel = 2001");
   const char* DataDir = argv[1];
-  const char* FitDir = argv[2];
-  const char* SourceName = argv[3];
-  const char* ppFile = (argv[4]) ? argv[4] : "";
+  const char* FitDirResonance = argv[2];
+  const char* FitDirGauss = argv[3];
+  const char* ppFileResonance = (argv[4]) ? argv[4] : "";
+  const char* ppFileGauss = (argv[5]) ? argv[5] : "";
   const int nMTBins = 6;
   TString avgmTFile = TString::Format("%s/AveragemT.root", DataDir);
   TFile* mTFile = TFile::Open(avgmTFile, "READ");
@@ -27,59 +29,62 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-//  VariationmTAnalysis* analyser = new VariationmTAnalysis(1, 42, 162);
-//  analyser->SetHistName("hCk_RebinnedpLVar");
-//  analyser->SetFileName("OutFileVarpL.root");
-//  analyser->SetmTAverage(avgmT);
-//  analyser->SetLegData("p-#Lambda #oplus #bar{p}-#bar{#Lambda}", "fpe");
-//  analyser->SetLegModel("Usmani/#chi_{EFT} LO/NLO (fit)", "l", 1);
-//  analyser->SourceName(SourceName);
-//  analyser->SetTextXMin(0.35);
-//  analyser->SetPlottingRange(0, 230);
-//  //this implies a folder structure following mTBin_[1,2,3,....]
-//  for (int imt = 1; imt <= nMTBins; ++imt) {
-//    std::cout << "========================== \n";
-//    std::cout << "mTBin: " << imt << std::endl;
-//    std::cout << "========================== \n";
-//    TString mTDataDir = Form("%s/mTBin_%u", DataDir, imt);
-//    analyser->SetSystematic(mTDataDir.Data());
-//    TString mTFitDir = Form("%s/mTBin_%u/", FitDir, imt);
-//    analyser->SetVariation(mTFitDir.Data(), 0);
-//  }
-//  std::vector<float> mTBins = { 1.08, 1.26, 1.32, 1.44, 1.65, 1.9, 4.5 };
-//  analyser->SetmTBins(mTBins);
-//  analyser->MakeCFPlotsSingleBand();
-//  analyser->StoreRadvsmT("RadpLvsmT.root");
+  VariationmTAnalysis* analyser = new VariationmTAnalysis(2, 42, 162);
+  analyser->SetHistName("hCk_RebinnedpLVar");
+  analyser->SetFileName("OutFileVarpL.root");
+  analyser->SetmTAverage(avgmT);
+  analyser->SetLegData("p-#Lambda #oplus #bar{p}-#bar{#Lambda}", "fpe");
+  analyser->SetLegModel("Fit Gaussian + Resonance Source", "f", 1, 3252);
+  analyser->SetLegModel("Fit Gaussian Source", "f", 1, 3225);
+  analyser->SetTextXMin(0.35);
+  analyser->SetPlottingRange(0, 230);
+  //this implies a folder structure following mTBin_[1,2,3,....]
+  for (int imt = 1; imt <= nMTBins; ++imt) {
+    std::cout << "========================== \n";
+    std::cout << "mTBin: " << imt << std::endl;
+    std::cout << "========================== \n";
+    TString mTDataDir = Form("%s/mTBin_%u", DataDir, imt);
+    analyser->SetSystematic(mTDataDir.Data());
+    TString mTFitDirResonance = Form("%s/mTBin_%u/", FitDirResonance, imt);
+    analyser->SetVariation(mTFitDirResonance.Data(), 0);
+    TString mTFitDirGauss = Form("%s/mTBin_%u/", FitDirGauss, imt);
+    analyser->SetVariation(mTFitDirGauss.Data(), 1);
+  }
+  std::vector<float> mTBins = { 1.08, 1.26, 1.32, 1.44, 1.65, 1.9, 4.5 };
+  analyser->SetmTBins(mTBins);
+  analyser->MakeCFPlotsSingleBand();
+  analyser->StoreRadvsmT("RadpLvsmTGaussReso.root", 0);
+  analyser->StoreRadvsmT("RadpLvsmTGauss.root", 1);
 
-  if (ppFile != "") {
-    std::cout << "pp file Name: " << ppFile << " passed\n";
-    DrawRadiusVsMT(ppFile, SourceName);
+  if (ppFileResonance != "" && ppFileGauss != "") {
+    std::cout << "pp file Name: " << ppFileGauss << " and " << ppFileResonance
+              << " passed\n";
+    DrawRadiusVsMT(ppFileResonance, "RadpLvsmTGaussReso.root",
+                   "Gauss+Resonances");
+    DrawRadiusVsMT(ppFileGauss, "RadpLvsmTGauss.root", "Gauss");
   }
 
   return 1;
 }
 
-void DrawRadiusVsMT(const char* filepp, const char* sourceName) {
+void DrawRadiusVsMT(const char* filepp, const char* filepL,
+                    const char* sourceName) {
   DreamPlot::SetStyle();
   TFile* ppFile = TFile::Open(filepp, "read");
-  TFile* pLFile = TFile::Open("RadpLvsmT.root", "read");
+  TFile* pLFile = TFile::Open(filepL, "read");
   TGraphErrors* mTppSys = (TGraphErrors*) ppFile->Get("mTRadiusSyst");
   TGraphErrors* mTppStat = (TGraphErrors*) ppFile->Get("mTRadiusStat");
   TGraphErrors* mTpLSys = (TGraphErrors*) pLFile->Get("mTRadiusSyst");
   TGraphErrors* mTpLStat = (TGraphErrors*) pLFile->Get("mTRadiusStat");
   for (int iBin = 0; iBin < mTppSys->GetN(); iBin++) {
-//    mTppSys->SetPointError(iBin, 0.01,
-//                           mTppSys->GetErrorY(iBin));
     mTppSys->SetPointError(iBin, 0.4 * mTppSys->GetErrorX(iBin),
                            mTppSys->GetErrorY(iBin));
   }
   for (int iBin = 0; iBin < mTpLSys->GetN(); iBin++) {
-//    mTpLSys->SetPointError(iBin, 0.01,
-//                           mTpLSys->GetErrorY(iBin));
     mTpLSys->SetPointError(iBin, 0.4 * mTpLSys->GetErrorX(iBin),
                            mTpLSys->GetErrorY(iBin));
   }
-  TFile* out = TFile::Open("tmpRad.root", "recreate");
+  TFile* out = TFile::Open(Form("%s.root",sourceName), "recreate");
   out->cd();
   auto c4 = new TCanvas("c8", "c8", 1200, 800);
   c4->cd();
@@ -103,10 +108,12 @@ void DrawRadiusVsMT(const char* filepp, const char* sourceName) {
   mTpLSys->GetXaxis()->SetLabelOffset(.02);
   mTpLSys->GetYaxis()->SetLabelOffset(.02);
   mTpLSys->GetXaxis()->SetRangeUser(0.95, 2.7);
-  std::cout << "mTpLSys->GetYaxis()->GetXmin(): " << mTpLSys->GetYaxis()->GetXmin() << std::endl;
-  std::cout << "mTpLSys->GetYaxis()->GetXmax(): " << mTpLSys->GetYaxis()->GetXmax() << std::endl;
-  mTpLSys->GetYaxis()->SetRangeUser(0.95 * mTpLSys->GetYaxis()->GetXmin(),
-                                    1.05 * mTpLSys->GetYaxis()->GetXmax());
+
+  if (strcmp(sourceName, "Gauss") == 0) {
+    mTpLSys->GetYaxis()->SetRangeUser(0.8, 1.9);
+  } else {
+    mTpLSys->GetYaxis()->SetRangeUser(0.45, 1.4);
+  }
 
   mTpLSys->SetFillColorAlpha(kRed - 7, 0.7);
   mTpLSys->Draw("2AP");
@@ -141,7 +148,7 @@ void DrawRadiusVsMT(const char* filepp, const char* sourceName) {
   BeamText.DrawLatex(0.55, 0.72, Form("%s", sourceName));
 
   leg->Draw("same");
-  c4->SaveAs(Form("%s/mTvsRad.pdf", gSystem->pwd()));
+  c4->SaveAs(Form("%s/mTvsRad%s.pdf", gSystem->pwd(), sourceName));
   c4->Write();
   out->Write();
   out->Close();
