@@ -25,7 +25,6 @@ VariationmTAnalysis::VariationmTAnalysis(int nModels, int nData, int nVars)
       fDataOption(),
       fModelName(),
       fModelOption(),
-      fSourceName(),
       fColor(),
       fTextXMin(0.32),
       fXmin(4),
@@ -103,14 +102,6 @@ void VariationmTAnalysis::SetSystematic(const char* DataDir) {
 }
 
 void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
-  VariationAnalysis analysis = VariationAnalysis(fHistname, fnData, fnVars);
-  TString filename = Form("%s/%s", VarDir, fFileName);
-  analysis.ReadFitFile(filename.Data());
-  analysis.EvalRadius();
-  float radius = analysis.GetRadMean();
-  float radiusErrStat = analysis.GetRadStatErr();
-  float radiusErrSyst = (analysis.GetRadSystDown() + analysis.GetRadSystUp())
-      / 2.;
   if (!fmTAverage) {
     Warning("SetVariation", "No Average mT histo set, exiting \n");
     return;
@@ -119,6 +110,15 @@ void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
 
   double mT, dummy;
   fmTAverage->GetPoint(iPoint, dummy, mT);
+
+  VariationAnalysis analysis = VariationAnalysis(fHistname, fnData, fnVars);
+  TString filename = Form("%s/%s", VarDir, fFileName);
+  analysis.ReadFitFile(filename.Data());
+  analysis.EvalRadius(Form("%.2f_%u",mT,iModel));
+  float radius = analysis.GetRadMean();
+  float radiusErrStat = analysis.GetRadStatErr();
+  float radiusErrSyst = (analysis.GetRadSystDown() + analysis.GetRadSystUp())
+      / 2.;
   fmTRadiusSyst[iModel]->SetPoint(iPoint, mT, radius);
   fmTRadiusStat[iModel]->SetPoint(iPoint, mT, radius);
   fmTRadiusSyst[iModel]->SetPointError(iPoint, fmTAverage->GetErrorY(iPoint),
@@ -168,12 +168,16 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     Data->SetRangePlotting(fXmin, fXmax, 0.9, it.GetDefault()->GetMaximum()*1.2); //ranges
     Data->SetNDivisions(505);
     for (int iMod = 0; iMod < fnModel; ++iMod) {
-      Data->FemtoModelFitBands(fAnalysis[iMod][counter - 1].GetModel(), fColor[iMod], 1, 3,
-                               -3000, true); //Model colors
+      double lineWidth = 3;
+      if (fFillStyle[iMod] > 0) {
+        lineWidth = 0;
+      }
+      Data->FemtoModelFitBands(fAnalysis[iMod][counter - 1].GetModel(), fColor[iMod], 1, lineWidth,
+                               fFillStyle[iMod], true); //Model colors
     }
     float legXmin = fTextXMin-0.02;
-    Data->SetLegendCoordinates(legXmin, 0.67 - 0.09 * Data->GetNumberOfModels(),
-                               legXmin + 0.4, 0.725);
+    Data->SetLegendCoordinates(legXmin, 0.73 - 0.09 * Data->GetNumberOfModels(),
+                               legXmin + 0.4, 0.785);
     Data->DrawCorrelationPlot(pad);
     pad->cd();
     TLatex BeamText;
@@ -187,10 +191,9 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     text.SetNDC();
     text.SetTextColor(1);
     text.SetTextSize(gStyle->GetTextSize() * 0.85);
-    text.DrawLatex(fTextXMin, 0.79, fSourceName);
     text.DrawLatex(
         fTextXMin,
-        0.73,
+        0.79,
         TString::Format("m_{T} #in [%.2f, %.2f] (GeV/#it{c}^{2})",
                         fmTBins[counter - 1], fmTBins[counter]));
     out->cd();
@@ -278,12 +281,12 @@ void VariationmTAnalysis::MakeOnePanelPlots() {
   out->Close();
 }
 
-void VariationmTAnalysis::StoreRadvsmT(const char* fileName) {
+void VariationmTAnalysis::StoreRadvsmT(const char* fileName, int iModel) {
   TFile* out = TFile::Open(fileName, "recreate");
-  fmTRadiusSyst[0]->SetName("mTRadiusSyst");
-  fmTRadiusSyst[0]->Write();
-  fmTRadiusStat[0]->SetName("mTRadiusStat");
-  fmTRadiusStat[0]->Write();
+  fmTRadiusSyst[iModel]->SetName("mTRadiusSyst");
+  fmTRadiusSyst[iModel]->Write();
+  fmTRadiusStat[iModel]->SetName("mTRadiusStat");
+  fmTRadiusStat[iModel]->Write();
   out->Write();
   out->Close();
 }

@@ -22,19 +22,17 @@ class VariationmTAnalysis {
     fHistname = Histname;
   }
   void SetFileName(const char* Filename) {
-    fFileName= Filename;
+    fFileName = Filename;
   }
   void SetLegData(const char* DataName, const char* DataOption) {
-    fDataName= DataName;
+    fDataName = DataName;
     fDataOption = DataOption;
   }
-  void SetLegModel(const char* ModelName, const char* ModelOption, int Color) {
+  void SetLegModel(const char* ModelName, const char* ModelOption, int Color, int FillStyle) {
     fModelName.push_back(ModelName);
     fModelOption.push_back(ModelOption);
     fColor.push_back(Color);
-  }
-  void SourceName(const char* sourceName) {
-    fSourceName = sourceName;
+    fFillStyle.push_back(FillStyle);
   }
   void MakeCFPlotsSingleBand();
   void MakeOnePanelPlots();
@@ -46,7 +44,7 @@ class VariationmTAnalysis {
   void SetmTBins(std::vector<float> mTBins) {
     fmTBins = mTBins;
   }
-  void StoreRadvsmT(const char* fileName);
+  void StoreRadvsmT(const char* fileName, int iModel);
   void SetTextXMin(float texMin) {
     fTextXMin = texMin;
   }
@@ -67,8 +65,8 @@ class VariationmTAnalysis {
   const char* fDataOption;
   std::vector<const char*> fModelName;
   std::vector<const char*> fModelOption;
-  const char* fSourceName;
   std::vector<int> fColor;
+  std::vector<int> fFillStyle;
   float fTextXMin;
   float fXmin;
   float fXmax;
