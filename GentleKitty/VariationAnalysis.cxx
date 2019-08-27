@@ -104,7 +104,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
           Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
                iFitVar));
       TH1F* chiSq = (TH1F*) gROOT->FindObject("chisq");
-      if (chiSq->GetMean() > 30.) {
+      if (chiSq->GetMean() > 15.) {
         Warning(
             "ReadFitFile",
             Form("Chisq (%.1f) larger than 30, ignoring fit",
@@ -169,7 +169,7 @@ TGraphErrors * VariationAnalysis::EvaluateCurves(TNtuple * tuple,
         hist->FindFirstBinAbove(0.1, 1));
     double binUp = hist->GetXaxis()->GetBinUpEdge(
         hist->FindLastBinAbove(0.1, 1));
-    double DeltaCoulomb = TMath::Abs((binLow - binUp)) / TMath::Sqrt(12);
+    double DeltaCoulomb = TMath::Abs((binLow - binUp))/TMath::Sqrt(12);
     double DefaultVal = (binUp + binLow) / 2.;
     grOut->SetPoint(ikstar, kVal, DefaultVal);
     grOut->SetPointError(ikstar, 0, DeltaCoulomb);
@@ -206,7 +206,7 @@ TGraphErrors* VariationAnalysis::DeviationByBin(TH1F* RefHist,
   return grOut;
 }
 
-void VariationAnalysis::EvalRadius() {
+void VariationAnalysis::EvalRadius(const char* bin) {
   fRadMean = fRadiusDist->GetMean();
   int n = fRadiusDist->GetXaxis()->GetNbins();
 
@@ -214,7 +214,7 @@ void VariationAnalysis::EvalRadius() {
   histRadCumulative->Scale(1. / (double) fRadiusDist->GetEntries());
   auto c1 = new TCanvas("c4", "c5");
   histRadCumulative->Draw("");
-  c1->SaveAs(Form("%s/cumulative.pdf", gSystem->pwd()));
+  c1->SaveAs(Form("%s/cumulative%s.pdf", gSystem->pwd(),bin));
   delete c1;
   auto medianBin = histRadCumulative->FindFirstBinAbove(0.5, 1);
   std::cout << "medianBin: " << medianBin << " Median: "
@@ -274,5 +274,5 @@ void VariationAnalysis::EvalRadius() {
   lineUp->SetLineWidth(2);
   lineUp->Draw("same");
 
-  canRad2->SaveAs(TString::Format("%s/radius.pdf", gSystem->pwd()));
+  canRad2->SaveAs(TString::Format("%s/radius%s.pdf", gSystem->pwd(),bin));
 }

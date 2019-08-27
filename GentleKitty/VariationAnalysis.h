@@ -23,7 +23,7 @@ class VariationAnalysis {
   void ReadFitFile(TString FileName);
   TGraphErrors* EvaluateCurves(TNtuple* tuple, TGraph* RefGraph);
   TGraphErrors* DeviationByBin(TH1F* RefHist, TGraphErrors* model);
-  void EvalRadius();
+  void EvalRadius(const char* bin = "");
   TH1F* GetCorrelationFunction(int i) const {
     return fCk.at(i);
   }
