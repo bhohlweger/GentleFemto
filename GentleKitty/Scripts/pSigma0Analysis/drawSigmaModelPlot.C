@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
   leg->SetTextFont(42);
   leg->SetNColumns(2);
   leg->SetTextSize(gStyle->GetTextSize() * 0.9);
-  leg->SetHeader(Form("#it{r}_{0} = %.3f fm", radius[0]));
+  leg->SetHeader(Form("#it{r}_{0} = %.2f fm", radius[0]));
   leg->AddEntry(grSigma0fss2, "fss2", "l");
   leg->AddEntry(grSigma0chiEFT, "#chiEFT (NLO)", "l");
   leg->AddEntry(grSigma0ESC16, "ESC16", "l");

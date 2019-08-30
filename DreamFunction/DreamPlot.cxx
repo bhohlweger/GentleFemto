@@ -552,7 +552,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName(
       "p#minus#kern[-0.65]{ }#Sigma^{0} #oplus #bar{p}#minus#kern[-0.65]{ }#bar{#Sigma^{0}}", "fpe");
-  fProtonSigma->SetLegendName("fss2 (Lednick#acute{y})", "fl");
+  fProtonSigma->SetLegendName("fss2", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
   fProtonSigma->SetLegendName("ESC16", "fl");
   fProtonSigma->SetLegendName("NSC97f", "fl");
@@ -593,6 +593,15 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   d->cd();
   d->SaveAs(Form("%s/CF_pSigma_sideband.pdf", fitPath));
   d->SaveAs(Form("%s/CF_pSigma_sideband.root", fitPath));
+
+  auto e = new TCanvas("CFpSigmaSingle", "CFpSigmaSingle", 0, 0, 650, 550);
+  e->SetRightMargin(right);
+  e->SetTopMargin(top);
+  fProtonSigma->SetRangePlotting(0, 365, 0.9, 1.7);
+  fProtonSigma->DrawCorrelationPlot(e, 13, kBlue + 3, 0.9);
+  DrawSystemInfo(e, false, leftX + 0.01, 0);
+  e->SaveAs(Form("%s/CF_pSigma_single.pdf", fitPath));
+  e->SaveAs(Form("%s/CF_pSigma_single.root", fitPath));
 }
 
 void DreamPlot::DrawSystemInfo(TPad* c, bool plotRadius, float xMin,

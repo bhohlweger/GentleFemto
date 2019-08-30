@@ -10,6 +10,8 @@
 #include "TStyle.h"
 #include "TLine.h"
 #include "TGaxis.h"
+#include "TLatex.h"
+#include "TRandom.h"
 DreamData::DreamData(const char* particlePair)
     : fName(particlePair),
       fCorrelationFunction(nullptr),
@@ -374,7 +376,7 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
 
   if (fDrawAxis) {
     if (fForceAxis) {
-      fDummyHist = new TH1F("dummyHist", fSysError->GetTitle(), 100, fXMin, fXMax);
+      fDummyHist = new TH1F(Form("dummyHist_%.3f", gRandom->Uniform()), fSysError->GetTitle(), 100, fXMin, fXMax);
       fDummyHist->SetMinimum(fYMin);
       fDummyHist->SetMaximum(fYMax);
       fDummyHist->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
@@ -535,13 +537,15 @@ void DreamData::DrawDeviationPerBin(TPad* c) {
 }
 
 void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSigmaMax) {
+  const float ylowDraw = ylow;
+  const float yupDraw = yup;
   TH1F* histDummy;
   TGraphErrors* grDummy;
   if (fForceAxis) {
     histDummy = (TH1F*) fDummyHist->Clone("Dummy2");
     histDummy->Reset();
     histDummy->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
-    histDummy->GetYaxis()->SetTitle("n_{#sigma, local}");
+    histDummy->GetYaxis()->SetTitle("");
     histDummy->GetYaxis()->CenterTitle(true);
     histDummy->GetYaxis()->SetTickLength(0);
     histDummy->GetXaxis()->SetTitleOffset(6.);
@@ -552,7 +556,7 @@ void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSi
     grDummy = (TGraphErrors*) fSysError->Clone("Dummy2");
     grDummy->Clear();
     grDummy->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
-    grDummy->GetYaxis()->SetTitle("n_{#sigma, local}");
+    grDummy->GetYaxis()->SetTitle("");
     grDummy->GetYaxis()->CenterTitle(true);
     grDummy->GetYaxis()->SetTickLength(0);
     grDummy->GetXaxis()->SetTitleOffset(6.);
@@ -660,6 +664,17 @@ void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSi
     yup = ylow;
     counter++;
   }
+  c->cd();
+  TLatex label;
+  label.SetNDC(kTRUE);
+  label.SetTextFont((fForceAxis) ?
+      histDummy->GetYaxis()->GetTitleFont() :
+      grDummy->GetYaxis()->GetTitleFont());
+  label.SetTextSize((fForceAxis) ?
+      histDummy->GetYaxis()->GetTitleSize() :
+      grDummy->GetYaxis()->GetTitleSize());
+  label.SetTextAngle(90);
+  label.DrawLatex(0.04, (yupDraw - ylowDraw) / 2., "#it{n}_{#sigma, local}");
 }
 
 void DreamData::DrawLegendExternal(TPad* LegPad) {

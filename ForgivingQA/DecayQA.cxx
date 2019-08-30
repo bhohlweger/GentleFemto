@@ -341,11 +341,12 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
                             kTeal + 3);
 
     auto cpt = new TCanvas(Form("cInt%i%s", ipT, outname),
-                           Form("cInt%i%s", ipT, outname), 0, 0, 650, 550);
+                           Form("cInt%i%s", ipT, outname), 0, 0, 750, 550);
     cpt->SetTopMargin(0.05);
     cpt->SetRightMargin(0.025);
     TPad *intPadpt = (TPad*) cpt->cd();
     fHairyPlotter->FormatHistogram(invMasspTBin, 2, 8, 1.1);
+    invMasspTBin->GetYaxis()->SetTitleOffset(1.5);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, intPadpt, "P");
     fFitter->GetBackgroundFunction()->Draw("same");
     fHairyPlotter->DrawPublication(fFitter, intPadpt, fPartLatex, 0.205, 0.87,
