@@ -365,6 +365,21 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     std::cout << "No NSC97f file! \n";
   }
 
+  auto sidebandFile = TFile::Open(Form("%s/Param_pSigma0_6.root", fitPath));
+  if (sidebandFile) {
+    auto sideband = (TGraphErrors*) sidebandFile->Get("CF_fit");
+    auto sidebandFlat = (TGraphErrors*) sidebandFile->Get("CF_fit_deviation");
+    auto correlatedErrorSB = (TGraphErrors*) sidebandFile->Get("CF_correlatedError");
+    if (!sideband) {
+      std::cout << "No Sideband \n";
+    } else {
+      fProtonSigma->FemtoModelFitBands(sideband, kGray + 1, 0.5, true);
+      fProtonSigma->FemtoModelDeviations(sidebandFlat, kGray, 0, 0, 0, false);
+      fProtonSigma->SetCorrelatedError(correlatedErrorSB, kGray + 1, 3544, false);
+    }
+  } else {
+    std::cout << "No Sideband file! \n";
+  }
   return;
 }
 
