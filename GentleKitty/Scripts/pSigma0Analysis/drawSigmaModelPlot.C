@@ -53,19 +53,19 @@ int main(int argc, char* argv[]) {
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Proton-Lambda correlation functions
   auto grLambdafss2 = new TGraph();
-  grLambdafss2->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grLambdafss2->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   DreamPlot::SetStyleGraph(grLambdafss2, 20, colorfss2);
   grLambdafss2->SetLineWidth(lineWidth);
   auto grLambdachiEFT = new TGraph();
-  grLambdachiEFT->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grLambdachiEFT->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   DreamPlot::SetStyleGraph(grLambdachiEFT, 20, colorchiEFT);
   grLambdachiEFT->SetLineWidth(lineWidth);
   auto grLambdaESC16 = new TGraph();
-  grLambdaESC16->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grLambdaESC16->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   DreamPlot::SetStyleGraph(grLambdaESC16, 20, colorESC16);
   grLambdaESC16->SetLineWidth(lineWidth);
   auto grLambdaNSC97f = new TGraph();
-  grLambdaNSC97f->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grLambdaNSC97f->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   DreamPlot::SetStyleGraph(grLambdaNSC97f, 20, colorNSC97f);
   grLambdaNSC97f->SetLineWidth(lineWidth);
 
@@ -116,19 +116,19 @@ int main(int argc, char* argv[]) {
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Proton-Sigma0 correlation functions
   auto grSigma0fss2 = new TGraph();
-  grSigma0fss2->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grSigma0fss2->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   DreamPlot::SetStyleGraph(grSigma0fss2, 20, colorfss2);
   grSigma0fss2->SetLineWidth(lineWidth);
   auto grSigma0chiEFT = new TGraph();
-  grSigma0chiEFT->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grSigma0chiEFT->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   DreamPlot::SetStyleGraph(grSigma0chiEFT, 20, colorchiEFT);
   grSigma0chiEFT->SetLineWidth(lineWidth);
   auto grSigma0ESC16 = new TGraph();
-  grSigma0ESC16->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grSigma0ESC16->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   DreamPlot::SetStyleGraph(grSigma0ESC16, 20, colorESC16);
   grSigma0ESC16->SetLineWidth(lineWidth);
   auto grSigma0NSC97f = new TGraph();
-  grSigma0NSC97f->SetTitle(";#it{k}* (MeV/#it{c}); C(#it{k}*)");
+  grSigma0NSC97f->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   DreamPlot::SetStyleGraph(grSigma0NSC97f, 20, colorNSC97f);
   grSigma0NSC97f->SetLineWidth(lineWidth);
 
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
   TLatex pair;
   pair.SetTextSize(gStyle->GetTextSize() * 1.25);
   pair.SetNDC(kTRUE);
-  pair.DrawLatex(0.275, 0.885, "p#minus#kern[-0.65]{ }#Sigma^{0}");
-  pair.DrawLatex(0.775, 0.625, "p#minus#kern[-0.65]{ }#Lambda");
+  pair.DrawLatex(0.275, 0.885, "p#minus#kern[-0.75]{ }#Sigma^{0}");
+  pair.DrawLatex(0.775, 0.625, "p#minus#kern[-1.]{ }#Lambda");
   c->Print("Sigma0-Lambda.pdf");
 }
