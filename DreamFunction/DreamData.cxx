@@ -19,6 +19,7 @@ DreamData::DreamData(const char* particlePair)
       fCorrelationGraph(nullptr),
       fSystematics(nullptr),
       fSysError(nullptr),
+      fCorrelatedError(nullptr),
       fDummyHist(nullptr),
       fBaseLine(new TF1(Form("%sBaseLine", particlePair), "pol1", 0, 1000)),
       fDrawAxis(true),
@@ -191,6 +192,22 @@ void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
     Warning("DreamData", "Parameters input missing for %s", fName);
   }
   return;
+}
+
+void DreamData::SetCorrelatedError(TGraphErrors *grError, int color, float colorAlpha,
+                          bool useDefaultColors) {
+  fCorrelatedError = grError;
+  fCorrelatedError->SetLineColorAlpha((useDefaultColors ? fColors[color] : color), 0);
+  fCorrelatedError->SetFillColorAlpha((useDefaultColors ? fColors[color] : color), colorAlpha);
+}
+
+void DreamData::SetCorrelatedError(TGraphErrors *grError, int color, int fillstyle,
+                          bool useDefaultColors) {
+  fCorrelatedError = grError;
+  fCorrelatedError->SetLineWidth(1);
+  fCorrelatedError->SetLineColor(useDefaultColors ? fColors[color] : 0);
+  fCorrelatedError->SetFillColor(useDefaultColors ? fColors[color] : color);
+  fCorrelatedError->SetFillStyle(fillstyle);
 }
 
 void DreamData::FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower,
@@ -421,6 +438,9 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
     fCorrelationFunction->DrawCopy("pe same");
   } else if (fCorrelationGraph) {
     fCorrelationGraph->Draw("pez same");
+  }
+  if(fCorrelatedError) {
+    fCorrelatedError->Draw("L3same");
   }
   if (fDrawLegend)
     fLegend->Draw("same");

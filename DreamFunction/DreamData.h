@@ -39,6 +39,10 @@ class DreamData {
     fBaseLine->SetParameter(1, BL1);
   }
   ;
+  void SetCorrelatedError(TGraphErrors *geError, int color, float colorAlpha,
+                          bool useDefaultColors = true);
+  void SetCorrelatedError(TGraphErrors *geError, int color, int fillstyle,
+                          bool useDefaultColors = true);
   void FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower, TGraph *grUpper,
                           int color, int lineStyle, double lineWidth,
                           int fillStyle, bool addtoLegend = true);
@@ -138,6 +142,7 @@ class DreamData {
   TH1F* fSystematics;
   TGraphAsymmErrors* fCorrelationGraph;
   TGraphAsymmErrors* fSysError;
+  TGraphErrors *fCorrelatedError;
   TH1F* fDummyHist;
   TF1* fBaseLine;
   bool fDrawAxis;
