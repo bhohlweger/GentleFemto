@@ -356,10 +356,9 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else if (!sidebandUnscaled) {
       std::cout << "No sideband (unscaled) \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange - 3, 0, 0, 3315,
+      fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange - 3, 0, 0, 3358,
                                        true, false);
-      fProtonSigma->FemtoModelDeviations(NSC97fbandFlat, kOrange - 3, 0, 0, 3315, false);
-      fProtonSigma->FemtoModelFitBands(sideband, kGray + 1, 0.5, true);
+      fProtonSigma->FemtoModelDeviations(NSC97fbandFlat, kOrange - 3, 0, 0, 3358, false);
       fProtonSigmaSideband->FemtoModelFitBands(sidebandUnscaled, kGray + 1, 0.5, true);
     }
   } else {
@@ -540,9 +539,8 @@ void DreamPlot::DrawCorrelationFunctions() {
 
 void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   SetStyle();
-  gStyle->SetHatchesSpacing(0.75);
-  const float right = 0.025;
-  const float top = 0.025;
+  const float right = 0.01;
+  const float top = 0.02;
   auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 1000);
   TPad *p1 = new TPad("p1", "p1", 0., 0.45, 1., 1.);
   p1->SetBottomMargin(0.0);
@@ -551,19 +549,19 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   c->SetRightMargin(right);
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName(
-      "p#minus#kern[-0.65]{ }#Sigma^{0} #oplus #bar{p}#minus#kern[-0.65]{ }#bar{#Sigma^{0}}", "fpe");
+      "p#minus#kern[-0.65]{ }#Sigma^{0} #oplus #bar{p}#minus#kern[-0.75]{ }#bar{#Sigma^{0}}", "fpe");
   fProtonSigma->SetLegendName("fss2", "fl");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
   fProtonSigma->SetLegendName("ESC16", "fl");
   fProtonSigma->SetLegendName("NSC97f", "fl");
-  fProtonSigma->SetLegendName("p#minus#kern[-0.25]{ }(#Lambda#gamma) background", "l");
+  fProtonSigma->SetLegendName("p#minus#kern[-1.]{ }(#Lambda#gamma) background", "l");
   fProtonSigma->SetRangePlotting(0, 365, 0.85, 1.7);
   fProtonSigma->SetNDivisions(504);
   fProtonSigma->SetForceAxisRanges(true);
-  const float leftX = 0.485;
-  const float upperY = 0.815;
+  const float leftX = 0.51;
+  const float upperY = 0.82;
   fProtonSigma->SetLegendCoordinates(
-      leftX, upperY - 0.075 * (fProtonSigma->GetNumberOfModels() + 1), 0.7, upperY);
+      leftX, upperY - 0.07 * (fProtonSigma->GetNumberOfModels() + 1), 0.7, upperY);
   // Necessary fix to get the right unit on the axes
   fProtonSigma->SetUnitConversionData(2);
   fProtonSigma->DrawCorrelationPlot(p1, 13, kBlue + 3, 0.9);
@@ -597,7 +595,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   auto e = new TCanvas("CFpSigmaSingle", "CFpSigmaSingle", 0, 0, 650, 550);
   e->SetRightMargin(right);
   e->SetTopMargin(top);
-  fProtonSigma->SetRangePlotting(0, 365, 0.9, 1.7);
+  fProtonSigma->SetRangePlotting(0, 365, 0.8, 1.8);
   fProtonSigma->DrawCorrelationPlot(e, 13, kBlue + 3, 0.9);
   DrawSystemInfo(e, false, leftX + 0.01, 0);
   e->SaveAs(Form("%s/CF_pSigma_single.pdf", fitPath));
