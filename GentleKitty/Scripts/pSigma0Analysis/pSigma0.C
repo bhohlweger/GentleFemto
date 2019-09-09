@@ -276,6 +276,11 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
   float total = histSysVar.size() * femtoFitRegionUp.size() * 4
       * sidebandFitRange.size();
 
+  DLM_Ck* Ck_SideBand_default = new DLM_Ck(0, nSidebandPars,
+                                           NumMomBins_pSigma_draw,
+                                           kMin_pSigma_draw, kMax_pSigma_draw,
+                                           sidebandFitCATS);
+
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Systematic variations
 
@@ -380,6 +385,15 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
           Ck_SideBand->Update();
           Ck_SideBand_draw->Update();
 
+          // only for the default case the sideband correlation can be removed
+          if (systDataIter == 0 && femtoFitIter == 0 && blIter == 0
+              && sbNormIter == 0) {
+            for (unsigned i = 0; i < nSidebandPars; ++i) {
+              Ck_SideBand_default->SetPotPar(i, sideband->GetParameter(i));
+            }
+            Ck_SideBand_default->Update();
+          }
+
           std::cout
               << "\r Processing progress: "
               << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
@@ -406,6 +420,11 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
                   "pSigma0Draw", 2, *Ck_pSigma0_draw,
                   CATSinput->GetSigmaFile(1));
 
+
+              DLM_CkDecomposition CkDec_pSigma0_SB_default(
+                  "pSigma0SBDefault", 2, *Ck_pSigma0_draw,
+                  CATSinput->GetSigmaFile(1));
+
               /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
               DLM_CkDecomposition CkDec_SideBand("pSigma0SideBand", 0,
@@ -414,6 +433,9 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
               DLM_CkDecomposition CkDec_SideBand_draw("pSigma0SideBandDraw", 0,
                                                       *Ck_SideBand_draw,
                                                       nullptr);
+
+              DLM_CkDecomposition CkDec_SideBand_Default(
+                  "pSigma0SideBandDefault", 0, *Ck_SideBand_default, nullptr);
 
               float sidebandContr = lambdaParams[lambdaIter].GetLambdaParam(
                   CATSLambdaParam::Fake, CATSLambdaParam::Primary, 0, 0);
@@ -442,6 +464,26 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
                   1, 1.f - sidebandContr - primaryContr,
                   DLM_CkDecomposition::cFeedDown);
               CkDec_pSigma0_draw.Update();
+
+              float sidebandContrDefault = lambdaParams[0].GetLambdaParam(
+                  CATSLambdaParam::Fake, CATSLambdaParam::Primary, 0, 0);
+              sidebandContrDefault += lambdaParams[0].GetLambdaParam(
+                  CATSLambdaParam::Fake, CATSLambdaParam::FeedDown, 0, 0);
+              sidebandContrDefault += lambdaParams[0].GetLambdaParam(
+                  CATSLambdaParam::Fake, CATSLambdaParam::FeedDown, 0, 1);
+              sidebandContrDefault += lambdaParams[0].GetLambdaParam(
+                  CATSLambdaParam::Fake, CATSLambdaParam::Fake);
+
+              const float primaryContrDefault = lambdaParams[0].GetLambdaParam(
+                  CATSLambdaParam::Primary);
+
+              CkDec_pSigma0_SB_default.AddContribution(0, sidebandContrDefault,
+                                                 DLM_CkDecomposition::cFake,
+                                                 &CkDec_SideBand_Default);
+              CkDec_pSigma0_SB_default.AddContribution(
+                  1, 1.f - sidebandContrDefault - primaryContrDefault,
+                  DLM_CkDecomposition::cFeedDown);
+              CkDec_pSigma0_SB_default.Update();
 
               /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
               /// Fitter
@@ -542,6 +584,8 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
               /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
               /// Write out all the stuff
 
+              const float offsetDefaultCorrelatedError = 0.9;
+
               TGraph grCFSigmaExtrapolate;
               grCFSigmaExtrapolate.SetName(Form("S0Extrapolate_%i", iterID));
               TGraph grCFSigmaRaw;
@@ -552,6 +596,12 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
               grCFSigmaFeed.SetName(Form("Sigma0Feed_%i", iterID));
               TGraph grCFSigmaSideband;
               grCFSigmaSideband.SetName(Form("Sigma0Sideband_%i", iterID));
+
+              TGraph grCFSigmaSBDefault;
+              grCFSigmaSBDefault.SetName(Form("S0SBDefault_%i", iterID));
+              TGraph grCFSigmaDiff;
+              grCFSigmaDiff.SetName(Form("S0Diff_%i", iterID));
+
               TGraph grCFSigmaSidebandExtrapolate;
               grCFSigmaSidebandExtrapolate.SetName(
                   Form("SBExtrapolate_%i", iterID));
@@ -562,9 +612,17 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
               for (int i = 0; i < NumMomBins_pSigma_draw; ++i) {
                 const float mom = Ck_pSigma0_draw->GetBinCenter(0, i);
                 const float baseline = bl_a + bl_b * mom;
-                float cf = CkDec_pSigma0_draw.EvalCk(mom);
                 grCFSigmaExtrapolate.SetPoint(
                     i, mom, CkDec_pSigma0_draw.EvalCk(mom) * baseline);
+
+                grCFSigmaSBDefault.SetPoint(
+                    i, mom, CkDec_pSigma0_SB_default.EvalCk(mom) * baseline);
+                grCFSigmaDiff.SetPoint(
+                    i,
+                    mom,
+                    offsetDefaultCorrelatedError
+                        + CkDec_pSigma0_draw.EvalCk(mom) * baseline
+                        - CkDec_pSigma0_SB_default.EvalCk(mom) * baseline);
               }
 
               for (int i = 0; i < Ck_SideBand_draw->GetNbins(); ++i) {
@@ -682,6 +740,8 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
               }
 
               grCFSigmaExtrapolate.Write();
+              grCFSigmaSBDefault.Write();
+              grCFSigmaDiff.Write();
               grCFSigmaSidebandExtrapolate.Write();
               grCFSigmaGenuineSidebandExtrapolate.Write();
               grCFSigmaSideband.Write();

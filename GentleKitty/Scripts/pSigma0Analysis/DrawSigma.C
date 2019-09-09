@@ -186,12 +186,16 @@ void DrawSigma(TString varFolder, const int& potential) {
   TGraphAsymmErrors* CF_Histo;
   TGraphAsymmErrors* CF_Sideband;
   TGraph* CF_Model;
+  TGraph* CF_ModelFull;
+  TGraph* CF_Error;
   TGraph* CF_Sidebands;
 
   TString graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
                                     varFolder.Data(), potential);
   auto file = TFile::Open(graphfilename.Data(), "update");
   auto fit = new TNtuple("fit", "fit", "kstar:modelVal");
+  auto fitFull = new TNtuple("fitFull", "fitFull", "kstar:modelVal");
+  auto error = new TNtuple("error", "error", "kstar:modelVal");
   auto sideband = new TNtuple("sideband", "sideband", "kstar:modelVal");
   auto genuineSideband = new TNtuple("genuineSideband", "genuineSideband", "kstar:modelVal");
 
@@ -220,7 +224,7 @@ void DrawSigma(TString varFolder, const int& potential) {
         }
         c1->cd();
         CF_Histo->GetXaxis()->SetRangeUser(0, 600);
-        CF_Histo->GetYaxis()->SetRangeUser(0.8, 1.7);
+        CF_Histo->GetYaxis()->SetRangeUser(0.7, 1.7);
         CF_Histo->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
         DreamPlot::SetStyleGraph(CF_Histo, 24, kBlue + 3);
         CF_Histo->Draw("APEZ");
@@ -228,7 +232,7 @@ void DrawSigma(TString varFolder, const int& potential) {
         c2->cd();
         CF_Sideband = hist;
         CF_Sideband->GetXaxis()->SetRangeUser(0, 600);
-        CF_Sideband->GetYaxis()->SetRangeUser(0.8, 1.7);
+        CF_Sideband->GetYaxis()->SetRangeUser(0.7, 1.7);
         CF_Sideband->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
         DreamPlot::SetStyleGraph(CF_Sideband, 24, kBlue + 3);
         CF_Sideband->Draw("APEZ");
@@ -270,7 +274,16 @@ void DrawSigma(TString varFolder, const int& potential) {
         }
       }
 
-      if (graphName.Contains("S0Extrapolate_")) {
+      if (graphName.Contains("S0Extrapolate")) {
+        CF_ModelFull = Graph;
+        double x, y;
+        for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
+          Graph->GetPoint(iPnt, x, y);
+          fitFull->Fill(x, y);
+        }
+      }
+
+      if (graphName.Contains("S0SBDefault")) {
         CF_Model = Graph;
         c1->cd();
         Graph->SetLineColor(kRed + 2);
@@ -279,6 +292,18 @@ void DrawSigma(TString varFolder, const int& potential) {
         for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
           Graph->GetPoint(iPnt, x, y);
           fit->Fill(x, y);
+        }
+      }
+
+      if (graphName.Contains("S0Diff")) {
+        CF_Error = Graph;
+        c1->cd();
+        Graph->SetLineColor(kBlue + 2);
+        Graph->Draw("L3same");
+        double x, y;
+        for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
+          Graph->GetPoint(iPnt, x, y);
+          error->Fill(x, y);
         }
       }
     }
@@ -303,6 +328,8 @@ void DrawSigma(TString varFolder, const int& potential) {
   file->cd();
   c1->Write();
   fit->Write();
+  fitFull->Write();
+  error->Write();
   sideband->Write();
   genuineSideband->Write();
 
@@ -321,20 +348,48 @@ void DrawSigma(TString varFolder, const int& potential) {
   std::cout << "Thanks for your interest in potential " << potential << "\n";
   std::cout << "=============\n";
 
-  auto grCF = new TGraphErrors();
-  grCF->SetName("CF_fit");
+  auto grCF_shifted = new TGraphErrors();
+  grCF_shifted->SetName("CF_fit_shifted");
+  auto grCFFull = new TGraphErrors();
+  grCFFull->SetName("CF_fitFull");
   auto grSidebands = new TGraphErrors();
   grSidebands->SetName("CF_sidebands");
   auto grGenuineSidebands = new TGraphErrors();
   grGenuineSidebands->SetName("CF_genuineSidebands");
+  auto grError_shifted = new TGraphErrors();
+  grError_shifted->SetName("CF_correlatedError_shifted");
 
   double x, y;
   for (int ikstar = 0; ikstar < CF_Model->GetN(); ++ikstar) {
     CF_Model->GetPoint(ikstar, x, y);
-    EvalError(fit, ikstar, CF_Model, grCF, debugPlots, varFolder);
+    EvalError(fit, ikstar, CF_Model, grCF_shifted, debugPlots, varFolder);
+    EvalError(fitFull, ikstar, CF_Model, grCFFull, debugPlots, varFolder);
     EvalError(sideband, ikstar, CF_Model, grSidebands, debugPlots, varFolder);
     EvalError(genuineSideband, ikstar, CF_Model, grGenuineSidebands, debugPlots, varFolder);
+    EvalError(error, ikstar, CF_Model, grError_shifted, debugPlots, varFolder);
   }
+
+  // Here we need to shift the mean value of the model (without the error of the sidebands) to
+  // the mean value of the full fit (including the sidebands
+  // Additionally shift the mean value of the difference
+
+  auto grCF = new TGraphErrors();
+  grCF->SetName("CF_fit");
+  auto grError = new TGraphErrors();
+  grError->SetName("CF_correlatedError");
+
+  double xFull, yFull, xRed, yRed, xDiff, yDiff;
+  for (int i = 0; i < grCF_shifted->GetN(); ++i) {
+    grCF_shifted->GetPoint(i, xRed, yRed);
+    grCFFull->GetPoint(i, xFull, yFull);
+    grError_shifted->GetPoint(i, xDiff, yDiff);
+    grCF->SetPoint(i, xFull, yFull);
+    grCF->SetPointError(i, 0, grCF_shifted->GetErrorY(i));
+
+    grError->SetPoint(i, xFull, yDiff - yFull + yRed);
+    grError->SetPointError(i, 0, grError_shifted->GetErrorY(i));
+  }
+
 
   auto grFlatModel = FlattenModel(CF_Histo, grCF);
   auto grDataModelDiff = DataModelDeviation(CF_Histo, grCF);
@@ -353,6 +408,9 @@ void DrawSigma(TString varFolder, const int& potential) {
   grSidebands->Draw("l3 same");
   grSidebands->SetFillColorAlpha(kBlack, 0.5);
   grSidebands->SetLineColorAlpha(kBlack, 0.0);
+  grError->SetFillColorAlpha(kBlue + 2, 0.5);
+  grError->SetLineColorAlpha(kBlue + 2, 0.0);
+  grError->Draw("l3 same");
   CF_Histo->Draw("pezsame");
   TLatex BeamText;
   BeamText.SetNDC(kTRUE);
@@ -383,9 +441,12 @@ void DrawSigma(TString varFolder, const int& potential) {
   d->Print(Form("%s/CF_pSigma_sideband_%i.pdf", varFolder.Data(), potential));
   c->Write();
   grCF->Write();
+  grCFFull->Write();
   grSidebands->Write();
   grGenuineSidebands->Write();
   CF_Sideband->Write();
+
+  grError->Write();
 
   grFlatModel->Write();
   grDataModelDiff->Write();
