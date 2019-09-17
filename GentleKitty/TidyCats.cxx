@@ -14,6 +14,10 @@
 #include "TSystem.h"
 #include "TFile.h"
 #include "TGraph.h"
+#include "TH2F.h"
+
+static double DegToRad = 0.01745;
+
 TidyCats::TidyCats()
     : fppCleverLevy(nullptr),
       fppCleverMcLevy(nullptr),
@@ -729,4 +733,54 @@ double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {
     return 0;
   }
   return gPot->Eval(Parameters[0]);
+}
+
+DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax){
+  TFile* InputFile = new TFile(FileName, "read");
+  TH2F* InputHisto = NULL;
+  if(InputFile){
+    InputHisto = (TH2F*)InputFile->Get(HistoName);
+  }
+  TH1D* Projection=NULL;
+  if(InputHisto){
+    Projection = InputHisto->ProjectionX("ConvertThetaAngleHisto",InputHisto->GetYaxis()->FindBin(kMin),InputHisto->GetYaxis()->FindBin(kMax));
+  }
+
+  const unsigned NumBins = Projection->GetNbinsX();
+  Projection->Scale(1./Projection->Integral(1,NumBins));
+
+  DLM_Histo<double> CummDistr;
+  CummDistr.SetUp(1);
+  CummDistr.SetUp(0,NumBins,Projection->GetBinLowEdge(1)*DegToRad,Projection->GetXaxis()->GetBinUpEdge(NumBins)*DegToRad);
+  CummDistr.Initialize();
+
+  CummDistr.SetBinContent(unsigned(0),Projection->GetBinContent(1));
+  for(unsigned uBin=1; uBin<NumBins; uBin++){
+    CummDistr.SetBinContent(uBin,CummDistr.GetBinContent(uBin-1)+Projection->GetBinContent(uBin+1));
+  }
+
+  double* MomBins = new double [NumBins+1];
+  MomBins[0] = 0;
+  //MomBins[1] = CummDistr.GetBinContent(unsigned(0));
+  MomBins[NumBins] = 1;
+  for(unsigned uBin=1; uBin<NumBins; uBin++){
+    MomBins[uBin] = (CummDistr.GetBinContent(uBin)+CummDistr.GetBinContent(uBin-1)+1e-6)*0.5;
+    //printf("MomBins[%u] = %f\n",uBin,MomBins[uBin]);
+  }
+
+  DLM_Histo<double>* Result = new DLM_Histo<double>();
+  Result->SetUp(1);
+  Result->SetUp(0,NumBins,MomBins);
+  Result->Initialize();
+
+  for(unsigned uBin=0; uBin<NumBins; uBin++){
+    if(!Projection) break;
+    Result->SetBinCenter(0,uBin,CummDistr.GetBinContent(uBin));//cum. value
+    Result->SetBinContent(uBin,CummDistr.GetBinCenter(0,uBin));//momentum value
+    //printf("%u: x=%.4f; y=%.4f;\n",uBin,CummDistr.GetBinContent(uBin),CummDistr.GetBinCenter(0,uBin));
+  }
+
+  delete [] MomBins;
+  delete InputFile;
+  return Result;
 }
