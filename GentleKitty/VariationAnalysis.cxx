@@ -74,7 +74,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     TDirectoryFile* dir = (TDirectoryFile*) fInFile->FindObjectAny(
         dirName.Data());
     if (!dir) {
-      TString OutputError = TString::Format("No directory names %s",
+      TString OutputError = TString::Format("No directory named %s",
                                             dirName.Data());
       Error("ReadFitFile", OutputError.Data());
     }
@@ -107,7 +107,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
       if (chiSq->GetMean() > 15.) {
         Warning(
             "ReadFitFile",
-            Form("Chisq (%.1f) larger than 30, ignoring fit",
+            Form("Chisq (%.1f) larger than 15, ignoring fit",
                  chiSq->GetMean()));
         delete chiSq;
         continue;
