@@ -14,6 +14,7 @@
 #include "DreamCF.h"
 #include "DreamPair.h"
 
+#include "TDatabasePDG.h"
 #include "TROOT.h"
 #include "TNtuple.h"
 #include "TCanvas.h"
@@ -65,12 +66,14 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
   TidyCats::Sources TheSource;
   TidyCats::Sources FeeddownSource;
+  bool RandomizedEmission = false; 
   if (source == 0) {
     TheSource = TidyCats::sGaussian;
     FeeddownSource = TheSource;
   } else if (source == 1) {
     TheSource = TidyCats::sResonance;
     FeeddownSource = TidyCats::sGaussian;
+    RandomizedEmission = true; //in case we have a resonance source this steers the way the emission of resonances is handeled. 
   } else if (source == 2) {
     TheSource = TidyCats::sLevy;
     FeeddownSource = TidyCats::sGaussian;
@@ -342,16 +345,34 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     if (vMod_pL == 1) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
                                 TidyCats::pUsmani);
-      AB_pL.KillTheCat();
     } else if (vMod_pL == 2) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
                                 TidyCats::pNLOWF);
-      AB_pL.KillTheCat();
     } else if (vMod_pL == 3) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
                                 TidyCats::pLOWF);
-      AB_pL.KillTheCat();
     }
+    if (TheSource == TidyCats::sResonance) {
+      const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
+	* 1000;
+      const double massLambda = TDatabasePDG::Instance()->GetParticle(3122)->Mass()
+	* 1000;
+      const double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
+      
+      DLM_CleverMcLevyReso* source = tidy->GetSourceProtonLambda(); 
+      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+			massPion,false,false,RandomizedEmission?DLM_CleverMcLevyReso::rdtRandom:DLM_CleverMcLevyReso::rdtBackwards);
+      source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
+			massPion,false,false,RandomizedEmission?DLM_CleverMcLevyReso::rdtRandom:DLM_CleverMcLevyReso::rdtBackwards);
+      if (RandomizedEmission) {
+	std::cout << "Sir, Emission will be fully randomized, commencing countdown ... 3 ....\n"; 
+	const char* PhiFile = "DimiPhi_pp_HM.root"; 
+	DLM_Histo<double>* HISTO = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",270,470);
+	source->SetUpResoEmission(0,0,HISTO);
+	source->SetUpResoEmission(1,0,HISTO);
+      }  
+    }
+    AB_pL.KillTheCat();
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
       for (vFrac_pL = 0; vFrac_pL < 3; ++vFrac_pL) {
         for (int iBL = 0; iBL < 3; iBL++) {
