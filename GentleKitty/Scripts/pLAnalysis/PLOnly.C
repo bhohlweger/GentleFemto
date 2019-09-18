@@ -360,17 +360,23 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
       const double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
       
       DLM_CleverMcLevyReso* source = tidy->GetSourceProtonLambda(); 
-      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-			massPion,false,false,RandomizedEmission?DLM_CleverMcLevyReso::rdtRandom:DLM_CleverMcLevyReso::rdtBackwards);
-      source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
-			massPion,false,false,RandomizedEmission?DLM_CleverMcLevyReso::rdtRandom:DLM_CleverMcLevyReso::rdtBackwards);
       if (RandomizedEmission) {
 	std::cout << "Sir, Emission will be fully randomized, commencing countdown ... 3 ....\n"; 
+	source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+			  massPion,false,false,DLM_CleverMcLevyReso::rdtRandom);
+	source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
+			  massPion,false,false,DLM_CleverMcLevyReso::rdtRandom);
+	
 	const char* PhiFile = "DimiPhi_pp_HM.root"; 
-	DLM_Histo<double>* HISTO = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",270,470);
+	DLM_Histo<double>* HISTO = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",270,470, false);
 	source->SetUpResoEmission(0,0,HISTO);
 	source->SetUpResoEmission(1,0,HISTO);
-      }  
+      } else {
+	source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+			  massPion);
+	source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
+			  massPion);
+      }
     }
     AB_pL.KillTheCat();
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {

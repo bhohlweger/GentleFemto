@@ -27,6 +27,7 @@
 void FitPPVariations(const unsigned& NumIter, int system, int source,
                      TString InputFile, TString HistoName, TString OutputDir) {
   auto start = std::chrono::system_clock::now();
+  
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
   TString HistppName = HistoName.Data();
@@ -318,17 +319,23 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass() * 1000;
     const double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
     DLM_CleverMcLevyReso* source = tidy->GetSourceProtonProton(); 
-    source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-		      massPion,false,false,RandomizedEmission?DLM_CleverMcLevyReso::rdtRandom:DLM_CleverMcLevyReso::rdtBackwards);
-    source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-		      massPion,false,false,RandomizedEmission?DLM_CleverMcLevyReso::rdtRandom:DLM_CleverMcLevyReso::rdtBackwards);
     if (RandomizedEmission) {
-      std::cout << "Sir, Emission will be fully randomized, commencing countdown ... 3 ....\n"; 
+      std::cout << "Sir, Emission will be fully randomized, commencing countdown ... 3 ....\n";
+      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+			massPion,false,false,DLM_CleverMcLevyReso::rdtRandom);
+      source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+			massPion,false,false,DLM_CleverMcLevyReso::rdtRandom);
+      
       const char* PhiFile = "DimiPhi_pp_HM.root"; 
-      DLM_Histo<double>* HISTO = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",400,600);
+      DLM_Histo<double>* HISTO = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",400,600, false);
       source->SetUpResoEmission(0,0,HISTO);
       source->SetUpResoEmission(1,0,HISTO);
-    }  
+    } else {
+      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+			massPion); 
+      source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+			massPion);
+    }
   }
   AB_pp.KillTheCat();
   if (tidy->GetSourceProtonProton()) {
