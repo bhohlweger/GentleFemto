@@ -5,8 +5,10 @@
 #include "CATSInput.h"
 #include "ForgivingReader.h"
 
+#include <iostream>
 int main(int argc, char* argv[]) {
-  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
+  std::vector<float> mTppBins = { 1.02, 1.14, 1.26, 4.5 };
+//  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
 //  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 4.5 };
   const char* filename = argv[1];
   const char* prefix = argv[2];
@@ -14,7 +16,7 @@ int main(int argc, char* argv[]) {
   CATSinput->SetFixedkStarMinBin(true, 0.004);
   CATSinput->SetNormalization(0.240, 0.340);
 
-  ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
+  ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
   DreamFile->SetAnalysisFile(filename, prefix, "0");
 
   ForgivingReader* ForgivingFileDef = new ForgivingReader(filename, prefix,
@@ -26,7 +28,7 @@ int main(int argc, char* argv[]) {
   const int pairCountsDefault = CFppDef->GetFemtoPairs(0, 0.2);
   int OutCounter = 0; // 0 is going to be the DEFAULT
   for (int iVar = 0; iVar < 45; ++iVar) {
-    ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
+    ReadDreamFile* DreamVarFile = new ReadDreamFile(4, 4);
     DreamVarFile->SetAnalysisFile(filename, prefix, Form("%u", iVar));
     TString VarName = TString::Format("ppVar%u", iVar);
     DreamCF* CFppVar = CATSinput->ObtainCFSyst(
@@ -45,7 +47,7 @@ int main(int argc, char* argv[]) {
         "hCk_ReweightedppDef_0");
     TH1F* DefReweightedMeV = CFppDef->FindCorrelationFunction(
         "hCk_ReweightedppDefMeV_0");
-    ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
+    ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
     DreamFile->SetQuite();
     DreamKayTee* mTppDists;
     DreamFile->ReadmTHistos(filename, prefix, TString::Format("%u", iVar));
