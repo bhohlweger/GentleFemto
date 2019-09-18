@@ -297,9 +297,6 @@ void DrawSigma(TString varFolder, const int& potential) {
 
       if (graphName.Contains("S0Diff")) {
         CF_Error = Graph;
-        c1->cd();
-        Graph->SetLineColor(kBlue + 2);
-        Graph->Draw("L3same");
         double x, y;
         for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
           Graph->GetPoint(iPnt, x, y);
