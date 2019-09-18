@@ -295,8 +295,8 @@ void MakeHistosGreat::DrawPublication(ForgivingFitter* fit, TPad* pad,
   TLatex Label;
   Label.SetNDC(kTRUE);
   Label.SetTextSize(gStyle->GetTextSize() * 0.9);
-  Label.DrawLatex(xPos, yPos - offset * counter++, "ALICE pp #sqrt{s} = 13 TeV");
-  Label.DrawLatex(xPos, yPos - offset * counter++, "High Mult. (0#kern[-0.65]{ }-#kern[-0.65]{ }0.072#kern[-0.4]{ }% INEL)");
+  Label.DrawLatex(xPos, yPos - offset * counter++, "ALICE pp #sqrt{#it{s}} = 13 TeV");
+  Label.DrawLatex(xPos, yPos - offset * counter++, "High-mult. (0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
   if (pTmin > 0 && pTmax > 0) {
     Label.DrawLatex(xPos, yPos - offset * counter++,
                     Form("%.1f < #it{p}_{T} < %.1f GeV/#it{c}", pTmin, pTmax));
@@ -312,9 +312,9 @@ void MakeHistosGreat::DrawPublication(ForgivingFitter* fit, TPad* pad,
   leg->SetBorderSize(0);
   leg->SetTextFont(42);
   leg->SetTextSize(gStyle->GetTextSize() * 0.9);
-  leg->AddEntry(hist, "Data (stat. uncert.)", "PE");
-  leg->AddEntry(fit->GetFullFitFunction(), "Signal fit", "l");
-  leg->AddEntry(fit->GetBackgroundFunction(), "Background fit", "l");
+  leg->AddEntry(hist, "Data", "P");
+  leg->AddEntry(fit->GetFullFitFunction(), "Total fit", "l");
+  leg->AddEntry(fit->GetBackgroundFunction(), "Background", "l");
   leg->Draw("same");
 }
 

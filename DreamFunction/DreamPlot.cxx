@@ -573,7 +573,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   fProtonSigma->SetRangePlotting(0, 365, 0.85, 1.7);
   fProtonSigma->SetNDivisions(504);
   fProtonSigma->SetForceAxisRanges(true);
-  const float leftX = 0.51;
+  const float leftX = 0.475;
   const float upperY = 0.82;
   fProtonSigma->SetLegendCoordinates(
       leftX, upperY - 0.07 * (fProtonSigma->GetNumberOfModels() + 1), 0.7, upperY);
@@ -659,7 +659,7 @@ void DreamPlot::DrawSystemInfo(TPad* c, bool plotRadius, float xMin,
       BeamText.SetTextSize(gStyle->GetTextSize() * .9);
             BeamText.DrawLatex(xMin, 0.9, Form("ALICE %s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));      BeamText.DrawLatex(
                 xMin,
-                0.84, "High Mult. (0#kern[-0.65]{ }-#kern[-0.65]{ }0.072#kern[-0.4]{ }% INEL)");
+                0.84, "High-mult. (0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
     } else {
       BeamText.DrawLatex(
           xMin,

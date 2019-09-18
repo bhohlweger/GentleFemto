@@ -182,7 +182,7 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   invMass->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
   invMass->GetYaxis()->SetRangeUser(0, invMass->GetMaximum() * 1.8);
   //invMass->GetYaxis()->SetMaxDigits(3);
-  invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
+  invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} (GeV/#it{c}^{2})^{-1}");
   invMass->GetXaxis()->SetTitle(
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
   fHairyPlotter->FormatHistogram(invMass, 0, 0, 0.8);
@@ -272,9 +272,9 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   invMass->GetYaxis()->SetRangeUser(0, peakVal * 2.1);
   invMass->GetXaxis()->SetMaxDigits(2);
   invMass->GetXaxis()->SetNdivisions(505);
-  invMass->GetYaxis()->SetMaxDigits(1);
+  invMass->GetYaxis()->SetMaxDigits(2);
   invMass->GetYaxis()->SetNdivisions(505);
-  invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
+  invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} (GeV/#it{c}^{2})^{-1}");
   invMass->GetXaxis()->SetTitle(
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
   fHairyPlotter->FormatHistogram(invMass, 2, 8, 1.1);
@@ -324,10 +324,10 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
     invMasspTBin->GetXaxis()->SetTitle(
         Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
     invMasspTBin->GetYaxis()->SetTitle(
-        "d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
+        "d#it{N}/d#it{M} (GeV/#it{c}^{2})^{-1}");
     invMasspTBin->GetXaxis()->SetMaxDigits(2);
     invMasspTBin->GetXaxis()->SetNdivisions(505);
-    invMasspTBin->GetYaxis()->SetMaxDigits(1);
+    invMasspTBin->GetYaxis()->SetMaxDigits(3);
     invMasspTBin->GetYaxis()->SetNdivisions(505);
     fHairyPlotter->FormatHistogram(invMasspTBin, 2, 8, 0.8);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad, "");
@@ -341,12 +341,11 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
                             kTeal + 3);
 
     auto cpt = new TCanvas(Form("cInt%i%s", ipT, outname),
-                           Form("cInt%i%s", ipT, outname), 0, 0, 750, 550);
+                           Form("cInt%i%s", ipT, outname), 0, 0, 650, 550);
     cpt->SetTopMargin(0.05);
     cpt->SetRightMargin(0.025);
     TPad *intPadpt = (TPad*) cpt->cd();
     fHairyPlotter->FormatHistogram(invMasspTBin, 2, 8, 1.1);
-    invMasspTBin->GetYaxis()->SetTitleOffset(1.5);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, intPadpt, "P");
     fFitter->GetBackgroundFunction()->Draw("same");
     fHairyPlotter->DrawPublication(fFitter, intPadpt, fPartLatex, 0.205, 0.87,
@@ -372,7 +371,7 @@ void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname) {
   invMassKaon->SetName(Form("%s%s", outname, invMassKaon->GetName()));
   invMassKaon->GetXaxis()->SetRangeUser(0.44, 0.56);
   invMassKaon->GetYaxis()->SetRangeUser(0, 1.8 * invMassKaon->GetMaximum());
-  invMassKaon->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1})]");
+  invMassKaon->GetYaxis()->SetTitle("d#it{N}/d#it{M} [(GeV/#it{c}^{2})^{-1}]");
   invMassKaon->GetXaxis()->SetTitle("#it{M}_{#pi#pi} (GeV/#it{c}^{2})");
   ForgivingFitter *kaonFit = new ForgivingFitter();
   kaonFit->SetRanges(0.485, 0.515, 0.44, 0.56);

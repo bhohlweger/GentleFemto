@@ -399,9 +399,9 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
       fDummyHist->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
       fDummyHist->SetLineColor(kWhite);
       fDummyHist->Draw();
-      fSysError->Draw("p same");
+      fSysError->Draw("same");
     } else {
-      fSysError->Draw("Ap");
+      fSysError->Draw("A");
     }
   }
   fBaseLine->Draw("same");
