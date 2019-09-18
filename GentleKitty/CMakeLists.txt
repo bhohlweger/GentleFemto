@@ -153,5 +153,8 @@ target_link_libraries(mTPLAnalysis tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(runPhi ${PROJECT_SOURCE_DIR}/Scripts/pPhi.C)
 target_link_libraries(runPhi tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
-
+ 
+add_executable(radPlotter ${PROJECT_SOURCE_DIR}/Scripts/RadiusDrawer.C)
+target_link_libraries(radPlotter tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+ 
 add_subdirectory(Test)
