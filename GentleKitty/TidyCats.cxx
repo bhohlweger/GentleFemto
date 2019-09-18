@@ -108,10 +108,6 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       fppCleverMcLevy->InitType(2);
       fppCleverMcLevy->InitReso(0, 1);  //number of p resonances
       fppCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
-      fppCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-                                 massPion);
-      fppCleverMcLevy->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-                                 massPion);
       AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
       AB_pp->SetAnaSource(0, 1.2);
       AB_pp->SetAnaSource(1, 2.0);
@@ -197,10 +193,10 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       fpLCleverMcLevy->InitType(2);
       fpLCleverMcLevy->InitReso(0, 1);  //number of p resonances
       fpLCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
-      fpLCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-                                 massPion);
-      fpLCleverMcLevy->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
-                                 massPion);
+      // fpLCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+      //                            massPion);
+      // fpLCleverMcLevy->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
+      //                            massPion);
       AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverMcLevy, 2);
       AB_pL->SetAnaSource(0, 1.2);
       AB_pL->SetAnaSource(1, 2.0);
