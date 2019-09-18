@@ -25,7 +25,7 @@
 #include <ctime>
 
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
-                     int source, int iPotential, TString InputFile,
+                     int source, int iPotential, int iAngDist, int iRange, TString InputFile,
                      TString HistoName, TString OutputDir) {
   auto start = std::chrono::system_clock::now();
 
@@ -370,10 +370,37 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
 			  massPion,false,false,DLM_CleverMcLevyReso::rdtRandom);
 	
-	const char* PhiFile = "DimiPhi_pp_HM.root"; 
-	DLM_Histo<double>* HISTO = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",270,470, false);
-	source->SetUpResoEmission(0,0,HISTO);
-	source->SetUpResoEmission(1,0,HISTO);
+	const char* PhiFile;
+	int RangeProtonMin, RangeProtonMax, RangeLambdaMin, RangeLambdaMax; 
+	if (iAngDist == 0) { 
+	  PhiFile = "DimiPhi_pp_HM.root";
+	} else { 
+	  PhiFile = "DimiPhi_pLambda_HM.root";
+	}
+     	if (iRange == 0) { 
+	  RangeProtonMin = 400; 
+	  RangeProtonMax = 600; 
+
+	  RangeLambdaMin = 270; 
+	  RangeLambdaMin = 470; 
+	} else if (iRange == 1) {
+	  RangeProtonMin = 450; 
+	  RangeProtonMax = 550; 
+
+	  RangeLambdaMin = 320; 
+	  RangeLambdaMin = 420;  
+	} else if (iRange == 2) {
+	  RangeProtonMin = 250; 
+	  RangeProtonMax = 650; 
+
+	  RangeLambdaMin = 220; 
+	  RangeLambdaMin = 520;  
+	}
+	std::cout << "Using file: " << PhiFile << " in the range ProtonMin: " << RangeProtonMin << " to Proton Max: " << RangeProtonMax << " LambdaMin: " << RangeLambdaMin << " to Lambda Max: " << RangeLambdaMax << std::endl; 
+	DLM_Histo<double>* HISTO_PROTON = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",RangeProtonMin,RangeProtonMax, false);
+	DLM_Histo<double>* HISTO_LAMBDA = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",RangeLambdaMin,RangeLambdaMax, false);
+	source->SetUpResoEmission(0,0,HISTO_PROTON);
+	source->SetUpResoEmission(1,0,HISTO_LAMBDA);
       } else {
 	source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
 			  massPion);
@@ -719,7 +746,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
 int main(int argc, char *argv[]) {
   FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                  atoi(argv[5]), argv[6], argv[7], argv[8]);
+                  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), argv[8], argv[9], argv[10]);
   return 0;
 }
 
