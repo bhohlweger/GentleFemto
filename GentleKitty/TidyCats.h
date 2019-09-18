@@ -48,6 +48,9 @@ class TidyCats {
   }
   void GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin, double kMax,
                            TidyCats::Sources source, TidyCats::pLPot pot);
+  DLM_CleverMcLevyReso* GetSourceProtonLambda() {
+    return fpLCleverMcLevy;
+  }
   void GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
                             double kMax, TidyCats::Sources source,
                             TidyCats::pXimPot pot, double QCDTime);
