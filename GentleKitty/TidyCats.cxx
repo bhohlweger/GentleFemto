@@ -201,7 +201,6 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       AB_pL->SetAnaSource(0, 1.2);
       AB_pL->SetAnaSource(1, 2.0);
       break;
-      break;
     case TidyCats::sLevy:
       fpLCleverLevy = new DLM_CleverLevy();
       fpLCleverMcLevy = new DLM_CleverMcLevyReso();
@@ -731,7 +730,7 @@ double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {
   return gPot->Eval(Parameters[0]);
 }
 
-DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax){
+DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax, bool convertToRad){
   TFile* InputFile = new TFile(FileName, "read");
   TH2F* InputHisto = NULL;
   if(InputFile){
@@ -747,7 +746,11 @@ DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, con
 
   DLM_Histo<double> CummDistr;
   CummDistr.SetUp(1);
-  CummDistr.SetUp(0,NumBins,Projection->GetBinLowEdge(1)*DegToRad,Projection->GetXaxis()->GetBinUpEdge(NumBins)*DegToRad);
+  if (convertToRad) {
+    CummDistr.SetUp(0,NumBins,Projection->GetBinLowEdge(1)*DegToRad,Projection->GetXaxis()->GetBinUpEdge(NumBins)*DegToRad);
+  } else {
+    CummDistr.SetUp(0,NumBins,Projection->GetBinLowEdge(1),Projection->GetXaxis()->GetBinUpEdge(NumBins));
+  }
   CummDistr.Initialize();
 
   CummDistr.SetBinContent(unsigned(0),Projection->GetBinContent(1));
