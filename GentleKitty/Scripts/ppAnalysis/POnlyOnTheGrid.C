@@ -24,10 +24,11 @@
 #include <chrono>
 #include <ctime>
 
-void FitPPVariations(const unsigned& NumIter, int system, int source, int iAngDist, int iRange,
-                     TString InputFile, TString HistoName, TString OutputDir) {
+void FitPPVariations(const unsigned& NumIter, int system, int source,
+                     int iAngDist, int iRange, TString InputFile,
+                     TString HistoName, TString OutputDir) {
   auto start = std::chrono::system_clock::now();
-  
+
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
   TString HistppName = HistoName.Data();
@@ -56,14 +57,14 @@ void FitPPVariations(const unsigned& NumIter, int system, int source, int iAngDi
 
   TidyCats::Sources TheSource;
   TidyCats::Sources FeeddownSource;
-  bool RandomizedEmission = false; 
+  bool RandomizedEmission = false;
   if (source == 0) {
     TheSource = TidyCats::sGaussian;
     FeeddownSource = TheSource;
   } else if (source == 1) {
     TheSource = TidyCats::sResonance;
     FeeddownSource = TidyCats::sGaussian;
-    RandomizedEmission = true; //in case we have a resonance source this steers the way the emission of resonances is handeled. 
+    RandomizedEmission = true;  //in case we have a resonance source this steers the way the emission of resonances is handeled.
   } else if (source == 2) {
     TheSource = TidyCats::sLevy;
     FeeddownSource = TidyCats::sGaussian;
@@ -294,7 +295,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source, int iAngDi
   Float_t ntBuffer[22];
 
   float total = TheSource == TidyCats::sLevy ? 54 : 81;
-  int uIter = 1 + (3 * iAngDist + iRange)*(int)total;
+  int uIter = 1 + (3 * iAngDist + iRange) * (int) total;
   int counter = 1;
   int vFemReg;  //which femto region we use for pp (1 = default)
   int vMod_pL = 1;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
@@ -311,46 +312,53 @@ void FitPPVariations(const unsigned& NumIter, int system, int source, int iAngDi
   StoreHist->DrawCopy();
   CollOut->Add(c1);
   StoreHist->GetXaxis()->SetRangeUser(0, 1000);
-  CollOut->Add(StoreHist);
-  
+  if(uIter == 1) CollOut->Add(StoreHist);
+
   CATS AB_pp;
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
   if (TheSource == TidyCats::sResonance) {
-    const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass() * 1000;
-    const double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
-    DLM_CleverMcLevyReso* source = tidy->GetSourceProtonProton(); 
+    const double massProton =
+        TDatabasePDG::Instance()->GetParticle(2212)->Mass() * 1000;
+    const double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass()
+        * 1000;
+    DLM_CleverMcLevyReso* source = tidy->GetSourceProtonProton();
     if (RandomizedEmission) {
-      std::cout << "Sir, Emission will be fully randomized, commencing countdown ... 3 ....\n";
-      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-			massPion,false,false,DLM_CleverMcLevyReso::rdtRandom);
-      source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-			massPion,false,false,DLM_CleverMcLevyReso::rdtRandom);
+      std::cout
+          << "Sir, Emission will be fully randomized, commencing countdown ... 3 ....\n";
+      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion,
+                        false, false, DLM_CleverMcLevyReso::rdtRandom);
+      source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion,
+                        false, false, DLM_CleverMcLevyReso::rdtRandom);
       const char* PhiFile;
       int RangeProtonMin, RangeProtonMax;
-      if (iAngDist == 0) { 
-	PhiFile = "DimiPhi_pp_HM.root";
-      } else { 
-	PhiFile = "DimiPhi_pLambda_HM.root";
+      if (iAngDist == 0) {
+        PhiFile = "DimiPhi_pp_HM.root";
+      } else {
+        PhiFile = "DimiPhi_pLambda_HM.root";
       }
-      if (iRange == 0) { 
-	RangeProtonMin = 400; 
-	RangeProtonMax = 600; 
+      if (iRange == 0) {
+        RangeProtonMin = 400;
+        RangeProtonMax = 600;
       } else if (iRange == 1) {
-	RangeProtonMin = 450; 
-	RangeProtonMax = 550; 
+        RangeProtonMin = 450;
+        RangeProtonMax = 550;
       } else if (iRange == 2) {
-	RangeProtonMin = 250; 
-	RangeProtonMax = 650;  
+        RangeProtonMin = 250;
+        RangeProtonMax = 650;
       }
-      std::cout << "Using file: " << PhiFile << " in the range ProtonMin: " << RangeProtonMin << " to Proton Max: " << RangeProtonMax << std::endl; 
-      DLM_Histo<double>* HISTO = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",RangeProtonMin,RangeProtonMax, false);
-      source->SetUpResoEmission(0,0,HISTO);
-      source->SetUpResoEmission(1,0,HISTO);
+      std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
+                << RangeProtonMin << " to Proton Max: " << RangeProtonMax
+                << std::endl;
+      DLM_Histo<double>* HISTO =
+          tidy->ConvertThetaAngleHisto(
+              TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
+                  .Data(),
+              "h_rkAngle_Mom2", RangeProtonMin, RangeProtonMax, false);
+      source->SetUpResoEmission(0, 0, HISTO);
+      source->SetUpResoEmission(1, 0, HISTO);
     } else {
-      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-			massPion); 
-      source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-			massPion);
+      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion);
+      source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion);
     }
   }
   AB_pp.KillTheCat();
@@ -359,11 +367,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source, int iAngDi
     SourceDist->SetName(TString::Format("SourceDist_NumIter_%i", NumIter));
     for (int iRad = 0; iRad < 200; ++iRad) {
       std::cout << "\r Source progress: "
-          << TString::Format("%.1f %%", (iRad + 1) / 200 * 100.f).Data()
-          << std::flush;
+                << TString::Format("%.1f %%", (iRad + 1) / 200 * 100.f).Data()
+                << std::flush;
       double rad = 0.04 * iRad;
       double pars[5] = { 0, rad, 0, 1.2, 1.7 };
-      SourceDist->SetPoint(iRad, rad, tidy->GetSourceProtonProton()->Eval(pars));
+      SourceDist->SetPoint(iRad, rad,
+                           tidy->GetSourceProtonProton()->Eval(pars));
     }
     std::cout << std::endl;
     CollOut->Add(SourceDist);
@@ -405,7 +414,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source, int iAngDi
           std::cout
               << "\r Processing progress: "
               << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
-              << " elapsed time: " << elapsed_seconds.count()/60. << std::flush;
+              << " elapsed time: " << elapsed_seconds.count() / 60.
+              << std::flush;
 
           TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
           if (!OliHisto_pp) {
@@ -681,8 +691,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source, int iAngDi
 }
 
 int main(int argc, char *argv[]) {
-  FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]),
-                  argv[6], argv[7], argv[8]);
+  FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
+                  atoi(argv[5]), argv[6], argv[7], argv[8]);
   return 0;
 }
 
