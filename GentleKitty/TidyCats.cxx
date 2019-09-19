@@ -192,7 +192,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       fpLCleverMcLevy->InitRad(512, 0, 64);
       fpLCleverMcLevy->InitType(2);
       fpLCleverMcLevy->InitReso(0, 1);  //number of p resonances
-      fpLCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
+      fpLCleverMcLevy->InitReso(1, 2);  //number of Xi resonances
       // fpLCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
       //                            massPion);
       // fpLCleverMcLevy->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
