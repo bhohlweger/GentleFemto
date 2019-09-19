@@ -263,7 +263,6 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
             << lam_pXim_pXim1530 << " lam_pXim_fake:" << lam_pXim_fake
             << std::endl;
 
-  const double GaussSourceSize = 1.2;
   //insert p-Sigma0 radius for different mT bins from r_core p-p &
   //effective gaussian fit of the  p-Sigma0 source including resonances.
 //  std::vector<float> pSigma0Radii = { 1.473, 1.421, 1.368, 1.295, 1.220, 1.124 };
