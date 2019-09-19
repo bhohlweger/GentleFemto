@@ -312,7 +312,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   StoreHist->DrawCopy();
   CollOut->Add(c1);
   StoreHist->GetXaxis()->SetRangeUser(0, 1000);
-  if(uIter == 1) CollOut->Add(StoreHist);
+  if (uIter == 1)
+    CollOut->Add(StoreHist);
 
   CATS AB_pp;
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
@@ -333,8 +334,13 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
       int RangeProtonMin, RangeProtonMax;
       if (iAngDist == 0) {
         PhiFile = "DimiPhi_pp_HM.root";
-      } else {
+      } else if (iAngDist == 1){
         PhiFile = "DimiPhi_pLambda_HM.root";
+      } else if (iAngDist == 2) {
+        PhiFile = "DimiPhi_LambdaLambda_HM.root";
+      } else {
+        std::cout << "Option iAngDist == " << iAngDist << " not viable \n";
+        return;
       }
       if (iRange == 0) {
         RangeProtonMin = 400;
@@ -345,6 +351,10 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
       } else if (iRange == 2) {
         RangeProtonMin = 250;
         RangeProtonMax = 650;
+      } else {
+        std::cout << "Option iRange == " << iRange
+                  << " is not a viable option \n";
+        return;
       }
       std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
                 << RangeProtonMin << " to Proton Max: " << RangeProtonMax
