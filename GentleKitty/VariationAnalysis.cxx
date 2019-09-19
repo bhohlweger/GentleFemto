@@ -82,8 +82,8 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     TString histname = TString::Format("%s%iMeV_0", fHistname, iVars);
     TH1F* histo = (TH1F*) dir->FindObjectAny(histname.Data());
     if (!histo) {
-      TString OutputError = TString::Format("Histogram (%s) missing, rip",
-                                            histname.Data());
+      TString OutputError = TString::Format("In dir %s Histogram (%s) missing, rip",
+                                            dirName.Data(), histname.Data());
       Error("ReadFitFile", OutputError.Data());
     } else {
       fCk.push_back(histo);
@@ -105,10 +105,10 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
           Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
                iFitVar));
       TH1F* chiSq = (TH1F*) gROOT->FindObject("chisq");
-      if (chiSq->GetMean() > 100.) {
+      if (chiSq->GetMean() > 30.) {
         Warning(
             "ReadFitFile",
-            Form("Chisq (%.1f) larger than 100, ignoring fit",
+            Form("Chisq (%.1f) larger than 30, ignoring fit",
                  chiSq->GetMean()));
         delete chiSq;
         continue;
