@@ -310,8 +310,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
   Float_t ntBuffer[24];
 
-  int uIter = 1;
   float total = 162;
+  int uIter = 1+(3 * iAngDist + iRange)*(int)total;
   int counter = 1;
   int vFemReg;  //which femto region we use for pp (1 = default)
   int vMod_pL = iPotential;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
@@ -329,7 +329,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
   CollOut->Add(c1);
   StoreHist->GetXaxis()->SetRangeUser(0, 1000);
-  CollOut->Add(StoreHist);
+  if (uIter == 1)CollOut->Add(StoreHist);
 
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,

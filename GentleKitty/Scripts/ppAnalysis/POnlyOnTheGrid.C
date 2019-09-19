@@ -293,8 +293,8 @@ void FitPPVariations(const unsigned& NumIter, int system, int source, int iAngDi
 
   Float_t ntBuffer[22];
 
-  int uIter = 1;
   float total = TheSource == TidyCats::sLevy ? 54 : 81;
+  int uIter = 1 + (3 * iAngDist + iRange)*(int)total;
   int counter = 1;
   int vFemReg;  //which femto region we use for pp (1 = default)
   int vMod_pL = 1;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
