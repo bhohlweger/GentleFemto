@@ -27,7 +27,7 @@
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
                      int source, int iPotential, int iAngDist, int iRange, TString InputFile,
                      TString HistoName, TString OutputDir) {
-  auto start = std::chrono::system_clock::no w();
+  auto start = std::chrono::system_clock::now();
 
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
