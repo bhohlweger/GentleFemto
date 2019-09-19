@@ -15,6 +15,7 @@ int main(int argc, char* argv[]) {
   TGraphErrors* avgmT = (TGraphErrors*) mTFile->Get("AveragemT_ppVar0");
   if (!avgmT) {
     std::cout << "no average mT file " << std::endl;
+    mTFile->ls();
     return -1;
   }
   int nVariations = 0;
@@ -23,7 +24,7 @@ int main(int argc, char* argv[]) {
   } else if (nMTBins == 3) {
     nVariations = 24;
   }
-  VariationmTAnalysis* analyser = new VariationmTAnalysis(1, nVariations, 81);
+  VariationmTAnalysis* analyser = new VariationmTAnalysis(1, nVariations, 486);
   analyser->SetHistName("hCk_RebinnedppVar");
 //  analyser->SetHistName("hCk_FixShiftedppVar");
   analyser->SetFileName("OutFileVarpp.root");
@@ -34,6 +35,8 @@ int main(int argc, char* argv[]) {
   } else if (SourceOption == 1) {
     analyser->SetLegModel("Fit Gauss+Resonance", "f", 2, -1);
   }
+  analyser->SetTextXMin(0.35);
+  analyser->SetPlottingRange(0, 230);
 //  analyser->SetLegModel("Fit Gaussian", "f", 2, 3225);
   //this implies a folder structure following mTBin_[1,2,3,....]
   for (int imt = 1; imt <= nMTBins; ++imt) {
