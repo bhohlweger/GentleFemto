@@ -401,7 +401,7 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
       fDummyHist->Draw();
       fSysError->Draw("same");
     } else {
-      fSysError->Draw("A");
+      fSysError->Draw("Ap");
     }
   }
   fBaseLine->Draw("same");
