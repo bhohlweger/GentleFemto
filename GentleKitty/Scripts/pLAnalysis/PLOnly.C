@@ -27,7 +27,7 @@
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
                      int source, int iPotential, int iAngDist, int iRange, TString InputFile,
                      TString HistoName, TString OutputDir) {
-  auto start = std::chrono::system_clock::now();
+  auto start = std::chrono::system_clock::no w();
 
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
@@ -382,19 +382,19 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	  RangeProtonMax = 600; 
 
 	  RangeLambdaMin = 270; 
-	  RangeLambdaMin = 470; 
+	  RangeLambdaMax = 470;      
 	} else if (iRange == 1) {
 	  RangeProtonMin = 450; 
 	  RangeProtonMax = 550; 
 
 	  RangeLambdaMin = 320; 
-	  RangeLambdaMin = 420;  
+	  RangeLambdaMax = 420;  
 	} else if (iRange == 2) {
 	  RangeProtonMin = 250; 
 	  RangeProtonMax = 650; 
 
 	  RangeLambdaMin = 220; 
-	  RangeLambdaMin = 520;  
+	  RangeLambdaMax = 520;  
 	}
 	std::cout << "Using file: " << PhiFile << " in the range ProtonMin: " << RangeProtonMin << " to Proton Max: " << RangeProtonMax << " LambdaMin: " << RangeLambdaMin << " to Lambda Max: " << RangeLambdaMax << std::endl; 
 	DLM_Histo<double>* HISTO_PROTON = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s",PhiFile).Data(),"h_rkAngle_Mom2",RangeProtonMin,RangeProtonMax, false);
