@@ -194,7 +194,7 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     text.DrawLatex(
         fTextXMin,
         0.79,
-        TString::Format("m_{T} #in [%.2f, %.2f] (GeV/#it{c}^{2})",
+        TString::Format("m_{T} #in [%.2f, %.2f) (GeV/#it{c}^{2})",
                         fmTBins[counter - 1], fmTBins[counter]));
     out->cd();
     c1->Write();
