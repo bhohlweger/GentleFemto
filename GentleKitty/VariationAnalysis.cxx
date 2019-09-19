@@ -76,7 +76,8 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     if (!dir) {
       TString OutputError = TString::Format("No directory named %s",
                                             dirName.Data());
-      Error("ReadFitFile", OutputError.Data());
+      Warning("ReadFitFile", OutputError.Data());
+      continue;
     }
     TString histname = TString::Format("%s%iMeV_0", fHistname, iVars);
     TH1F* histo = (TH1F*) dir->FindObjectAny(histname.Data());
@@ -104,10 +105,10 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
           Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
                iFitVar));
       TH1F* chiSq = (TH1F*) gROOT->FindObject("chisq");
-      if (chiSq->GetMean() > 15.) {
+      if (chiSq->GetMean() > 100.) {
         Warning(
             "ReadFitFile",
-            Form("Chisq (%.1f) larger than 15, ignoring fit",
+            Form("Chisq (%.1f) larger than 100, ignoring fit",
                  chiSq->GetMean()));
         delete chiSq;
         continue;
@@ -120,7 +121,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
         TString OutputError = TString::Format("GraphList %s not available",
                                               folderName.Data()).Data();
         Error("ReadFitFile", OutputError.Data());
-        return;
+        continue;
       } else {
         TString GraphName = TString::Format("Graph_Var_%i_Iter_%i", iVars,
                                             iFitVar);
