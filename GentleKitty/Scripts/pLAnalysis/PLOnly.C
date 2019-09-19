@@ -265,8 +265,9 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
   const double GaussSourceSize = 1.2;
   //insert p-Sigma0 radius for different mT bins from r_core p-p &
-  //effective gaussian fit of the  p-Sigma0 source including resonancess.
-  std::vector<float> pSigma0Radii = { 1.473, 1.421, 1.368, 1.295, 1.220, 1.124 };
+  //effective gaussian fit of the  p-Sigma0 source including resonances.
+//  std::vector<float> pSigma0Radii = { 1.473, 1.421, 1.368, 1.295, 1.220, 1.124 };
+  std::vector<float> pSigma0Radii = { 1.3, 1.3, 1.3, 1.3, 1.3, 1.3 };
   const double pSigma0Radius = pSigma0Radii[imTBin];
   std::cout << "===========================\n";
   std::cout << "==pSigma0Radius: " << pSigma0Radius << "fm ==\n";
@@ -333,9 +334,11 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
+  AB_pXim.SetAnaSource(0, 1.3);
   AB_pXim.KillTheCat();
 
   CATS AB_pXim1530;
+  AB_pXim1530.SetAnaSource(0, 1.3);
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
                                  FeeddownSource);
   AB_pXim1530.KillTheCat();

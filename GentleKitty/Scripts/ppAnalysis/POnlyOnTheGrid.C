@@ -355,9 +355,11 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
+  AB_pXim.SetAnaSource(0, 1.3);
   AB_pXim.KillTheCat();
 
   CATS AB_pXim1530;
+  AB_pXim1530.SetAnaSource(0, 1.3);
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
                                  FeeddownSource);
   AB_pXim1530.KillTheCat();
@@ -368,10 +370,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     if (vMod_pL == 1) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pUsmani);
+      AB_pL.SetAnaSource(0, 1.3);
       AB_pL.KillTheCat();
     } else if (vMod_pL == 2) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pNLOWF);
+      AB_pL.SetAnaSource(0, 1.3);
       AB_pL.KillTheCat();
     }
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
@@ -406,6 +410,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                   new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
                              Lednicky_SingletTriplet) :
                   new DLM_Ck(NumSourcePars, 0, AB_pL);
+          Ck_pL->SetSourcePar(0, 1.3);
           //this way you define a correlation function using Lednicky.
           //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
           DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
@@ -530,10 +535,10 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                               FemtoRegion[vFemReg], FemtoRegion[vFemReg],
                               FemtoRegion[vFemReg]);
 
-            fitter->AddSameSource("pLambda", "pp", 1);
-            fitter->AddSameSource("pSigma0", "pp", 1);
-            fitter->AddSameSource("pXim", "pp", 1);
-            fitter->AddSameSource("pXim1530", "pp", 1);
+//            fitter->AddSameSource("pLambda", "pp", 1);
+//            fitter->AddSameSource("pSigma0", "pp", 1);
+//            fitter->AddSameSource("pXim", "pp", 1);
+//            fitter->AddSameSource("pXim1530", "pp", 1);
 
             fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
           }
