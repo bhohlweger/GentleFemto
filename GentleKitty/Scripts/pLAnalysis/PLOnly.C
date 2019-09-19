@@ -380,7 +380,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
           PhiFile = "DimiPhi_pp_HM.root";
         } else {
           PhiFile = "DimiPhi_pLambda_HM.root";
-        }
+        } else {
+	  std::cout << "Option iAngDist == " << iAngDist << " not viable \n";
+	  return; 
+	}
         if (iRange == 0) {
           RangeProtonMin = 400;
           RangeProtonMax = 600;
@@ -399,7 +402,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
           RangeLambdaMin = 220;
           RangeLambdaMax = 520;
-        }
+        } else {
+	  std::cout << "Option iRange == " << iRange << " is not a viable option \n";
+	  return; 
+	}
         std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
                   << RangeProtonMin << " to Proton Max: " << RangeProtonMax
                   << " LambdaMin: " << RangeLambdaMin << " to Lambda Max: "
