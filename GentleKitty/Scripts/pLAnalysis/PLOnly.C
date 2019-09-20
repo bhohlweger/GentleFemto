@@ -316,7 +316,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   int vMod_pL = iPotential;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
   int vFrac_pL;  //fraction of protons coming from Lambda variation (1 = default)
   int iNorm = 1;
-
+  double AvgRadius = 0.; 
   TidyCats* tidy = new TidyCats();
   TCanvas* c1 = new TCanvas(TString::Format("out%u", NumIter));
   c1->SetCanvasSize(1920, 1280);
@@ -432,6 +432,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
                           massPion);
       }
     }
+    AB_pL.SetNotifications(CATS::nError); 
     AB_pL.KillTheCat();
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
       for (vFrac_pL = 0; vFrac_pL < 3; ++vFrac_pL) {
@@ -441,18 +442,16 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
               //no pol1 baseline.
               continue;
             }
-
             // Some computation here
             auto end = std::chrono::system_clock::now();
-
+	    double runningAvg = counter == 1?1:AvgRadius/(double)(counter-1);
             std::chrono::duration<double> elapsed_seconds = end - start;
-
             std::cout
                 << "\r Processing progress: "
                 << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
-                << " elapsed time: " << elapsed_seconds.count() / 60.
+                << " elapsed time: " << elapsed_seconds.count() / 60. << " avg. Radius: " <<   runningAvg
                 << std::flush;
-            TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
+	    TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
             if (!OliHisto_pp) {
               std::cout << HistppName.Data() << " Missing" << std::endl;
               return;
