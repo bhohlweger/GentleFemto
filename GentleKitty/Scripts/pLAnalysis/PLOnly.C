@@ -370,10 +370,15 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
         source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
                           massPion, false, false,
                           DLM_CleverMcLevyReso::rdtRandom);
-        source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
+	// source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
+        //                   massPion, false, false,
+	// 		  DLM_CleverMcLevyReso::rdtRandom);
+	source->SetUpReso(1, 0, 0.486, 1384, 5.33, massLambda,
                           massPion, false, false,
                           DLM_CleverMcLevyReso::rdtRandom);
-
+	source->SetUpReso(1, 1, 0.157, 1705, 2.70, massLambda,
+                          massPion, false, false,
+			  DLM_CleverMcLevyReso::rdtRandom);
         const char* PhiFile;
         int RangeProtonMin, RangeProtonMax, RangeLambdaOneMin, RangeLambdaOneMax, RangeLambdaTwoMin, RangeLambdaTwoMax;
         if (iAngDist == 3) {
@@ -392,39 +397,58 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
           RangeProtonMin = 400;
           RangeProtonMax = 600;
 
-          RangeLambdaMin = 270;
-          RangeLambdaMax = 470;
+	  // RangeLambdaOneMin = 270;
+	  // RangeLambdaOneMax = 470;
+          RangeLambdaOneMin = 155;
+          RangeLambdaOneMax = 350;
+
+          RangeLambdaTwoMin = 620;
+          RangeLambdaTwoMax = 820;
+	  
         } else if (iRange == 1) {
           RangeProtonMin = 450;
           RangeProtonMax = 550;
 
-          RangeLambdaMin = 320;
-          RangeLambdaMax = 420;
-        } else if (iRange == 2) {
+          RangeLambdaOneMin = 205;
+          RangeLambdaOneMax = 305;
+
+          RangeLambdaTwoMin = 670;
+          RangeLambdaTwoMax = 770;
+	} else if (iRange == 2) {
           RangeProtonMin = 250;
           RangeProtonMax = 650;
 
-          RangeLambdaMin = 220;
-          RangeLambdaMax = 520;
-        } else {
-          std::cout << "Option iRange == " << iRange
-                    << " is not a viable option \n";
-          return;
-        }
+          RangeLambdaOneMin = 105;
+          RangeLambdaOneMax = 405;
+
+          RangeLambdaTwoMin = 570;
+          RangeLambdaTwoMax = 870;
+	} else {
+	  std::cout << "Option iRange == " << iRange << " is not a viable option \n";
+	  return; 
+	}
         std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
                   << RangeProtonMin << " to Proton Max: " << RangeProtonMax
-                  << " LambdaMin: " << RangeLambdaMin << " to Lambda Max: "
-                  << RangeLambdaMax << std::endl;
+                  << " LambdaOneMin: " << RangeLambdaOneMin << " to LambdaOneMax: "
+                  << RangeLambdaOneMax << " LambdaTwoMin: " << RangeLambdaTwoMin << " to LambdaTwoMax: "
+                  << RangeLambdaTwoMax << std::endl;
         DLM_Histo<double>* HISTO_PROTON = tidy->ConvertThetaAngleHisto(
             TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
                 .Data(),
             "h_rkAngle_Mom2", RangeProtonMin, RangeProtonMax, false);
-        DLM_Histo<double>* HISTO_LAMBDA = tidy->ConvertThetaAngleHisto(
+
+	DLM_Histo<double>* HISTO_LAMBDA_ONE = tidy->ConvertThetaAngleHisto(
             TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
                 .Data(),
-            "h_rkAngle_Mom2", RangeLambdaMin, RangeLambdaMax, false);
+            "h_rkAngle_Mom2", RangeLambdaOneMin, RangeLambdaOneMax, false);
+
+	DLM_Histo<double>* HISTO_LAMBDA_TWO = tidy->ConvertThetaAngleHisto(
+            TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
+                .Data(),
+            "h_rkAngle_Mom2", RangeLambdaTwoMin, RangeLambdaTwoMax, false);
         source->SetUpResoEmission(0, 0, HISTO_PROTON);
-        source->SetUpResoEmission(1, 0, HISTO_LAMBDA);
+        source->SetUpResoEmission(1, 0, HISTO_LAMBDA_ONE);
+	source->SetUpResoEmission(1, 1, HISTO_LAMBDA_TWO);
       } else {
         source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
                           massPion);
