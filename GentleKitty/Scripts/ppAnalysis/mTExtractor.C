@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     analyser->SetmTBins(mTBins);
   }
   analyser->MakeCFPlotsSingleBand();
-  analyser->StoreRadvsmT("RadppvsmT.root",0);
+  analyser->StoreRadvsmT("RadppvsmT.root", 0);
 //  analyser->StoreRadvsmT("RadppvsmTGauss.root",1);
   return 1;
 }

@@ -115,7 +115,7 @@ void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
   VariationAnalysis analysis = VariationAnalysis(fHistname, fnData, fnVars);
   TString filename = Form("%s/%s", VarDir, fFileName);
   analysis.ReadFitFile(filename.Data());
-  analysis.EvalRadius(Form("%.2f_%u",mT,iModel));
+  analysis.EvalRadius(Form("%.2f_%u", mT, iModel));
   float radius = analysis.GetRadMean();
   float radiusErrStat = analysis.GetRadStatErr();
   float radiusErrSyst = (analysis.GetRadSystDown() + analysis.GetRadSystUp())
@@ -174,8 +174,9 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
       if (fFillStyle[iMod] > 0) {
         lineWidth = 0;
       }
-      Data->FemtoModelFitBands(fAnalysis[iMod][counter - 1].GetModel(), fColor[iMod], 1, lineWidth,
-                               fFillStyle[iMod], true); //Model colors
+      Data->FemtoModelFitBands(fAnalysis[iMod][counter - 1].GetModel(),
+                               fColor[iMod], 1, lineWidth, fFillStyle[iMod],
+                               true);  //Model colors
     }
     float legXmin = fTextXMin - 0.02;
     Data->SetLegendCoordinates(legXmin, 0.625 - 0.09 * Data->GetNumberOfModels(),
