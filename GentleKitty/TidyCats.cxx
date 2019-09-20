@@ -735,10 +735,16 @@ DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, con
   TH2F* InputHisto = NULL;
   if(InputFile){
     InputHisto = (TH2F*)InputFile->Get(HistoName);
+  } else {
+    std::cout << "no Input file found under the name " << FileName.Data() << " doei.. \n";  
+    return nullptr; 
   }
   TH1D* Projection=NULL;
   if(InputHisto){
     Projection = InputHisto->ProjectionX("ConvertThetaAngleHisto",InputHisto->GetYaxis()->FindBin(kMin),InputHisto->GetYaxis()->FindBin(kMax));
+  } else {
+    std::cout << "No input Histo found for " << HistoName.Data() << " exiting doei ... \n " ;
+    return nullptr; 
   }
 
   const unsigned NumBins = Projection->GetNbinsX();
