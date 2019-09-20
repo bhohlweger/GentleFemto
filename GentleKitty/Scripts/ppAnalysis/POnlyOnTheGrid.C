@@ -343,6 +343,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
         PhiFile = "DimiPhi_pLambda_HM.root";
       } else if (iAngDist == 2) {
         PhiFile = "DimiPhi_LambdaLambda_HM.root";
+      } else if (iAngDist == 3) {
+        PhiFile = "DimiPhi_pXim_HM.root";
       } else {
         std::cout << "Option iAngDist == " << iAngDist << " not viable \n";
         return;
