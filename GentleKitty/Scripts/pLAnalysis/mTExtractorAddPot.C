@@ -30,7 +30,14 @@ int main(int argc, char* argv[]) {
   } else if (nMTBins == 3) {
     nVariations = 31;
   }
-  VariationmTAnalysis* analyser = new VariationmTAnalysis(1, nVariations, 162);
+  int nCombinations = 0;
+  if (SourceOption == 0) {
+    nCombinations = 162;
+  } else if (SourceOption == 1) {
+    nCombinations = 1296;
+  }
+  VariationmTAnalysis* analyser = new VariationmTAnalysis(1, nVariations,
+                                                          nCombinations);
   analyser->SetHistName("hCk_RebinnedpLVar");
   analyser->SetFileName("OutFileVarpL.root");
   analyser->SetmTAverage(avgmT);

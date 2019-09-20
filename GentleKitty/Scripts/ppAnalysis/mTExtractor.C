@@ -24,7 +24,14 @@ int main(int argc, char* argv[]) {
   } else if (nMTBins == 3) {
     nVariations = 24;
   }
-  VariationmTAnalysis* analyser = new VariationmTAnalysis(1, nVariations, 486);
+  int nCombinations = 0;
+  if (SourceOption == 0) {
+    nCombinations = 81;
+  } else if (SourceOption == 1) {
+    nCombinations = 891;
+  }
+  VariationmTAnalysis* analyser = new VariationmTAnalysis(1, nVariations,
+                                                          nCombinations);
   analyser->SetHistName("hCk_RebinnedppVar");
 //  analyser->SetHistName("hCk_FixShiftedppVar");
   analyser->SetFileName("OutFileVarpp.root");
