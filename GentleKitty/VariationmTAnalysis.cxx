@@ -23,6 +23,7 @@ VariationmTAnalysis::VariationmTAnalysis(int nModels, int nData, int nVars)
       fFileName(),
       fDataName(),
       fDataOption(),
+      fSourceName(),
       fModelName(),
       fModelOption(),
       fColor(),
@@ -196,6 +197,7 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
         0.79,
         TString::Format("m_{T} #in [%.2f, %.2f) (GeV/#it{c}^{2})",
                         fmTBins[counter - 1], fmTBins[counter]));
+    text.DrawLatex(fTextXMin, 0.67, TString::Format("%s", fSourceName));
     out->cd();
     c1->Write();
     c1->SaveAs(Form("mTBin_%u.pdf", counter));

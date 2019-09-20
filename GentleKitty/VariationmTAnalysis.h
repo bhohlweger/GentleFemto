@@ -28,6 +28,9 @@ class VariationmTAnalysis {
     fDataName = DataName;
     fDataOption = DataOption;
   }
+  void SetSourceName(const char* sourceName) {
+    fSourceName = sourceName;
+  }
   void SetLegModel(const char* ModelName, const char* ModelOption, int Color, int FillStyle) {
     fModelName.push_back(ModelName);
     fModelOption.push_back(ModelOption);
@@ -63,6 +66,7 @@ class VariationmTAnalysis {
   const char* fFileName;
   const char* fDataName;
   const char* fDataOption;
+  const char* fSourceName;
   std::vector<const char*> fModelName;
   std::vector<const char*> fModelOption;
   std::vector<int> fColor;

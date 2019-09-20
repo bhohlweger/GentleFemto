@@ -36,9 +36,9 @@ int main(int argc, char* argv[]) {
   analyser->SetmTAverage(avgmT);
   analyser->SetLegData("p-#Lambda #oplus #bar{p}-#bar{#Lambda}", "fpe");
   if (SourceOption == 0) {
-    analyser->SetLegModel("Fit Gauss", "f", 1, -1);
+    analyser->SetSourceName("Gaussian Source");
   } else if (SourceOption == 1) {
-    analyser->SetLegModel("Fit Gauss+Resonance", "f", 1, -1);
+    analyser->SetSourceName("Gaussian Source + Resonances");
   }
   analyser->SetTextXMin(0.35);
   analyser->SetPlottingRange(0, 230);
