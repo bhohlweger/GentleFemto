@@ -24,7 +24,7 @@
 #include <chrono>
 #include <ctime>
 
-void FitPPVariations(const unsigned& NumIter, int system, int source,
+void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source,
                      int iAngDist, int iRange, TString InputFile,
                      TString HistoName, TString OutputDir) {
   auto start = std::chrono::system_clock::now();
@@ -256,7 +256,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   std::cout << "lam_pXim: " << lam_pXim << " lam_pXim_pXim1530: "
             << lam_pXim_pXim1530 << " lam_pXim_fake:" << lam_pXim_fake
             << std::endl;
-  const double GaussSourceSize = 1.2;
+  
+  std::vector<float> pSigma0Radii = { 1.55, 1.473, 1.421, 1.368, 1.295, 1.220, 1.124 };
+  const double pFeeddownRadius = pSigma0Radii[imTBin];
+  std::cout << "===========================\n";
+  std::cout << "==pFeeddownRadius: " << pFeeddownRadius << "fm ==\n";
+  std::cout << "===========================";
 
   CATSInput *CATSinput = new CATSInput();
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
@@ -390,11 +395,11 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
-  AB_pXim.SetAnaSource(0, 1.3);
+  AB_pXim.SetAnaSource(0, pFeeddownRadius);
   AB_pXim.KillTheCat();
 
   CATS AB_pXim1530;
-  AB_pXim1530.SetAnaSource(0, 1.3);
+  AB_pXim1530.SetAnaSource(0, pFeeddownRadius);
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
                                  FeeddownSource);
   AB_pXim1530.KillTheCat();
@@ -405,12 +410,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
     if (vMod_pL == 1) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pUsmani);
-      AB_pL.SetAnaSource(0, 1.3);
+      AB_pL.SetAnaSource(0, pFeeddownRadius);
       AB_pL.KillTheCat();
     } else if (vMod_pL == 2) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pNLOWF);
-      AB_pL.SetAnaSource(0, 1.3);
+      AB_pL.SetAnaSource(0, pFeeddownRadius);
       AB_pL.KillTheCat();
     }
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
@@ -446,12 +451,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                   new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
                              Lednicky_SingletTriplet) :
                   new DLM_Ck(NumSourcePars, 0, AB_pL);
-          Ck_pL->SetSourcePar(0, 1.3);
+          Ck_pL->SetSourcePar(0, pFeeddownRadius);
           //this way you define a correlation function using Lednicky.
           //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
           DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
                                           Lednicky_gauss_Sigma0);
-          Ck_pSigma0->SetSourcePar(0, GaussSourceSize);
+          Ck_pSigma0->SetSourcePar(0, pFeeddownRadius);
           DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
           DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
           if (vMod_pL == 0) {
@@ -702,7 +707,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
 
 int main(int argc, char *argv[]) {
   FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                  atoi(argv[5]), argv[6], argv[7], argv[8]);
+                  atoi(argv[5]), atoi(argv[6]), argv[7], argv[8], argv[9]);
   return 0;
 }
 

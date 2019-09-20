@@ -265,8 +265,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
   //insert p-Sigma0 radius for different mT bins from r_core p-p &
   //effective gaussian fit of the  p-Sigma0 source including resonances.
-//  std::vector<float> pSigma0Radii = { 1.473, 1.421, 1.368, 1.295, 1.220, 1.124 };
-  std::vector<float> pSigma0Radii = { 1.3, 1.3, 1.3, 1.3, 1.3, 1.3 };
+  std::vector<float> pSigma0Radii = { 1.473, 1.421, 1.368, 1.295, 1.220, 1.124 };
+  // std::vector<float> pSigma0Radii = { 1.4, 1.4, 1.4, 1.4, 1.4, 1.4 };
   const double pSigma0Radius = pSigma0Radii[imTBin];
   std::cout << "===========================\n";
   std::cout << "==pSigma0Radius: " << pSigma0Radius << "fm ==\n";
@@ -338,9 +338,9 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   AB_pXim.KillTheCat();
 
   CATS AB_pXim1530;
-  AB_pXim1530.SetAnaSource(0, pSigma0Radius);
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
                                  FeeddownSource);
+  AB_pXim1530.SetAnaSource(0, pSigma0Radius);
   AB_pXim1530.KillTheCat();
 
   CATS AB_pL;
@@ -465,6 +465,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
             DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
             //this way you define a correlation function using Lednicky.
             //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
+	    //Ck_pL->SetSourcePar(0,1.3); 
             DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
                                             Lednicky_gauss_Sigma0);
             Ck_pSigma0->SetSourcePar(0, pSigma0Radius);
