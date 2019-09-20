@@ -43,7 +43,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
   }
   TNtuple *resultTuple = (TNtuple*) fInFile->Get("ntResult");
   if (!resultTuple) {
-    Error("ReadFitFile", "No Result tuple rip. \n");
+    Error("ReadFitFile", TString::Format("No Result tuple in %s .. .rip. \n",FileName.Data()));
     return;
   } else {
     if (fRadiusDist) {
@@ -60,7 +60,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     TH1F* statErr = (TH1F*) gROOT->FindObject("RadStat");
     fRadStat = statErr->GetMean();
   }
-  TFile* tmpFile = TFile::Open(TString::Format("%s/tmp.root", gSystem->pwd()),
+  TFile* tmpFile = TFile::Open(TString::Format("%s/tmp_%s.root", gSystem->pwd(), FileName.Data()),
                                "RECREATE");
   if (!tmpFile) {
     Error("ReadFitFile", "No Tmp file");

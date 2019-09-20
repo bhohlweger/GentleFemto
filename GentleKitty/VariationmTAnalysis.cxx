@@ -295,10 +295,14 @@ void VariationmTAnalysis::StoreRadvsmT(const char* fileName, int iModel) {
   fmTRadiusSyst[iModel]->Write();
   fmTRadiusStat[iModel]->SetName("mTRadiusStat");
   fmTRadiusStat[iModel]->Write();
+  for (int counter = 0; counter < fAnalysis.size(); ++counter) {
+    TGraphErrors* model = fAnalysis[iModel][counter].GetModel();
+    model->SetName(TString::Format("Model_%u_imT_%u", iModel, counter).Data());
+    model->Write(TString::Format("Model_%u_imT_%u", iModel, counter).Data());
+  }
   out->Write();
   out->Close();
 }
-
 
 void VariationmTAnalysis::MakeCFPlotsPL() {
   DreamPlot::SetStyle();
