@@ -676,7 +676,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
                   / (dataErr * dataErr);
               EffNumBins++;
             }
-
+	    AvgRadius += fitter->GetParameter("pLambda", DLM_Fitter1::p_sor0);
             ntBuffer[0] = NumIter;
             ntBuffer[1] = uIter;
             ntBuffer[2] = FemtoRegion[vFemReg];
