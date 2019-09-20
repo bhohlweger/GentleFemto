@@ -331,7 +331,7 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
     histo->GetYaxis()->SetTitleSize(0.05);
     histo->GetYaxis()->SetLabelOffset(0.01);
     histo->GetYaxis()->SetTitleOffset(1.25);
-    histo->SetMarkerSize(1.0);
+    histo->SetMarkerSize(1.4);
     histo->SetLineWidth(2);
     histo->SetMarkerStyle(fMarkers[marker]);
     histo->SetMarkerColor(fColors[color]);

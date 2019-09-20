@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
   out->cd();
   auto c4 = new TCanvas("c8", "c8", 1200, 800);
   c4->cd();
-  TLegend* leg = new TLegend(0.55, 0.48, 0.826, 0.68);
+  TLegend* leg = new TLegend(0.55, 0.46, 0.826, 0.6);
   leg->SetFillStyle(0);
   leg->SetTextFont(43);
   leg->SetNColumns(2);
@@ -77,7 +77,8 @@ int main(int argc, char* argv[]) {
   mTpLHMSys->SetPoint(mTpLHMSys->GetN(), 2.7, 1.3);
   mTpLHMSys->SetPointError(mTpLHMSys->GetN(), 0., 0.);
 
-  mTpLHMSys->SetTitle("; #LT#it{m}_{T}#GT  (MeV/#it{c}^{2}); #it{r}_{gauss} (fm)");
+//  mTpLHMSys->SetTitle("; #LT#it{m}_{T}#GT  (MeV/#it{c}^{2}); #it{r}_{gauss} (fm)");
+  mTpLHMSys->SetTitle("; #LT#it{m}_{T}#GT  (MeV/#it{c}^{2}); #it{r}_{core} (fm)");
   mTpLHMSys->GetXaxis()->SetTitleSize(40);
   mTpLHMSys->GetYaxis()->SetTitleSize(40);
   mTpLHMSys->GetXaxis()->SetTitleOffset(1.35);
@@ -160,8 +161,10 @@ int main(int argc, char* argv[]) {
   BeamText.SetNDC(kTRUE);
   BeamText.DrawLatex(0.55, 0.83,
                      Form("ALICE %s #sqrt{#it{s}} = %i TeV", "pp", (int) 13));
-  BeamText.DrawLatex(0.55, 0.75, "Gaussian Source");
-//  BeamText.DrawLatex(0.55, 0.75, "#splitline{Gaussian Source +}{Resonances}");
+  BeamText.DrawLatex(0.55, 0.76, "High-mult.");
+  BeamText.DrawLatex(0.55, 0.69, "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+//  BeamText.DrawLatex(0.55, 0.62, "Gaussian Source");
+  BeamText.DrawLatex(0.55, 0.62, "#splitline{Gaussian Source +}{Resonances}");
 
 //  TLatex BeamText2;
 //  BeamText2.SetTextFont(43);

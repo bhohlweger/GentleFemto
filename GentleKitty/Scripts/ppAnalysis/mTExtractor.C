@@ -30,6 +30,7 @@ int main(int argc, char* argv[]) {
   analyser->SetFileName("OutFileVarpp.root");
   analyser->SetmTAverage(avgmT);
   analyser->SetLegData("p-p #oplus #bar{p}-#bar{p}", "fpe");
+  analyser->SetLegModel("Coulomb + Argonne #nu_{18} (fit)", "l", 2, -1);
   if (SourceOption == 0) {
     analyser->SetSourceName("Gaussian Source");
   } else if (SourceOption == 1) {

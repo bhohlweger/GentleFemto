@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
   analyser->SetFileName("OutFileVarpL.root");
   analyser->SetmTAverage(avgmT);
   analyser->SetLegData("p-#Lambda #oplus #bar{p}-#bar{#Lambda}", "fpe");
+  analyser->SetLegModel("Usmani/#chi_{EFT} LO/NLO (fit)" , "l", 1, -1);
   if (SourceOption == 0) {
     analyser->SetSourceName("Gaussian Source");
   } else if (SourceOption == 1) {
@@ -54,7 +55,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (nMTBins == 6) {
-    std::vector<float> mTBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
+    std::vector<float> mTBins = { 1.08, 1.26, 1.32, 1.44, 1.65, 1.9, 4.5  };
     analyser->SetmTBins(mTBins);
   } else if (nMTBins == 3) {
     std::vector<float> mTBins = { 1.08, 1.3,1.5, 4.5 };

@@ -166,7 +166,8 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     Data->SetSystematics(it.GetSystematicError(), 2);
     Data->SetLegendName(LegNames, LegOptions);
     Data->SetDrawAxis(true);
-    Data->SetRangePlotting(fXmin, fXmax, 0.9, it.GetDefault()->GetMaximum()*1.2); //ranges
+    Data->SetRangePlotting(fXmin, fXmax, 0.9,
+                           it.GetDefault()->GetMaximum() * 1.08);  //ranges
     Data->SetNDivisions(505);
     for (int iMod = 0; iMod < fnModel; ++iMod) {
       double lineWidth = 3;
@@ -176,9 +177,9 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
       Data->FemtoModelFitBands(fAnalysis[iMod][counter - 1].GetModel(), fColor[iMod], 1, lineWidth,
                                fFillStyle[iMod], true); //Model colors
     }
-    float legXmin = fTextXMin-0.02;
-    Data->SetLegendCoordinates(legXmin, 0.73 - 0.09 * Data->GetNumberOfModels(),
-                               legXmin + 0.4, 0.785);
+    float legXmin = fTextXMin - 0.02;
+    Data->SetLegendCoordinates(legXmin, 0.625 - 0.09 * Data->GetNumberOfModels(),
+                               legXmin + 0.4, 0.66);
     Data->DrawCorrelationPlot(pad);
     pad->cd();
     TLatex BeamText;
@@ -186,7 +187,11 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     BeamText.SetNDC(kTRUE);
     BeamText.DrawLatex(fTextXMin, 0.91,
                        Form("ALICE %s #sqrt{#it{s}} = %i TeV", "pp", (int) 13));
-    BeamText.DrawLatex(fTextXMin, 0.85, "High Mult. (0-0.072% INEL)");
+    BeamText.DrawLatex(fTextXMin, 0.85, "High-mult.");
+    BeamText.DrawLatex(
+        fTextXMin,
+        0.79,
+        "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
 
     TLatex text;
     text.SetNDC();
@@ -194,7 +199,7 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     text.SetTextSize(gStyle->GetTextSize() * 0.85);
     text.DrawLatex(
         fTextXMin,
-        0.79,
+        0.73,
         TString::Format("m_{T} #in [%.2f, %.2f) (GeV/#it{c}^{2})",
                         fmTBins[counter - 1], fmTBins[counter]));
     text.DrawLatex(fTextXMin, 0.67, TString::Format("%s", fSourceName));
