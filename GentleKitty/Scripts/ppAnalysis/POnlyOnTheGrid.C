@@ -379,7 +379,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
     }
   }
   AB_pp.KillTheCat();
-  if (tidy->GetSourceProtonProton()) {
+  if (tidy->GetSourceProtonProton() && uIter == 1) {
     TGraph* SourceDist = new TGraph();
     SourceDist->SetName(TString::Format("SourceDist_NumIter_%i", NumIter));
     for (int iRad = 0; iRad < 200; ++iRad) {
