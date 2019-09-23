@@ -21,7 +21,10 @@ class DreamSystematics {
     pp = 0,       ///< Proton-Proton correlation function
     pSigma0 = 1,       ///< Proton-Sigma0 correlation function
     pXi = 2,
-    pL = 3
+    pL = 3,
+    pAp = 4,///< Proton-AntiProton correlation function
+    pAL = 5,///< Proton-AntiLambda correlation function
+    LAL = 6///< Lambda-AntiLambda correlation function
   };
 
   enum Estimator {
@@ -46,6 +49,7 @@ class DreamSystematics {
       Warning("SetDefaultHist","No Histogram exists, nothing set \n");
     } else {
       fHistDefault = histDef;
+      // printf("name of hist def fHistDefault = %s\n", fHistDefault->GetName());
     }
   }
   void SetVarHist(TH1F* histVar) {
@@ -56,6 +60,7 @@ class DreamSystematics {
     }
   }
   void SetDefaultHist(DreamCF* CFDef, const char* CFName) {
+    // printf("name of hist def BEFORE = %s\n", CFName);
     SetDefaultHist(CFDef->FindCorrelationFunction(CFName));
   }
   void SetVarHist(DreamCF* CFVar, const char* CFName) {
@@ -99,6 +104,7 @@ class DreamSystematics {
   void FillTuple(TH1F* histVar);
 
   void EvalSystematics();
+  void EvalSystematicsBBar(int doRebin);
   template<typename T>
   void EvalDifference(std::vector<T> &CountsDefault, std::vector<T> &CountsVar,
                       std::vector<float> &AbsDiff, std::vector<float> &RelDiff);
@@ -107,6 +113,7 @@ class DreamSystematics {
   void EvalDifferenceInParticles();
   void EvalDifferenceInPurity();
   void ComputeUncertainty();
+  void ComputeUncertaintyBBar(int doRebin);
   void WriteOutput(const char* outname = "");
   template<typename T>
   void WriteOutput(TFile* file, std::vector<T*>& histvec, const TString name);
@@ -184,7 +191,7 @@ class DreamSystematics {
 
   const std::vector<int> vars = { { ppVariations, pSigma0Variations,
       pXiVariations, pLVariations } };
-  const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi", "pL" } };
+  const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi", "pL", "pAp", "pAL","LAL"} };
 };
 
 inline
@@ -206,4 +213,3 @@ inline void DreamSystematics::FillTuple(TH1F *histVar) {
 }
 
 #endif // DREAMFUNCTION_DREAMPSYSTEMATICS_H_
-

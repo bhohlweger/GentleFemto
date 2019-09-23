@@ -53,6 +53,10 @@ class CATSInput {
   DreamCF* ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
                         DreamDist* ApApDist, DreamDist* ppFake = nullptr,
                         DreamDist* ApApFake = nullptr);
+//For the Baryon-antiBaryon analysis
+DreamCF* ObtainCFSystBBar(int rebin, const char* name, DreamDist* pApDist,
+                      DreamDist* pApFake = nullptr);
+
   TH1F* GetCF(TString pair, TString hist);
   void AddSystematics(TString SysFile, TH1F* hist, TString pair = "");
   void SetNormalization(float normleft, float normright) {
@@ -68,6 +72,7 @@ class CATSInput {
   float fnormalizationLeft;
   float fnormalizationRight;
   DreamCF* fCF_pp;
+  DreamCF* fCF_pAp;
  private:
   bool fFixBinningExternal;
   float fFixkMin;

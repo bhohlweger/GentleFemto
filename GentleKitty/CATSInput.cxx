@@ -26,6 +26,7 @@ CATSInput::CATSInput()
       fSigma(),
       fDreamFile(nullptr),
       fCF_pp(nullptr),
+      fCF_pAp(nullptr),
       fCF_pL(nullptr),
       fCF_LL(nullptr),
       fCF_pXi(nullptr),
@@ -41,6 +42,8 @@ CATSInput::~CATSInput() {
     delete fDreamFile;
   if (fCF_pp)
     delete fCF_pp;
+    if (fCF_pAp)
+      delete fCF_pAp;
   if (fCF_pL)
     delete fCF_pL;
   if (fCF_LL)
@@ -190,6 +193,9 @@ void CATSInput::ObtainCFs(int rebin, float normleft, float normright) {
     if (fnormalizationLeft != normleft || fnormalizationRight != normright) {
       if (fCF_pp) {
         delete fCF_pp;
+      }
+      if (fCF_pAp) {
+        delete fCF_pAp;
       }
       if (fCF_pL) {
         delete fCF_pL;
@@ -352,6 +358,52 @@ DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
   outCF->GetCorrelations(name);
   return outCF;
 }
+
+//For the Baryon-antiBaryon analysis
+DreamCF* CATSInput::ObtainCFSystBBar(int rebin, const char* name, DreamDist* pApDist,
+                                 DreamDist* pApFake) {
+  //normleft & right in MeV!
+  DreamCF* outCF = new DreamCF();
+  DreamPair* pAp = new DreamPair("PartAntiPart", fnormalizationLeft,
+                                fnormalizationRight);
+
+  if (fnormalizationLeft == 0 || fnormalizationRight == 0) {
+    std::cout << "Normalization is 0! Bad results incoming! \n";
+  }
+
+  pAp->SetPair(pApDist);
+
+  if (pApFake) {
+    std::cout << "Faking SE Mult for " << name << std::endl;
+    pAp->GetPair()->SetSEMultDist(pApFake->GetSEMultDist(), "");
+    pAp->GetPair()->SetMEMultDist(pApFake->GetMEMultDist(), "");
+  }
+
+
+  pAp->ShiftForEmpty(pAp->GetPair());
+
+  if (fFixBinningExternal) {
+    pAp->FixShift(pAp->GetPair(), pAp->GetPair(),
+                 fFixkMin, true);
+  } else {
+    pAp->FixShift(pAp->GetPairShiftedEmpty(0), pAp->GetPairShiftedEmpty(0),
+                 pAp->GetFirstBin());
+  }
+  pAp->ReweightMixedEvent(pAp->GetPairFixShifted(0), 0.2, 0.9);
+
+  if (rebin != 1) {
+    pAp->Rebin(pAp->GetPairFixShifted(0), rebin);
+    pAp->ReweightMixedEvent(pAp->GetPairRebinned(0), 0.2, 0.9);
+  }
+
+  outCF->SetPairsBBar(pAp);
+  outCF->GetCorrelations(name);
+  return outCF;
+
+}
+
+
+
 
 TH1F* CATSInput::GetCF(TString pair, TString hist) {
   TH1F* output = nullptr;

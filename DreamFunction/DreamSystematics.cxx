@@ -201,10 +201,13 @@ TH1F* DreamSystematics::GetBarlow(TH1F* histDefault, TH1F* histVar) {
 
 void DreamSystematics::EvalSystematics() {
   FixStyle(fHistDefault);
+
   fSystematicFitRangeLow = fHistDefault->GetBinCenter(1)
       - fHistDefault->GetXaxis()->GetBinWidth(1) / 2.f;
+
   fHistDefault->GetXaxis()->SetRangeUser(fSystematicFitRangeLow,
                                          fSystematicFitRangeUp);
+
   int iVar = 0;
   for (auto &it : fHistVar) {
     it->SetTitle(Form("Variation %i", iVar + 1));
@@ -213,9 +216,35 @@ void DreamSystematics::EvalSystematics() {
     fHistErrBudget.emplace_back(GetErrorBudget(fHistDefault, it));
     fHistBarlow.emplace_back(GetBarlow(fHistDefault, it));
     FillTuple(it);
+
     ++iVar;
   }
+
   ComputeUncertainty();
+}
+
+void DreamSystematics::EvalSystematicsBBar(int doRebin) {
+  FixStyle(fHistDefault);
+
+  fSystematicFitRangeLow = fHistDefault->GetBinCenter(1)
+      - fHistDefault->GetXaxis()->GetBinWidth(1) / 2.f;
+
+  fHistDefault->GetXaxis()->SetRangeUser(fSystematicFitRangeLow,
+                                         fSystematicFitRangeUp);
+
+  int iVar = 0;
+  for (auto &it : fHistVar) {
+    it->SetTitle(Form("Variation %i", iVar + 1));
+    FixStyle(it);
+    fHistAbsErr.emplace_back(GetAbsError(fHistDefault, it));
+    fHistErrBudget.emplace_back(GetErrorBudget(fHistDefault, it));
+    fHistBarlow.emplace_back(GetBarlow(fHistDefault, it));
+    FillTuple(it);
+
+    ++iVar;
+  }
+
+  ComputeUncertaintyBBar(doRebin);
 }
 
 template<typename T>
@@ -242,6 +271,8 @@ TH1F* DreamSystematics::FillHisto(std::vector<float> Diff, const char* name) {
   }
   DreamPlot::SetStyleHisto(outHisto);
   outHisto->GetXaxis()->SetTitle("Variation");
+  outHisto->GetXaxis()->SetLabelSize(10);
+  outHisto->GetYaxis()->SetLabelSize(10);
   return outHisto;
 }
 
@@ -313,6 +344,7 @@ void DreamSystematics::EvalDifferenceInPurity() {
 }
 
 void DreamSystematics::ComputeUncertainty() {
+
   int uniqueID = gRandom->Integer(1e7);
   fHistSystErrAbs = (TH1F*) fHistDefault->Clone(
       Form("%s_SystErrAbs", fHistDefault->GetName()));
@@ -321,9 +353,11 @@ void DreamSystematics::ComputeUncertainty() {
 
   fHistSystErrRel = (TH1F*) fHistDefault->Clone(
       Form("%s_SystErrRel", fHistDefault->GetName()));
+
   fHistSystErrRel->GetYaxis()->SetTitle("Rel. syst. error");
   fHistSystErrRel->Reset("ICMS");
   const int nBins = fHistDefault->GetXaxis()->FindBin(fSystematicFitRangeUp);
+
   for (int ikstar = 1; ikstar <= nBins; ++ikstar) {
     const float kstar = fHistDefault->GetBinCenter(ikstar);
     const float binwidth = fHistDefault->GetBinWidth(ikstar);
@@ -336,8 +370,10 @@ void DreamSystematics::ComputeUncertainty() {
     double sysErr;
     switch (fErrorEstimator) {
       case Uniform: {
+
         double binLow = hist->GetXaxis()->GetBinLowEdge(
             hist->FindFirstBinAbove(0.1, 1));
+
         double binUp = hist->GetXaxis()->GetBinUpEdge(
             hist->FindLastBinAbove(0.1, 1));
         sysErr = std::abs((binLow - binUp)) / TMath::Sqrt(12);
@@ -351,8 +387,11 @@ void DreamSystematics::ComputeUncertainty() {
         double mean = hist->GetMean();
         double stdDev = 0.f;
         double nPoints = 0.f;
+
+
         for (int i = 0; i < fCutTuple->GetEntriesFast(); ++i) {
           fCutTuple->GetEntry(i);
+
           if (std::abs(kstarTuple - kstar) > 0.01)
             continue;
           stdDev += (cf - mean) * (cf - mean);
@@ -397,6 +436,140 @@ void DreamSystematics::ComputeUncertainty() {
         ikstar, sysErr / fHistDefault->GetBinContent(ikstar));
     fHistKstar.push_back(hist);
   }
+
+
+  fRatio = new TF1("SystError", "pol0(0)+expo(1)", fSystematicFitRangeLow,
+                   fSystematicFitRangeUp);
+
+  fRatio->SetParameter(
+      0,
+      fHistSystErrRel->GetBinContent(
+          fHistSystErrRel->FindBin(fSystematicFitRangeUp)));
+  float startExp = fHistSystErrRel->GetBinContent(1)
+      - fHistSystErrRel->GetBinContent(
+          fHistSystErrRel->FindBin(fSystematicFitRangeUp));
+
+  fRatio->SetParameter(1, TMath::Log(startExp));
+  std::cout
+      << "Start Parameter 0: "
+      << fHistSystErrRel->GetBinContent(
+          fHistSystErrRel->FindBin(fSystematicFitRangeUp))
+      << std::endl;
+  std::cout << "difference: " << startExp << std::endl;
+  std::cout << "Start Parameter 1: " << TMath::Log(startExp) << std::endl;
+  fRatio->SetLineColor(kGreen + 2);
+  fHistSystErrRel->Fit(fRatio, "WWRQ");
+
+  fGrFinalError = new TGraphErrors();
+
+  const float xerrLL = fHistDefault->GetBinWidth(1) / 2.;
+  for (int kstarBin = 0; kstarBin < nBins; ++kstarBin) {
+    const float x = fHistDefault->GetBinCenter(kstarBin + 1);
+    const float y = fHistDefault->GetBinContent(kstarBin + 1);
+    fGrFinalError->SetPoint(kstarBin, x, y);
+    fGrFinalError->SetPointError(kstarBin, xerrLL, y * fRatio->Eval(x));
+  }
+  fGrFinalError->SetFillColor(kGray + 1);
+  fGrFinalError->SetLineColor(kGray + 1);
+}
+
+void DreamSystematics::ComputeUncertaintyBBar(int doRebin) {
+
+  int uniqueID = gRandom->Integer(1e7);
+  fHistSystErrAbs = (TH1F*) fHistDefault->Clone(
+      Form("%s_SystErrAbs", fHistDefault->GetName()));
+  fHistSystErrAbs->GetYaxis()->SetTitle("Syst. error");
+  fHistSystErrAbs->Reset("ICMS");
+
+  fHistSystErrRel = (TH1F*) fHistDefault->Clone(
+      Form("%s_SystErrRel", fHistDefault->GetName()));
+  if(doRebin!=0){
+    fHistSystErrRel->Rebin(doRebin);
+  }
+
+  fHistSystErrRel->GetYaxis()->SetTitle("Rel. syst. error");
+  fHistSystErrRel->Reset("ICMS");
+  const int nBins = fHistDefault->GetXaxis()->FindBin(fSystematicFitRangeUp);
+
+  for (int ikstar = 1; ikstar <= nBins; ++ikstar) {
+    const float kstar = fHistDefault->GetBinCenter(ikstar);
+    const float binwidth = fHistDefault->GetBinWidth(ikstar);
+
+    fCutTuple->Draw(
+        Form("cf >> h%i%i", int(kstar), uniqueID),
+        Form("TMath::Abs(kstar - %.3f) < %.3f", kstar, 0.01 * binwidth));
+    TH1D *hist = (TH1D*) gROOT->FindObject(Form("h%i%i", int(kstar), uniqueID));
+
+    double sysErr;
+    switch (fErrorEstimator) {
+      case Uniform: {
+
+        double binLow = hist->GetXaxis()->GetBinLowEdge(
+            hist->FindFirstBinAbove(0.1, 1));
+
+        double binUp = hist->GetXaxis()->GetBinUpEdge(
+            hist->FindLastBinAbove(0.1, 1));
+        sysErr = std::abs((binLow - binUp)) / TMath::Sqrt(12);
+        break;
+      }
+      case StdDev: {
+        float kstarTuple, cf, cferr;
+        fCutTuple->SetBranchAddress("kstar", &kstarTuple);
+        fCutTuple->SetBranchAddress("cf", &cf);
+        fCutTuple->SetBranchAddress("cferr", &cferr);
+        double mean = hist->GetMean();
+        double stdDev = 0.f;
+        double nPoints = 0.f;
+
+
+        for (int i = 0; i < fCutTuple->GetEntriesFast(); ++i) {
+          fCutTuple->GetEntry(i);
+
+          if (std::abs(kstarTuple - kstar) > 0.01)
+            continue;
+          stdDev += (cf - mean) * (cf - mean);
+          ++nPoints;
+        }
+        stdDev /= (nPoints - 1);
+        sysErr = std::sqrt(stdDev);
+        break;
+      }
+      case WeightedStdDev: {
+        float kstarTuple, cf, cferr;
+        fCutTuple->SetBranchAddress("kstar", &kstarTuple);
+        fCutTuple->SetBranchAddress("cf", &cf);
+        fCutTuple->SetBranchAddress("cferr", &cferr);
+        double weights = 0;
+        double weightedMean = 0;
+        for (int i = 0; i < fCutTuple->GetEntriesFast(); ++i) {
+          fCutTuple->GetEntry(i);
+          if (std::abs(kstarTuple - kstar) > 0.01)
+            continue;
+          weightedMean += cf * cferr;
+          weights += cferr;
+        }
+        weightedMean /= weights;
+        double stdDev = 0.f;
+        double nPoints = 0.f;
+        for (int i = 0; i < fCutTuple->GetEntriesFast(); ++i) {
+          fCutTuple->GetEntry(i);
+          if (std::abs(kstarTuple - kstar) > 0.01)
+            continue;
+          stdDev += cferr * (cf - weightedMean) * (cf - weightedMean);
+          ++nPoints;
+        }
+        weights *= (nPoints - 1) / nPoints;
+        stdDev /= weights;
+        sysErr = std::sqrt(stdDev);
+      }
+    }
+
+    fHistSystErrAbs->SetBinContent(ikstar, sysErr);
+    fHistSystErrRel->SetBinContent(
+        ikstar, sysErr / fHistDefault->GetBinContent(ikstar));
+    fHistKstar.push_back(hist);
+  }
+
 
   fRatio = new TF1("SystError", "pol0(0)+expo(1)", fSystematicFitRangeLow,
                    fSystematicFitRangeUp);
@@ -510,6 +683,15 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<T*>& histvec,
     case Pair::pL:
       c->Divide(7, 7);
       break;
+    case Pair::pAp:
+      c->Divide(6, 6);
+      break;
+    case Pair::pAL:
+      c->Divide(7, 7);
+      break;
+    case Pair::LAL:
+      c->Divide(7, 7);
+      break;
   }
 
   int iVar = 0;
@@ -547,7 +729,7 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<T*>& histvec,
     auto c1 = new TCanvas("CF_var", "CF_var");
     fHistDefault->Draw();
     fHistDefault->SetTitle("");
-    fHistDefault->SetMarkerSize(1.5);
+    fHistDefault->SetMarkerSize(0.7);
     int iCount = 0;
     for (auto &it : fHistVar) {
       DreamPlot::SetStyleHisto(it, 20 + iCount, ++iCount);

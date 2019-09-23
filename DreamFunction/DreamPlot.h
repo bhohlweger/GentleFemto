@@ -49,6 +49,7 @@ class DreamPlot {
   }
   static void SetStyle(bool graypalette = false, bool title = false);
   static void SetStyleHisto(TH1 *histo, int marker = 20, int color = kBlue + 2);
+  static void SetStyleHistoCF(TH1 *histo, int marker = 20, int color = kBlue + 2, int labelsize = 25);
   static void SetStyleGraph(TGraph *histo, int marker = 20, int color = kBlue + 2);
   void DrawCorrelationFunctions();
   void DrawCorrelationFunctionSigma(const char* fitPath);
