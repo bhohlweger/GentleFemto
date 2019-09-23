@@ -73,7 +73,9 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   } else if (source == 1) {
     TheSource = TidyCats::sResonance;
     FeeddownSource = TidyCats::sGaussian;
-    RandomizedEmission = true;  //in case we have a resonance source this steers the way the emission of resonances is handeled.
+    if (iAngDist >= 0) {
+      RandomizedEmission = true;  //in case we have a resonance source this steers the way the emission of resonances is handeled.
+    }
   } else if (source == 2) {
     TheSource = TidyCats::sLevy;
     FeeddownSource = TidyCats::sGaussian;
@@ -357,98 +359,98 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     }
     if (TheSource == TidyCats::sResonance) {
       const double massProton = TDatabasePDG::Instance()->GetParticle(2212)
-          ->Mass() * 1000;
+	->Mass() * 1000;
       const double massLambda = TDatabasePDG::Instance()->GetParticle(3122)
-          ->Mass() * 1000;
+	->Mass() * 1000;
       const double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass()
-          * 1000;
+	* 1000;
 
       DLM_CleverMcLevyReso* source = tidy->GetSourceProtonLambda();
       if (RandomizedEmission) {
         std::cout
-            << "Sir, Emission will be fully randomized, commencing countdown ... 3 ....\n";
-        source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-                          massPion, false, false,
-                          DLM_CleverMcLevyReso::rdtRandom);
-	// source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
-        //                   massPion, false, false,
-	// 		  DLM_CleverMcLevyReso::rdtRandom);
-	source->SetUpReso(1, 0, 0.486, 1384, 5.33, massLambda,
-                          massPion, false, false,
-                          DLM_CleverMcLevyReso::rdtRandom);
-	source->SetUpReso(1, 1, 0.157, 1705, 2.70, massLambda,
-                          massPion, false, false,
-			  DLM_CleverMcLevyReso::rdtRandom);
-        const char* PhiFile;
-        int RangeProtonMin, RangeProtonMax, RangeLambdaOneMin, RangeLambdaOneMax, RangeLambdaTwoMin, RangeLambdaTwoMax;
-        if (iAngDist == 3) {
-          PhiFile = "DimiPhi_pp_HM.root";
-        } else if (iAngDist == 0) {
-          PhiFile = "DimiPhi_pLambda_HM.root";
-	} else if (iAngDist == 1) {
-          PhiFile = "DimiPhi_LambdaLambda_HM.root";
-        } else if (iAngDist == 2) {
-          PhiFile = "DimiPhi_pXim_HM.root";
-        } else {
-          std::cout << "Option iAngDist == " << iAngDist << " not viable \n";
-          return;
-        }
-        if (iRange == 0) {
-          RangeProtonMin = 400;
-          RangeProtonMax = 600;
+	  << "Sir, Emission will be fully randomized, commencing countdown ... 3 ....\n";
 
-	  // RangeLambdaOneMin = 270;
-	  // RangeLambdaOneMax = 470;
-          RangeLambdaOneMin = 155;
-          RangeLambdaOneMax = 350;
+	if(iAngDist > 0) { 
+	  source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+			    massPion, false, false,
+			    DLM_CleverMcLevyReso::rdtRandom);
+	  source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
+			    massPion, false, false,
+			    DLM_CleverMcLevyReso::rdtRandom);
+	  // source->SetUpReso(1, 0, 0.486, 1384, 5.33, massLambda,
+	  // 		    massPion, false, false,
+	  // 		    DLM_CleverMcLevyReso::rdtRandom);
+	  // source->SetUpReso(1, 1, 0.157, 1705, 2.70, massLambda,
+	  // 		    massPion, false, false,
+	  // 		    DLM_CleverMcLevyReso::rdtRandom);
+	  if (iAngDist > 1) { 
+	    const char* PhiFile;
+	    int RangeProtonMin, RangeProtonMax, RangeLambdaMin, RangeLambdaMax;
+	    if (iAngDist == 5) {
+	      PhiFile = "DimiPhi_pp_HM.root";
+	    } else if (iAngDist == 2) {
+	      PhiFile = "DimiPhi_pLambda_HM.root";
+	    } else if (iAngDist == 3) {
+	      PhiFile = "DimiPhi_LambdaLambda_HM.root";
+	    } else if (iAngDist == 4) {
+	      PhiFile = "DimiPhi_pXim_HM.root";
+	    } else {
+	      std::cout << "Option iAngDist == " << iAngDist << " not viable \n";
+	      return;
+	    }
+	    if (iRange == 0) {
+	      RangeProtonMin = 400;
+	      RangeProtonMax = 600;
 
-          RangeLambdaTwoMin = 620;
-          RangeLambdaTwoMax = 820;
-	  
-        } else if (iRange == 1) {
-          RangeProtonMin = 450;
-          RangeProtonMax = 550;
+	      RangeLambdaMin = 250;
+	      RangeLambdaMax = 450;
+	    } else if (iRange == 1) {
+	      RangeProtonMin = 450;
+	      RangeProtonMax = 550;
 
-          RangeLambdaOneMin = 205;
-          RangeLambdaOneMax = 305;
+	      RangeLambdaMin = 300;
+	      RangeLambdaMax = 400;
+	    } else if (iRange == 2) {
+	      RangeProtonMin = 350;
+	      RangeProtonMax = 650;
 
-          RangeLambdaTwoMin = 670;
-          RangeLambdaTwoMax = 770;
-	} else if (iRange == 2) {
-          RangeProtonMin = 250;
-          RangeProtonMax = 650;
+	      RangeLambdaMin = 200;
+	      RangeLambdaMax = 500;
+	    } else {
+	      std::cout << "Option iRange == " << iRange << " is not a viable option \n";
+	      return; 
+	    }
+	    std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
+		      << RangeProtonMin << " to Proton Max: " << RangeProtonMax << " LambdaMin: " << RangeLambdaMin << " to LambdaMax: "
+		      << RangeLambdaMax << std::endl;
+	    DLM_Histo<double>* HISTO_PROTON = tidy->ConvertThetaAngleHisto(
+									   TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
+									   .Data(),
+									   "h_rkAngle_Mom2", RangeProtonMin, RangeProtonMax, false);
 
-          RangeLambdaOneMin = 105;
-          RangeLambdaOneMax = 405;
-
-          RangeLambdaTwoMin = 570;
-          RangeLambdaTwoMax = 870;
+	    DLM_Histo<double>* HISTO_LAMBDA = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
+									   .Data(),
+									   "h_rkAngle_Mom2", RangeLambdaMin, RangeLambdaMax, false);
+	    source->SetUpResoEmission(0, 0, HISTO_PROTON);
+	    source->SetUpResoEmission(1, 0, HISTO_LAMBDA);
+	  }
+	} else if (iAngDist == 0) {
+	  source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
+			    massPion, false, false,
+			    DLM_CleverMcLevyReso::rdtRandomBackwards);
+	  // source->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
+	  //                   massPion, false, false,
+	  // 		  DLM_CleverMcLevyReso::rdtRandom);
+	  source->SetUpReso(1, 0, 0.486, 1384, 5.33, massLambda,
+			    massPion, false, false,
+			    DLM_CleverMcLevyReso::rdtRandomBackwards);
+	  source->SetUpReso(1, 1, 0.157, 1705, 2.70, massLambda,
+			    massPion, false, false,
+			    DLM_CleverMcLevyReso::rdtRandomBackwards);
 	} else {
-	  std::cout << "Option iRange == " << iRange << " is not a viable option \n";
+	  std::cout << "Case for iAng == :" << iAngDist << " not implemented, exiting. \n";
 	  return; 
 	}
-        std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
-                  << RangeProtonMin << " to Proton Max: " << RangeProtonMax
-                  << " LambdaOneMin: " << RangeLambdaOneMin << " to LambdaOneMax: "
-                  << RangeLambdaOneMax << " LambdaTwoMin: " << RangeLambdaTwoMin << " to LambdaTwoMax: "
-                  << RangeLambdaTwoMax << std::endl;
-        DLM_Histo<double>* HISTO_PROTON = tidy->ConvertThetaAngleHisto(
-            TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
-                .Data(),
-            "h_rkAngle_Mom2", RangeProtonMin, RangeProtonMax, false);
-
-	DLM_Histo<double>* HISTO_LAMBDA_ONE = tidy->ConvertThetaAngleHisto(
-            TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
-                .Data(),
-            "h_rkAngle_Mom2", RangeLambdaOneMin, RangeLambdaOneMax, false);
-
-	DLM_Histo<double>* HISTO_LAMBDA_TWO = tidy->ConvertThetaAngleHisto(
-            TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
-                .Data(),
-            "h_rkAngle_Mom2", RangeLambdaTwoMin, RangeLambdaTwoMax, false);
-        source->SetUpResoEmission(0, 0, HISTO_PROTON);
-        source->SetUpResoEmission(1, 0, HISTO_LAMBDA_ONE);
-	source->SetUpResoEmission(1, 1, HISTO_LAMBDA_TWO);
       } else {
         source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
                           massPion);
