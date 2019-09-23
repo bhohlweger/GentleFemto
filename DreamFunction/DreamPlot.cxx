@@ -459,6 +459,24 @@ void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->SetLineColor(color);
 }
 
+void DreamPlot::SetStyleHistoCF(TH1 *histo, int marker, int color, int labelsize) {
+ histo->GetXaxis()->SetLabelSize(labelsize);
+ histo->GetXaxis()->SetTitleSize(0.05);
+ histo->GetXaxis()->SetLabelOffset(0.01);
+ histo->GetXaxis()->SetTitleOffset(1.2);
+ histo->GetXaxis()->SetLabelFont(43);
+ histo->GetXaxis()->SetTitle("k* [MeV/c]");
+  // histo->GetYaxis()->SetLabelSize(15);
+ histo->GetYaxis()->SetTitleSize(0.05);
+ histo->GetYaxis()->SetLabelOffset(0.01);
+ histo->GetYaxis()->SetTitleOffset(1.25);
+ histo->GetYaxis()->SetTitle("C(k^{*})");
+ histo->SetMarkerSize(0.6);
+ histo->SetMarkerStyle(marker);
+ histo->SetMarkerColor(color);
+ histo->SetLineColor(color);
+}
+
 void DreamPlot::SetStyleGraph(TGraph *histo, int marker, int color) {
   histo->GetXaxis()->SetLabelSize(28);
   histo->GetXaxis()->SetTitleSize(28);

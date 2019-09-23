@@ -338,5 +338,6 @@ TH1F* DreamCF::FindCorrelationFunction(TString name) {
       Warning("DreamCF", "%s", it->GetName());
     }
   }
+
   return output;
 }
