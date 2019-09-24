@@ -771,11 +771,11 @@ DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, con
   MomBins[0] = 0;
   //MomBins[1] = CummDistr.GetBinContent(unsigned(0));
   MomBins[NumBins] = 1;
+  int theHappening = 1; //this is done in order to make sure that if two 0 bins follow up on each other shit doesn't go to the toilet. 
   for(unsigned uBin=1; uBin<NumBins; uBin++){
-    MomBins[uBin] = (CummDistr.GetBinContent(uBin)+CummDistr.GetBinContent(uBin-1)+1e-6)*0.5;
+    MomBins[uBin] = (CummDistr.GetBinContent(uBin)+CummDistr.GetBinContent(uBin-1)+1e-6*(theHappening++))*0.5;
     //printf("MomBins[%u] = %f\n",uBin,MomBins[uBin]);
   }
-
   DLM_Histo<double>* Result = new DLM_Histo<double>();
   Result->SetUp(1);
   Result->SetUp(0,NumBins,MomBins);
