@@ -344,7 +344,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 	  const char* PhiHistoName;
 	  int PhiRebin = 1;
 	  int PhiConversion = 1; 
-	  int RangeProtonMin, RangeProtonMax;
+	  double RangeProtonMin, RangeProtonMax;
 	  if (iAngDist == 0) {
 	    PhiFile = "DimiPhi_pp_HM.root";
 	    PhiHistoName = "h_rkAngle_Mom2"; 
