@@ -24,18 +24,6 @@ int main(int argc, char* argv[]) {
     mTFile->ls();
     return -1;
   }
-  int nVariations = 0;
-  if (nMTBins == 6) {
-    nVariations = 42;
-  } else if (nMTBins == 3) {
-    nVariations = 31;
-  }
-  int nCombinations = 0;
-  if (SourceOption == 0) {
-    nCombinations = 162;
-  } else if (SourceOption == 1) {
-    nCombinations = 1296;
-  }
   VariationmTAnalysis* analyser = new VariationmTAnalysis(1);
   analyser->SetHistName("hCk_RebinnedpLVar");
   analyser->SetFileName("OutFileVarpL.root");
