@@ -17,8 +17,7 @@
 
 class VariationAnalysis {
  public:
-  VariationAnalysis(const char* histName, const int nDataVars,
-                    const int nFitVars);
+  VariationAnalysis(const char* histName);
   virtual ~VariationAnalysis();
   void ReadFitFile(TString FileName);
   TGraphErrors* EvaluateCurves(TNtuple* tuple, TGraph* RefGraph);
@@ -51,8 +50,10 @@ class VariationAnalysis {
  private:
   TFile* fInFile;
   const char* fHistname;
-  const int fnDataVars;
-  const int fnFitVars;
+  int fnDataVarsStart;
+  int fnDataVarsEnd;
+  int fnFitVarsStart;
+  int fnFitVarsEnd;
   float fRadMean;
   float fRadSystUp;
   float fRadSystDown;

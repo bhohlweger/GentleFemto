@@ -36,8 +36,7 @@ int main(int argc, char* argv[]) {
   } else if (SourceOption == 1) {
     nCombinations = 1296;
   }
-  VariationmTAnalysis* analyser = new VariationmTAnalysis(1, nVariations,
-                                                          nCombinations);
+  VariationmTAnalysis* analyser = new VariationmTAnalysis(1);
   analyser->SetHistName("hCk_RebinnedpLVar");
   analyser->SetFileName("OutFileVarpL.root");
   analyser->SetmTAverage(avgmT);

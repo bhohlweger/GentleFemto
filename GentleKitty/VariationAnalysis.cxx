@@ -14,12 +14,13 @@
 #include "TLine.h"
 #include <iostream>
 #include "TCanvas.h"
-VariationAnalysis::VariationAnalysis(const char* histname, const int nVars,
-                                     const int nFitVars)
+VariationAnalysis::VariationAnalysis(const char* histname)
     : fInFile(nullptr),
       fHistname(histname),
-      fnDataVars(nVars),
-      fnFitVars(nFitVars),
+      fnDataVarsStart(0),
+      fnDataVarsEnd(0),
+      fnFitVarsStart(0),
+      fnFitVarsEnd(0),
       fRadMean(0),
       fRadSystUp(0),
       fRadSystDown(0),
@@ -37,13 +38,16 @@ VariationAnalysis::~VariationAnalysis() {
 
 void VariationAnalysis::ReadFitFile(TString FileName) {
   fInFile = TFile::Open(FileName, "READ");
+  static int imT = 0;
   if (!fInFile) {
     Error("ReadFitFile", "No input file");
     return;
   }
   TNtuple *resultTuple = (TNtuple*) fInFile->Get("ntResult");
   if (!resultTuple) {
-    Error("ReadFitFile", TString::Format("No Result tuple in %s .. .rip. \n",FileName.Data()));
+    Error(
+        "ReadFitFile",
+        TString::Format("No Result tuple in %s .. .rip. \n", FileName.Data()));
     return;
   } else {
     if (fRadiusDist) {
@@ -59,9 +63,35 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     resultTuple->Draw("RadiusErr_pp>>RadStat");
     TH1F* statErr = (TH1F*) gROOT->FindObject("RadStat");
     fRadStat = statErr->GetMean();
+    float numIter;
+    float uIter;
+    resultTuple->SetBranchAddress("NumIter", &numIter);
+    resultTuple->SetBranchAddress("IterID", &uIter);
+    fnDataVarsStart = 123456789;
+    fnDataVarsEnd = 0;
+    fnFitVarsStart = 123456789;
+    fnFitVarsEnd = 0;
+    for (int iEntr = 0; iEntr < resultTuple->GetEntriesFast(); ++iEntr) {
+      resultTuple->GetEntry(iEntr);
+      if (fnDataVarsStart > numIter) {
+        fnDataVarsStart = (int) numIter;
+      }
+      if (fnDataVarsEnd < numIter) {
+        fnDataVarsEnd = (int) numIter;
+      }
+      if (fnFitVarsStart > uIter) {
+        fnFitVarsStart = (int) uIter;
+      }
+      if (fnFitVarsEnd < uIter) {
+        fnFitVarsEnd = (int) uIter;
+      }
+    }
+    std::cout << "fnDataVarsStart: " << fnDataVarsStart << " fnDataVarsEnd: "
+              << fnDataVarsEnd << " fnFitVarsStart: " << fnFitVarsStart
+              << " fnFitVarsEnd: " << fnFitVarsEnd << std::endl;
   }
-  TFile* tmpFile = TFile::Open(TString::Format("%s/tmp_%s.root", gSystem->pwd(), FileName.Data()),
-                               "RECREATE");
+  TFile* tmpFile = TFile::Open(
+      TString::Format("%s/tmp_%u.root", gSystem->pwd(), imT++), "RECREATE");
   if (!tmpFile) {
     Error("ReadFitFile", "No Tmp file");
     return;
@@ -69,7 +99,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
   TNtuple* Fits = new TNtuple("fitCurves", "fitCurves", "kstar:modelValue");
   Fits->Write();
   TGraph* refGraph = nullptr;
-  for (int iVars = 0; iVars < fnDataVars + 1; ++iVars) {
+  for (int iVars = fnDataVarsStart; iVars < fnDataVarsEnd + 1; ++iVars) {
     TString dirName = TString::Format("Out%i", iVars);
     TDirectoryFile* dir = (TDirectoryFile*) fInFile->FindObjectAny(
         dirName.Data());
@@ -82,14 +112,15 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     TString histname = TString::Format("%s%iMeV_0", fHistname, iVars);
     TH1F* histo = (TH1F*) dir->FindObjectAny(histname.Data());
     if (!histo) {
-      TString OutputError = TString::Format("In dir %s Histogram (%s) missing, rip",
-                                            dirName.Data(), histname.Data());
+      TString OutputError = TString::Format(
+          "In dir %s Histogram (%s) missing, rip", dirName.Data(),
+          histname.Data());
       Error("ReadFitFile", OutputError.Data());
     } else {
       fCk.push_back(histo);
     }
     //loop over all variations for on fit
-    for (int iFitVar = 1; iFitVar < fnFitVars; iFitVar++) {
+    for (int iFitVar = fnFitVarsStart; iFitVar < fnFitVarsEnd + 1; iFitVar++) {
 //      resultTuple->Draw(
 //          "PolBaseLine>>myBaseLine",
 //          Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
@@ -170,7 +201,7 @@ TGraphErrors * VariationAnalysis::EvaluateCurves(TNtuple * tuple,
         hist->FindFirstBinAbove(0.1, 1));
     double binUp = hist->GetXaxis()->GetBinUpEdge(
         hist->FindLastBinAbove(0.1, 1));
-    double DeltaCoulomb = TMath::Abs((binLow - binUp))/TMath::Sqrt(12);
+    double DeltaCoulomb = TMath::Abs((binLow - binUp)) / TMath::Sqrt(12);
     double DefaultVal = (binUp + binLow) / 2.;
     grOut->SetPoint(ikstar, kVal, DefaultVal);
     grOut->SetPointError(ikstar, 0, DeltaCoulomb);
@@ -215,7 +246,7 @@ void VariationAnalysis::EvalRadius(const char* bin) {
   histRadCumulative->Scale(1. / (double) fRadiusDist->GetEntries());
   auto c1 = new TCanvas("c4", "c5");
   histRadCumulative->Draw("");
-  c1->SaveAs(Form("%s/cumulative%s.pdf", gSystem->pwd(),bin));
+  c1->SaveAs(Form("%s/cumulative%s.pdf", gSystem->pwd(), bin));
   delete c1;
   auto medianBin = histRadCumulative->FindFirstBinAbove(0.5, 1);
   std::cout << "medianBin: " << medianBin << " Median: "
@@ -275,5 +306,5 @@ void VariationAnalysis::EvalRadius(const char* bin) {
   lineUp->SetLineWidth(2);
   lineUp->Draw("same");
 
-  canRad2->SaveAs(TString::Format("%s/radius%s.pdf", gSystem->pwd(),bin));
+  canRad2->SaveAs(TString::Format("%s/radius%s.pdf", gSystem->pwd(), bin));
 }

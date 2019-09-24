@@ -18,9 +18,8 @@ int main(int argc, char *argv[]) {
   TF1* systematic = (TF1*) systFile->Get("SystError");
 //  VariationAnalysis* analysis = new VariationAnalysis("hCk_FixShiftedppVar", 26,
 //   81);
-  VariationAnalysis* analysis = new VariationAnalysis("hCk_ReweightedppVar", 26,
-                                                      81);
-//  VariationAnalysis* analysis = new VariationAnalysis("hCk_ReweightedppVar", 26,
+  VariationAnalysis* analysis = new VariationAnalysis("hCk_ReweightedppVar");
+  //  VariationAnalysis* analysis = new VariationAnalysis("hCk_ReweightedppVar", 26,
 //                                                      54);
   analysis->ReadFitFile(filename);
   analysis->EvalRadius();

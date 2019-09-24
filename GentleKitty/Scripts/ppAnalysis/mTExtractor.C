@@ -18,20 +18,7 @@ int main(int argc, char* argv[]) {
     mTFile->ls();
     return -1;
   }
-  int nVariations = 0;
-  if (nMTBins == 7) {
-    nVariations = 26;
-  } else if (nMTBins == 3) {
-    nVariations = 24;
-  }
-  int nCombinations = 0;
-  if (SourceOption == 0) {
-    nCombinations = 81;
-  } else if (SourceOption == 1) {
-    nCombinations = 891;
-  }
-  VariationmTAnalysis* analyser = new VariationmTAnalysis(1, nVariations,
-                                                          nCombinations);
+  VariationmTAnalysis* analyser = new VariationmTAnalysis(1);
   analyser->SetHistName("hCk_RebinnedppVar");
 //  analyser->SetHistName("hCk_FixShiftedppVar");
   analyser->SetFileName("OutFileVarpp.root");

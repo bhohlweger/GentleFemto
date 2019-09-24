@@ -14,7 +14,7 @@
 
 class VariationmTAnalysis {
  public:
-  VariationmTAnalysis(int nModels, int nData, int nVars);
+  VariationmTAnalysis(int nModels);
   virtual ~VariationmTAnalysis();
   void SetSystematic(const char* DataDir);
   void SetVariation(const char* VarDir, int iModel);
@@ -31,7 +31,8 @@ class VariationmTAnalysis {
   void SetSourceName(const char* sourceName) {
     fSourceName = sourceName;
   }
-  void SetLegModel(const char* ModelName, const char* ModelOption, int Color, int FillStyle) {
+  void SetLegModel(const char* ModelName, const char* ModelOption, int Color,
+                   int FillStyle) {
     fModelName.push_back(ModelName);
     fModelOption.push_back(ModelOption);
     fColor.push_back(Color);
@@ -58,8 +59,8 @@ class VariationmTAnalysis {
  private:
   std::vector<std::vector<VariationAnalysis>> fAnalysis;
   const int fnModel;
-  const int fnData;
-  const int fnVars;
+  //const int fnData;
+  //const int fnVars;
   std::vector<float> fmTBins;
 
   const char* fHistname;

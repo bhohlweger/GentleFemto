@@ -13,11 +13,9 @@
 #include "TPad.h"
 #include <iostream>
 
-VariationmTAnalysis::VariationmTAnalysis(int nModels, int nData, int nVars)
+VariationmTAnalysis::VariationmTAnalysis(int nModels)
     : fAnalysis(nModels),
       fnModel(nModels),
-      fnData(nData),
-      fnVars(nVars),
       fmTBins(),
       fHistname(),
       fFileName(),
@@ -112,7 +110,7 @@ void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
   double mT, dummy;
   fmTAverage->GetPoint(iPoint, dummy, mT);
 
-  VariationAnalysis analysis = VariationAnalysis(fHistname, fnData, fnVars);
+  VariationAnalysis analysis = VariationAnalysis(fHistname);
   TString filename = Form("%s/%s", VarDir, fFileName);
   analysis.ReadFitFile(filename.Data());
   analysis.EvalRadius(Form("%.2f_%u", mT, iModel));
@@ -179,7 +177,8 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
                                true);  //Model colors
     }
     float legXmin = fTextXMin - 0.02;
-    Data->SetLegendCoordinates(legXmin, 0.625 - 0.09 * Data->GetNumberOfModels(),
+    Data->SetLegendCoordinates(legXmin,
+                               0.625 - 0.09 * Data->GetNumberOfModels(),
                                legXmin + 0.4, 0.66);
     Data->DrawCorrelationPlot(pad);
     pad->cd();
