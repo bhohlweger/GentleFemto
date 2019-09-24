@@ -63,7 +63,7 @@ class TidyCats {
                            double kMax, TidyCats::Sources source,
                            TidyCats::pSigma0Pot pot);
   static double ESC16_pXim_EXAMPLE(double* Parameters);
-  DLM_Histo<double>* ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax, bool convertToRad);
+  DLM_Histo<double>* ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax, bool convertToRad, int Rebin = 1);
  private:
   DLM_CleverLevy* fppCleverLevy;
   DLM_CleverMcLevyReso* fppCleverMcLevy;

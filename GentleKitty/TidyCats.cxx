@@ -730,7 +730,7 @@ double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {
   return gPot->Eval(Parameters[0]);
 }
 
-DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax, bool convertToRad){
+DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax, bool convertToRad, int Rebin){
   TFile* InputFile = new TFile(FileName, "read");
   TH2F* InputHisto = NULL;
   if(InputFile){
@@ -739,6 +739,9 @@ DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, con
     std::cout << "no Input file found under the name " << FileName.Data() << " doei.. \n";  
     return nullptr; 
   }
+  if (Rebin > 1) {
+    InputHisto->Rebin2D(Rebin,Rebin); 
+  } 
   TH1D* Projection=NULL;
   if(InputHisto){
     Projection = InputHisto->ProjectionX("ConvertThetaAngleHisto",InputHisto->GetYaxis()->FindBin(kMin),InputHisto->GetYaxis()->FindBin(kMax));
