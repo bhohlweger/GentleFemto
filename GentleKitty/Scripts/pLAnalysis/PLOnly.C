@@ -25,7 +25,7 @@
 #include <ctime>
 
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
-                     int source, int iPotential, int iAngDist, int iRange,
+                     int source, int iPotential, int iAngDist, int iRange, bool storeHist, 
                      TString InputFile, TString HistoName, TString OutputDir) {
   auto start = std::chrono::system_clock::now();
 
@@ -310,7 +310,6 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
                                   "BaseLineMax");
 
   Float_t ntBuffer[24];
-
   float total = 162;
   int uIter = 1 + (3 * iAngDist + iRange) * (int) total;
   int counter = 1;
@@ -330,7 +329,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
   CollOut->Add(c1);
   StoreHist->GetXaxis()->SetRangeUser(0, 1000);
-  if (uIter == 1)
+  if (storeHist)
     CollOut->Add(StoreHist);
 
   CATS AB_pXim;
@@ -796,9 +795,15 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 }
 
 int main(int argc, char *argv[]) {
+  std::stringstream ss(argv[8]);
+  bool b;
+  if(!(ss >> std::boolalpha >> b)) {
+    std::cout << "Parsing error. \n " ;
+    return -1; 
+  }
   FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), argv[8], argv[9],
-                  argv[10]);
+                  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), b, argv[9], argv[10],
+                  argv[11]);
   return 0;
 }
 
