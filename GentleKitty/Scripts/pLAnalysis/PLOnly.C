@@ -382,54 +382,78 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	  // source->SetUpReso(1, 1, 0.157, 1705, 2.70, massLambda,
 	  // 		    massPion, false, false,
 	  // 		    DLM_CleverMcLevyReso::rdtRandom);
-	  if (iAngDist > 1) { 
+	  if (iAngDist > 1) {
 	    const char* PhiFile;
-	    int RangeProtonMin, RangeProtonMax, RangeLambdaMin, RangeLambdaMax;
-	    if (iAngDist == 5) {
+	    const char* PhiHistoName;
+	    int PhiRebin = 1;
+	    int PhiConversion = 1; 
+	    int RangeProtonMin, RangeProtonMax;
+	    int RangeLambdaMin, RangeLambdaMax;
+	    if (iAngDist == 0) {
 	      PhiFile = "DimiPhi_pp_HM.root";
-	    } else if (iAngDist == 2) {
+	    PhiHistoName = "h_rkAngle_Mom2"; 
+	    } else if (iAngDist == 1){
 	      PhiFile = "DimiPhi_pLambda_HM.root";
-	    } else if (iAngDist == 3) {
+	      PhiHistoName = "h_rkAngle_Mom2"; 
+	    } else if (iAngDist == 2) {
 	      PhiFile = "DimiPhi_LambdaLambda_HM.root";
-	    } else if (iAngDist == 4) {
+	      PhiHistoName = "h_rkAngle_Mom2"; 
+	    } else if (iAngDist == 3) {
 	      PhiFile = "DimiPhi_pXim_HM.root";
+	      PhiHistoName = "h_rkAngle_Mom2"; 
+	    } else if (iAngDist == 4) {
+	      PhiFile = "Output60.root";//60 degree cut off
+	      PhiHistoName = "fAngleDistTwo_boosted";
+	      PhiRebin = 2;
+	      PhiConversion = 1000; 
+	    } else if (iAngDist == 5) {
+	      PhiFile = "Output75.root";//75 degree cut off 
+	      PhiHistoName = "fAngleDistTwo_boosted";
+	      PhiRebin = 2;
+	      PhiConversion = 1000; 
+	    } else if (iAngDist == 6) {
+	      PhiFile = "Output90.root";//90 degree cut off
+	      PhiHistoName = "fAngleDistTwo_boosted";
+	      PhiRebin = 2;
+	      PhiConversion = 1000; 
+	    } else if (iAngDist == 7) {
+	      PhiFile = "Output180.root";//no cut off 
+	      PhiHistoName = "fAngleDistTwo_boosted";
+	      PhiRebin = 2;
+	      PhiConversion = 1000; 
 	    } else {
 	      std::cout << "Option iAngDist == " << iAngDist << " not viable \n";
 	      return;
 	    }
 	    if (iRange == 0) {
-	      RangeProtonMin = 400;
-	      RangeProtonMax = 600;
+	      RangeProtonMin = 400/(double)PhiConversion;
+	      RangeProtonMax = 600/(double)PhiConversion;
 
-	      RangeLambdaMin = 250;
-	      RangeLambdaMax = 450;
+	      RangeLambdaMin = 250/(double)PhiConversion;
+	      RangeLambdaMax = 450/(double)PhiConversion;
 	    } else if (iRange == 1) {
-	      RangeProtonMin = 450;
-	      RangeProtonMax = 550;
+	      RangeProtonMin = 450/(double)PhiConversion;
+	      RangeProtonMax = 550/(double)PhiConversion;
 
-	      RangeLambdaMin = 300;
-	      RangeLambdaMax = 400;
+	      RangeLambdaMin = 300/(double)PhiConversion;
+	      RangeLambdaMax = 400/(double)PhiConversion;
 	    } else if (iRange == 2) {
-	      RangeProtonMin = 350;
-	      RangeProtonMax = 650;
+	      RangeProtonMin = 250/(double)PhiConversion;
+	      RangeProtonMax = 650/(double)PhiConversion;
 
-	      RangeLambdaMin = 200;
-	      RangeLambdaMax = 500;
+	      RangeLambdaMin = 200/(double)PhiConversion;
+	      RangeLambdaMax = 500/(double)PhiConversion;
 	    } else {
-	      std::cout << "Option iRange == " << iRange << " is not a viable option \n";
-	      return; 
+	      std::cout << "Option iRange == " << iRange
+			<< " is not a viable option \n";
+	      return;
 	    }
 	    std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
-		      << RangeProtonMin << " to Proton Max: " << RangeProtonMax << " LambdaMin: " << RangeLambdaMin << " to LambdaMax: "
-		      << RangeLambdaMax << std::endl;
-	    DLM_Histo<double>* HISTO_PROTON = tidy->ConvertThetaAngleHisto(
-									   TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
-									   .Data(),
-									   "h_rkAngle_Mom2", RangeProtonMin, RangeProtonMax, false);
-
-	    DLM_Histo<double>* HISTO_LAMBDA = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile)
-									   .Data(),
-									   "h_rkAngle_Mom2", RangeLambdaMin, RangeLambdaMax, false);
+		      << RangeProtonMin << " to Proton Max: " << RangeProtonMax
+		      << std::endl;
+	    DLM_Histo<double>* HISTO_PROTON = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile).Data(),TString::Format("%s",PhiHistoName).Data(), RangeProtonMin, RangeProtonMax, false, PhiRebin);
+	    DLM_Histo<double>* HISTO_LAMBDA = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile).Data(),TString::Format("%s",PhiHistoName).Data(), RangeLambdaMin, RangeLambdaMax, false, PhiRebin);
+	    
 	    source->SetUpResoEmission(0, 0, HISTO_PROTON);
 	    source->SetUpResoEmission(1, 0, HISTO_LAMBDA);
 	  }
