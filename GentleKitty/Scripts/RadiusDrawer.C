@@ -5,59 +5,63 @@
 #include "TLatex.h"
 #include "DreamPlot.h"
 #include "TFile.h"
+#include "TDatabasePDG.h"
 
 int main(int argc, char* argv[]) {
-  const char* sourceName = "Gauss";
+  if(!argv[1]) {
+    std::cout << "pp RadFile missing\n";
+    return -1;
+  }
+  if(!argv[2]) {
+    std::cout << "pL RadFile missing\n";
+    return -1;
+  }
+  if(!argv[3]) {
+    std::cout << "Source Name\n";
+    return -1;
+  }
+  const char* ppFile = argv[1];
+  const char* pLFile = argv[2];
+  const char* sourceName = argv[3];
   DreamPlot::SetStyle();
-  gStyle->SetHatchesSpacing(0.9);
-//  TFile* ppMBFile =
-//      TFile::Open(
-//          "~/cernbox/ppMinimumBias/180824_FullSys/Fits/pp/180828_Gauss/RadppvsmT.root",
-//          "read");
-//  TGraphErrors* mTppMBSys = (TGraphErrors*) ppMBFile->Get("mTRadiusSyst");
-//  TGraphErrors* mTppMBStat = (TGraphErrors*) ppMBFile->Get("mTRadiusStat");
+  gStyle->SetHatchesSpacing(0.5);
 
-//  TFile* ppHMFile =
-//      TFile::Open(
-//          "~/cernbox/HM13TeV/AnalysisData/RandomSystematics_mT/fits/pp/190719_mTGauss/RadppvsmT.root",
-//          "read");
   TFile* ppHMFile =
       TFile::Open(
-          "~/cernbox/HM13TeV/AnalysisData/RandomSystematics_mT/fits/pp/190918_mTNoConversion/RadppvsmT.root",
+          ppFile,
           "read");
   TGraphErrors* mTppHMSys = (TGraphErrors*) ppHMFile->Get("mTRadiusSyst");
   TGraphErrors* mTppHMStat = (TGraphErrors*) ppHMFile->Get("mTRadiusStat");
 
-//  TFile* pLMBFile =
-//      TFile::Open(
-//          "~/cernbox/ppMinimumBias/180824_FullSys/Fits/pL/180828_Gauss/RadpLvsmT.root",
-//          "read");
-//  TGraphErrors* mTpLMBSys = (TGraphErrors*) pLMBFile->Get("mTRadiusSyst");
-//  TGraphErrors* mTpLMBStat = (TGraphErrors*) pLMBFile->Get("mTRadiusStat");
-
-//  TFile* pLHMFile =
-//      TFile::Open(
-//          "~/cernbox/HM13TeV/AnalysisData/RandomSystematics_mT/fits/pL/190725_Gauss/RadpLvsmT.root",
-//          "read");
   TFile* pLHMFile =
       TFile::Open(
-          "~/cernbox/HM13TeV/AnalysisData/RandomSystematics_mT/fits/pL/190918_Final_I/RadpLvsmT.root",
+          pLFile,
           "read");
   TGraphErrors* mTpLHMSys = (TGraphErrors*) pLHMFile->Get("mTRadiusSyst");
   TGraphErrors* mTpLHMStat = (TGraphErrors*) pLHMFile->Get("mTRadiusStat");
-//  for (int iBin = 0; iBin < mTppMBSys->GetN(); iBin++) {
-//    mTppMBSys->SetPointError(iBin, 0.4 * mTppMBSys->GetErrorX(iBin),
-//                             mTppMBSys->GetErrorY(iBin));
-//  }
+  double yMin = 1234567;
+  double yMax = 0;
+  double x,y;
   for (int iBin = 0; iBin < mTppHMSys->GetN(); iBin++) {
+    mTppHMSys->GetPoint(iBin, x,y);
+    if (y < yMin) {
+      yMin = y;
+    }
+    if (yMax < y) {
+      yMax = y;
+    }
     mTppHMSys->SetPointError(iBin, 0.4 * mTppHMSys->GetErrorX(iBin),
                              mTppHMSys->GetErrorY(iBin));
   }
-//  for (int iBin = 0; iBin < mTpLMBSys->GetN(); iBin++) {
-//    mTpLMBSys->SetPointError(iBin, 0.4 * mTpLMBSys->GetErrorX(iBin),
-//                             mTpLMBSys->GetErrorY(iBin));
-//  }
+
   for (int iBin = 0; iBin < mTpLHMSys->GetN(); iBin++) {
+    mTpLHMSys->GetPoint(iBin, x,y);
+    if (y < yMin) {
+      yMin = y;
+    }
+    if (yMax < y) {
+      yMax = y;
+    }
     mTpLHMSys->SetPointError(iBin, 0.4 * mTpLHMSys->GetErrorX(iBin),
                              mTpLHMSys->GetErrorY(iBin));
   }
@@ -77,8 +81,8 @@ int main(int argc, char* argv[]) {
   mTpLHMSys->SetPoint(mTpLHMSys->GetN(), 2.7, 1.3);
   mTpLHMSys->SetPointError(mTpLHMSys->GetN(), 0., 0.);
 
-//  mTpLHMSys->SetTitle("; #LT#it{m}_{T}#GT  (MeV/#it{c}^{2}); #it{r}_{gauss} (fm)");
-  mTpLHMSys->SetTitle("; #LT#it{m}_{T}#GT  (MeV/#it{c}^{2}); #it{r}_{core} (fm)");
+  mTpLHMSys->SetTitle(
+      "; #LT#it{m}_{T}#GT  (GeV/#it{c}^{2}); #it{r}_{core} (fm)");
   mTpLHMSys->GetXaxis()->SetTitleSize(40);
   mTpLHMSys->GetYaxis()->SetTitleSize(40);
   mTpLHMSys->GetXaxis()->SetTitleOffset(1.35);
@@ -88,8 +92,8 @@ int main(int argc, char* argv[]) {
   mTpLHMSys->GetXaxis()->SetLabelOffset(.02);
   mTpLHMSys->GetYaxis()->SetLabelOffset(.02);
   mTpLHMSys->GetXaxis()->SetRangeUser(0.95, 2.7);
-//  mTpLHMSys->GetYaxis()->SetRangeUser(0.8, 1.8);
-  mTpLHMSys->GetYaxis()->SetRangeUser(0.6, 1.6);
+//  mTpLHMSys->GetYaxis()->SetRangeUser(0.8, 2.0);
+  mTpLHMSys->GetYaxis()->SetRangeUser(0.8*yMin, 1.2*yMax);
 
   mTpLHMSys->SetFillColorAlpha(kRed - 7, 0.7);
   mTpLHMSys->SetFillStyle(3225);
@@ -104,19 +108,6 @@ int main(int argc, char* argv[]) {
   mTpLHMStat->SetMarkerSize(2.0);
   mTpLHMStat->Draw("pez same");
 
-//  mTpLMBSys->SetFillColorAlpha(kRed - 7, 0.7);
-//  mTpLMBSys->SetFillStyle(3252);
-//  mTpLMBSys->Draw("2PSAME");
-//
-//  mTpLMBStat->SetMarkerColor(kRed + 1);
-//  mTpLMBStat->SetLineColor(kRed + 1);
-//  mTpLMBStat->SetFillColorAlpha(kRed - 7, 0.7);
-//  mTpLMBStat->SetLineWidth(1);
-//  mTpLMBStat->SetFillStyle(3252);
-//  mTpLMBStat->SetMarkerStyle(20);
-//  mTpLMBStat->SetMarkerSize(1.8);
-//  mTpLMBStat->Draw("pez same");
-
   mTppHMSys->SetFillColorAlpha(kBlue - 7, 0.7);
   mTppHMSys->SetFillStyle(3225);
   mTppHMSys->Draw("2PSAME");
@@ -129,19 +120,6 @@ int main(int argc, char* argv[]) {
   mTppHMStat->SetMarkerStyle(34);
   mTppHMStat->SetMarkerSize(2.0);
   mTppHMStat->Draw("pez same");
-
-//  mTppMBSys->SetFillColorAlpha(kBlue - 7, 0.7);
-//  mTppMBSys->SetFillStyle(3252);
-//  mTppMBSys->Draw("2PSAME");
-//
-//  mTppMBStat->SetMarkerColor(kBlue + 2);
-//  mTppMBStat->SetLineColor(kBlue + 2);
-//  mTppMBStat->SetFillColorAlpha(kBlue - 7, 0.7);
-//  mTppMBStat->SetLineWidth(1);
-//  mTppMBStat->SetFillStyle(3252);
-//  mTppMBStat->SetMarkerStyle(33);
-//  mTppMBStat->SetMarkerSize(1.8);
-//  mTppMBStat->Draw("pez same");
 
 //  leg->AddEntry((TObject*)0, "        ", "");
 //  leg->AddEntry((TObject*)0, " MB ", "");
@@ -162,25 +140,19 @@ int main(int argc, char* argv[]) {
   BeamText.DrawLatex(0.55, 0.83,
                      Form("ALICE %s #sqrt{#it{s}} = %i TeV", "pp", (int) 13));
   BeamText.DrawLatex(0.55, 0.76, "High-mult.");
-  BeamText.DrawLatex(0.55, 0.69, "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+  BeamText.DrawLatex(
+      0.55,
+      0.69,
+      "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
 //  BeamText.DrawLatex(0.55, 0.62, "Gaussian Source");
-  BeamText.DrawLatex(0.55, 0.62, "#splitline{Gaussian Source +}{Resonances}");
-
-//  TLatex BeamText2;
-//  BeamText2.SetTextFont(43);
-//  BeamText2.SetTextSize(40);
-//  BeamText2.SetNDC(kTRUE);
-//  BeamText2.DrawLatex(0.63, 0.68, "MB");
-//  BeamText2.DrawLatex(0.725, 0.68, "HM");
+  BeamText.DrawLatex(0.17, 0.2, TString::Format("%s",sourceName).Data());
 
   leg->Draw("same");
-  c4->SaveAs(Form("%s/mTvsRad%s.pdf", gSystem->pwd(), sourceName));
+  c4->SaveAs(Form("%s/mTvsRad.pdf", gSystem->pwd()));
   c4->Write();
   out->Write();
   out->Close();
-//  ppMBFile->Close();
   ppHMFile->Close();
-//  pLMBFile->Close();
   pLHMFile->Close();
 }
 
