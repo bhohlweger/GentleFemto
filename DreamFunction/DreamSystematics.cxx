@@ -224,7 +224,10 @@ void DreamSystematics::EvalSystematics() {
 }
 
 void DreamSystematics::EvalSystematicsBBar(int doRebin) {
+
   FixStyle(fHistDefault);
+
+
 
   fSystematicFitRangeLow = fHistDefault->GetBinCenter(1)
       - fHistDefault->GetXaxis()->GetBinWidth(1) / 2.f;
@@ -243,6 +246,7 @@ void DreamSystematics::EvalSystematicsBBar(int doRebin) {
 
     ++iVar;
   }
+
 
   ComputeUncertaintyBBar(doRebin);
 }
