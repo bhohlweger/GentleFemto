@@ -305,7 +305,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0.5, true);
+      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 2 , 0.5, true);
       fProtonSigma->FemtoModelDeviations(lednibandFlat, kRed + 1, 0, 0, 3385,
                                          false);
     }
@@ -320,7 +320,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!haidenbauerband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure, 0.4, true);
+      fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure, 0.5, true);
       fProtonSigma->FemtoModelDeviations(haidenbauerbandFlat, kAzure, 0, 0,
                                          3325, false);
     }
@@ -335,7 +335,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!esc16band) {
       std::cout << "No ESC16 \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0.4, true);
+      fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0.6, true);
       fProtonSigma->FemtoModelDeviations(esc16bandFlat, kGreen + 2, 0, 0, 3352, false);
     }
   } else {
@@ -371,7 +371,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!sideband) {
       std::cout << "No Sideband \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(sideband, kGray + 1, 0.8, true);
+      fProtonSigma->FemtoModelFitBands(sideband, kGray + 1, 0.9, true);
       fProtonSigma->FemtoModelDeviations(sidebandFlat, kGray, 0, 0, 0, false);
       fProtonSigma->SetCorrelatedError(correlatedErrorSB, kGray + 1, 3352, false);
     }
@@ -665,7 +665,7 @@ void DreamPlot::DrawCorrelationFunctionProtonProton(const char* path) {
   fProtonProton->SetRangePlotting(0, 225, 0.8, 3.5);
   fProtonProton->SetInletRangePlotting(50, 350, 0.94, 1.06);
   fProtonProton->SetInletCoordinates(0.26, 0.25, 0.975, 0.665);
-  fProtonProton->SetTextSizeLegend(25);
+  fProtonProton->SetTextSizeLegend(20);
   fProtonProton->SetAxisOffsetInlet(2.7, 1.1);
 
   fProtonProton->SetNDivisions(505);
