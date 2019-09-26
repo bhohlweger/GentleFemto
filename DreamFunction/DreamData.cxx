@@ -37,6 +37,9 @@ DreamData::DreamData(const char* particlePair)
       fXMaxInlet(0.5),
       fYMinInlet(0),
       fYMaxInlet(0.5),
+      fXAxisOffsetInlet(3.0),
+      fYAxisOffsetInlet(1.8),
+      fTextSizeInlet(28),
       fLegend(nullptr),
       fXMinLegend(0),
       fXMaxLegend(0.5),
@@ -322,15 +325,18 @@ void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   if (fMultiHisto) {
     SetStyleMultiHisto(histo, marker, color);
   } else {
-    histo->GetXaxis()->SetLabelSize(0.045);
-    histo->GetXaxis()->SetTitleSize(0.05);
+    histo->GetXaxis()->SetLabelSize(28);
+    histo->GetXaxis()->SetTitleSize(28);
     histo->GetXaxis()->SetLabelOffset(0.01);
     histo->GetXaxis()->SetTitleOffset(1.2);
-    histo->GetXaxis()->SetLabelFont(42);
-    histo->GetYaxis()->SetLabelSize(0.045);
-    histo->GetYaxis()->SetTitleSize(0.05);
+    histo->GetXaxis()->SetLabelFont(43);
+    histo->GetXaxis()->SetTitleFont(43);
+    histo->GetYaxis()->SetLabelSize(28);
+    histo->GetYaxis()->SetTitleSize(28);
     histo->GetYaxis()->SetLabelOffset(0.01);
     histo->GetYaxis()->SetTitleOffset(1.25);
+    histo->GetYaxis()->SetLabelFont(43);
+    histo->GetYaxis()->SetTitleFont(43);
     histo->SetMarkerSize(1.4);
     histo->SetLineWidth(2);
     histo->SetMarkerStyle(fMarkers[marker]);
@@ -358,13 +364,14 @@ void DreamData::SetStyleMultiHisto(TH1 *histo, int marker, int color) {
 
 void DreamData::DrawCorrelationPlot(TPad* c, const int color,
                                     const int systematicsColor,
-                                    const float legendTextScale) {
+                                    const float legendTextScale, const float markersize) {
   c->cd();
   TString CFName;
   Color_t markerColor;
   int markerStyle;
   if (fCorrelationFunction) {
     SetStyleHisto(fCorrelationFunction, 2, color);
+    fCorrelationFunction->SetMarkerSize(markersize);
     fCorrelationFunction->GetXaxis()->SetRangeUser(fXMin, fXMax);
     fCorrelationFunction->GetYaxis()->SetRangeUser(fYMin, fYMax);
     CFName = fCorrelationFunction->GetName();
@@ -372,6 +379,7 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
     markerStyle = fCorrelationFunction->GetMarkerStyle();
   } else if (fCorrelationGraph) {
     SetStyleGraph(fCorrelationGraph, 2, color);
+    fCorrelationGraph->SetMarkerSize(markersize);
     fCorrelationGraph->GetXaxis()->SetRangeUser(fXMin, fXMax);
     fCorrelationGraph->GetYaxis()->SetRangeUser(fYMin, fYMax);
     fCorrelationGraph->SetMarkerSize(1);
@@ -379,6 +387,7 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
     markerColor = fCorrelationGraph->GetMarkerColor();
     markerStyle = fCorrelationGraph->GetMarkerStyle();
   }
+
   fSysError->SetLineColor(kWhite);
   if (!fMultiHisto)
     fSysError->GetYaxis()->SetTitleOffset(1.5);
@@ -467,12 +476,19 @@ void DreamData::DrawInlet(TPad *c) {
   SetStyleHisto(CFCopy, 2, 0);
   CFCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
   CFCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
+  CFCopy->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
+  CFCopy->SetMarkerColor(fCorrelationFunction->GetMarkerColor());
+  CFCopy->SetLineColor(fCorrelationFunction->GetLineColor());
   SysErrCopy->GetYaxis()->SetNdivisions(203);
   SysErrCopy->GetXaxis()->SetNdivisions(204);
   SysErrCopy->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  SysErrCopy->GetXaxis()->SetTitleOffset(3.0);
+  SysErrCopy->GetXaxis()->SetTitleOffset(fXAxisOffsetInlet);
   SysErrCopy->GetYaxis()->CenterTitle(true);
-  SysErrCopy->GetYaxis()->SetTitleOffset(1.8);
+  SysErrCopy->GetYaxis()->SetTitleOffset(fYAxisOffsetInlet);
+  SysErrCopy->GetXaxis()->SetTitleSize(fTextSizeInlet);
+  SysErrCopy->GetXaxis()->SetLabelSize(fTextSizeInlet);
+  SysErrCopy->GetYaxis()->SetTitleSize(fTextSizeInlet);
+  SysErrCopy->GetYaxis()->SetLabelSize(fTextSizeInlet);
   SysErrCopy->SetLineColor(kWhite);
   SysErrCopy->Draw("Ap");
   fBaseLine->Draw("same");
@@ -482,7 +498,7 @@ void DreamData::DrawInlet(TPad *c) {
   for (auto &it : fFemtoModdeled) {
     it->Draw("L3 same");
   }
-  SysErrCopy->SetFillColorAlpha(kBlack, 0.4);
+  SysErrCopy->SetFillColorAlpha(fSysError->GetFillColor(), 0.4);
   SysErrCopy->Draw("2 same");
   CFCopy->SetMarkerSize(0.6);
   CFCopy->DrawCopy("pe same");

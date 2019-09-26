@@ -59,7 +59,7 @@ class DreamData {
   void SetStyleMultiHisto(TH1 *histo, int marker, int color);
   void DrawCorrelationPlot(TPad* c, const int color = 0,
                            const int systematicsColor = kBlack,
-                           const float legendTextScale = 0.96);
+                           const float legendTextScale = 0.96, const float markersize = 1.4);
   void DrawDeviationPerBin(TPad* c);
   void DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSigmaMax);
   void SetDrawAxis(bool drawAxis) {
@@ -99,6 +99,13 @@ class DreamData {
     fDrawLegend = drawLegend;
   }
   ;
+  void SetAxisOffsetInlet(float xaxis, float yaxis) {
+    fXAxisOffsetInlet = xaxis;
+    fYAxisOffsetInlet = yaxis;
+  }
+  void SetTextSizeLegend(float size) {
+    fTextSizeInlet = size;
+  }
   void DrawLegendExternal(TPad* LegPad);
   void SetNDivisions(int nDiv) {
     if (fSysError) {
@@ -160,6 +167,9 @@ class DreamData {
   float fXMaxInlet;
   float fYMinInlet;
   float fYMaxInlet;
+  float fXAxisOffsetInlet;
+  float fYAxisOffsetInlet;
+  float fTextSizeInlet;
   TLegend* fLegend;
   float fXMinLegend;
   float fXMaxLegend;

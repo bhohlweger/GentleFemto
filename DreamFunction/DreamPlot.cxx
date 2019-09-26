@@ -635,6 +635,53 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   e->SaveAs(Form("%s/CF_pSigma_single.root", fitPath));
 }
 
+
+void DreamPlot::DrawCorrelationFunctionProtonProton(const char* path) {
+  SetStyle();
+  gStyle->SetHatchesSpacing(0.5);
+  gStyle->SetHatchesLineWidth(1);
+
+  TFile* CFFile_pp = TFile::Open(Form("%s/CFOutput_pp.root", path));
+  fProtonProton->SetCorrelationFunction(
+      (TH1F*) CFFile_pp->Get("hCk_ReweightedMeV_1"));
+  TFile* CFFile_ppSys = TFile::Open("~/cernbox/SystematicsAndCalib/ppRun2_HM/Systematics_pp.root");
+  TF1* sysParam = (TF1*) CFFile_ppSys->Get("SystError");
+  fProtonProton->SetSystematics(sysParam, 2);
+
+  auto fitFile = TFile::Open(Form("%s/tmp.root", path));
+  if (fitFile) {
+    auto ppFit = (TGraphErrors*) fitFile->Get("Model");
+      fProtonProton->FemtoModelFitBands(ppFit, kTeal + 2, 0.8, true);
+  }
+
+  const float leftX = 0.45;
+  const float upperY = 0.82;
+  const float right = 0.01;
+  const float top = 0.02;
+  auto c = new TCanvas("CFpp", "CFpp", 0, 0, 650, 550);
+  c->SetRightMargin(right);
+  c->SetTopMargin(top);
+  fProtonProton->SetLegendName(
+      "p#minus#kern[-0.25]{ }p #oplus #bar{p}#minus#kern[-0.25]{ }#bar{p}", "fpe");
+  fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
+  fProtonProton->SetRangePlotting(0, 225, 0.8, 3.5);
+  fProtonProton->SetInletRangePlotting(50, 350, 0.94, 1.06);
+  fProtonProton->SetInletCoordinates(0.26, 0.25, 0.975, 0.665);
+  fProtonProton->SetTextSizeLegend(25);
+  fProtonProton->SetAxisOffsetInlet(2.7, 1.1);
+
+  fProtonProton->SetNDivisions(505);
+  fProtonProton->SetForceAxisRanges(true);
+  fProtonProton->SetLegendCoordinates(
+      leftX, upperY - 0.07 * (fProtonProton->GetNumberOfModels() + 1), 0.7, upperY);
+  // Necessary fix to get the right unit on the axes
+  fProtonProton->SetUnitConversionData(2);
+  fProtonProton->DrawCorrelationPlot(c, 13, kBlue + 3, 0.9, 1.);
+  DrawSystemInfo(c, false, leftX + 0.01, 0);
+  c->SaveAs(Form("%s/CF_pp.pdf", path));
+  c->SaveAs(Form("%s/CF_pp.root", path));
+}
+
 void DreamPlot::DrawSystemInfo(TPad* c, bool plotRadius, float xMin,
                                int isPreliminary) {
   c->cd();
