@@ -305,7 +305,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!ledniband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0, 0, 3385, true, false);
+      fProtonSigma->FemtoModelFitBands(ledniband, kRed + 1 , 0.5, true);
       fProtonSigma->FemtoModelDeviations(lednibandFlat, kRed + 1, 0, 0, 3385,
                                          false);
     }
@@ -320,8 +320,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!haidenbauerband) {
       std::cout << "No coupled Lednicky \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure, 0, 0, 3325,
-                                       true, false);
+      fProtonSigma->FemtoModelFitBands(haidenbauerband, kAzure, 0.4, true);
       fProtonSigma->FemtoModelDeviations(haidenbauerbandFlat, kAzure, 0, 0,
                                          3325, false);
     }
@@ -336,7 +335,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!esc16band) {
       std::cout << "No ESC16 \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0, 0, 3352, true, false);
+      fProtonSigma->FemtoModelFitBands(esc16band, kGreen + 2, 0.4, true);
       fProtonSigma->FemtoModelDeviations(esc16bandFlat, kGreen + 2, 0, 0, 3352, false);
     }
   } else {
@@ -356,8 +355,7 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     } else if (!sidebandUnscaled) {
       std::cout << "No sideband (unscaled) \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange - 3, 0, 0, 3358,
-                                       true, false);
+      fProtonSigma->FemtoModelFitBands(NSC97fband, kOrange - 3, 0.5, true);
       fProtonSigma->FemtoModelDeviations(NSC97fbandFlat, kOrange - 3, 0, 0, 3358, false);
       fProtonSigmaSideband->FemtoModelFitBands(sidebandUnscaled, kGray + 1, 0.5, true);
     }
@@ -373,9 +371,9 @@ void DreamPlot::ReadFitSigma(const char* fitPath) {
     if (!sideband) {
       std::cout << "No Sideband \n";
     } else {
-      fProtonSigma->FemtoModelFitBands(sideband, kGray + 1, 0.5, true);
+      fProtonSigma->FemtoModelFitBands(sideband, kGray + 1, 0.8, true);
       fProtonSigma->FemtoModelDeviations(sidebandFlat, kGray, 0, 0, 0, false);
-      fProtonSigma->SetCorrelatedError(correlatedErrorSB, kGray + 1, 3544, false);
+      fProtonSigma->SetCorrelatedError(correlatedErrorSB, kGray + 1, 3352, false);
     }
   } else {
     std::cout << "No Sideband file! \n";
@@ -583,10 +581,10 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName(
       "p#minus#kern[-0.65]{ }#Sigma^{0} #oplus #bar{p}#minus#kern[-0.75]{ }#bar{#Sigma^{0}}", "fpe");
-  fProtonSigma->SetLegendName("fss2", "fl");
-  fProtonSigma->SetLegendName("#chiEFT (NLO)", "fl");
-  fProtonSigma->SetLegendName("ESC16", "fl");
-  fProtonSigma->SetLegendName("NSC97f", "fl");
+  fProtonSigma->SetLegendName("fss2", "l");
+  fProtonSigma->SetLegendName("#chiEFT (NLO)", "l");
+  fProtonSigma->SetLegendName("ESC16", "l");
+  fProtonSigma->SetLegendName("NSC97f", "l");
   fProtonSigma->SetLegendName("p#minus#kern[-0.4]{ }(#Lambda#gamma) background", "l");
   fProtonSigma->SetRangePlotting(0, 365, 0.85, 1.7);
   fProtonSigma->SetNDivisions(504);
@@ -603,8 +601,8 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   c->cd();
   p1->Draw();
   fProtonSigma->DrawDeviationPerBin(c, 0, .45, 3);
-  c->SaveAs(Form("%s/CF_pSigma.pdf", fitPath));
-  c->SaveAs(Form("%s/CF_pSigma.root", fitPath));
+  c->SaveAs(Form("%s/CF_pSigma_deviation.pdf", fitPath));
+  c->SaveAs(Form("%s/CF_pSigma_deviation.root", fitPath));
 
   auto d = new TCanvas("CFpSigmaSideband", "CFpSigmaSideband", 0, 0, 650, 550);
   d->SetRightMargin(right);
@@ -631,8 +629,8 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   fProtonSigma->SetRangePlotting(0, 365, 0.8, 1.8);
   fProtonSigma->DrawCorrelationPlot(e, 13, kBlue + 3, 0.9);
   DrawSystemInfo(e, false, leftX + 0.01, 0);
-  e->SaveAs(Form("%s/CF_pSigma_single.pdf", fitPath));
-  e->SaveAs(Form("%s/CF_pSigma_single.root", fitPath));
+  e->SaveAs(Form("%s/CF_pSigma.pdf", fitPath));
+  e->SaveAs(Form("%s/CF_pSigma.root", fitPath));
 }
 
 
