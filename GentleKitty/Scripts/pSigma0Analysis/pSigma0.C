@@ -138,10 +138,10 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
   std::cout << "NumMomBins: " << NumMomBins_pSigma << std::endl;
 
   // pp radius systematic variations
-  const double resonancesRadius = 1.154;
-  const double radiusLower = 1.113;
-  const double radiusUpper = 1.196;
-  const std::vector<double> sourceSize = { { resonancesRadius, radiusLower,
+  const double ppRadius = 1.332;
+  const double radiusLower = 1.099;  // scaled down by 15% to include the effect of resonances
+  const double radiusUpper = 1.367;
+  const std::vector<double> sourceSize = { { ppRadius, radiusLower,
       radiusUpper } };
 
   // femto fit region systematic variations
