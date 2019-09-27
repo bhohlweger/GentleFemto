@@ -166,8 +166,31 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
       { { (1. - protonPrimary) * protonSecondary[0], (1. - protonPrimary)
           * (1 - protonSecondary[0]) } });
 
-  const CATSLambdaParam lambdaParamDefault(sigma0default, protondefault);
+  const CATSLambdaParam lambdaParamProton(protondefault, protondefault, true);
+  std::cout << "Lambda parameters for p-p\n";
+  std::cout << " Primary  "
+            << lambdaParamProton.GetLambdaParam(CATSLambdaParam::Primary) * 100.
+            << "\n";
+  std::cout
+      << " Lambda   "
+      << lambdaParamProton.GetLambdaParam(CATSLambdaParam::Primary,
+                                          CATSLambdaParam::FeedDown, 0, 0) * 100.
+      << "\n";
+  std::cout
+      << " FFD flat "
+      << (lambdaParamProton.GetLambdaParam(CATSLambdaParam::Primary,
+                                          CATSLambdaParam::FeedDown, 0, 1)
+          + lambdaParamProton.GetLambdaParam(CATSLambdaParam::FeedDown,
+                                             CATSLambdaParam::FeedDown, 0, 1)
+          + lambdaParamProton.GetLambdaParam(CATSLambdaParam::FeedDown,
+                                             CATSLambdaParam::FeedDown, 1, 1)
+          + lambdaParamProton.GetLambdaParam(CATSLambdaParam::FeedDown,
+                                             CATSLambdaParam::FeedDown, 0, 0)) * 100.
+      << "\n";
+  std::cout << " MIS      "
+            << lambdaParamProton.GetLambdaParam(CATSLambdaParam::Fake) * 100. << "\n";
 
+  const CATSLambdaParam lambdaParamDefault(sigma0default, protondefault);
   const float lambdaParamDefaultPrimary = lambdaParamDefault.GetLambdaParam(
       CATSLambdaParam::Primary);
   float lambdaParamDefaultSideband = lambdaParamDefault.GetLambdaParam(
@@ -179,12 +202,26 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
   lambdaParamDefaultSideband += lambdaParamDefault.GetLambdaParam(
       CATSLambdaParam::Fake, CATSLambdaParam::Fake);
 
-  std::cout << "Lambda parameters for the default case\n";
-  std::cout << " Primary  " << lambdaParamDefaultPrimary << "\n";
-  std::cout << " Sideband " << lambdaParamDefaultSideband << "\n";
-  std::cout << " Flat     "
-            << 1 - lambdaParamDefaultPrimary - lambdaParamDefaultSideband
-            << "\n";
+  std::cout << "Lambda parameters for p-Sigma0\n";
+  std::cout << " Primary  " << lambdaParamDefaultPrimary * 100. << "\n";
+  std::cout << " Sideband " << lambdaParamDefaultSideband * 100. << "\n";
+  std::cout
+      << " Flat     "
+      << (1 - lambdaParamDefaultPrimary - lambdaParamDefaultSideband) * 100.
+      << "\n";
+  std::cout
+      << "     - FFD  "
+      << (lambdaParamDefault.GetLambdaParam(CATSLambdaParam::Primary,
+                                            CATSLambdaParam::FeedDown, 0, 0)
+          + lambdaParamDefault.GetLambdaParam(CATSLambdaParam::Primary,
+                                              CATSLambdaParam::FeedDown, 0, 1))
+          * 100.
+      << "\n";
+  std::cout
+      << "     - MIS  "
+      << lambdaParamDefault.GetLambdaParam(CATSLambdaParam::Primary,
+                                           CATSLambdaParam::Fake) * 100.
+      << "\n";
 
   // sideband fit range systematic variation
   const std::vector<double> sidebandFitRange = { { 650, 600, 700 } };
