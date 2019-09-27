@@ -138,9 +138,12 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
   std::cout << "NumMomBins: " << NumMomBins_pSigma << std::endl;
 
   // pp radius systematic variations
-  const double ppRadius = 1.332;
-  const double radiusLower = 1.099;  // scaled down by 15% to include the effect of resonances
-  const double radiusUpper = 1.367;
+  const double statErr = 0.006;
+  const double systErrDown = 0.027;
+  const double systErrUp = 0.029;
+  const double ppRadius = 1.254;
+  const double radiusLower = ppRadius * 0.85 - statErr - systErrDown;  // scaled down by 15% to include the effect of resonances
+  const double radiusUpper = ppRadius + statErr + systErrUp;
   const std::vector<double> sourceSize = { { ppRadius, radiusLower,
       radiusUpper } };
 
@@ -149,8 +152,8 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
 
   /// Lambda parameters
   const double protonPurity = 0.9943;
-  const double protonPrimary = 0.877;
-  const double protonLambda = 0.089;
+  const double protonPrimary = 0.823;
+  const double protonLambda = 0.125;
 
   // proton secondary contribution systematic variations
   const std::vector<double> protonSecondary = { { protonLambda
