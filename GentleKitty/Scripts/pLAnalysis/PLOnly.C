@@ -334,52 +334,65 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   if (!OutFile) {
     return;
   }
-  TDirectoryFile* CollOut = new TDirectoryFile(
-      TString::Format("Out%u", NumIter), TString::Format("Out%u", NumIter));
-  CollOut->SetName(TString::Format("Out%u", NumIter));
-  TNtuple* ntResult = new TNtuple("ntResult", "ntResult", "NumIter:"
-                                  "IterID:"
-                                  "FemtoRegion:"
-                                  "vModpL:"
-                                  "PolBaseLine:"
-                                  "lam_pp:"
-                                  "lam_ppL:"
-                                  "lam_pL:"
-                                  "lam_pLS0:"
-                                  "lam_pLXim:"
-                                  "Source:"
-                                  "Radius_pp:RadiusErr_pp:"
-                                  "Stab_pp:StabErr_pp:"
-                                  "p_a:p_aErr:"
-                                  "p_b:p_bErr:"
-                                  "p_c:p_cErr:"
-                                  "chisqPerndf:"
-                                  "BaseLineMin:"
-                                  "BaseLineMax");
-
-  Float_t ntBuffer[24];
-  float total = 162;
-  int uIter = (1 + (3 * iAngDist + iRange) * (int) total);
-  int counter = 1;
+  double AvgRadius = 0.;
+  
+  float total = 324;
+  int numIter = NumIter; 
+  int uIter = 1; 
   int vFemReg;  //which femto region we use for pp (1 = default)
-  int vMod_pL = iPotential;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
+  float thismT = mTValues[imTBin]; 
+  float FemtoFitMax = 0;
+  float BaseLineMin = 0;
+  float BaseLineMax = 0; 
+  unsigned int vMod_pL;
+  unsigned int BaseLine;
+  float pa; 
+  float pb;  
+  float pc; 
   int vFrac_pL;  //fraction of protons coming from Lambda variation (1 = default)
-  int iNorm = 1;
-  double AvgRadius = 0.; 
+  float lmb_pp = 0; 
+  float lmb_ppL = 0;
+  float lmb_pL;
+  float lmb_pLS0;
+  float lmb_pLXim;
+  float ResultRadius;
+  float ResultRadiusErr;
+  float FeedDownRadius = pSigma0Radius; 
+  float Stability;
+  float outChiSqNDF;
+  TGraph* pointerFitResult = nullptr;
+
+  TTree* outTree = new TTree("ppTree","ppTree");
+  outTree->Branch("DataVarID", &numIter, "DataVarID/i"); 
+  outTree->Branch("FitVarID", &uIter, "FitVarID/i"); 
+  outTree->Branch("imT",&imTBin, "imT/i");
+  outTree->Branch("mTValue",&thismT, "mTValue/F");
+  outTree->Branch("iAng",&iAngDist,"iAng/i");
+  outTree->Branch("iRange",&iRange,"iRange/i");
+  outTree->Branch("FemtoFitMax",&FemtoFitMax,"FemtoFitMax/F");
+  outTree->Branch("BaseLineMin",&BaseLineMin,"BaseLineMin/F");
+  outTree->Branch("BaseLineMax",&BaseLineMax,"BaseLineMax/F");
+  outTree->Branch("ModPL",&vMod_pL,"ModPL/i");
+  outTree->Branch("PolBL",&BaseLine,"PolBL/i");
+  outTree->Branch("pa",&pa,"pa/F");
+  outTree->Branch("pb",&pb,"pb/F");
+  outTree->Branch("pc",&pc,"pc/F");
+  outTree->Branch("lam_pp",&lmb_pp,"lam_pp/F");
+  outTree->Branch("lam_ppL",&lmb_ppL,"lam_ppL/F");
+  outTree->Branch("lam_pL",&lmb_pL,"lam_pL/F");
+  outTree->Branch("lam_pLS0",&lmb_pLS0,"lam_pLS0/F");
+  outTree->Branch("lam_pLXim",&lmb_pLXim,"lam_pLXim/F");
+  outTree->Branch("Source",&TheSource,"Source/i");
+  outTree->Branch("Radius",&ResultRadius,"Radius/F");
+  outTree->Branch("RadiusErr",&ResultRadiusErr,"RadiusErr/F");
+  outTree->Branch("FeedDownRadius",&FeedDownRadius,"FeedDownRadius/F");
+  outTree->Branch("Stab",&Stability,"Stab/F");
+  outTree->Branch("chiSqNDF",&outChiSqNDF,"chiSqNDF/F");
+  outTree->Branch("CorrHist","TH1F",&StoreHist,sizeof(TH1F));
+  outTree->Branch("FitResult","TGraph",&pointerFitResult,sizeof(TGraph));
+  
   TidyCats* tidy = new TidyCats();
-  TCanvas* c1 = new TCanvas(TString::Format("out%u", NumIter));
-  c1->SetCanvasSize(1920, 1280);
-  StoreHist->SetLineWidth(3);
-  StoreHist->SetLineColor(1);
-  StoreHist->GetXaxis()->SetRangeUser(0, 600);
-  c1->cd();
-  StoreHist->DrawCopy();
-
-  CollOut->Add(c1);
-  StoreHist->GetXaxis()->SetRangeUser(0, 1000);
-  if (storeHist)
-    CollOut->Add(StoreHist);
-
+  
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
@@ -517,35 +530,40 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	return; 
       }
     }
-    AB_pL.SetNotifications(CATS::nError); 
+    AB_pL.SetNotifications(CATS::nError);
+    std::cout << "Killing pL Cat \n";
     AB_pL.KillTheCat();
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
-      for (vFrac_pL = 0; vFrac_pL < 3; ++vFrac_pL) {
+      FemtoFitMax = FemtoRegion[vFemReg];
+      for (vFrac_pL = 0; vFrac_pL < 9; ++vFrac_pL) {
+	lmb_pL = lam_pL.at(vFrac_pL); 
+	lmb_pLS0 = lam_pL_pS0.at(vFrac_pL);
+	lmb_pLXim = lam_pL_pXm.at(vFrac_pL);
         for (int iBL = 0; iBL < 3; iBL++) {
-          for (int BaselineSlope = 0; BaselineSlope < 3; ++BaselineSlope) {
-            if (BaselineSlope == 1) {
+	  BaseLineMin = FemtoRegion[iBL];
+	  BaseLineMax = FemtoRegion[iBL];
+          for (BaseLine = 0; BaseLine < 3; ++BaseLine) {
+            if (BaseLine == 1) {
               //no pol1 baseline.
               continue;
             }
             // Some computation here
             auto end = std::chrono::system_clock::now();
-	    double runningAvg = counter == 1?1:AvgRadius/(double)(counter-1);
+	    double runningAvg = uIter == 1?1:AvgRadius/(double)(uIter-1);
             std::chrono::duration<double> elapsed_seconds = end - start;
             std::cout
-                << "\r Processing progress: "
-                << TString::Format("%.1f %%", counter++ / total * 100.f).Data()
-                << " elapsed time: " << elapsed_seconds.count() / 60. << " avg. Radius: " <<   runningAvg
-                << std::flush;
+	      << "\r Processing progress: "
+	      << TString::Format("%.1f %%", uIter / total * 100.f).Data()
+	      << " elapsed time: " << elapsed_seconds.count() / 60. << " avg. Radius: " <<   runningAvg
+	      << std::flush;
 	    TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
             if (!OliHisto_pp) {
               std::cout << HistppName.Data() << " Missing" << std::endl;
               return;
             }
             //!CHANGE PATH HERE
-
             const unsigned NumSourcePars =
-                (TheSource == TidyCats::sLevy ? 2 : 1);
-
+	      (TheSource == TidyCats::sLevy ? 2 : 1);
             //this way you define a correlation function using a CATS object.
             //needed inputs: num source/pot pars, CATS obj
             DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
@@ -666,11 +684,11 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
             fitter->SetSeparateBL(0, false);
             fitter->SetParameter("pLambda", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
-            if (BaselineSlope == 1) {
+            if (BaseLine == 1) {
               fitter->SetParameter("pLambda", DLM_Fitter1::p_b, 1e-4, -2e-3,
                                    2e-3);
               fitter->FixParameter("pLambda", DLM_Fitter1::p_c, 0);
-            } else if (BaselineSlope == 2) {
+            } else if (BaseLine == 2) {
               fitter->SetParameter("pLambda", DLM_Fitter1::p_b, 1e-4, -2e-3,
                                    2e-3);
               fitter->SetParameter("pLambda", DLM_Fitter1::p_c, 1e-5, -1e-4,
@@ -685,29 +703,27 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
             CkDec_pL.Update();
             CkDec_pXim.Update();
             fitter->GoBabyGo();
-
+	    
             TGraph FitResult;
             FitResult.SetName(
-                TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
+			      TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
             fitter->GetFitGraph(0, FitResult);
-            c1->cd();
-            TGraph* pointerFitResult = new TGraph(FitResult);
-            pointerFitResult->SetName(
-                TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
+            
+	    pointerFitResult = new TGraph(FitResult.GetN(), FitResult.GetX(), FitResult.GetY());
+
             pointerFitResult->SetLineWidth(2);
             pointerFitResult->SetLineColor(kRed);
             pointerFitResult->SetMarkerStyle(24);
             pointerFitResult->SetMarkerColor(kRed);
             pointerFitResult->SetMarkerSize(1);
-            pointerFitResult->Draw("CP, same");
 
             double Chi2 = 0;
             unsigned EffNumBins = 0;
-            if (BaselineSlope == 0) {
+            if (BaseLine == 0) {
               EffNumBins = -2;  // radius and normalization
-            } else if (BaselineSlope == 0) {
+            } else if (BaseLine == 0) {
               EffNumBins = -3;  // radius, normalization and slope
-            } else if (BaselineSlope == 0) {
+            } else if (BaseLine == 0) {
               EffNumBins = -4;  // radius, normalization, slope and skewness
             }
             for (unsigned uBin = 0; uBin < NumMomBins; uBin++) {
@@ -738,102 +754,16 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
               EffNumBins++;
             }
 	    AvgRadius += fitter->GetParameter("pLambda", DLM_Fitter1::p_sor0);
-            ntBuffer[0] = NumIter;
-            ntBuffer[1] = uIter;
-            ntBuffer[2] = FemtoRegion[vFemReg];
-            ntBuffer[3] = vMod_pL;
-            ntBuffer[4] = BaselineSlope;
-            ntBuffer[5] = 0.;
-            ntBuffer[6] = 0.;
-            ntBuffer[7] = lam_pL.at(vFrac_pL);
-            ntBuffer[8] = lam_pL_pS0.at(vFrac_pL);
-            ntBuffer[9] = lam_pL_pXm.at(vFrac_pL);
-            ntBuffer[10] = TheSource;
-            ntBuffer[11] = fitter->GetParameter("pLambda", DLM_Fitter1::p_sor0);
-            ntBuffer[12] = fitter->GetParError("pLambda", DLM_Fitter1::p_sor0);
-            ntBuffer[13] = fitter->GetParameter("pLambda", DLM_Fitter1::p_sor1);
-            ntBuffer[14] = fitter->GetParError("pLambda", DLM_Fitter1::p_sor1);
-            ntBuffer[15] = fitter->GetParameter("pLambda", DLM_Fitter1::p_a);
-            ntBuffer[16] = fitter->GetParError("pLambda", DLM_Fitter1::p_a);
-            ntBuffer[17] = fitter->GetParameter("pLambda", DLM_Fitter1::p_b);
-            ntBuffer[18] = fitter->GetParError("pLambda", DLM_Fitter1::p_b);
-            ntBuffer[19] = fitter->GetParameter("pLambda", DLM_Fitter1::p_c);
-            ntBuffer[20] = fitter->GetParError("pLambda", DLM_Fitter1::p_c);
-            ntBuffer[21] = Chi2 / EffNumBins;
-            ntBuffer[22] = BaseLineRegion[iBL][0];
-            ntBuffer[23] = BaseLineRegion[iBL][1];
-            ntResult->Fill(ntBuffer);
-
-            DLM_Histo<double>* CkpL_pS0 = CkDec_pL.GetChildContribution(
-                (const unsigned int) 0, false);
-            DLM_Histo<double>* CkpL_pXim = CkDec_pL.GetChildContribution(
-                (const unsigned int) 1, false);
-            TGraph* grCkpL_pS0 = new TGraph();
-            grCkpL_pS0->SetName(
-                TString::Format("grCkpL_pS0_Var_%u_Iter_%u", NumIter, uIter));
-
-            TGraph* grCkpL_pS0Scaled = new TGraph();
-            grCkpL_pS0Scaled->SetName(
-                TString::Format("grCkpL_pS0Scaled_Var_%u_Iter_%u", NumIter,
-                                uIter));
-
-            TGraph* grCkpS0 = new TGraph();
-            grCkpS0->SetName(
-                TString::Format("grCkpS0_Var_%u_Iter_%u", NumIter, uIter));
-
-            TGraph* grCkpL_pXi = new TGraph();
-            grCkpL_pXi->SetName(
-                TString::Format("grCkpL_pXi_Var_%u_Iter_%u", NumIter, uIter));
-
-            TGraph* grCkpL_pXiScaled = new TGraph();
-            grCkpL_pXiScaled->SetName(
-                TString::Format("grCkpL_pXiScaled_Var_%u_Iter_%u", NumIter,
-                                uIter));
-
-            TGraph* grCkpXi = new TGraph();
-            grCkpXi->SetName(
-                TString::Format("grCkpXi_Var_%u_Iter_%u", NumIter, uIter));
-
-            for (int iBin = 0; iBin < FitResult.GetN(); iBin++) {
-              grCkpL_pS0->SetPoint(iBin, CkpL_pS0->GetBinCenter(0, iBin),
-                                   CkpL_pS0->GetBinContent(iBin));
-              grCkpL_pS0Scaled->SetPoint(
-                  iBin,
-                  CkpL_pS0->GetBinCenter(0, iBin),
-                  1
-                      + (CkpL_pS0->GetBinContent(iBin) - 1)
-                          * lam_pL_pS0.at(vFrac_pL));
-              grCkpS0->SetPoint(
-                  iBin, CkpL_pS0->GetBinCenter(0, iBin),
-                  CkDec_pSigma0.EvalCk(CkpL_pS0->GetBinCenter(0, iBin)));
-
-              grCkpL_pXi->SetPoint(iBin, CkpL_pXim->GetBinCenter(0, iBin),
-                                   CkpL_pXim->GetBinContent(iBin));
-              grCkpL_pXiScaled->SetPoint(
-                  iBin,
-                  CkpL_pXim->GetBinCenter(0, iBin),
-                  1
-                      + (CkpL_pXim->GetBinContent(iBin) - 1)
-                          * lam_pL_pXm.at(vFrac_pL));
-              grCkpXi->SetPoint(
-                  iBin, CkpL_pXim->GetBinCenter(0, iBin),
-                  CkDec_pXim.EvalCk(CkpL_pXim->GetBinCenter(0, iBin)));
-            }
-
-            TList* outList = new TList();
-            outList->SetOwner();
-            outList->SetName(
-                TString::Format("Graph_Var_%u_iter_%u", NumIter, uIter));
-            outList->Add(pointerFitResult);
-            outList->Add(grCkpL_pS0);
-            outList->Add(grCkpL_pS0Scaled);
-            outList->Add(grCkpS0);
-
-            outList->Add(grCkpL_pXi);
-            outList->Add(grCkpL_pXiScaled);
-            outList->Add(grCkpXi);
-            CollOut->Add(outList);
-
+	    
+	    pa = fitter->GetParameter("pLambda", DLM_Fitter1::p_a);
+	    pb = fitter->GetParameter("pLambda", DLM_Fitter1::p_b);
+	    pc = fitter->GetParameter("pLambda", DLM_Fitter1::p_c);
+	    ResultRadius  = fitter->GetParameter("pLambda", DLM_Fitter1::p_sor0);
+	    ResultRadiusErr = fitter->GetParError("pLambda", DLM_Fitter1::p_sor0);
+	    Stability = fitter->GetParameter("pLambda", DLM_Fitter1::p_sor1);
+	    outChiSqNDF = Chi2 / EffNumBins;
+	    outTree->Fill();
+	    
             uIter++;
 
             delete Ck_pL;
@@ -848,8 +778,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   }
   std::cout << "\n";
   OutFile->cd();
-  ntResult->Write();
-  CollOut->Write(TString::Format("Out%u", NumIter), TObject::kSingleKey);
+  outTree->Write();   
   OutFile->Close();
   delete tidy;
 }
