@@ -664,7 +664,7 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
   switch (pot) {
     case TidyCats::pSigma0Haidenbauer:
       ExternalWF = Init_pSigma0_Haidenbauer(
-          TString::Format("%s/CERNHome/Sigma0/HaidenbauerWF/", HomeDir.Data()), AB_pSigma0);
+          TString::Format("%s/cernbox/SystematicsAndCalib/Sigma0/HaidenbauerWF/", HomeDir.Data()), AB_pSigma0);
       for (unsigned uCh = 0; uCh < AB_pSigma0->GetNumChannels(); uCh++) {
         AB_pSigma0->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                             ExternalWF[1][uCh][0]);
@@ -672,7 +672,7 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       CleanUpWfHisto(AB_pSigma0->GetNumChannels(), ExternalWF);
       break;
     case TidyCats::pSigma0ESC16:
-      ExternalWF = Init_pS0_ESC16(TString::Format("%s/CERNHome/Sigma0/ESC16/", HomeDir.Data()),
+      ExternalWF = Init_pS0_ESC16(TString::Format("%s/cernbox/SystematicsAndCalib/Sigma0/ESC16/", HomeDir.Data()),
                                   AB_pSigma0);
       AB_pSigma0->SetExternalWaveFunction(0, 0, ExternalWF[0][0][0],
                                           ExternalWF[1][0][0]);
@@ -682,7 +682,7 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       break;
     case TidyCats::pSigma0NSC97f:
       ExternalWF = Init_pSigma0_Haidenbauer(
-          TString::Format("%s/CERNHome/Sigma0/NSC97f/", HomeDir.Data()),
+          TString::Format("%s/cernbox/SystematicsAndCalib/Sigma0/NSC97f/", HomeDir.Data()),
           AB_pSigma0);
       for (unsigned uCh = 0; uCh < AB_pSigma0->GetNumChannels(); uCh++) {
         AB_pSigma0->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
