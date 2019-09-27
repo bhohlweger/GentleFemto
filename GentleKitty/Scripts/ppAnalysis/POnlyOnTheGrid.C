@@ -78,7 +78,11 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   double PurityProton, PrimProton, SecLamProton;
   double PurityLambda, PrimLambdaAndSigma, SecLambda;
   double PurityXi;
-
+  std::vector<double> ProSecondary = {0.79, 0.8,  0.81,  0.82,  0.83, 0.84, 0.87};
+  std::vector<double> LamPurity = {0.92, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95 };
+  std::vector<double> LamSecondary = { 0.72, 0.73, 0.74, 0.75, 0.76, 0.77, 0.78};
+  std::vector<float> mTValues = { 1.10765, 1.16831, 1.22838, 1.31558, 1.46282, 1.68716, 2.21156 }; 
+  
   std::cout << "SYSTEM: " << system << std::endl;
 
   //Setup the input vales for the Lambda parameters & Specific to the system  
@@ -111,12 +115,19 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
     SigmaFileName += "Sample6_MeV_compact.root";
     PurityProton = 0.9943;
-    PrimProton = 0.873;
-    SecLamProton = 0.089;  //Fraction of Lambdas
+    // PrimProton = 0.873; 
+    // SecLamProton = 0.089;  //Fraction of Lambdas
 
-    PurityLambda = 0.961;
-    PrimLambdaAndSigma = 0.785;  //fraction of primary Lambdas + Sigma 0
-    SecLambda = 0.215;  //fraction of weak decay Lambdas
+    // PurityLambda = 0.961;
+    // PrimLambdaAndSigma = 0.785;  //fraction of primary Lambdas + Sigma 0
+    // SecLambda = 0.215;  //fraction of weak decay Lambdas
+
+    PrimProton = ProSecondary[imTBin]; 
+    SecLamProton = 0.7*(1-(double)PrimProton);  //Fraction of Lambdas
+
+    PurityLambda = LamPurity[imTBin];
+    PrimLambdaAndSigma = LamSecondary[imTBin];  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 1-PrimLambdaAndSigma;  //fraction of weak decay Lambdas
 
     PurityXi = 0.915;
   } else {

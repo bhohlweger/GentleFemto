@@ -86,6 +86,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   double PurityProton, PrimProton, SecLamProton;
   double PurityLambda, PrimLambdaAndSigma, SecLambda;
   double PurityXi;
+  std::vector<double> ProSecondary = {0.78, 0.8,  0.8,  0.8,  0.82, 0.84, 0.87};
+  std::vector<double> LamPurity = {0.92, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95 };
+  std::vector<double> LamSecondary = { 0.72, 0.73, 0.74, 0.75, 0.76, 0.77, 0.78};
+  std::vector<float> mTValues = { 1.21236, 1.28964, 1.37596, 1.54074, 1.75601, 2.25937 }; 
 
   std::cout << "SYSTEM: " << system << std::endl;
   
