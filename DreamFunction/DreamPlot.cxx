@@ -580,12 +580,12 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   c->SetRightMargin(right);
   c->SetTopMargin(top);
   fProtonSigma->SetLegendName(
-      "p#minus#kern[-0.65]{ }#Sigma^{0} #oplus #bar{p}#minus#kern[-0.75]{ }#bar{#Sigma^{0}}", "fpe");
+      "p#minus#kern[-0.95]{ }#Sigma^{0} #oplus #bar{p}#minus#kern[-0.85]{ }#bar{#Sigma^{0}}", "fpe");
   fProtonSigma->SetLegendName("fss2", "l");
   fProtonSigma->SetLegendName("#chiEFT (NLO)", "l");
   fProtonSigma->SetLegendName("ESC16", "l");
   fProtonSigma->SetLegendName("NSC97f", "l");
-  fProtonSigma->SetLegendName("p#minus#kern[-0.4]{ }(#Lambda#gamma) background", "l");
+  fProtonSigma->SetLegendName("p#minus#kern[-1.]{ }(#Lambda#gamma) background", "l");
   fProtonSigma->SetRangePlotting(0, 365, 0.85, 1.7);
   fProtonSigma->SetNDivisions(504);
   fProtonSigma->SetForceAxisRanges(true);
@@ -608,7 +608,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   d->SetRightMargin(right);
   d->SetTopMargin(top);
   fProtonSigmaSideband->SetLegendName(
-      "p#minus#kern[-0.65]{ }(#Lambda#gamma) #oplus #bar{p}#minus#kern[-0.65]{ }(#bar{#Lambda}#gamma)", "fpe");
+      "p#minus#kern[-0.65]{ }(#Lambda#gamma) #oplus #bar{p}#minus#kern[-0.4]{ }(#bar{#Lambda}#gamma)", "fpe");
   fProtonSigmaSideband->SetLegendName("Parametrization", "l");
   fProtonSigmaSideband->SetRangePlotting(0, 365, 0.9, 1.7);
   fProtonSigmaSideband->SetNDivisions(504);
@@ -660,7 +660,7 @@ void DreamPlot::DrawCorrelationFunctionProtonProton(const char* path) {
   c->SetRightMargin(right);
   c->SetTopMargin(top);
   fProtonProton->SetLegendName(
-      "p#minus#kern[-0.25]{ }p #oplus #bar{p}#minus#kern[-0.25]{ }#bar{p}", "fpe");
+      "p#minus#kern[-0.95]{ }p #oplus #bar{p}#minus#kern[-0.85]{ }#bar{p}", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
   fProtonProton->SetRangePlotting(0, 225, 0.8, 3.5);
   fProtonProton->SetInletRangePlotting(50, 350, 0.94, 1.06);
@@ -722,7 +722,7 @@ void DreamPlot::DrawSystemInfo(TPad* c, bool plotRadius, float xMin,
       BeamText.SetTextSize(gStyle->GetTextSize() * .9);
             BeamText.DrawLatex(xMin, 0.9, Form("ALICE %s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));      BeamText.DrawLatex(
                 xMin,
-                0.84, "High-mult. (0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+                0.84, "High-mult. (0#kern[-0.65]{ }#minus#kern[-0.65]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
     } else {
       BeamText.DrawLatex(
           xMin,
