@@ -575,18 +575,25 @@ void DreamSystematics::ComputeUncertaintyBBar(int doRebin) {
   }
 
 
-  fRatio = new TF1("SystError", "pol0(0)+expo(1)", fSystematicFitRangeLow,
+  fRatio = new TF1("SystError", "[0]+expo([1]/x)", fSystematicFitRangeLow,
                    fSystematicFitRangeUp);
 
   fRatio->SetParameter(
       0,
       fHistSystErrRel->GetBinContent(
           fHistSystErrRel->FindBin(fSystematicFitRangeUp)));
+
+//  fRatio->SetParameter(1, fHistSystErrRel->GetBinContent(
+//          fHistSystErrRel->FindBin(fSystematicFitRangeUp*0.5)));
+//
+//  fRatio->SetParameter(2, 1.5);
+
   float startExp = fHistSystErrRel->GetBinContent(1)
       - fHistSystErrRel->GetBinContent(
           fHistSystErrRel->FindBin(fSystematicFitRangeUp));
 
   fRatio->SetParameter(1, TMath::Log(startExp));
+
   std::cout
       << "Start Parameter 0: "
       << fHistSystErrRel->GetBinContent(
