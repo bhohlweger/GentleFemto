@@ -4,6 +4,7 @@
 #include "ForgivingReader.h"
 #include "CandidateCounter.h"
 #include "TCanvas.h"
+#include "TSystem.h"
 #include <iostream>
 
 void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange) {
@@ -12,8 +13,8 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.2, 0.4);
-  CATSinput->SetFixedkStarMinBin(true, 0.008);
-  const int rebin = 1;//20
+  CATSinput->SetFixedkStarMinBin(true, 0.);
+  const int rebin = 5;//20
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
@@ -32,9 +33,14 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   DreamDist* ApL = DreamFile->GetPairDistributions(1, 2, "");
   DreamCF* CFpALDef = CATSinput->ObtainCFSyst(rebin, "pALDef", pAL, ApL);
   const int pairCountsDefault = CFpALDef->GetFemtoPairs(0, 0.2);
+  printf("pairCountsDefault = %.2i\n", pairCountsDefault);
   DreamSystematics protonAL(DreamSystematics::pAL);
 //  protonL.SetUpperFitRange(0.080);
-  protonAL.SetDefaultHist(CFpALDef, "hCk_ReweightedpALDefMeV_0");
+  if (rebin != 1) {
+	  protonAL.SetDefaultHist(CFpALDef, "hCk_ReweightedpALDefMeV_1");
+  } else {
+	  protonAL.SetDefaultHist(CFpALDef, "hCk_ReweightedpALDefMeV_0");
+  }
   protonAL.SetUpperFitRange(upperFitRange);
   int iPLCounter = 0;
   for (int i = 1; i <= 44; ++i) {
@@ -46,12 +52,19 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
         DreamVarFile->GetPairDistributions(1, 2, ""));
     int femtoPairVar= CFpALVar->GetFemtoPairs(0, 0.2);
     float relDiff = (femtoPairVar-pairCountsDefault)/(float)pairCountsDefault;
-    printf("reldiff (%i)=%.2f\n",i,relDiff);
+//    printf("reldiff (%i)=%.2f\n",i,relDiff);
     if (TMath::Abs(relDiff) > 0.2) {
       continue;
     }
-    protonAL.SetVarHist(CFpALVar,
-                        TString::Format("Reweighted%sMeV_0", VarName.Data()));
+    if(TMath::Abs(relDiff)>=0.1 && TMath::Abs(relDiff)<=0.199)printf("--- BIG relDiff (%i) = %.3f ----\n",i,relDiff);
+    if (rebin != 1) {
+    	protonAL.SetVarHist(
+    			CFpALVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+    } else {
+    	protonAL.SetVarHist(
+    			CFpALVar, TString::Format("Reweighted%sMeV_0", VarName.Data()));
+    }
+
     TString VarString = TString::Format("%u", i);
     ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
                                                          prefix,
@@ -64,7 +77,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
     iPLCounter++;
   }
 
-  protonAL.EvalSystematicsBBar(2);
+  protonAL.EvalSystematicsBBar(0);
 
   protonAL.EvalDifferenceInPairs();
   protonAL.EvalDifferenceInParticles();

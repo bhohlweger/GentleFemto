@@ -103,7 +103,7 @@ void CandidateCounter::SetNumberOfCandidatesBBar(ForgivingReader* reader) {
         << "CandidateCounter::SetNumberOfCandidates Proton Counter missing \n";
   } else {
 //    std::cout << pTProton->GetName() << std::endl;
-    std::cout << "Number of Protons: " << pTProton->GetEntries() << std::endl;
+//    std::cout << "Number of Protons: " << pTProton->GetEntries() << std::endl;
     fnTracks += pTProton->GetEntries();
     // printf("--- debug in CandidateCounter 1 ---\n");
   }
@@ -113,7 +113,7 @@ void CandidateCounter::SetNumberOfCandidatesBBar(ForgivingReader* reader) {
         << "CandidateCounter::SetNumberOfCandidates Anti-Proton Counter missing \n";
   } else {
 //    std::cout << pTAntiProton->GetName() << std::endl;
-    std::cout << "Number of AntiProtons: "<< pTAntiProton->GetEntries() << std::endl;
+//    std::cout << "Number of AntiProtons: "<< pTAntiProton->GetEntries() << std::endl;
     fnAntiTracks += pTAntiProton->GetEntries();
     // printf("--- debug in CandidateCounter 2 ---\n");
 
@@ -126,7 +126,7 @@ void CandidateCounter::SetNumberOfCandidatesBBar(ForgivingReader* reader) {
     auto pTIntv0 = (TH1F*) pTv0->ProjectionY("pTv0Integrated", 1, -1);
     fnv0s += pTIntv0->Integral(pTIntv0->FindBin(LambdaMass - 0.004),
                                pTIntv0->FindBin(LambdaMass + 0.004));
-    std::cout << "Number of Lambdas: " << fnv0s<<std::scientific<<std::endl;
+//    std::cout << "Number of Lambdas: " << fnv0s<<std::scientific<<std::endl;
 
   }
   auto pTAntiv0 = (TH2F*) reader->Get2DHistInList(
@@ -139,9 +139,8 @@ void CandidateCounter::SetNumberOfCandidatesBBar(ForgivingReader* reader) {
     auto pTIntAv0 = (TH1F*) pTAntiv0->ProjectionY("pTAntiv0Integrated", 1, -1);
     fnAntiv0s += pTIntAv0->Integral(pTIntAv0->FindBin(LambdaMass - 0.004),
                                 pTIntAv0->FindBin(LambdaMass + 0.004));
-    std::cout << "Number of AntiLambdas: " << fnv0s<<std::scientific<<std::endl;
+//    std::cout << "Number of AntiLambdas: " << fnAntiv0s<<std::scientific<<std::endl;
 
-  // printf("--- debug in CandidateCounter 4 ---\n");
 
   }
 
