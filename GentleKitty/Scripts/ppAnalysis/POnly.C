@@ -8,399 +8,486 @@
 #include "DLM_Fitters.h"
 
 #include "TidyCats.h"
+#include "CATSLambdaParam.h"
 #include "CATSInput.h"
 #include "ReadDreamFile.h"
 #include "DreamCF.h"
 #include "DreamPair.h"
 
-#include "TH2F.h"
-#include "TFile.h"
-#include "TNtuple.h"
 #include "TDatabasePDG.h"
-#include "TGraph.h"
-#include "TF1.h"
-#include "TPaveText.h"
-#include "TLegend.h"
-#include "TMath.h"
+#include "TROOT.h"
+#include "TNtuple.h"
 #include "TCanvas.h"
-#include "TSystem.h"
 
 #include <iostream>
 #include "stdlib.h"
-void FitPPVariations(const unsigned& NumIter, int system, int source,
-                     TString InputDir, TString OutputDir);
+#include <chrono>
+#include <ctime>
 
-int main(int argc, char *argv[]) {
-  FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), argv[4],
-                  argv[5]);
-  return 0;
-}
+void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source,
+                     unsigned int iAngDist, int iRange, bool storeHist, TString InputFile,
+                     TString HistoName, TString OutputDir) {
+  //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
+  auto start = std::chrono::system_clock::now();
+  gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
 
-void FitPPVariations(const unsigned& NumIter, int system, int source,
-                     TString InputDir, TString OutputDir) {
-//	TRandom3 rangen(1 + JobID);
-  TString HistppName = "hCk_ReweightedppMeV_0";
-
-  int Rebin = 5;
-  //!SETTING THAT YOU MIGHT NEED
-  //What source to use: 0 = Gauss; 1=Cauchy; 2=DoubleGauss
-  //int vSource = rangen.Integer(2); if(vSource==1) vSource=3; //chose Gauss/EPOS at random
-
-  const bool FAST_PLOT = true;
-  const bool FULL_PLOT = false;
-  TString CalibBaseDir = "";
-  std::cout << "SYSTEM: " << system << std::endl;
-  if (system == 0) {  // pPb MB
-    CalibBaseDir += "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
-  } else if (system == 1) {  // pp MB
-    CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_MB/";
-  } else if (system == 2) {  // pp HM
-    CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
-  } else if (system == 11) {  // pPb at the Grid
-    CalibBaseDir +=
-        "/home/gu74req/Analysis/CATS_Input/SystematicsAndCalib/pPbRun2_MB/";
-//    system = 0;
+  //Setup Various Inputs
+  
+  TString HistppName = HistoName.Data();
+  TFile* inFile = TFile::Open(TString::Format("%s", InputFile.Data()), "READ");
+  if (!inFile) {
+    std::cout << "No input file found exiting \n";
+    return;
   }
+  TH1F* StoreHist = (TH1F*) inFile->Get(HistppName.Data());
+  if (!StoreHist) {
+    std::cout << "Histogram " << HistppName.Data() << " not found, exiting \n";
+    inFile->ls();
+    return;
+  }
+  //This is for the CATS objects, make sure it covers the full femto range
+
+  const unsigned NumMomBins = 60;
+  const double kMin = StoreHist->GetXaxis()->GetXmin();
+  const double kMax = kMin + StoreHist->GetXaxis()->GetBinWidth(1) * NumMomBins;  //(4 is the bin width)
+  //if you modify you may need to change the CATS ranges somewhere below
+  double FemtoRegion[3];
+  FemtoRegion[0] = 350;
+  FemtoRegion[1] = 375;
+  FemtoRegion[2] = 400;
+
   TidyCats::Sources TheSource;
+  TidyCats::Sources FeeddownSource;
   if (source == 0) {
     TheSource = TidyCats::sGaussian;
+    FeeddownSource = TheSource;
   } else if (source == 1) {
     TheSource = TidyCats::sResonance;
+    FeeddownSource = TidyCats::sGaussian;
   } else if (source == 2) {
     TheSource = TidyCats::sLevy;
+    FeeddownSource = TidyCats::sGaussian;
   } else {
     std::cout << "Source does not exist! Exiting \n";
     return;
   }
-
-  //just some temp folder for temp files. Really not important, I will try to get rid of this soon
-  //  const TString OutputDir = "/Users/bernhardhohlweger/CATSOutput/";
-
-  //perform the systematics by using the different cut variations as further permutations, do NOT add the systematic errors in quadrature
-  //TString SystematicsType = "CutVarIterate";
-  //perform the systematics by adding the systematics errors of the bin quadratically to the data points
-  //  TString SystematicsType = "CutVarAdd";
-  //  const bool ExcludeXi = false; //(fit only pp/pL/LL just as in run1)
-
-  //!Binning
-  //This is for the CATS objects, make sure it covers the full femto range
-  const int binwidth = 4 * Rebin;
-  const unsigned NumMomBins = 105;
-  const double kMin = 4;
-  const double kMax = kMin + 4 * NumMomBins;  //(4 is the bin width)
-
-  //if you modify you may need to change the CATS ranges somewhere below
-  double FemtoRegion_pp[3][2];
-  FemtoRegion_pp[0][0] = kMin;
-  FemtoRegion_pp[0][1] = 350;
-  FemtoRegion_pp[1][0] = kMin;
-  FemtoRegion_pp[1][1] = 375;
-  FemtoRegion_pp[2][0] = kMin;
-  FemtoRegion_pp[2][1] = 400;
-
-  float NormRegion[3][2];
-  NormRegion[0][0] = 0.200;
-  NormRegion[0][1] = 0.300;
-  NormRegion[1][0] = 0.240;
-  NormRegion[1][1] = 0.340;
-  NormRegion[2][0] = 0.280;
-  NormRegion[2][1] = 0.380;
-
-  //	220-320 / 260-360/ 240-340
-  //!The baseline region (the same for all other systems)
-  double BlRegion[2];
-  BlRegion[0] = 420;
-  BlRegion[1] = 420;
-
-  double PurityProton;
-  double PurityLambda;
+  TString CalibBaseDir = "";
+  TString SigmaFileName = "";
+  double PurityProton, PrimProton, SecLamProton;
+  double PurityLambda, PrimLambdaAndSigma, SecLambda;
   double PurityXi;
-  double pp_f0;
-  double pp_f1;
-  double pL_f0;
-  double pL_f1;
-  double pL_f2;
+  
+  std::cout << "SYSTEM: " << system << std::endl;
 
-  //(single particle quantities)
-  //pPb
+  //Setup the input vales for the Lambda parameters & Specific to the system  
+
   if (system == 0) {
+    CalibBaseDir += "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
+    SigmaFileName += "Sample3_MeV_compact.root";
     PurityProton = 0.984266;  //pPb 5 TeV
-    PurityLambda = 0.937761;
+    PrimProton = 0.862814;
+    SecLamProton = 0.09603;
+
+    PurityLambda = 0.937761; 
+    PrimLambdaAndSigma = 0.79;  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 0.30;  //fraction of weak decay Lambdas
+
     PurityXi = 0.88;  //new cuts
-
-    pp_f0 = 0.862814;
-    pp_f1 = 0.09603;
-
-    pL_f0 = 0.521433;  //fraction of primary Lambdas
-    pL_f1 = 0.173811;  //fraction of Sigma0
-    pL_f2 = 0.152378;  //fractions of Xi0/m
-  } else if (system == 1) {  // pp MB + HM
+  } else if (system == 1) {  // pp HM
+    CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_MB/";
+    SigmaFileName += "Sample6_MeV_compact.root";
     PurityProton = 0.991213;
+    PrimProton = 0.874808;
+    SecLamProton = 0.0876342;
+
     PurityLambda = 0.965964;
-    PurityXi = 0.956;
+    PrimLambdaAndSigma = 0.806;  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 0.194;  //fraction of weak decay Lambdas
 
-    pp_f0 = 0.874808;
-    pp_f1 = 0.0876342;  //fraction of
+    PurityXi = 0.915;
+  } else if (system == 2) {  // pp HM
+    CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
+    SigmaFileName += "Sample6_MeV_compact.root";
+    PurityProton = 0.9943;
+    
+    PrimProton = 0.822;
+    SecLamProton = 0.124;  //Fraction of Lambdas
 
-    pL_f0 = 0.619493;  //fraction of primary Lambdas
-    pL_f1 = 0.206498;  //fraction of Sigma0
-    pL_f2 = 0.0870044;  //fractions of Xi0/m
-  } else if (system == 2) {
-    PurityProton = 0.991213;
-    PurityLambda = 0.965964;
-    PurityXi = 0.956;
+    PurityLambda = 0.961; 
+    PrimLambdaAndSigma = 0.785;  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 1-PrimLambdaAndSigma;  //fraction of weak decay Lambdas
 
-    pp_f0 = 0.874808;
-    pp_f1 = 0.0876342;  //fraction of
-
-    pL_f0 = 0.619493;  //fraction of primary Lambdas
-    pL_f1 = 0.206498;  //fraction of Sigma0
-    pL_f2 = 0.0870044;  //fractions of Xi0/m
+    PurityXi = 0.915;
   } else {
-    std::cout << "System " << system << " does not exist, exiting \n";
+    std::cout << "System " << system << " not implmented, extiting \n";
     return;
   }
-  //ADVANCED***
-  double ProtonPrim = pp_f0;
-  double arrayPercLamProton[3] = { pp_f1 / (1. - pp_f0) * 0.8, pp_f1
-      / (1. - pp_f0), pp_f1 / (1. - pp_f0) * 1.2 };  //+/- 20%
 
-  const double SigLambdaPrimDir = pL_f0 + pL_f1;
-  double arrayPercSigLambda[3] = { 0.8 * pL_f1 / pL_f0, pL_f1 / pL_f0, 1.2
-      * pL_f1 / pL_f0 };  //1/3 +/- 20%
-  double arrayPercXiLambda[3] = { pL_f2 / (1. - pL_f0 - pL_f1) * 0.8, pL_f2
-      / (1. - pL_f0 - pL_f1), pL_f2 / (1. - pL_f0 - pL_f1) * 1.2 };  //+/- 20%
-
-  //ratio Xi-(1530) to Xi-
-  const double Xim1530_to_Xim = 0.32 * (1. / 3.);
-  //ratio Xi0(1530) to Xi0 (n=neutral)
-  const double Xin1530_to_Xim = 0.32 * (2. / 3.);
-  const double Omegam_to_Xim = 0.1;
-  const double OmegamXim_BR = 0.086;
-
-  //following my lambda pars with the 3 possible modifications
-  //for the proton:
-  //0 = primary
-  //1 = from Lambda
-  //2 = other feeddown (flat)
-  //3 = missidentified
-  const unsigned NumChannels_p = 4;
-  double** Purities_p = new double*[3];
-  double** Fraction_p = new double*[3];
-  for (unsigned uVar = 0; uVar < 3; uVar++) {
-    Purities_p[uVar] = new double[NumChannels_p];
-    Fraction_p[uVar] = new double[NumChannels_p];
-
-    Purities_p[uVar][0] = PurityProton;
-    Purities_p[uVar][1] = PurityProton;
-    Purities_p[uVar][2] = PurityProton;
-    Purities_p[uVar][3] = 1. - PurityProton;
-
-    Fraction_p[uVar][0] = ProtonPrim;
-    Fraction_p[uVar][1] = (1. - ProtonPrim) * (arrayPercLamProton[uVar]);
-    Fraction_p[uVar][2] = (1. - ProtonPrim) * (1. - arrayPercLamProton[uVar]);
-    Fraction_p[uVar][3] = 1.;
-  }
-
-  //for the Lambda:
-  //0 = primary
-  //1 = from Sigma0
-  //2 = from Xim
-  //3 = from Xi0
-  //4 = missidentified
-  const unsigned NumChannels_L = 5;
-  double*** Purities_L = new double**[3];
-  double*** Fraction_L = new double**[3];
-  for (unsigned uVarSL = 0; uVarSL < 3; uVarSL++) {
-    Purities_L[uVarSL] = new double*[3];
-    Fraction_L[uVarSL] = new double*[3];
-    for (unsigned uVarXi = 0; uVarXi < 3; uVarXi++) {
-      Purities_L[uVarSL][uVarXi] = new double[NumChannels_L];
-      Fraction_L[uVarSL][uVarXi] = new double[NumChannels_L];
-
-      Purities_L[uVarSL][uVarXi][0] = PurityLambda;
-      Purities_L[uVarSL][uVarXi][1] = PurityLambda;
-      Purities_L[uVarSL][uVarXi][2] = PurityLambda;
-      Purities_L[uVarSL][uVarXi][3] = PurityLambda;
-      Purities_L[uVarSL][uVarXi][4] = 1. - PurityLambda;
-
-      //the array is r = S/L, and S+L=1 are the fractions of Sigmas and Lambdas
-      double FracOfLambda = 1. / (1. + arrayPercSigLambda[uVarSL]);
-      Fraction_L[uVarSL][uVarXi][0] = SigLambdaPrimDir * FracOfLambda;
-      Fraction_L[uVarSL][uVarXi][1] = SigLambdaPrimDir * (1. - FracOfLambda);
-      Fraction_L[uVarSL][uVarXi][2] = (1. - SigLambdaPrimDir)
-          * (arrayPercXiLambda[uVarXi]);
-      Fraction_L[uVarSL][uVarXi][3] = (1. - SigLambdaPrimDir)
-          * (1. - arrayPercXiLambda[uVarXi]);
-      Fraction_L[uVarSL][uVarXi][4] = 1.;
-    }
-  }
-
-  //for the Xi:
-  //0 = primary
-  //1 = from Xi-(1530)
-  //2 = from Xi0(1530)
-  //3 = from Omega
-  //4 = missidentified
-  const unsigned NumChannels_Xim = 5;
-  double** Purities_Xim = new double*[3];
-  double** Fraction_Xim = new double*[3];
-  for (unsigned uVar = 0; uVar < 3; uVar++) {
-    Purities_Xim[uVar] = new double[NumChannels_Xim];
-    Fraction_Xim[uVar] = new double[NumChannels_Xim];
-
-    Purities_Xim[uVar][0] = PurityXi;
-    Purities_Xim[uVar][1] = PurityXi;
-    Purities_Xim[uVar][2] = PurityXi;
-    Purities_Xim[uVar][3] = PurityXi;
-    Purities_Xim[uVar][4] = 1. - PurityXi;
-
-    //the ratios that we have for Xis are referred to the total number of Xi particles (which already include all contributions)
-    //hence Xi1530_to_Xi indeed is simply the number of Xis that stem from a Xi1530
-    Fraction_Xim[uVar][0] = 1. - Xim1530_to_Xim - Xin1530_to_Xim
-        - Omegam_to_Xim * OmegamXim_BR;
-    Fraction_Xim[uVar][1] = Xim1530_to_Xim;
-    Fraction_Xim[uVar][2] = Xin1530_to_Xim;
-    Fraction_Xim[uVar][3] = Omegam_to_Xim * OmegamXim_BR;
-    Fraction_Xim[uVar][4] = 1.;
-  }
-
-  //starting value, do not worry about it too much
-  const double GaussSourceSize = 1.2;
-
+  //Setup the input resolution and smearing
+  
   CATSInput *CATSinput = new CATSInput();
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
   CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
   CATSinput->ReadResFile();
-  const char *prefix;
-  if (system == 0) {
-    CATSinput->SetSigmaFileName("Sample3_MeV_compact.root");
-    prefix = "MB";
-  } else if (system == 1) {
-    CATSinput->SetSigmaFileName("Sample6_MeV_compact.root");
-    prefix = "MB";
-  } else if (system == 2) {
-    CATSinput->SetSigmaFileName("Sample6_MeV_compact.root");
-    CATSinput->SetFixedkStarMinBin(true, 0.004);
-    prefix = "HM";
-  }
+  CATSinput->SetSigmaFileName(SigmaFileName.Data());
   CATSinput->ReadSigmaFile();
-//  CATSinput->ReadCorrelationFile(InputDir.Data(), prefix);
-  ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
-  TString InputFile = TString::Format("%s/AnalysisResults.root",
-                                      InputDir.Data());
-  DreamFile->SetAnalysisFile(InputFile.Data(), prefix);
-  //each JOB produces a separate output file
-  TFile* OutFile = new TFile(
-      TString::Format("%s/OutFile_%s_Iter%u.root", OutputDir.Data(),
-                      "CutVarAdd", NumIter),
-      "recreate");
-  //you save a lot of stuff in an NTuple
-  TNtuple* ntResult = new TNtuple(
-      "ntResult", "ntResult",
-      "IterID:vFemReg_pp:vFrac_pp_pL:vModpL:vFrac_pL_pSigma0:"
-      "vFrac_pL_pXim:BLSlope:Radius_pp:RadiusErr_pp:AlphaLev:AlphaLevErr:"
-      "pa_pp:paErr_pp:pb_pp:pbErr_pp:pc_pp:pcErr_pp:iNorm:"
-      "Chi2NdfGlobal:pval:Chi2NdfLocal");
 
-  Float_t ntBuffer[21];
+  // Xi01530 Production: dN/dy = 2.6e-3 (https://link.springer.com/content/pdf/10.1140%2Fepjc%2Fs10052-014-3191-x.pdf)
+  // Xim1530 Production = Xi01530 Production
+  // Xim Production: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // -> Production Ratio ~ 1/2
 
-  int vFemReg_pp;  //which femto region we use for pp (1 = default)
-  int vMod_pL = 1;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
+  const double Xi01530XimProdFraction = 1 / 2.;
+  const double Xim1530XimProdFraction = 1 / 2.;
+
+  // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
+  const double Xi01530Xim_BR = 2 / 3.;
+  // 1/3 of Xi-(1530) decays via Xi- + pi0 (Isospin considerations)
+  const double Xim1530Xim_BR = 1 / 3.;
+
+  // Omega production: dN/dy = 0.67e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // Xim Production: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // -> Production Ratio ~ 1/10
+  const double OmegamXimProdFraction = 1 / 10.;
+  const double OmegamXim_BR = 0.086;  // Value given by PDG, 8.6 pm 0.4 %
+
+  // Produce N Xi's -> Produce:
+  // 1 ) N* 1/10 Omegas -> See N* 1/10 * 8.6% more Xi's
+  // 2)  N* 1/2 Xi0_1530 -> See N*1/2*2/3 = N* 1/3 more Xi's
+  // 3)  N* 1/2 Xim_1530 -> See N*1/2*1/3 = N* 1/6 more Xi's
+  // Total Sample:  N(1+0.0086+1/3+1/6) ->
+  // Primary Fraction = N / N(1+0.0086+1/3+1/6)
+  // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
+  // etc.
+   
+  //Calculate the Lambda Parameters and their variations 
+
+  std::vector<double> Variation = { 0.95, 1.0, 1.05 };
+  float pFeeddownRadius = 1.3; 
+  std::vector<Particle> Proton;  // 1) variation of the Prim Fraction 2) variation of the Secondary Comp.
+  std::vector<Particle> Lambda;  // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
+  std::vector<Particle> Xi;  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
+
+  const double varPrimProton =  PrimProton; 
+  const double varSecProton = (1-(double)varPrimProton);
+  for (auto itComp : Variation) {
+    double varSecFracLamb = itComp*SecLamProton; 
+    double varSecFracSigma = 1. - varPrimProton - varSecFracLamb;
+    Proton.push_back(Particle(PurityProton , varPrimProton, { varSecFracLamb,
+	    varSecFracSigma }));
+    double sum = varPrimProton+varSecFracLamb+varSecFracSigma; 
+  }
+
+  for (auto itSLRatio : Variation) {
+    double LamSigProdFraction = 3 * itSLRatio / 4. < 1 ? 3 * itSLRatio / 4. : 1;
+    double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma; 
+    double SecSigLambda = (1. - LamSigProdFraction) * PrimLambdaAndSigma;  // decay probability = 100%!
+    for (auto itXi02mRatio : Variation) {
+      double SecXimLambda = itXi02mRatio * SecLambda / 2.;
+      double SecXi0Lambda0 = (1 - itXi02mRatio / 2.) * SecLambda;
+      Lambda.push_back(Particle(PurityLambda, PrimLambda, { SecSigLambda,
+	      SecXimLambda, SecXi0Lambda0 }));
+    }
+  }
+  
+  for (auto itXimOmega : Variation) {
+    for (auto itXi1530 : Variation) {
+      double XiNormalization = 1 + itXimOmega * OmegamXimProdFraction * OmegamXim_BR
+	+ itXi1530 * (Xi01530XimProdFraction * Xi01530Xim_BR
+		      + Xim1530XimProdFraction * Xim1530Xim_BR);
+      double SecOmegaXim = itXimOmega * OmegamXimProdFraction * OmegamXim_BR
+	/ (double) XiNormalization;
+      double SecXi01530Xim = itXi1530 * Xi01530XimProdFraction * Xi01530Xim_BR
+	/ (double) XiNormalization;
+      double SecXim1530Xim = itXi1530 * Xim1530XimProdFraction * Xim1530Xim_BR
+	/ (double) XiNormalization;
+      double PrimXim = 1. / (double) XiNormalization;
+      Xi.push_back(Particle(PurityXi, PrimXim, { SecOmegaXim,
+	      SecXi01530Xim, SecXim1530Xim }));
+    }
+  }
+  
+  CATSLambdaParam ppLam0(Proton[0], Proton[0], true);
+  CATSLambdaParam ppLam1(Proton[1], Proton[1], true);
+  CATSLambdaParam ppLam2(Proton[2], Proton[2], true);
+
+  const std::vector<double> lam_pp = {
+    ppLam0.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam1.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam2.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary)
+  };
+  const std::vector<double> lam_pp_pL = {
+    ppLam0.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0),
+    ppLam1.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0),
+    ppLam2.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0)
+  };
+  const std::vector<double> lam_pp_fake = {
+    (ppLam0.GetLambdaParam(CATSLambdaParam::Primary,CATSLambdaParam::Fake) +
+     ppLam0.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam0.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),    
+    (ppLam1.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake) +
+     ppLam1.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam1.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
+    (ppLam2.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake) +
+     ppLam2.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam2.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake))
+  };
+  CATSLambdaParam pLLam(Proton[1], Lambda[1]);
+  const float lam_pL = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+					    CATSLambdaParam::Primary);
+  const float lam_pL_pS0 = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+						CATSLambdaParam::FeedDown, 0,
+						0);
+  const float lam_pL_pXm = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+						CATSLambdaParam::FeedDown, 0,
+						1);
+  const float lam_pL_fake = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+						 CATSLambdaParam::Fake)
+    + pLLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary)
+    + pLLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake);
+  CATSLambdaParam pXiLam(Proton[1], Xi[1]);
+  const float lam_pXim = pXiLam.GetLambdaParam(CATSLambdaParam::Primary,
+					       CATSLambdaParam::Primary);
+  const float lam_pXim_pXim1530 = pXiLam.GetLambdaParam(
+							CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 2);
+  const float lam_pXim_fake = pXiLam.GetLambdaParam(CATSLambdaParam::Primary,
+						    CATSLambdaParam::Fake)
+    + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary)
+    + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake);
+  
+
+  //Link the output 
+  TFile* OutFile = new TFile(TString::Format("%s/OutFileVarpp_%u.root", OutputDir.Data(), NumIter), "RECREATE");
+  if (!OutFile) {
+    return;
+  }
+  
+  float total = TheSource == TidyCats::sLevy ? 162 : 243;
+  int numIter = NumIter; 
+  int uIter = 1; 
+  int vFemReg;  //which femto region we use for pp (1 = default)
+  float thismT = 100; 
+  float FemtoFitMax = 0;
+  float BaseLineMin = 0;
+  float BaseLineMax = 0; 
+  unsigned int vMod_pL = 1;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
+  unsigned int BaseLine = 0;
+  float pa; 
+  float pb;  
+  float pc; 
   int vFrac_pp_pL;  //fraction of protons coming from Lambda variation (1 = default)
-  int vFrac_pL_pSigma0 = 1;  //fraction of Lambdas coming from Sigma0 variation (1 = default)
-  int vFrac_pL_pXim = 1;  //fraction of Lambdas coming from Xim (1 = default)
-  int iNorm = 1;
-  bool HaveWeABaseLine = true;
-
+  float lmb_pp; 
+  float lmb_ppL;
+  float lmb_pL = lam_pL;
+  float lmb_pLS0 = lam_pL_pS0;
+  float lmb_pLXim = lam_pL_pXm; 
+  float ResultRadius;
+  float ResultRadiusErr;
+  float Stability;
+  float outChiSqNDF;
+  TGraph* pointerFitResult = nullptr; 
+  
+  TTree* outTree = new TTree("ppTree","ppTree");
+  outTree->Branch("DataVarID", &numIter, "DataVarID/i"); 
+  outTree->Branch("FitVarID", &uIter, "FitVarID/i"); 
+  outTree->Branch("imT",&imTBin, "imT/i");
+  outTree->Branch("mTValue",&thismT, "mTValue/F");
+  outTree->Branch("iAng",&iAngDist,"iAng/i");
+  outTree->Branch("iRange",&iRange,"iRange/i");
+  outTree->Branch("FemtoFitMax",&FemtoFitMax,"FemtoFitMax/F");
+  outTree->Branch("BaseLineMin",&BaseLineMin,"BaseLineMin/F");
+  outTree->Branch("BaseLineMax",&BaseLineMax,"BaseLineMax/F");
+  outTree->Branch("ModPL",&vMod_pL,"ModPL/i");
+  outTree->Branch("PolBL",&BaseLine,"PolBL/i");
+  outTree->Branch("pa",&pa,"pa/F");
+  outTree->Branch("pb",&pb,"pb/F");
+  outTree->Branch("pc",&pc,"pc/F");
+  outTree->Branch("lam_pp",&lmb_pp,"lam_pp/F");
+  outTree->Branch("lam_ppL",&lmb_ppL,"lam_ppL/F");
+  outTree->Branch("lam_pL",&lmb_pL,"lam_pL/F");
+  outTree->Branch("lam_pLS0",&lmb_pLS0,"lam_pLS0/F");
+  outTree->Branch("lam_pLXim",&lmb_pLXim,"lam_pLXim/F");
+  outTree->Branch("Source",&TheSource,"Source/i");
+  outTree->Branch("Radius",&ResultRadius,"Radius/F");
+  outTree->Branch("RadiusErr",&ResultRadiusErr,"RadiusErr/F");
+  outTree->Branch("Stab",&Stability,"Stab/F");
+  outTree->Branch("chiSqNDF",&outChiSqNDF,"chiSqNDF/F");
+  outTree->Branch("CorrHist","TH1F",&StoreHist,sizeof(TH1F));
+  outTree->Branch("FitResult","TGraph",&pointerFitResult,sizeof(TGraph));
+  
   TidyCats* tidy = new TidyCats();
-  int uIter = 1;
 
+
+  //Setup the source stuff
+
+  
   CATS AB_pp;
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
+  if (TheSource == TidyCats::sResonance) {
+    const double massProton =
+      TDatabasePDG::Instance()->GetParticle(2212)->Mass() * 1000;
+    const double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass()
+      * 1000;
+    DLM_CleverMcLevyReso* source = tidy->GetSourceProtonProton();
+    if (iAngDist == 0) {
+      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion);
+      source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion);
+      std::cout << "Emission source is boring and back to back \n"; 
+    } else if (iAngDist == 1) {
+      //backwards > 90 Degree case
+      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion,
+			false, false, DLM_CleverMcLevyReso::rdtRandomBackwards);
+      source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion,
+			false, false, DLM_CleverMcLevyReso::rdtRandomBackwards);
+      std::cout
+	<< "Sir, Emission will be fully randomized with a tad bit above 90 degrees, commencing countdown ... 3 ....\n";
+    } else if (iAngDist > 1) {
+      source->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion,
+			false, false, DLM_CleverMcLevyReso::rdtRandom);
+      source->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton, massPion,
+			false, false, DLM_CleverMcLevyReso::rdtRandom);
+      std::cout
+	<< "Sir, Emission will be fully randomized, commencing countdown ... 3 ..2 .., but wait, how random is random ...? \n";
+      if (iAngDist > 2) { 
+	const char* PhiFile;
+	const char* PhiHistoName; 
+	int PhiRebin = 1;
+	int PhiConversion = 1; 
+	double RangeProtonMin, RangeProtonMax;
+	if (iAngDist == 3) {
+	  PhiFile = "DimiPhi_pp_HM.root";
+	  PhiHistoName = "h_rkAngle_Mom2"; 
+	} else if (iAngDist == 4){
+	  PhiFile = "DimiPhi_pLambda_HM.root";
+	  PhiHistoName = "h_rkAngle_Mom2"; 
+	} else if (iAngDist == 5) {
+	  PhiFile = "DimiPhi_LambdaLambda_HM.root";
+	  PhiHistoName = "h_rkAngle_Mom2"; 
+	} else if (iAngDist == 6) {
+	  PhiFile = "DimiPhi_pXim_HM.root";
+	  PhiHistoName = "h_rkAngle_Mom2"; 
+	} else if (iAngDist == 7) {
+	  PhiFile = "Output60.root";//60 degree cut off
+	  PhiHistoName = "fAngleDistTwo_boosted";
+	  PhiRebin = 2;
+	  PhiConversion = 1000; 
+	} else if (iAngDist == 8) {
+	  PhiFile = "Output75.root";//75 degree cut off 
+	  PhiHistoName = "fAngleDistTwo_boosted";
+	  PhiRebin = 2;
+	  PhiConversion = 1000; 
+	} else if (iAngDist == 9) {
+	  PhiFile = "Output90.root";//90 degree cut off
+	  PhiHistoName = "fAngleDistTwo_boosted";
+	  PhiRebin = 2;
+	  PhiConversion = 1000; 
+	} else if (iAngDist == 10) {
+	  PhiFile = "Output180.root";//no cut off 
+	  PhiHistoName = "fAngleDistTwo_boosted";
+	  PhiRebin = 2;
+	  PhiConversion = 1000; 
+	} else {
+	  std::cout << "Option iAngDist == " << iAngDist << " not viable \n";
+	  return;
+	}
+	if (iRange == 0) {
+	  RangeProtonMin = 400/(double)PhiConversion;
+	  RangeProtonMax = 600/(double)PhiConversion;
+	} else if (iRange == 1) {
+	  RangeProtonMin = 450/(double)PhiConversion;
+	  RangeProtonMax = 550/(double)PhiConversion;
+	} else if (iRange == 2) {
+	  RangeProtonMin = 250/(double)PhiConversion;
+	  RangeProtonMax = 650/(double)PhiConversion;
+	} else {
+	  std::cout << "Option iRange == " << iRange
+		    << " is not a viable option \n";
+	  return;
+	}
+	std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
+		  << RangeProtonMin << " to Proton Max: " << RangeProtonMax
+		  << std::endl;
+	DLM_Histo<double>* HISTO = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile).Data(),TString::Format("%s",PhiHistoName).Data(), RangeProtonMin, RangeProtonMax, false, PhiRebin);
+	source->SetUpResoEmission(0, 0, HISTO);
+	source->SetUpResoEmission(1, 0, HISTO);
+      }
+    } else {
+      std::cout << "Case for iAng == :" << iAngDist << " not implemented, exiting. \n";
+      return;
+    }
+  }  
   AB_pp.KillTheCat();
 
+  //Setup the feed down objects
+  
   CATS AB_pXim;
-  tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, TheSource,
+  tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
+  AB_pXim.SetAnaSource(0, pFeeddownRadius);
   AB_pXim.KillTheCat();
 
   CATS AB_pXim1530;
-  if (TheSource != TidyCats::sResonance) {
-    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
-                                   TheSource);
-  } else {
-    tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
-                                   TidyCats::sGaussian);
-  }
+  AB_pXim1530.SetAnaSource(0, pFeeddownRadius);
+  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
+                                 FeeddownSource);
   AB_pXim1530.KillTheCat();
-
+  
   for (vMod_pL = TheSource == TidyCats::sLevy ? 1 : 0; vMod_pL < 3; ++vMod_pL) {
     TidyCats::pLPot PLpot;
     CATS AB_pL;
     if (vMod_pL == 1) {
-      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pUsmani);
+      AB_pL.SetAnaSource(0, pFeeddownRadius);
       AB_pL.KillTheCat();
     } else if (vMod_pL == 2) {
-      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pNLOWF);
+      AB_pL.SetAnaSource(0, pFeeddownRadius);
       AB_pL.KillTheCat();
     }
-    for (vFemReg_pp = 0; vFemReg_pp < 3; ++vFemReg_pp) {
+    for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
+      FemtoFitMax = FemtoRegion[vFemReg];
+      BaseLineMin = FemtoRegion[vFemReg];
+      BaseLineMax = FemtoRegion[vFemReg];
       for (vFrac_pp_pL = 0; vFrac_pp_pL < 3; ++vFrac_pp_pL) {
-        for (int BaselineSlope = 0; BaselineSlope < 3; ++BaselineSlope) {
-          if (BaselineSlope == 0) {
-            HaveWeABaseLine = true;  //use baseline
-          } else {
-            HaveWeABaseLine = false;  // no baseline
-          }
-          if (NumIter == 0) {
-            vFemReg_pp = 1;
-            vFrac_pp_pL = 1;
-            vFrac_pL_pSigma0 = 1;
-            vFrac_pL_pXim = 1;
-            vMod_pL = 2;
-            tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
-                                      TidyCats::pNLOWF);
-            AB_pL.KillTheCat();
-            iNorm = 1;
-            HaveWeABaseLine = false;  // no base line in default
+        for (BaseLine = 0; BaseLine < 3; ++BaseLine) {
+	  // Some computation here
+          auto end = std::chrono::system_clock::now();
 
-          }
-          std::cout << "Reading Data \n";
+          std::chrono::duration<double> elapsed_seconds = end - start;
 
-          CATSinput->SetNormalization(NormRegion[iNorm][0],
-                                      NormRegion[iNorm][1]);
-          DreamDist* pp = DreamFile->GetPairDistributions(0, 0, "");
-          DreamDist* ApAp = DreamFile->GetPairDistributions(1, 1, "");
-          DreamCF* CFppDef = CATSinput->ObtainCFSyst(1, "ppVar", pp, ApAp);
-          TH1F* OliHisto_pp = CFppDef->FindCorrelationFunction(
-              "hCk_ReweightedppVarMeV_0");
+          std::cout
+	    << "\r Processing progress: "
+	    << TString::Format("%.1f %%", uIter / total * 100.f).Data()
+	    << " elapsed time: " << elapsed_seconds.count() / 60.
+	    << std::flush;
+
+          TH1F* OliHisto_pp = (TH1F*) inFile->Get(HistppName.Data());
           if (!OliHisto_pp) {
             std::cout << HistppName.Data() << " Missing" << std::endl;
             return;
           }
-          CATSinput->AddSystematics("C2totalsysPP.root", OliHisto_pp);
-          std::cout << "pp Done\n";
+	  //          CATSinput->AddSystematics("C2totalsysPP.root", OliHisto_pp);
 
           //!CHANGE PATH HERE
 
-          const unsigned NumSourcePars = 1;
+          const unsigned NumSourcePars = (TheSource == TidyCats::sLevy ? 2 : 1);
 
           //this way you define a correlation function using a CATS object.
           //needed inputs: num source/pot pars, CATS obj
           DLM_Ck* Ck_pp = new DLM_Ck(NumSourcePars, 0, AB_pp);
           DLM_Ck* Ck_pL =
-              vMod_pL == 0 ?
-                  new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
-                             Lednicky_SingletTriplet) :
-                  new DLM_Ck(NumSourcePars, 0, AB_pL);
+	    vMod_pL == 0 ?
+	    new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
+		       Lednicky_SingletTriplet) :
+	    new DLM_Ck(NumSourcePars, 0, AB_pL);
+          Ck_pL->SetSourcePar(0, pFeeddownRadius);
           //this way you define a correlation function using Lednicky.
           //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
           DLM_Ck* Ck_pSigma0 = new DLM_Ck(1, 0, NumMomBins, kMin, kMax,
                                           Lednicky_gauss_Sigma0);
-          Ck_pSigma0->SetSourcePar(0, GaussSourceSize);
+          Ck_pSigma0->SetSourcePar(0, pFeeddownRadius);
           DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
           DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
           if (vMod_pL == 0) {
@@ -436,61 +523,27 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                                        TheSource == TidyCats::sLevy ? 3 : 4,
                                        *Ck_pL, CATSinput->GetSigmaFile(1));
           DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0,
-          NULL);
+					    NULL);
           DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
                                          CATSinput->GetSigmaFile(3));
           DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530,
-          NULL);
-
-          double lam_pp = Purities_p[vFrac_pp_pL][0]
-              * Fraction_p[vFrac_pp_pL][0] * Purities_p[vFrac_pp_pL][0]
-              * Fraction_p[vFrac_pp_pL][0];
-          double lam_pp_pL = Purities_p[vFrac_pp_pL][0]
-              * Fraction_p[vFrac_pp_pL][0] * Purities_p[vFrac_pp_pL][1]
-              * Fraction_p[vFrac_pp_pL][1] * 2;
-          double lam_pp_fake = Purities_p[vFrac_pp_pL][3]
-              * Purities_p[vFrac_pp_pL][0]
-              + Purities_p[vFrac_pp_pL][0] * Purities_p[vFrac_pp_pL][3]
-              + Purities_p[vFrac_pp_pL][3] * Purities_p[vFrac_pp_pL][3];
-
-          printf("lam_pp = %.3f\n", lam_pp);
-          printf("lam_pp_pL = %.3f\n", lam_pp_pL);
-          printf("lam_pp_fake = %.3f\n", lam_pp_fake);
-          printf("\n");
+					     NULL);
           if (!CATSinput->GetResFile(0)) {
             std::cout << "No Calib 0 \n";
             return;
           }
-          CkDec_pp.AddContribution(0, lam_pp_pL, DLM_CkDecomposition::cFeedDown,
-                                   &CkDec_pL, CATSinput->GetResFile(0));
-          CkDec_pp.AddContribution(1, 1. - lam_pp - lam_pp_pL - lam_pp_fake,
-                                   DLM_CkDecomposition::cFeedDown);
-          CkDec_pp.AddContribution(2, lam_pp_fake, DLM_CkDecomposition::cFake);  //0.02
+	  
+          CkDec_pp.AddContribution(0, lam_pp_pL.at(vFrac_pp_pL),
+                                   DLM_CkDecomposition::cFeedDown, &CkDec_pL,
+                                   CATSinput->GetResFile(0));
+          CkDec_pp.AddContribution(
+				   1,
+				   1. - lam_pp.at(vFrac_pp_pL) - lam_pp_pL.at(vFrac_pp_pL)
+				   - lam_pp_fake.at(vFrac_pp_pL),
+				   DLM_CkDecomposition::cFeedDown);
+          CkDec_pp.AddContribution(2, lam_pp_fake.at(vFrac_pp_pL),
+                                   DLM_CkDecomposition::cFake);  //0.02
 
-          double lam_pL = Purities_p[vFrac_pp_pL][0]
-              * Fraction_p[vFrac_pp_pL][0]
-              * Purities_L[vFrac_pL_pSigma0][vFrac_pL_pXim][0]
-              * Fraction_L[vFrac_pL_pSigma0][vFrac_pL_pXim][0];
-          double lam_pL_pS0 = Purities_p[vFrac_pp_pL][0]
-              * Fraction_p[vFrac_pp_pL][0]
-              * Purities_L[vFrac_pL_pSigma0][vFrac_pL_pXim][1]
-              * Fraction_L[vFrac_pL_pSigma0][vFrac_pL_pXim][1];
-          double lam_pL_pXm = Purities_p[vFrac_pp_pL][0]
-              * Fraction_p[vFrac_pp_pL][0]
-              * Purities_L[vFrac_pL_pSigma0][vFrac_pL_pXim][2]
-              * Fraction_L[vFrac_pL_pSigma0][vFrac_pL_pXim][2];
-          double lam_pL_fake = Purities_p[vFrac_pp_pL][3]
-              * Purities_L[vFrac_pL_pSigma0][vFrac_pL_pXim][0]
-              + Purities_p[vFrac_pp_pL][0]
-                  * Purities_L[vFrac_pL_pSigma0][vFrac_pL_pXim][4]
-              + Purities_p[vFrac_pp_pL][3]
-                  * Purities_L[vFrac_pL_pSigma0][vFrac_pL_pXim][4];
-
-          printf("lam_pL=%.3f\n", lam_pL);
-          printf("lam_pL_pS0=%.3f\n", lam_pL_pS0);
-          printf("lam_pL_pXm=%.3f\n", lam_pL_pXm);
-          printf("lam_pL_fake=%.3f\n", lam_pL_fake);
-          printf("\n");
           if (!CATSinput->GetResFile(1)) {
             std::cout << "No Calib 1 \n";
             return;
@@ -499,6 +552,7 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             std::cout << "No Calib 2 \n";
             return;
           }
+
           if (TheSource == TidyCats::sLevy) {
             CkDec_pL.AddContribution(0, lam_pL_pXm,
                                      DLM_CkDecomposition::cFeedDown,
@@ -515,27 +569,12 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                                      DLM_CkDecomposition::cFeedDown,
                                      &CkDec_pXim, CATSinput->GetResFile(2));
             CkDec_pL.AddContribution(
-                2, 1. - lam_pL - lam_pL_pS0 - lam_pL_pXm - lam_pL_fake,
-                DLM_CkDecomposition::cFeedDown);
+				     2, 1. - lam_pL - lam_pL_pS0 - lam_pL_pXm - lam_pL_fake,
+				     DLM_CkDecomposition::cFeedDown);
             CkDec_pL.AddContribution(3, lam_pL_fake,
                                      DLM_CkDecomposition::cFake);  //0.03
           }
 
-          const double lam_pXim = Purities_p[vFrac_pp_pL][0]
-              * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][0]
-              * Fraction_Xim[0][0];
-          const double lam_pXim_pXim1530 = Purities_p[vFrac_pp_pL][0]
-              * Fraction_p[vFrac_pp_pL][0] * Purities_Xim[0][1]
-              * Fraction_Xim[0][1];
-          const double lam_pXim_fake = Purities_p[vFrac_pp_pL][3]
-              * Purities_Xim[0][0]
-              + Purities_p[vFrac_pp_pL][0] * Purities_Xim[0][4]
-              + Purities_p[vFrac_pp_pL][3] * Purities_Xim[0][4];
-
-          printf("lam_pXim = %.3f\n", lam_pXim);
-          printf("lam_pXim_pXim1530 = %.3f\n", lam_pXim_pXim1530);
-          printf("lam_pXim_fake = %.3f\n", lam_pXim_fake);
-          printf("\n");
           if (!CATSinput->GetResFile(3)) {
             std::cout << "No Calib 3 \n";
             return;
@@ -544,85 +583,79 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
                                      DLM_CkDecomposition::cFeedDown,
                                      &CkDec_pXim1530, CATSinput->GetResFile(3));  //from Xi-(1530)
           CkDec_pXim.AddContribution(
-              1, 1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
-              DLM_CkDecomposition::cFeedDown);  //other feed-down (flat)
+				     1, 1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
+				     DLM_CkDecomposition::cFeedDown);  //other feed-down (flat)
           CkDec_pXim.AddContribution(2, lam_pXim_fake,
                                      DLM_CkDecomposition::cFake);
 
           DLM_Fitter1* fitter;
           if (TheSource == TidyCats::sLevy) {
             fitter = new DLM_Fitter1(1);
-            fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pp,
-                              FemtoRegion_pp[vFemReg_pp][0],
-                              FemtoRegion_pp[vFemReg_pp][1], BlRegion[0],
-                              BlRegion[1]);
+            fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pp, kMin,
+                              FemtoRegion[vFemReg], FemtoRegion[vFemReg],
+                              FemtoRegion[vFemReg]);
             fitter->AddSameSource("pLambda", "pp", 2);
             fitter->AddSameSource("pXim", "pp", 2);
             fitter->AddSameSource("pXim1530", "pp", 2);
 
-            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 1.1, 1.5);
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
             fitter->SetParameter("pp", DLM_Fitter1::p_sor1, 1.7, 1., 2.);
           } else {
             fitter = new DLM_Fitter1(1);
 
-            fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pp,
-                              FemtoRegion_pp[vFemReg_pp][0],
-                              FemtoRegion_pp[vFemReg_pp][1], BlRegion[0],
-                              BlRegion[1]);
-
+            fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pp, kMin,
+                              FemtoRegion[vFemReg], FemtoRegion[vFemReg],
+                              FemtoRegion[vFemReg]);
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);	  
             fitter->AddSameSource("pLambda", "pp", 1);
             fitter->AddSameSource("pSigma0", "pp", 1);
             fitter->AddSameSource("pXim", "pp", 1);
             fitter->AddSameSource("pXim1530", "pp", 1);
 
-            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.0, 0.5,1.5);
-          }
+	  }
           fitter->SetOutputDir(OutputDir.Data());
 
           fitter->SetSeparateBL(0, false);
           fitter->SetParameter("pp", DLM_Fitter1::p_a, 1.0, 0.7, 1.3);
-          if (BaselineSlope == 1) {
+          if (BaseLine == 1) {
             fitter->SetParameter("pp", DLM_Fitter1::p_b, 1e-4, -2e-3, 2e-3);
-            std::cout << "Fitting ranges for BL set \n";
-          } else if (BaselineSlope == 2){
+          } else if (BaseLine == 2) {
             fitter->SetParameter("pp", DLM_Fitter1::p_b, 1e-4, -2e-3, 2e-3);
             fitter->SetParameter("pp", DLM_Fitter1::p_c, 1e-5, -1e-4, 1e-4);
-            std::cout << "Fitting ranges for Quadratic BL set \n";
           } else {
             fitter->FixParameter("pp", DLM_Fitter1::p_b, 0);
             fitter->FixParameter("pp", DLM_Fitter1::p_c, 0);
           }
 
           fitter->FixParameter("pp", DLM_Fitter1::p_Cl, -1);
-          std::cout << "CL Fixed \n";
 
           CkDec_pp.Update();
           CkDec_pL.Update();
           CkDec_pXim.Update();
           fitter->GoBabyGo();
 
-          TFile* GraphFile = new TFile(
-              TString::Format("%s/GraphFile_%s_Iter%u_uIter%u.root",
-                              OutputDir.Data(), "CutVarAdd", NumIter, uIter),
-              "recreate");
-
-          GraphFile->cd();
-
-          TGraph FitResult_pp;
-          FitResult_pp.SetName(TString::Format("FitResult_pp_%u", uIter));
-          fitter->GetFitGraph(0, FitResult_pp);
-
-          double Chi2 = fitter->GetChi2();
-          unsigned NDF = fitter->GetNdf();
-          double RadiusResult = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
-          double RadiusError = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
-          if (Chi2 / double(NDF) != fitter->GetChi2Ndf()) {
-            printf("Oh boy...\n");
+          TGraph FitResult;
+          FitResult.SetName(
+			    TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
+          fitter->GetFitGraph(0, FitResult);
+          	  
+	  pointerFitResult = new TGraph(FitResult.GetN(), FitResult.GetX(), FitResult.GetY());
+	  
+          pointerFitResult->SetLineWidth(2);
+          pointerFitResult->SetLineColor(kRed);
+          pointerFitResult->SetMarkerStyle(24);
+          pointerFitResult->SetMarkerColor(kRed);
+          pointerFitResult->SetMarkerSize(1);
+          
+          double Chi2 = 0;
+          unsigned EffNumBins = 0;
+          if (BaseLine == 0) {
+            EffNumBins = -2;  // radius and normalization
+          } else if (BaseLine == 0) {
+            EffNumBins = -3;  // radius, normalization and slope
+          } else if (BaseLine == 0) {
+            EffNumBins = -4;  // radius, normalization, slope and skewness
           }
-
-          double Chi2_pp = 0;
-          unsigned EffNumBins_pp = 0;
-
           for (unsigned uBin = 0; uBin < 50; uBin++) {
 
             double mom = AB_pp.GetMomentum(uBin);
@@ -631,10 +664,10 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
             double theoryX;
             double theoryY;
 
-            if (mom > FemtoRegion_pp[vFemReg_pp][1])
+            if (mom > FemtoRegion[vFemReg])
               continue;
 
-            FitResult_pp.GetPoint(uBin, theoryX, theoryY);
+            FitResult.GetPoint(uBin, theoryX, theoryY);
             if (mom != theoryX) {
               std::cout << mom << '\t' << theoryX << std::endl;
               printf("  PROBLEM pp!\n");
@@ -645,204 +678,49 @@ void FitPPVariations(const unsigned& NumIter, int system, int source,
               std::cout << dataErr << '\t' << "WARNING POINT NOT CONSIDERED \n";
               continue;
             }
-            Chi2_pp += (dataY - theoryY) * (dataY - theoryY)
-                / (dataErr * dataErr);
-            EffNumBins_pp++;
+            Chi2 += (dataY - theoryY) * (dataY - theoryY) / (dataErr * dataErr);
+            EffNumBins++;
           }
-          ntBuffer[0] = uIter;
-          ntBuffer[1] = vFemReg_pp;
-          ntBuffer[2] = vFrac_pp_pL;
-          ntBuffer[3] = vMod_pL;
-          ntBuffer[4] = vFrac_pL_pSigma0;
-          ntBuffer[5] = vFrac_pL_pXim;
-          ntBuffer[6] = (int) HaveWeABaseLine;
-          ntBuffer[7] = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
-          ntBuffer[8] = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
-          ntBuffer[9] = fitter->GetParameter("pp", DLM_Fitter1::p_sor1);
-          ntBuffer[10] = fitter->GetParError("pp", DLM_Fitter1::p_sor1);
-          ntBuffer[11] = fitter->GetParameter("pp", DLM_Fitter1::p_a);
-          ntBuffer[12] = fitter->GetParError("pp", DLM_Fitter1::p_a);
-          ntBuffer[13] = fitter->GetParameter("pp", DLM_Fitter1::p_b);
-          ntBuffer[14] = fitter->GetParError("pp", DLM_Fitter1::p_b);
-          ntBuffer[15] = fitter->GetParameter("pp", DLM_Fitter1::p_c);
-          ntBuffer[16] = fitter->GetParError("pp", DLM_Fitter1::p_c);
-          ntBuffer[17] = iNorm;
-          ntBuffer[18] = fitter->GetChi2Ndf();
-          ntBuffer[19] = fitter->GetPval();
-          ntBuffer[20] = Chi2_pp / double(EffNumBins_pp);
-
-          //    ntBuffer[23] = (int) FIX_CL;
-          ntResult->Fill(ntBuffer);
-          printf("Chi2_pp/bins = %.2f/%u = %.2f\n", Chi2_pp, EffNumBins_pp,
-                 Chi2_pp / double(EffNumBins_pp));
-
-          std::cout << "float radius = "
-                    << fitter->GetParameter("pp", DLM_Fitter1::p_sor0) << ";"
-                    << std::endl;
-          std::cout << "float ppBL0 ="
-                    << fitter->GetParameter("pp", DLM_Fitter1::p_a) << ";"
-                    << std::endl;
-          std::cout << "err ppBL0 = "
-                    << fitter->GetParError("pp", DLM_Fitter1::p_a) << ";"
-                    << std::endl;
-
-          std::cout << "float ppBL1 ="
-                    << fitter->GetParameter("pp", DLM_Fitter1::p_b) << ";"
-                    << std::endl;
-          std::cout << "err ppBL1 = "
-                    << fitter->GetParError("pp", DLM_Fitter1::p_b) << ";"
-                    << std::endl;
-
-          std::cout << "float ppNorm ="
-                    << fitter->GetParameter("pp", DLM_Fitter1::p_Cl) << ";"
-                    << std::endl;
-          std::cout << "err ppNorm = "
-                    << fitter->GetParError("pp", DLM_Fitter1::p_Cl) << ";"
-                    << std::endl;
-
-          GraphFile->cd();
-          FitResult_pp.Write();
-          fitter->GetFit()->SetName(TString::Format("GlobalFit_%u", uIter));
-          fitter->GetFit()->Write();
-          OliHisto_pp->Write();
-          if (FAST_PLOT) {
-            TPaveText* info1 = new TPaveText(0.45, 0.65, 0.9, 0.95, "blNDC");  //lbrt
-            info1->SetName("info1");
-            info1->SetBorderSize(1);
-            info1->SetTextSize(0.04);
-            info1->SetFillColor(kWhite);
-            info1->SetTextFont(22);
-            TString SOURCE_NAME;
-            SOURCE_NAME = "Gauss";
-            info1->AddText(
-                TString::Format("R(%s)=%.3f#pm%.3f", SOURCE_NAME.Data(),
-                                RadiusResult, RadiusError));
-            if (TheSource == TidyCats::sLevy) {
-              info1->AddText(
-                  TString::Format(
-                      "#alpha(%s)=%.3f#pm%.3f", SOURCE_NAME.Data(),
-                      fitter->GetParameter("pp", DLM_Fitter1::p_sor1),
-                      fitter->GetParError("pp", DLM_Fitter1::p_sor1)));
-            }
-            info1->AddText(
-                TString::Format("p_a = %.3f #pm %.5f",
-                                fitter->GetParameter("pp", DLM_Fitter1::p_a),
-                                fitter->GetParError("pp", DLM_Fitter1::p_a)));
-
-            if (BaselineSlope >0) {
-              info1->AddText(
-                  TString::Format(
-                      "p_b = (%.2f #pm %.2f )1e-4",
-                      fitter->GetParameter("pp", DLM_Fitter1::p_b) * 1e4,
-                      fitter->GetParError("pp", DLM_Fitter1::p_b) * 1e4));
-            }
-
-            if (BaselineSlope == 2) {
-              info1->AddText(
-                  TString::Format(
-                      "p_c = (%.2f #pm %.2f )1e-4",
-                      fitter->GetParameter("pp", DLM_Fitter1::p_c) * 1e4,
-                      fitter->GetParError("pp", DLM_Fitter1::p_c) * 1e4));
-            }
-
-            info1->AddText(
-                TString::Format(
-                    "Global #chi^{2}_{ndf}=%.0f/%u=%.2f, p_{val}=%.3f", Chi2,
-                    NDF, Chi2 / double(NDF), TMath::Prob(Chi2, round(NDF))));
-            info1->AddText(
-                TString::Format("Local #chi^{2}/ndf=%.0f/%u=%.2f, p_{val}=%.3f",
-                                Chi2_pp, EffNumBins_pp,
-                                Chi2_pp / double(EffNumBins_pp),
-                                TMath::Prob(Chi2_pp, round(EffNumBins_pp))));
-
-            double Yoffset = 1.2;
-            TH1F* hAxis_pp = new TH1F("hAxis_pp", "hAxis_pp", 600, 0, 600);
-            hAxis_pp->SetStats(false);
-            hAxis_pp->SetTitle("");
-            hAxis_pp->GetXaxis()->SetLabelSize(0.065);
-            hAxis_pp->GetXaxis()->CenterTitle();
-            hAxis_pp->GetXaxis()->SetTitleOffset(1.35);
-            hAxis_pp->GetXaxis()->SetLabelOffset(0.02);
-            hAxis_pp->GetXaxis()->SetTitleSize(0.075);
-            hAxis_pp->GetYaxis()->SetLabelSize(0.065);
-            hAxis_pp->GetYaxis()->CenterTitle();
-            hAxis_pp->GetYaxis()->SetTitleOffset(Yoffset);
-            hAxis_pp->GetYaxis()->SetTitleSize(0.075);
-            hAxis_pp->GetXaxis()->SetRangeUser(0, 600);
-            hAxis_pp->GetYaxis()->SetRangeUser(0.5, 4.5);
-            TF1* blPP = new TF1("blPP", "pol2", 0, 500);
-            blPP->SetParameters(fitter->GetParameter("pp", DLM_Fitter1::p_a),
-                                fitter->GetParameter("pp", DLM_Fitter1::p_b),
-                                fitter->GetParameter("pp", DLM_Fitter1::p_c));
-            blPP->SetLineColor(7);
-            blPP->SetLineWidth(4);
-
-            TString CanName = Form("cfast");
-            TCanvas* cfast = new TCanvas(CanName.Data(), CanName.Data(), 1);
-            cfast->cd(0);
-            cfast->SetCanvasSize(1920, 1280);
-            cfast->SetMargin(0.15, 0.05, 0.2, 0.05);    //lrbt
-
-            cfast->cd(1);
-            OliHisto_pp->SetStats(false);
-            OliHisto_pp->SetTitle("pp");
-            OliHisto_pp->SetLineWidth(2);
-            OliHisto_pp->SetLineColor(kBlack);
-            FitResult_pp.SetLineWidth(2);
-            FitResult_pp.SetLineColor(kRed);
-            FitResult_pp.SetMarkerStyle(24);
-            FitResult_pp.SetMarkerColor(kRed);
-            FitResult_pp.SetMarkerSize(1);
-
-            hAxis_pp->Draw("axis");
-            OliHisto_pp->Draw("same");
-            blPP->Draw("same");
-            FitResult_pp.Draw("CP,same");
-            info1->Draw("same");
-
-            cfast->Write();
-            cfast->SaveAs(
-                TString::Format("%s/Iter%u_uIter%u.png", OutputDir.Data(),
-                                NumIter, uIter));
-            delete hAxis_pp;
-            delete info1;
-            delete cfast;
-
-          }      //FAST_PLOT
-          GraphFile->Close();
-          delete fitter;
+	  
+	  pa = fitter->GetParameter("pp", DLM_Fitter1::p_a);
+	  pb = fitter->GetParameter("pp", DLM_Fitter1::p_b);
+	  pc = fitter->GetParameter("pp", DLM_Fitter1::p_c);
+	  lmb_pp = lam_pp.at(vFrac_pp_pL);
+	  lmb_ppL = lam_pp_pL.at(vFrac_pp_pL);
+	  ResultRadius  = fitter->GetParameter("pp", DLM_Fitter1::p_sor0);
+	  ResultRadiusErr = fitter->GetParError("pp", DLM_Fitter1::p_sor0);
+	  Stability = fitter->GetParameter("pp", DLM_Fitter1::p_sor1);
+	  outChiSqNDF = Chi2 / EffNumBins;
+	  outTree->Fill();
+	  
+	  uIter++;
+	  
           delete Ck_pp;
           delete Ck_pL;
           delete Ck_pSigma0;
           delete Ck_pXim;
           delete Ck_pXim1530;
-
-          delete GraphFile;
-          uIter++;
-
-          if (NumIter == 0) {
-            goto outofloop;
-          }
+          delete fitter;
         }
       }
     }
   }
-  outofloop: OutFile->cd();
-  ntResult->Write();
-
-  delete ntResult;
-  delete OutFile;
+  std::cout << "\n";
+  OutFile->cd();
+  outTree->Write();
+  OutFile->Close();
   delete tidy;
-  for (unsigned uVar = 0; uVar < 3; uVar++) {
-    delete[] Purities_p[uVar];
-    delete[] Fraction_p[uVar];
-    delete[] Purities_L[uVar];
-    delete[] Fraction_L[uVar];
-  }
-  delete[] Purities_p;
-  delete[] Fraction_p;
-  delete[] Purities_L;
-  delete[] Fraction_L;
+}
 
+int main(int argc, char *argv[]) {
+  std::stringstream ss(argv[7]);
+  bool b;
+  if(!(ss >> std::boolalpha >> b)) {
+    std::cout << "Parsing error. \n " ;
+    return -1; 
+  }
+  FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
+                  atoi(argv[5]), atoi(argv[6]), b, argv[8], argv[9], argv[10]);
+  return 0;
 }
 
