@@ -27,10 +27,12 @@
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source,
                      unsigned int iAngDist, int iRange, bool storeHist, TString InputFile,
                      TString HistoName, TString OutputDir) {
-  auto start = std::chrono::system_clock::now();
-
-  gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
+  auto start = std::chrono::system_clock::now();
+  gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
+
+  //Setup Various Inputs
+  
   TString HistppName = HistoName.Data();
   TFile* inFile = TFile::Open(TString::Format("%s", InputFile.Data()), "READ");
   if (!inFile) {
@@ -78,6 +80,9 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   double PurityXi;
 
   std::cout << "SYSTEM: " << system << std::endl;
+
+  //Setup the input vales for the Lambda parameters & Specific to the system  
+
   if (system == 0) {
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
     SigmaFileName += "Sample3_MeV_compact.root";
@@ -119,6 +124,15 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
     return;
   }
 
+  //Setup the input resolution and smearing
+  
+  CATSInput *CATSinput = new CATSInput();
+  CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
+  CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
+  CATSinput->ReadResFile();
+  CATSinput->SetSigmaFileName(SigmaFileName.Data());
+  CATSinput->ReadSigmaFile();
+
   // Xi01530 Production: dN/dy = 2.6e-3 (https://link.springer.com/content/pdf/10.1140%2Fepjc%2Fs10052-014-3191-x.pdf)
   // Xim1530 Production = Xi01530 Production
   // Xim Production: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
@@ -146,131 +160,159 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   // Primary Fraction = N / N(1+0.0086+1/3+1/6)
   // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
   // etc.
+   
+  //Calculate the Lambda Parameters and their variations 
 
-  std::vector<double> Variation = { 0.8, 1.0, 1.2 };
-  Particle Proton[3];  // 1) variation of the Secondary Comp.
-  Particle Lambda[3][3];  // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
-  Particle Xi[3][3];  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
+  std::vector<double> Variation = { 0.95, 1.0, 1.05 };
 
-  int iVar1 = 0;
-  for (auto it : Variation) {
-    double SecFracSigma = 1. - PrimProton - it * SecLamProton;
-    Proton[iVar1] = Particle(PurityProton, PrimProton, { it * SecLamProton,
-                                 SecFracSigma });
-    std::cout << "it: " << it << " PurityProton: " << PurityProton
-              << " it * SecLamProton: " << it * SecLamProton << " SecFracSigma:"
-              << SecFracSigma << std::endl;
+  std::vector<Particle> Proton;  // 1) variation of the Prim Fraction 2) variation of the Secondary Comp.
+  std::vector<Particle> Lambda;  // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
+  std::vector<Particle> Xi;  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
 
-    double LamSigProdFraction = 3 * it / 4. < 1 ? 3 * it / 4. : 1;
-    double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma;
-    double SecSigLambda = (1. - LamSigProdFraction) * PrimLambdaAndSigma;  // decay probability = 100%!
-    int iVar2 = 0;
-    for (auto itXim : Variation) {
-      double SecXimLambda = itXim * SecLambda / 2.;
-      double SecXi0Lambda0 = (1 - itXim / 2.) * SecLambda;
-      Lambda[iVar1][iVar2] = Particle(PurityLambda, PrimLambda, { SecSigLambda,
-                                          SecXimLambda, SecXi0Lambda0 });
-
-      double XiNormalization = 1 + it * OmegamXimProdFraction * OmegamXim_BR
-          + itXim
-              * (Xi01530XimProdFraction * Xi01530Xim_BR
-                  + Xim1530XimProdFraction * Xim1530Xim_BR);
-      double SecOmegaXim = it * OmegamXimProdFraction * OmegamXim_BR
-          / (double) XiNormalization;
-      double SecXi01530Xim = itXim * Xi01530XimProdFraction * Xi01530Xim_BR
-          / (double) XiNormalization;
-      double SecXim1530Xim = itXim * Xim1530XimProdFraction * Xim1530Xim_BR
-          / (double) XiNormalization;
-      double PrimXim = 1. / (double) XiNormalization;
-      Xi[iVar1][iVar2] = Particle(PurityXi, PrimXim, { SecOmegaXim,
-                                      SecXi01530Xim, SecXim1530Xim });
-      iVar2++;
+  for (auto itFrac : Variation) {
+    const double varPrimProton = itFrac* PrimProton; 
+    const double varSecProton = (1-(double)varPrimProton);
+    for (auto itComp : Variation) {
+      double Composition = 0.7*itComp; 
+      double varSecFracLamb = Composition*varSecProton; 
+      double varSecFracSigma = 1. - varPrimProton - varSecFracLamb;
+      Proton.push_back(Particle(PurityProton , varPrimProton, { varSecFracLamb,
+	      varSecFracSigma }));
+      double sum = varPrimProton+varSecFracLamb+varSecFracSigma; 
     }
-    iVar1++;
+  }
+
+  for (auto itSLRatio : Variation) {
+    double LamSigProdFraction = 3 * itSLRatio / 4. < 1 ? 3 * itSLRatio / 4. : 1;
+    double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma; 
+    double SecSigLambda = (1. - LamSigProdFraction) * PrimLambdaAndSigma;  // decay probability = 100%!
+    for (auto itXi02mRatio : Variation) {
+      double SecXimLambda = itXi02mRatio * SecLambda / 2.;
+      double SecXi0Lambda0 = (1 - itXi02mRatio / 2.) * SecLambda;
+      Lambda.push_back(Particle(PurityLambda, PrimLambda, { SecSigLambda,
+	      SecXimLambda, SecXi0Lambda0 }));
+    }
+  }
+  
+  for (auto itXimOmega : Variation) {
+    for (auto itXi1530 : Variation) {
+      double XiNormalization = 1 + itXimOmega * OmegamXimProdFraction * OmegamXim_BR
+	+ itXi1530 * (Xi01530XimProdFraction * Xi01530Xim_BR
+		      + Xim1530XimProdFraction * Xim1530Xim_BR);
+      double SecOmegaXim = itXimOmega * OmegamXimProdFraction * OmegamXim_BR
+	/ (double) XiNormalization;
+      double SecXi01530Xim = itXi1530 * Xi01530XimProdFraction * Xi01530Xim_BR
+	/ (double) XiNormalization;
+      double SecXim1530Xim = itXi1530 * Xim1530XimProdFraction * Xim1530Xim_BR
+	/ (double) XiNormalization;
+      double PrimXim = 1. / (double) XiNormalization;
+      Xi.push_back(Particle(PurityXi, PrimXim, { SecOmegaXim,
+	      SecXi01530Xim, SecXim1530Xim }));
+    }
   }
   CATSLambdaParam ppLam0(Proton[0], Proton[0], true);
   CATSLambdaParam ppLam1(Proton[1], Proton[1], true);
   CATSLambdaParam ppLam2(Proton[2], Proton[2], true);
-
-  const std::vector<double> lam_pp =
-      { ppLam0.GetLambdaParam(CATSLambdaParam::Primary,
-                              CATSLambdaParam::Primary), ppLam1.GetLambdaParam(
-          CATSLambdaParam::Primary, CATSLambdaParam::Primary), ppLam2
-          .GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary) };
-  const std::vector<double> lam_pp_pL =
-      { ppLam0.GetLambdaParam(CATSLambdaParam::Primary,
-                              CATSLambdaParam::FeedDown, 0, 0), ppLam1
-          .GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown,
-                          0, 0), ppLam2.GetLambdaParam(
-          CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0) };
-  const std::vector<double> lam_pp_fake =
-      {
-          (ppLam0.GetLambdaParam(CATSLambdaParam::Primary,
-                                 CATSLambdaParam::Fake)
-              + ppLam0.GetLambdaParam(CATSLambdaParam::Fake,
-                                      CATSLambdaParam::Primary)
-              + ppLam0.GetLambdaParam(CATSLambdaParam::Fake,
-                                      CATSLambdaParam::Fake)), (ppLam1
-              .GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake)
-              + ppLam1.GetLambdaParam(CATSLambdaParam::Fake,
-                                      CATSLambdaParam::Primary)
-              + ppLam1.GetLambdaParam(CATSLambdaParam::Fake,
-                                      CATSLambdaParam::Fake)), (ppLam2
-              .GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake)
-              + ppLam2.GetLambdaParam(CATSLambdaParam::Fake,
-                                      CATSLambdaParam::Primary)
-              + ppLam2.GetLambdaParam(CATSLambdaParam::Fake,
-                                      CATSLambdaParam::Fake)) };
-  CATSLambdaParam pLLam(Proton[1], Lambda[1][1]);
-  const double lam_pL = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                             CATSLambdaParam::Primary);
-  const double lam_pL_pS0 = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                 CATSLambdaParam::FeedDown, 0,
-                                                 0);
-  const double lam_pL_pXm = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                 CATSLambdaParam::FeedDown, 0,
-                                                 1);
-  const double lam_pL_fake = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                  CATSLambdaParam::Fake)
-      + pLLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary)
-      + pLLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake);
-  CATSLambdaParam pXiLam(Proton[1], Xi[1][1]);
-  const double lam_pXim = pXiLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                CATSLambdaParam::Primary);
-  const double lam_pXim_pXim1530 = pXiLam.GetLambdaParam(
-      CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 2);
-  const double lam_pXim_fake = pXiLam.GetLambdaParam(CATSLambdaParam::Primary,
-                                                     CATSLambdaParam::Fake)
-      + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary)
-      + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake);
-
-  for (int vFrac_pp_pL = 0; vFrac_pp_pL < 3; vFrac_pp_pL++) {
-    std::cout << "lam_pp: " << lam_pp.at(vFrac_pp_pL) << " lam_pp_pL: "
-              << lam_pp_pL.at(vFrac_pp_pL) << " lam_pp_fake: "
-              << lam_pp_fake.at(vFrac_pp_pL) << std::endl;
-  }
-  std::cout << "lam_pL_pXm: " << lam_pL_pXm << " lam_pL: " << lam_pL
-            << " lam_pL_fake: " << lam_pL_fake << std::endl;
-  std::cout << "lam_pXim: " << lam_pXim << " lam_pXim_pXim1530: "
-            << lam_pXim_pXim1530 << " lam_pXim_fake:" << lam_pXim_fake
-            << std::endl;
+  CATSLambdaParam ppLam3(Proton[3], Proton[3], true);
+  CATSLambdaParam ppLam4(Proton[4], Proton[4], true);
+  CATSLambdaParam ppLam5(Proton[5], Proton[5], true);
+  CATSLambdaParam ppLam6(Proton[6], Proton[6], true);
+  CATSLambdaParam ppLam7(Proton[7], Proton[7], true);
+  CATSLambdaParam ppLam8(Proton[8], Proton[8], true);
   
+  const std::vector<double> lam_pp = {
+    ppLam0.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam1.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam2.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam3.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam4.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam5.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam6.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam7.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+    ppLam8.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Primary),
+  };
+  const std::vector<double> lam_pp_pL = {
+    ppLam0.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0),
+    ppLam1.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0),
+    ppLam2.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0), 
+    ppLam3.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0),
+    ppLam4.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0),
+    ppLam5.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0),
+    ppLam6.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0),
+    ppLam7.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0),
+    ppLam8.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 0)
+  };
+  const std::vector<double> lam_pp_fake = {
+    (ppLam0.GetLambdaParam(CATSLambdaParam::Primary,CATSLambdaParam::Fake) +
+     ppLam0.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam0.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),    
+    (ppLam1.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake) +
+     ppLam1.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam1.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
+    (ppLam2.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake) +
+     ppLam2.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam2.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
+    (ppLam3.GetLambdaParam(CATSLambdaParam::Primary,CATSLambdaParam::Fake) +
+     ppLam3.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam3.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
+    (ppLam4.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake) +
+     ppLam4.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam4.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
+    (ppLam5.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake) +
+     ppLam5.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam5.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
+    (ppLam6.GetLambdaParam(CATSLambdaParam::Primary,CATSLambdaParam::Fake) +
+     ppLam6.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam6.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
+    (ppLam7.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake) +
+     ppLam7.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam7.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
+    (ppLam8.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake) +
+     ppLam8.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
+     ppLam8.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake))
+  };
+  CATSLambdaParam pLLam(Proton[1], Lambda[1]);
+  const float lam_pL = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+					    CATSLambdaParam::Primary);
+  const float lam_pL_pS0 = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+						CATSLambdaParam::FeedDown, 0,
+						0);
+  const float lam_pL_pXm = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+						CATSLambdaParam::FeedDown, 0,
+						1);
+  const float lam_pL_fake = pLLam.GetLambdaParam(CATSLambdaParam::Primary,
+						 CATSLambdaParam::Fake)
+    + pLLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary)
+    + pLLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake);
+  CATSLambdaParam pXiLam(Proton[1], Xi[1]);
+  const float lam_pXim = pXiLam.GetLambdaParam(CATSLambdaParam::Primary,
+					       CATSLambdaParam::Primary);
+  const float lam_pXim_pXim1530 = pXiLam.GetLambdaParam(
+							CATSLambdaParam::Primary, CATSLambdaParam::FeedDown, 0, 2);
+  const float lam_pXim_fake = pXiLam.GetLambdaParam(CATSLambdaParam::Primary,
+						    CATSLambdaParam::Fake)
+    + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary)
+    + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake);
+
+  // for (int vFrac_pp_pL = 0; vFrac_pp_pL < 9; vFrac_pp_pL++) {
+  //   std::cout << "lam_pp: " << lam_pp.at(vFrac_pp_pL) << " lam_pp_pL: "
+  //             << lam_pp_pL.at(vFrac_pp_pL) << " lam_pp_fake: "
+  //             << lam_pp_fake.at(vFrac_pp_pL) << std::endl;
+  // }
+  // std::cout << " lam_pL: " << lam_pL << "lam_pL_pXm: " << lam_pL_pXm
+  // 	    << " lam_pL_fake: " << lam_pL_fake << std::endl;
+  // std::cout << "lam_pXim: " << lam_pXim << " lam_pXim_pXim1530: "
+  //           << lam_pXim_pXim1530 << " lam_pXim_fake:" << lam_pXim_fake
+  //           << std::endl;
+   
   std::vector<float> pSigma0Radii = { 1.55, 1.473, 1.421, 1.368, 1.295, 1.220, 1.124 };
-  const double pFeeddownRadius = pSigma0Radii[imTBin];
+  const float pFeeddownRadius = pSigma0Radii[imTBin];
   std::cout << "===========================\n";
   std::cout << "==pFeeddownRadius: " << pFeeddownRadius << "fm ==\n";
   std::cout << "===========================\n";
 
-  CATSInput *CATSinput = new CATSInput();
-  CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
-  CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
-  CATSinput->ReadResFile();
-  CATSinput->SetSigmaFileName(SigmaFileName.Data());
-  CATSinput->ReadSigmaFile();
-
-  TFile* OutFile = new TFile(
-      TString::Format("%s/OutFileVarpp_%u.root", OutputDir.Data(), NumIter),
-      "RECREATE");
+  //Link the output 
+  TFile* OutFile = new TFile(TString::Format("%s/OutFileVarpp_%u.root", OutputDir.Data(), NumIter), "RECREATE");
   if (!OutFile) {
     return;
   }
@@ -318,6 +360,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   if(storeHist)
     CollOut->Add(StoreHist);
 
+
+  //Setup the source stuff
+
+  
   CATS AB_pp;
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
   if (TheSource == TidyCats::sResonance) {
@@ -347,7 +393,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 	<< "Sir, Emission will be fully randomized, commencing countdown ... 3 ..2 .., but wait, how random is random ...? \n";
       if (iAngDist > 2) { 
 	const char* PhiFile;
-	const char* PhiHistoName;
+	const char* PhiHistoName; 
 	int PhiRebin = 1;
 	int PhiConversion = 1; 
 	double RangeProtonMin, RangeProtonMax;
@@ -390,7 +436,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 	if (iRange == 0) {
 	  RangeProtonMin = 400/(double)PhiConversion;
 	  RangeProtonMax = 600/(double)PhiConversion;
-	  } else if (iRange == 1) {
+	} else if (iRange == 1) {
 	  RangeProtonMin = 450/(double)PhiConversion;
 	  RangeProtonMax = 550/(double)PhiConversion;
 	} else if (iRange == 2) {
@@ -408,27 +454,15 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 	source->SetUpResoEmission(0, 0, HISTO);
 	source->SetUpResoEmission(1, 0, HISTO);
       }
+    } else {
+      std::cout << "Case for iAng == :" << iAngDist << " not implemented, exiting. \n";
+      return;
     }
-  } else {
-    std::cout << "Case for iAng == :" << iAngDist << " not implemented, exiting. \n";
-    return; 
   }  
   AB_pp.KillTheCat();
-  if (tidy->GetSourceProtonProton() && uIter == 1) {
-    TGraph* SourceDist = new TGraph();
-    SourceDist->SetName(TString::Format("SourceDist_NumIter_%i", NumIter));
-    for (int iRad = 0; iRad < 200; ++iRad) {
-      std::cout << "\r Source progress: "
-                << TString::Format("%.1f %%", (iRad + 1) / 200 * 100.f).Data()
-                << std::flush;
-      double rad = 0.04 * iRad;
-      double pars[5] = { 0, rad, 0, 1.2, 1.7 };
-      SourceDist->SetPoint(iRad, rad,
-                           tidy->GetSourceProtonProton()->Eval(pars));
-    }
-    std::cout << std::endl;
-    CollOut->Add(SourceDist);
-  }
+
+  //Setup the feed down objects
+  
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
@@ -484,10 +518,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
           //needed inputs: num source/pot pars, CATS obj
           DLM_Ck* Ck_pp = new DLM_Ck(NumSourcePars, 0, AB_pp);
           DLM_Ck* Ck_pL =
-              vMod_pL == 0 ?
-                  new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
-                             Lednicky_SingletTriplet) :
-                  new DLM_Ck(NumSourcePars, 0, AB_pL);
+	    vMod_pL == 0 ?
+	    new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
+		       Lednicky_SingletTriplet) :
+	    new DLM_Ck(NumSourcePars, 0, AB_pL);
           Ck_pL->SetSourcePar(0, pFeeddownRadius);
           //this way you define a correlation function using Lednicky.
           //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
@@ -529,24 +563,24 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
                                        TheSource == TidyCats::sLevy ? 3 : 4,
                                        *Ck_pL, CATSinput->GetSigmaFile(1));
           DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0,
-          NULL);
+					    NULL);
           DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
                                          CATSinput->GetSigmaFile(3));
           DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530,
-          NULL);
+					     NULL);
           if (!CATSinput->GetResFile(0)) {
             std::cout << "No Calib 0 \n";
             return;
           }
-
+	  
           CkDec_pp.AddContribution(0, lam_pp_pL.at(vFrac_pp_pL),
                                    DLM_CkDecomposition::cFeedDown, &CkDec_pL,
                                    CATSinput->GetResFile(0));
           CkDec_pp.AddContribution(
-              1,
-              1. - lam_pp.at(vFrac_pp_pL) - lam_pp_pL.at(vFrac_pp_pL)
-                  - lam_pp_fake.at(vFrac_pp_pL),
-              DLM_CkDecomposition::cFeedDown);
+				   1,
+				   1. - lam_pp.at(vFrac_pp_pL) - lam_pp_pL.at(vFrac_pp_pL)
+				   - lam_pp_fake.at(vFrac_pp_pL),
+				   DLM_CkDecomposition::cFeedDown);
           CkDec_pp.AddContribution(2, lam_pp_fake.at(vFrac_pp_pL),
                                    DLM_CkDecomposition::cFake);  //0.02
 
@@ -575,8 +609,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
                                      DLM_CkDecomposition::cFeedDown,
                                      &CkDec_pXim, CATSinput->GetResFile(2));
             CkDec_pL.AddContribution(
-                2, 1. - lam_pL - lam_pL_pS0 - lam_pL_pXm - lam_pL_fake,
-                DLM_CkDecomposition::cFeedDown);
+				     2, 1. - lam_pL - lam_pL_pS0 - lam_pL_pXm - lam_pL_fake,
+				     DLM_CkDecomposition::cFeedDown);
             CkDec_pL.AddContribution(3, lam_pL_fake,
                                      DLM_CkDecomposition::cFake);  //0.03
           }
@@ -589,8 +623,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
                                      DLM_CkDecomposition::cFeedDown,
                                      &CkDec_pXim1530, CATSinput->GetResFile(3));  //from Xi-(1530)
           CkDec_pXim.AddContribution(
-              1, 1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
-              DLM_CkDecomposition::cFeedDown);  //other feed-down (flat)
+				     1, 1. - lam_pXim - lam_pXim_pXim1530 - lam_pXim_fake,
+				     DLM_CkDecomposition::cFeedDown);  //other feed-down (flat)
           CkDec_pXim.AddContribution(2, lam_pXim_fake,
                                      DLM_CkDecomposition::cFake);
 
@@ -612,12 +646,6 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
             fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pp, kMin,
                               FemtoRegion[vFemReg], FemtoRegion[vFemReg],
                               FemtoRegion[vFemReg]);
-
-//            fitter->AddSameSource("pLambda", "pp", 1);
-//            fitter->AddSameSource("pSigma0", "pp", 1);
-//            fitter->AddSameSource("pXim", "pp", 1);
-//            fitter->AddSameSource("pXim1530", "pp", 1);
-
             fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
           }
           fitter->SetOutputDir(OutputDir.Data());
@@ -643,7 +671,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 
           TGraph FitResult;
           FitResult.SetName(
-              TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
+			    TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
           fitter->GetFitGraph(0, FitResult);
           c1->cd();
           TGraph* pointerFitResult = new TGraph(FitResult);
