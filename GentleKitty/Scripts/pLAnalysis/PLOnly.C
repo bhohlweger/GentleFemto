@@ -57,6 +57,11 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   FemtoRegion[1] = 204;
   FemtoRegion[2] = 228;
 
+  if (FemtoRegion[2] > kMax) {
+    std::cout << "FemtoRegion larger than kMax, please Adjust \n";
+    return; 
+  }
+    
   double BaseLineRegion[3][2];
   BaseLineRegion[0][0] = 336;
   BaseLineRegion[0][1] = 552;

@@ -58,7 +58,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   FemtoRegion[1] = 375;
   FemtoRegion[2] = 400;
 
-  if (FemtoRegion[2] < kMax) {
+  if (FemtoRegion[2] > kMax) {
     std::cout << "FemtoRegion larger than kMax, please Adjust \n";
     return; 
   }
