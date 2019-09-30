@@ -429,11 +429,11 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
-  AB_pXim.SetAnaSource(0, pFeeddownRadius);
+  //AB_pXim.SetAnaSource(0, pFeeddownRadius);
   AB_pXim.KillTheCat();
 
   CATS AB_pXim1530;
-  AB_pXim1530.SetAnaSource(0, pFeeddownRadius);
+  //AB_pXim1530.SetAnaSource(0, pFeeddownRadius);
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
                                  FeeddownSource);
   AB_pXim1530.KillTheCat();
@@ -444,15 +444,12 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
     if (vMod_pL == 1) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pUsmani);
-      AB_pL.SetAnaSource(0, pFeeddownRadius);
     } else if (vMod_pL == 2) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pNLOWF);
-      AB_pL.SetAnaSource(0, pFeeddownRadius);
     } else if (vMod_pL == 3) {
-      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pLOWF);
-      AB_pL.SetAnaSource(0, pFeeddownRadius);
     }
     AB_pL.KillTheCat();
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
