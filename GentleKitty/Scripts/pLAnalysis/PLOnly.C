@@ -350,7 +350,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   }
   double AvgRadius = 0.;
   
-  float total = 324;
+  float total = 486;
   int numIter = NumIter; 
   int uIter = 1; 
   int vFemReg;  //which femto region we use for pp (1 = default)
@@ -693,7 +693,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
               fitter->SetParameter("pLambda", DLM_Fitter1::p_sor0, 1.4, 0.5,
                                    2.5);
-            }
+	      fitter->FixParameter("pLambda", DLM_Fitter1::p_sor1, 2.0); 
+	    }
             fitter->SetOutputDir(OutputDir.Data());
 
             fitter->SetSeparateBL(0, false);

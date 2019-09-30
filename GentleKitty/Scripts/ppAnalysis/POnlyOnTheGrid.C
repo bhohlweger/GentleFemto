@@ -676,6 +676,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
                               FemtoRegion[vFemReg], FemtoRegion[vFemReg],
                               FemtoRegion[vFemReg]);
             fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 1.4, 0.5, 2.5);
+	    fitter->FixParameter("pp", DLM_Fitter1::p_sor1, 2.0);
           }
           fitter->SetOutputDir(OutputDir.Data());
 
