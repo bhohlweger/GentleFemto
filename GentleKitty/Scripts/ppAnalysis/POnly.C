@@ -47,15 +47,20 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   }
   //This is for the CATS objects, make sure it covers the full femto range
 
-  const unsigned NumMomBins = 60;
+  const unsigned NumMomBins = 120;
   const double kMin = StoreHist->GetXaxis()->GetXmin();
   const double kMax = kMin + StoreHist->GetXaxis()->GetBinWidth(1) * NumMomBins;  //(4 is the bin width)
+  std::cout << "The considered Range is kMin: " << kMin << " and kMax: " << kMax << std::endl;
+  
   //if you modify you may need to change the CATS ranges somewhere below
   double FemtoRegion[3];
   FemtoRegion[0] = 350;
   FemtoRegion[1] = 375;
   FemtoRegion[2] = 400;
 
+  if (FemtoRegion[2] < kMax) {
+    std::cout << "FemtoRegion larger than kMax, please Adjust \n"; 
+  }
   TidyCats::Sources TheSource;
   TidyCats::Sources FeeddownSource;
   if (source == 0) {
