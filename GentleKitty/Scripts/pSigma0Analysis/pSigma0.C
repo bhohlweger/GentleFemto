@@ -138,10 +138,10 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
   std::cout << "NumMomBins: " << NumMomBins_pSigma << std::endl;
 
   // pp radius systematic variations
-  const double statErr = 0.006;
-  const double systErrDown = 0.027;
-  const double systErrUp = 0.029;
-  const double ppRadius = 1.254;
+  const double statErr = 0.008;
+  const double systErrDown = 0.021;
+  const double systErrUp = 0.024;
+  const double ppRadius = 1.249;
   const double radiusLower = ppRadius * 0.85 - statErr - systErrDown;  // scaled down by 15% to include the effect of resonances
   const double radiusUpper = ppRadius + statErr + systErrUp;
   const std::vector<double> sourceSize = { { ppRadius, radiusLower,

@@ -646,7 +646,7 @@ void DreamPlot::DrawCorrelationFunctionProtonProton(const char* path) {
   TF1* sysParam = (TF1*) CFFile_ppSys->Get("SystError");
   fProtonProton->SetSystematics(sysParam, 2);
 
-  auto fitFile = TFile::Open(Form("%s/tmp.root", path));
+  auto fitFile = TFile::Open(Form("%s/tmp_0.root", path));
   if (fitFile) {
     auto ppFit = (TGraphErrors*) fitFile->Get("Model");
       fProtonProton->FemtoModelFitBands(ppFit, kTeal + 2, 0.8, true);
@@ -663,7 +663,7 @@ void DreamPlot::DrawCorrelationFunctionProtonProton(const char* path) {
       "p#minus#kern[-0.95]{ }p #oplus #bar{p}#minus#kern[-0.85]{ }#bar{p}", "fpe");
   fProtonProton->SetLegendName("Coulomb + Argonne #nu_{18} (fit)", "l");
   fProtonProton->SetRangePlotting(0, 225, 0.8, 3.5);
-  fProtonProton->SetInletRangePlotting(50, 350, 0.94, 1.06);
+  fProtonProton->SetInletRangePlotting(55, 345, 0.94, 1.06);
   fProtonProton->SetInletCoordinates(0.26, 0.25, 0.975, 0.665);
   fProtonProton->SetTextSizeLegend(20);
   fProtonProton->SetAxisOffsetInlet(2.7, 1.1);
