@@ -784,15 +784,9 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 }
 
 int main(int argc, char *argv[]) {
-  std::stringstream ss(argv[8]);
-  bool b;
-  if(!(ss >> std::boolalpha >> b)) {
-    std::cout << "Parsing error. \n " ;
-    return -1; 
-  }
   FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), b, argv[9], argv[10],
-                  argv[11]);
+                  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), argv[8], argv[9],
+                  argv[10]);
   return 0;
 }
 

@@ -25,7 +25,7 @@
 #include <ctime>
 
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source,
-                     unsigned int iAngDist, int iRange, bool storeHist, TString InputFile,
+                     unsigned int iAngDist, int iRange, TString InputFile,
                      TString HistoName, TString OutputDir) {
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
   auto start = std::chrono::system_clock::now();
@@ -713,14 +713,9 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 }
 
 int main(int argc, char *argv[]) {
-  std::stringstream ss(argv[7]);
-  bool b;
-  if(!(ss >> std::boolalpha >> b)) {
-    std::cout << "Parsing error. \n " ;
-    return -1; 
-  }
+
   FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                  atoi(argv[5]), atoi(argv[6]), b, argv[8], argv[9], argv[10]);
+                  atoi(argv[5]), atoi(argv[6]), argv[7], argv[8], argv[9]);
   return 0;
 }
 
