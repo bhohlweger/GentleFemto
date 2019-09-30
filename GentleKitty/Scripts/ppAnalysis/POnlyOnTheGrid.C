@@ -84,9 +84,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   double PurityProton, PrimProton, SecLamProton;
   double PurityLambda, PrimLambdaAndSigma, SecLambda;
   double PurityXi;
-  std::vector<double> ProSecondary = {0.79, 0.8,  0.81,  0.82,  0.83, 0.84, 0.87};
+  std::vector<double> ProSecondary = {0.82, 0.81,  0.81,  0.81,  0.81, 0.82, 0.83};
   std::vector<double> LamPurity = {0.92, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95 };
-  std::vector<double> LamSecondary = { 0.72, 0.73, 0.74, 0.75, 0.76, 0.77, 0.78};
+  std::vector<double> LamSecondary = { 0.76, 0.75, 0.75, 0.76, 0.76, 0.76, 0.77};
+  
   std::vector<float> mTValues = { 1.10765, 1.16831, 1.22838, 1.31558, 1.46282, 1.68716, 2.21156 }; 
   
   std::cout << "SYSTEM: " << system << std::endl;
@@ -178,14 +179,13 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
   // etc.
    
-  //Calculate the Lambda Parameters and their variations 
-
-  std::vector<double> Variation = { 0.95, 1.0, 1.05 };
-
+  //Calculate the Lambda Parameters and their variations
+  
   std::vector<Particle> Proton;  // 1) variation of the Prim Fraction 2) variation of the Secondary Comp.
   std::vector<Particle> Lambda;  // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
   std::vector<Particle> Xi;  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
 
+  std::vector<double> Variation = { 0.98, 1.0, 1.02 };
   for (auto itFrac : Variation) {
     const double varPrimProton = itFrac* PrimProton; 
     const double varSecProton = (1-(double)varPrimProton);
@@ -198,7 +198,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
       double sum = varPrimProton+varSecFracLamb+varSecFracSigma; 
     }
   }
-
+  Variation.clear();
+  Variation = {0.95, 1.0, 1.05}; 
   for (auto itSLRatio : Variation) {
     double LamSigProdFraction = 3 * itSLRatio / 4. < 1 ? 3 * itSLRatio / 4. : 1;
     double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma; 
@@ -563,12 +564,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
           Ck_pSigma0->SetSourcePar(0, pFeeddownRadius);
           DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
           DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
-          if (vMod_pL == 0) {
-            Ck_pL->SetPotPar(0, 2.91);
-            Ck_pL->SetPotPar(1, 2.78);
-            Ck_pL->SetPotPar(2, 1.54);
-            Ck_pL->SetPotPar(3, 2.72);
-          }
+
           Ck_pp->Update();
           Ck_pL->Update();
           Ck_pSigma0->Update();

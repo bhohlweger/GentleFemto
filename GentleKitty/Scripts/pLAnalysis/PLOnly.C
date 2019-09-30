@@ -91,9 +91,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   double PurityProton, PrimProton, SecLamProton;
   double PurityLambda, PrimLambdaAndSigma, SecLambda;
   double PurityXi;
-  std::vector<double> ProSecondary = {0.78, 0.8,  0.8,  0.8,  0.82, 0.84, 0.87};
+  std::vector<double> ProSecondary = {0.82,  0.81,  0.81,  0.81, 0.82, 0.83};
   std::vector<double> LamPurity = {0.92, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95 };
-  std::vector<double> LamSecondary = { 0.72, 0.73, 0.74, 0.75, 0.76, 0.77, 0.78};
+  std::vector<double> LamSecondary = { 0.76, 0.75, 0.75, 0.76, 0.76, 0.77};
+  
   std::vector<float> mTValues = { 1.21236, 1.28964, 1.37596, 1.54074, 1.75601, 2.25937 }; 
 
   std::cout << "SYSTEM: " << system << std::endl;
@@ -127,13 +128,20 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
     SigmaFileName += "Sample6_MeV_compact.root";
     PurityProton = 0.9943;
-    PrimProton = 0.873;
-    SecLamProton = 0.089;  //Fraction of Lambdas
+    // PrimProton = 0.873;
+    // SecLamProton = 0.089;  //Fraction of Lambdas
 
-    PurityLambda = 0.961;
-    PrimLambdaAndSigma = 0.785;  //fraction of primary Lambdas + Sigma 0
-    SecLambda = 0.215;  //fraction of weak decay Lambdas
+    // PurityLambda = 0.961;
+    // PrimLambdaAndSigma = 0.785;  //fraction of primary Lambdas + Sigma 0
+    // SecLambda = 0.215;  //fraction of weak decay Lambdas
 
+    PrimProton = ProSecondary[imTBin]; 
+    SecLamProton = 0.7*(1-(double)PrimProton);  //Fraction of Lambdas
+
+    PurityLambda = LamPurity[imTBin];
+    PrimLambdaAndSigma = LamSecondary[imTBin];  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 1-PrimLambdaAndSigma;  //fraction of weak decay Lambdas
+    
     PurityXi = 0.915;
   } else {
     std::cout << "System " << system << " not implmented, extiting \n";
@@ -179,12 +187,11 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   
   //Calculate the Lambda Parameters and their variations 
 
-  std::vector<double> Variation = { 0.95, 1.0, 1.05 };
-
   std::vector<Particle> Proton;  // 1) variation of the Prim Fraction 2) variation of the Secondary Comp.
   std::vector<Particle> Lambda;  // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
   std::vector<Particle> Xi;  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
-
+  
+  std::vector<double> Variation = { 0.98, 1.0, 1.02 };
   for (auto itFrac : Variation) {
     const double varPrimProton = itFrac* PrimProton; 
     const double varSecProton = (1-(double)varPrimProton);
@@ -197,7 +204,9 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
       double sum = varPrimProton+varSecFracLamb+varSecFracSigma; 
     }
   }
-
+  
+  Variation.clear();
+  Variation = {0.95, 1.0, 1.05};
   for (auto itSLRatio : Variation) {
     double LamSigProdFraction = 3 * itSLRatio / 4. < 1 ? 3 * itSLRatio / 4. : 1;
     double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma; 
