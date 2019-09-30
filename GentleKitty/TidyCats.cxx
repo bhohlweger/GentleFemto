@@ -134,8 +134,8 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       std::cout << "Source not implemented \n";
       break;
   }
-  AB_pp->SetEpsilonConv(1e-7);
-  AB_pp->SetEpsilonProp(1e-7);
+  // AB_pp->SetEpsilonConv(1e-7);
+  // AB_pp->SetEpsilonProp(1e-7);
   AB_pp->SetUseAnalyticSource(true);
   AB_pp->SetMomentumDependentSource(false);
   AB_pp->SetThetaDependentSource(false);
