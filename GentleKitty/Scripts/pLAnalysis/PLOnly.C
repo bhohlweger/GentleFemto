@@ -25,7 +25,7 @@
 #include <ctime>
 
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
-                     int source, int iPotential, unsigned int iAngDist, int iRange, bool storeHist, 
+                     int source, int iPotential, unsigned int iAngDist, int iRange,
                      TString InputFile, TString HistoName, TString OutputDir) {
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
   auto start = std::chrono::system_clock::now();
