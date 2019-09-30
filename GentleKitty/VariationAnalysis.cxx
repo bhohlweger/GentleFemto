@@ -37,14 +37,29 @@ VariationAnalysis::~VariationAnalysis() {
 }
 
 void VariationAnalysis::ReadFitFile(TString FileName) {
-  fInFile = TFile::Open(FileName, "READ");
   static int imT = 0;
+  TCanvas* c1 = new TCanvas(TString::Format("c%u", imT + 2).Data(),
+                            TString::Format("c%u", imT + 2).Data(), 0, 0, 550,
+                            650);
+  ;
+  TGraph* PaintMe = nullptr;
+  TFile* tmpFile = TFile::Open(
+      TString::Format("%s/tmp_%u.root", gSystem->pwd(), imT++), "RECREATE");
+  if (!tmpFile) {
+    Error("ReadFitFile", "No Tmp file");
+    return;
+  }
+  TNtuple* Fits = new TNtuple("fitsCurves", "fitsCurves", "kstar:modelValue");
+  Fits->Write();
+
+  fInFile = TFile::Open(FileName, "READ");
   if (!fInFile) {
     Error("ReadFitFile", "No input file");
     return;
   }
-  TNtuple *resultTuple = (TNtuple*) fInFile->Get("ntResult");
-  if (!resultTuple) {
+  fInFile->cd();
+  TTree *resultTree = (TTree*) fInFile->Get("ppTree");
+  if (!resultTree) {
     Error(
         "ReadFitFile",
         TString::Format("No Result tuple in %s .. .rip. \n", FileName.Data()));
@@ -53,136 +68,76 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     if (fRadiusDist) {
       delete fRadiusDist;
     }
-    resultTuple->Draw("Radius_pp>>RadDist");
+    resultTree->Draw("Radius>>RadDist");
     fRadiusDist = (TH1D*) gROOT->FindObject("RadDist");
     float radMin = 0.9 * (fRadiusDist->GetMean() - fRadiusDist->GetRMS());
     float radMax = 1.1 * (fRadiusDist->GetMean() + fRadiusDist->GetRMS());
     delete fRadiusDist;
     fRadiusDist = new TH1D("RadDist", "RadDist", 200, radMin, radMax);
-    resultTuple->Draw("Radius_pp>>RadDist");
-    resultTuple->Draw("RadiusErr_pp>>RadStat");
+    resultTree->Draw("Radius>>RadDist");
+    resultTree->Draw("RadiusErr>>RadStat");
     TH1F* statErr = (TH1F*) gROOT->FindObject("RadStat");
     fRadStat = statErr->GetMean();
-    float numIter;
-    float uIter;
-    resultTuple->SetBranchAddress("NumIter", &numIter);
-    resultTuple->SetBranchAddress("IterID", &uIter);
-    fnDataVarsStart = 123456789;
-    fnDataVarsEnd = 0;
-    fnFitVarsStart = 123456789;
-    fnFitVarsEnd = 0;
-    for (int iEntr = 0; iEntr < resultTuple->GetEntriesFast(); ++iEntr) {
-      resultTuple->GetEntry(iEntr);
-      if (fnDataVarsStart > numIter) {
-        fnDataVarsStart = (int) numIter;
-      }
-      if (fnDataVarsEnd < numIter) {
-        fnDataVarsEnd = (int) numIter;
-      }
-      if (fnFitVarsStart > uIter) {
-        fnFitVarsStart = (int) uIter;
-      }
-      if (fnFitVarsEnd < uIter) {
-        fnFitVarsEnd = (int) uIter;
-      }
-    }
-    std::cout << "fnDataVarsStart: " << fnDataVarsStart << " fnDataVarsEnd: "
-              << fnDataVarsEnd << " fnFitVarsStart: " << fnFitVarsStart
-              << " fnFitVarsEnd: " << fnFitVarsEnd << std::endl;
-  }
-  TFile* tmpFile = TFile::Open(
-      TString::Format("%s/tmp_%u.root", gSystem->pwd(), imT++), "RECREATE");
-  if (!tmpFile) {
-    Error("ReadFitFile", "No Tmp file");
-    return;
-  }
-  TNtuple* Fits = new TNtuple("fitCurves", "fitCurves", "kstar:modelValue");
-  Fits->Write();
-  TGraph* refGraph = nullptr;
-  for (int iVars = fnDataVarsStart; iVars < fnDataVarsEnd + 1; ++iVars) {
-    TString dirName = TString::Format("Out%i", iVars);
-    TDirectoryFile* dir = (TDirectoryFile*) fInFile->FindObjectAny(
-        dirName.Data());
-    if (!dir) {
-      TString OutputError = TString::Format("No directory named %s",
-                                            dirName.Data());
-      Warning("ReadFitFile", OutputError.Data());
-      continue;
-    }
-    TString histname = TString::Format("%s%iMeV_0", fHistname, iVars);
-    TH1F* histo = (TH1F*) dir->FindObjectAny(histname.Data());
-    if (!histo) {
-      TString OutputError = TString::Format(
-          "In dir %s Histogram (%s) missing, rip", dirName.Data(),
-          histname.Data());
-      Error("ReadFitFile", OutputError.Data());
-    } else {
-      fCk.push_back(histo);
-    }
-    //loop over all variations for on fit
-    for (int iFitVar = fnFitVarsStart; iFitVar < fnFitVarsEnd + 1; iFitVar++) {
-//      resultTuple->Draw(
-//          "PolBaseLine>>myBaseLine",
-//          Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
-//               iFitVar));
-//      TH1F* polBL = (TH1F*) gROOT->FindObject("myBaseLine");
-//      if (std::abs(polBL->GetMean()-2)<0.1) {
-//        continue;
-//        delete polBL;
-//      }
-//      delete polBL;
-      resultTuple->Draw(
-          "chisqPerndf>>chisq",
-          Form("std::abs(NumIter-%u)<1e-3&&std::abs(IterID-%u)<1e-3", iVars,
-               iFitVar));
-      TH1F* chiSq = (TH1F*) gROOT->FindObject("chisq");
-      if (chiSq->GetMean() > 30.) {
-        Warning(
-            "ReadFitFile",
-            Form("Chisq (%.1f) larger than 30, ignoring fit",
-                 chiSq->GetMean()));
-        delete chiSq;
+
+    int lastDataVar = -1;
+
+    unsigned int dataVar;
+    float chisq;
+    TH1F* CFHisto = nullptr;
+    TGraph* FitCurve = nullptr;
+    TGraph* refGraph = nullptr;
+    fInFile->cd();
+    resultTree->SetBranchAddress("DataVarID", &dataVar);
+    resultTree->SetBranchAddress("chiSqNDF", &chisq);
+    resultTree->SetBranchAddress("CorrHist", &CFHisto);
+    resultTree->SetBranchAddress("FitResult", &FitCurve);
+    for (int iEntr = 0; iEntr < resultTree->GetEntriesFast(); ++iEntr) {
+      resultTree->GetEntry(iEntr);
+      if (chisq > 30) {
+        Warning("ReadFitFile",
+                Form("Chisq (%.1f) larger than 30, ignoring fit", chisq));
         continue;
       }
-      delete chiSq;
-      TString folderName = TString::Format("Graph_Var_%i_iter_%i", iVars,
-                                           iFitVar);
-      TList* GraphList = (TList*) dir->FindObjectAny(folderName.Data());
-      if (!GraphList) {
-        TString OutputError = TString::Format("GraphList %s not available",
-                                              folderName.Data()).Data();
-        Error("ReadFitFile", OutputError.Data());
-        continue;
-      } else {
-        TString GraphName = TString::Format("Graph_Var_%i_Iter_%i", iVars,
-                                            iFitVar);
-        TGraph* Graph = (TGraph*) GraphList->FindObject(GraphName.Data());
-        if (!Graph) {
-          GraphList->ls();
-          Error("ReadFitFile", folderName.Data());
-          return;
-        } else {
-          double x, y;
-          if (!refGraph) {
-            refGraph = Graph;
-          }
-          for (int iPnt = 0; iPnt < Graph->GetN(); ++iPnt) {
-            Graph->GetPoint(iPnt, x, y);
-            Fits->Fill(x, y);
-          }
+      if (!refGraph) {
+        refGraph = new TGraph(FitCurve->GetN(), FitCurve->GetX(),
+                              FitCurve->GetY());
+      }
+      if (dataVar != lastDataVar) {
+        if (fCk.size() == 0) {
+          c1->cd();
+          CFHisto->GetXaxis()->SetRangeUser(100, 300);
+          CFHisto->GetYaxis()->SetRangeUser(0.95, 1.05);
+          CFHisto->DrawCopy();
         }
+        fCk.push_back(CFHisto);
+        lastDataVar = dataVar;
+      }
+      double x, y;
+      for (int iPnt = 0; iPnt < FitCurve->GetN(); ++iPnt) {
+        FitCurve->GetPoint(iPnt, x, y);
+        if (PaintMe)
+          delete PaintMe;
+        PaintMe = new TGraph(FitCurve->GetN(), FitCurve->GetX(),
+                             FitCurve->GetY());
+        PaintMe->SetLineColor(kRed);
+        PaintMe->SetMarkerColor(kRed);
+        c1->cd();
+        PaintMe->DrawClone("LSAME");
+        Fits->Fill(x, y);
       }
     }
+    c1->SaveAs("dist.pdf");
+    c1->Write();
+    fModel = EvaluateCurves(Fits, refGraph);
+    fModel->SetName("Model");
+    fDeviationByBin = DeviationByBin(fCk.at(0), fModel);
+    fDeviationByBin->SetName("DeviationPerBin");
+    tmpFile->cd();
+    fModel->Write();
+    fDeviationByBin->Write();
+    tmpFile->Write();
+    tmpFile->Close();
   }
-  fModel = EvaluateCurves(Fits, refGraph);
-  fModel->SetName("Model");
-  fDeviationByBin = DeviationByBin(fCk.at(0), fModel);
-  fDeviationByBin->SetName("DeviationPerBin");
-  tmpFile->cd();
-  fModel->Write();
-  fDeviationByBin->Write();
-  tmpFile->Write();
-  tmpFile->Close();
 }
 
 TGraphErrors * VariationAnalysis::EvaluateCurves(TNtuple * tuple,
