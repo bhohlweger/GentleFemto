@@ -526,7 +526,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
           std::chrono::duration<double> elapsed_seconds = end - start;
           std::cout
               << "\r Processing progress: "
-              << TString::Format("%.1f %%", uIter++ / total * 100.f).Data()
+              << TString::Format("%.1f %%", uIter / total * 100.f).Data()
               << " elapsed time: " << elapsed_seconds.count() / 60.
               << std::flush;
 
