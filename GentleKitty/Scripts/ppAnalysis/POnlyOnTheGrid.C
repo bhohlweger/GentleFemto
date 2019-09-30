@@ -498,20 +498,24 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
                                  FeeddownSource);
   AB_pXim1530.KillTheCat();
 
-  for (vMod_pL = TheSource == TidyCats::sLevy ? 1 : 0; vMod_pL < 3; ++vMod_pL) {
+  for (vMod_pL = 1; vMod_pL < 4; ++vMod_pL) {
     TidyCats::pLPot PLpot;
     CATS AB_pL;
     if (vMod_pL == 1) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pUsmani);
       AB_pL.SetAnaSource(0, pFeeddownRadius);
-      AB_pL.KillTheCat();
     } else if (vMod_pL == 2) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pNLOWF);
       AB_pL.SetAnaSource(0, pFeeddownRadius);
-      AB_pL.KillTheCat();
+      
+    } else if (vMod_pL == 3) {
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+                                TidyCats::pLOWF);
+      AB_pL.SetAnaSource(0, pFeeddownRadius);
     }
+    AB_pL.KillTheCat();
     for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
       FemtoFitMax = FemtoRegion[vFemReg];
       BaseLineMin = FemtoRegion[vFemReg];
@@ -544,11 +548,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
           //this way you define a correlation function using a CATS object.
           //needed inputs: num source/pot pars, CATS obj
           DLM_Ck* Ck_pp = new DLM_Ck(NumSourcePars, 0, AB_pp);
-          DLM_Ck* Ck_pL =
-	    vMod_pL == 0 ?
-	    new DLM_Ck(1, 4, NumMomBins, kMin, kMax,
-		       Lednicky_SingletTriplet) :
-	    new DLM_Ck(NumSourcePars, 0, AB_pL);
+          DLM_Ck* Ck_pL = new DLM_Ck(NumSourcePars, 0, AB_pL);
           Ck_pL->SetSourcePar(0, pFeeddownRadius);
           //this way you define a correlation function using Lednicky.
           //needed inputs: num source/pot pars, mom. binning, pointer to a function which computes C(k)
