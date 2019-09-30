@@ -268,7 +268,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
     return;
   }
   
-  float total = TheSource == TidyCats::sLevy ? 162 : 243;
+  float total = 81;
   int numIter = NumIter; 
   int uIter = 1; 
   int vFemReg;  //which femto region we use for pp (1 = default)
@@ -495,12 +495,6 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
           Ck_pSigma0->SetSourcePar(0, pFeeddownRadius);
           DLM_Ck* Ck_pXim = new DLM_Ck(NumSourcePars, 0, AB_pXim);
           DLM_Ck* Ck_pXim1530 = new DLM_Ck(NumSourcePars, 0, AB_pXim1530);
-          if (vMod_pL == 0) {
-            Ck_pL->SetPotPar(0, 2.91);
-            Ck_pL->SetPotPar(1, 2.78);
-            Ck_pL->SetPotPar(2, 1.54);
-            Ck_pL->SetPotPar(3, 2.72);
-          }
           Ck_pp->Update();
           Ck_pL->Update();
           Ck_pSigma0->Update();
