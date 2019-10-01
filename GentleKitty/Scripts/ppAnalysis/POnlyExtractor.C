@@ -21,6 +21,11 @@ int main(int argc, char *argv[]) {
   VariationAnalysis* analysis = new VariationAnalysis("hCk_ReweightedppVar");
   //  VariationAnalysis* analysis = new VariationAnalysis("hCk_ReweightedppVar", 26,
 //                                                      54);
+  TCut chiSqCut = "chiSqNDF<30";
+  analysis->AppendAndCut(chiSqCut);
+//  TCut PolCut = "PolBL==1";
+//  analysis->AppendAndCut(PolCut);
+
   analysis->ReadFitFile(filename);
   analysis->EvalRadius();
   std::cout << "Radius Mean: " << analysis->GetRadMean() << " Radius stat Err: "
