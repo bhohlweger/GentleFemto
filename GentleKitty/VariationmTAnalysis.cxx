@@ -291,7 +291,17 @@ void VariationmTAnalysis::MakeOnePanelPlots() {
 }
 
 void VariationmTAnalysis::StoreRadvsmT(const char* fileName, int iModel) {
-  TFile* out = TFile::Open(fileName, "recreate");
+  TFile* out = TFile::Open(fileName, "read");
+  if (!out || (out->IsZombie())) {
+    out = TFile::Open(fileName, "recreate");
+  } else {
+    std::cout
+        << "File "
+        << fileName
+        << " already exists, I am creating a file named RadvsmT_BACKUP.root, please move to avoid further overwriting \n";
+    out = TFile::Open("RadvsmT_BACKUP.root", "recreate");
+  }
+  out->cd();
   fmTRadiusSyst[iModel]->SetName("mTRadiusSyst");
   fmTRadiusSyst[iModel]->Write();
   fmTRadiusStat[iModel]->SetName("mTRadiusStat");
