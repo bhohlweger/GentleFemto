@@ -14,7 +14,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.2, 0.4);
   CATSinput->SetFixedkStarMinBin(true, 0.);
-  const int rebin = 5;//20
+  const int rebin = 3;//20
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
@@ -50,6 +50,9 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
     DreamCF* CFpALVar = CATSinput->ObtainCFSyst(
         rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 3, ""),
         DreamVarFile->GetPairDistributions(1, 2, ""));
+    DreamCF* CFpALOut = CATSinput->ObtainCFSyst(
+        rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 3, ""),
+        DreamVarFile->GetPairDistributions(1, 2, ""));
     int femtoPairVar= CFpALVar->GetFemtoPairs(0, 0.2);
     float relDiff = (femtoPairVar-pairCountsDefault)/(float)pairCountsDefault;
 //    printf("reldiff (%i)=%.2f\n",i,relDiff);
@@ -73,8 +76,11 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
     protonAL.SetPair(pairCountsDefault, CFpALVar->GetFemtoPairs(0, 0.2));
     protonAL.SetParticles(nTracks, nAntiv0, counter->GetNumberOfTracks(),
                          counter->GetNumberOfAntiV0s());
+
+    CFpALOut->WriteOutput(
+        TString::Format("%s/CF_pAL_Var%u.root", gSystem->pwd(), iPLCounter++)
+            .Data());
     counter->ResetCounter();
-    iPLCounter++;
   }
 
   protonAL.EvalSystematicsBBar(0);
