@@ -12,6 +12,10 @@ int main(int argc, char* argv[]) {
   const char* FitDirResonance = argv[2];
   int SourceOption = atoi(argv[3]);
   const int nMTBins = atoi(argv[4]);
+  const char* cutString = argv[5];
+  const int outFileNumber = atoi(argv[6]);
+  const int iAng = argv[7]?atoi(argv[7]):-1;
+
   TString avgmTFile = TString::Format("%s/AveragemT.root", DataDir);
   TFile* mTFile = TFile::Open(avgmTFile, "READ");
   if (!mTFile) {
@@ -25,6 +29,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   VariationmTAnalysis* analyser = new VariationmTAnalysis(1);
+  TCut AnalysisCut = "chiSqNDF<30";
+  analyser->AppendAndCut(AnalysisCut);
+  TCut UserCut = cutString;
+  analyser->AppendAndCut(UserCut);
   analyser->SetHistName("hCk_RebinnedpLVar");
   analyser->SetFileName("OutFileVarpL.root");
   analyser->SetmTAverage(avgmT);
