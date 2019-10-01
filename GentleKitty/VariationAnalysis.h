@@ -11,6 +11,7 @@
 #include "TH1F.h"
 #include "TH1D.h"
 #include "TNtuple.h"
+#include "TCut.h"
 #include "TGraphErrors.h"
 #include <vector>
 #include "DreamPlot.h"
@@ -47,8 +48,15 @@ class VariationAnalysis {
   float GetRadSystUp() const {
     return fRadSystUp;
   }
+  void AppendAndCut(TCut anotherCut) {
+    fSelector = fSelector && anotherCut;
+  }
+  void AppendOrCut(TCut anotherCut) {
+    fSelector = fSelector || anotherCut;
+  }
  private:
   TFile* fInFile;
+  TCut fSelector;
   const char* fHistname;
   int fnDataVarsStart;
   int fnDataVarsEnd;
@@ -62,6 +70,7 @@ class VariationAnalysis {
   TGraphErrors* fModel;
   TGraphErrors* fDeviationByBin;
   TH1D* fRadiusDist;
+  TH1D* fRadiusErrDist;
 };
 
 #endif /* GENTLEKITTY_VARIATIONANALYSIS_H_ */

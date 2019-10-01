@@ -9,6 +9,7 @@
 #include "TFile.h"
 #include "TGraph.h"
 #include "TError.h"
+#include "TEntryList.h"
 #include "TMath.h"
 #include "TSystem.h"
 #include "TLine.h"
@@ -16,6 +17,7 @@
 #include "TCanvas.h"
 VariationAnalysis::VariationAnalysis(const char* histname)
     : fInFile(nullptr),
+      fSelector(""),
       fHistname(histname),
       fnDataVarsStart(0),
       fnDataVarsEnd(0),
@@ -28,6 +30,7 @@ VariationAnalysis::VariationAnalysis(const char* histname)
       fCk(),
       fModel(nullptr),
       fRadiusDist(nullptr),
+      fRadiusErrDist(nullptr),
       fDeviationByBin(nullptr) {
   DreamPlot::SetStyle();
 }
@@ -38,11 +41,6 @@ VariationAnalysis::~VariationAnalysis() {
 
 void VariationAnalysis::ReadFitFile(TString FileName) {
   static int imT = 0;
-  TCanvas* c1 = new TCanvas(TString::Format("c%u", imT + 2).Data(),
-                            TString::Format("c%u", imT + 2).Data(), 0, 0, 550,
-                            650);
-  ;
-  TGraph* PaintMe = nullptr;
   TFile* tmpFile = TFile::Open(
       TString::Format("%s/tmp_%u.root", gSystem->pwd(), imT++), "RECREATE");
   if (!tmpFile) {
@@ -68,66 +66,75 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     if (fRadiusDist) {
       delete fRadiusDist;
     }
+    if (fRadiusErrDist) {
+      delete fRadiusErrDist;
+    }
     resultTree->Draw("Radius>>RadDist");
     fRadiusDist = (TH1D*) gROOT->FindObject("RadDist");
     float radMin = 0.9 * (fRadiusDist->GetMean() - fRadiusDist->GetRMS());
     float radMax = 1.1 * (fRadiusDist->GetMean() + fRadiusDist->GetRMS());
     delete fRadiusDist;
     fRadiusDist = new TH1D("RadDist", "RadDist", 200, radMin, radMax);
-    resultTree->Draw("Radius>>RadDist");
-    resultTree->Draw("RadiusErr>>RadStat");
-    TH1F* statErr = (TH1F*) gROOT->FindObject("RadStat");
-    fRadStat = statErr->GetMean();
 
+    resultTree->Draw("RadiusErr>>RadErrDist");
+    fRadiusErrDist = (TH1D*) gROOT->FindObject("RadErrDist");
+    float radErrMin = 0.9
+        * (fRadiusErrDist->GetMean() - fRadiusErrDist->GetRMS());
+    float radErrMax = 1.1
+        * (fRadiusErrDist->GetMean() + fRadiusErrDist->GetRMS());
+    delete fRadiusErrDist;
+    fRadiusErrDist = new TH1D("RadErrDist", "RadErrDist", 200, radErrMin, radErrMax);
+
+    int before = resultTree->GetEntriesFast();
+    resultTree->Draw(">>myList", fSelector, "entrylist");
+    std::cout << fSelector.GetName() << '\t' << fSelector.GetTitle() << std::endl;
+    TEntryList *entrList=(TEntryList*)gDirectory->Get("myList");
+    if (!entrList) {
+      Error("ReadFitFile", "Entry list missing \n");
+      return;
+    }
+
+    const int nEntries = entrList->GetN();
+    std::cout << "Entries Before: " << before << " and after "
+              << nEntries << " meaning a delta of " << before - nEntries
+              << std::endl;
+    if (nEntries == 0) {
+      return;
+    }
     int lastDataVar = -1;
 
     unsigned int dataVar;
     float chisq;
+    float radius;
+    float radiusErr;
     TH1F* CFHisto = nullptr;
     TGraph* FitCurve = nullptr;
     TGraph* refGraph = nullptr;
     fInFile->cd();
     resultTree->SetBranchAddress("DataVarID", &dataVar);
     resultTree->SetBranchAddress("chiSqNDF", &chisq);
+    resultTree->SetBranchAddress("Radius", &radius);
+    resultTree->SetBranchAddress("RadiusErr", &radiusErr);
     resultTree->SetBranchAddress("CorrHist", &CFHisto);
     resultTree->SetBranchAddress("FitResult", &FitCurve);
-    for (int iEntr = 0; iEntr < resultTree->GetEntriesFast(); ++iEntr) {
-      resultTree->GetEntry(iEntr);
-      if (chisq > 30) {
-        Warning("ReadFitFile",
-                Form("Chisq (%.1f) larger than 30, ignoring fit", chisq));
-        continue;
-      }
+    for (int iEntr = 0; iEntr < nEntries; ++iEntr) {
+      resultTree->GetEntry(entrList->GetEntry(iEntr));
+      fRadiusDist->Fill(radius);
+      fRadiusErrDist->Fill(radiusErr);
       if (!refGraph) {
         refGraph = new TGraph(FitCurve->GetN(), FitCurve->GetX(),
                               FitCurve->GetY());
       }
       if (dataVar != lastDataVar) {
-        if (fCk.size() == 0) {
-          c1->cd();
-          CFHisto->GetXaxis()->SetRangeUser(100, 300);
-          CFHisto->GetYaxis()->SetRangeUser(0.95, 1.05);
-          CFHisto->DrawCopy();
-        }
         fCk.push_back(CFHisto);
         lastDataVar = dataVar;
       }
       double x, y;
       for (int iPnt = 0; iPnt < FitCurve->GetN(); ++iPnt) {
         FitCurve->GetPoint(iPnt, x, y);
-        if (PaintMe)
-          delete PaintMe;
-        PaintMe = new TGraph(FitCurve->GetN(), FitCurve->GetX(),
-                             FitCurve->GetY());
-        PaintMe->SetLineColor(kRed);
-        PaintMe->SetMarkerColor(kRed);
-        c1->cd();
-        PaintMe->DrawClone("LSAME");
         Fits->Fill(x, y);
       }
     }
-    c1->SaveAs("dist.pdf");
-    c1->Write();
     fModel = EvaluateCurves(Fits, refGraph);
     fModel->SetName("Model");
     fDeviationByBin = DeviationByBin(fCk.at(0), fModel);
@@ -195,6 +202,7 @@ TGraphErrors* VariationAnalysis::DeviationByBin(TH1F* RefHist,
 
 void VariationAnalysis::EvalRadius(const char* bin) {
   fRadMean = fRadiusDist->GetMean();
+  fRadStat = fRadiusErrDist->GetMean();
   int n = fRadiusDist->GetXaxis()->GetNbins();
 
   auto histRadCumulative = fRadiusDist->GetCumulative();
