@@ -53,6 +53,9 @@ int main(int argc, char* argv[]) {
     TString mTDataDir = Form("%s/mTBin_%u", DataDir, imt);
     analyser->SetSystematic(mTDataDir.Data());
     TString mTFitDirResonance = Form("%s/mTBin_%u/", FitDirResonance, imt);
+    if (iAng > -1) {
+      mTFitDirResonance = TString::Format("%s/Ang_%u", mTFitDirResonance.Data(), iAng);
+    }
     analyser->SetVariation(mTFitDirResonance.Data(), 0);
   }
 
@@ -64,7 +67,11 @@ int main(int argc, char* argv[]) {
     analyser->SetmTBins(mTBins);
   }
   analyser->MakeCFPlotsSingleBand();
-  analyser->StoreRadvsmT("RadpLvsmT.root", 0);
+  if (iAng >-1) {
+    analyser->StoreRadvsmT(TString::Format("RadpLvsmT_iAng_%u_%u.root",iAng,outFileNumber), 0);
+  } else {
+    analyser->StoreRadvsmT(TString::Format("RadpLvsmT_%u.root",outFileNumber), 0);
+  }
 
   return 1;
 }

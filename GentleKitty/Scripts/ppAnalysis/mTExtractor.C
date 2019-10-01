@@ -2,6 +2,7 @@
 #include "TROOT.h"
 int main(int argc, char* argv[]) {
 //  gROOT->ProcessLine("gErrorIgnoreLevel = 2001");
+  std::cout << "argc: " << argc << std::endl;
   const char* DataDir = argv[1];
   const char* FitDirResonance = argv[2];
   int SourceOption = atoi(argv[3]);
@@ -48,6 +49,9 @@ int main(int argc, char* argv[]) {
     TString mTDataDir = Form("%s/mTBin_%u", DataDir, imt);
     analyser->SetSystematic(mTDataDir.Data());
     TString mTFitDirResonance = Form("%s/mTBin_%u", FitDirResonance, imt);
+    if (iAng > -1) {
+      mTFitDirResonance = TString::Format("%s/Ang_%u", mTFitDirResonance.Data(), iAng);
+    }
     analyser->SetVariation(mTFitDirResonance.Data(), 0);
 //    TString mTFitDirGauss = Form("%s/mTBin_%u", FitDirGauss, imt);
 //    analyser->SetVariation(mTFitDirGauss.Data(), 1);
@@ -60,7 +64,11 @@ int main(int argc, char* argv[]) {
     analyser->SetmTBins(mTBins);
   }
   analyser->MakeCFPlotsSingleBand();
-  analyser->StoreRadvsmT("RadppvsmT.root", 0);
-//  analyser->StoreRadvsmT("RadppvsmTGauss.root",1);
+  if (iAng > -1) {
+    analyser->StoreRadvsmT(TString::Format("RadppvsmT_iAng_%u_%u.root",iAng,outFileNumber), 0);
+  } else {
+    analyser->StoreRadvsmT(TString::Format("RadppvsmT_%u.root",outFileNumber), 0);
+  }
+
   return 1;
 }
