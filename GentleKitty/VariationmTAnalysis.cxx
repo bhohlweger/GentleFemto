@@ -17,6 +17,7 @@ VariationmTAnalysis::VariationmTAnalysis(int nModels)
     : fAnalysis(nModels),
       fnModel(nModels),
       fmTBins(),
+      fSelector(""),
       fHistname(),
       fFileName(),
       fDataName(),
@@ -111,6 +112,7 @@ void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
   fmTAverage->GetPoint(iPoint, dummy, mT);
 
   VariationAnalysis analysis = VariationAnalysis(fHistname);
+  analysis.AppendAndCut(fSelector);
   TString filename = Form("%s/%s", VarDir, fFileName);
   analysis.ReadFitFile(filename.Data());
   analysis.EvalRadius(Form("%.2f_%u", mT, iModel));
@@ -299,10 +301,11 @@ void VariationmTAnalysis::StoreRadvsmT(const char* fileName, int iModel) {
     model->SetName(TString::Format("Model_%u_imT_%u", iModel, counter).Data());
     model->Write(TString::Format("Model_%u_imT_%u", iModel, counter).Data());
   }
+  out->cd();
+  fSelector.Write(fSelector.GetTitle());
   out->Write();
   out->Close();
 }
-
 void VariationmTAnalysis::MakeCFPlotsPL() {
   DreamPlot::SetStyle();
 //  gStyle->SetLabelSize(16, "xyz");

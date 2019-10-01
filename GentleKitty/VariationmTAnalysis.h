@@ -56,6 +56,12 @@ class VariationmTAnalysis {
     fXmin = xMin;
     fXmax = xMax;
   }
+  void AppendAndCut(TCut anotherCut) {
+    fSelector = fSelector && anotherCut;
+  }
+  void AppendOrCut(TCut anotherCut) {
+    fSelector = fSelector || anotherCut;
+  }
  private:
   std::vector<std::vector<VariationAnalysis>> fAnalysis;
   const int fnModel;
@@ -63,6 +69,7 @@ class VariationmTAnalysis {
   //const int fnVars;
   std::vector<float> fmTBins;
 
+  TCut fSelector;
   const char* fHistname;
   const char* fFileName;
   const char* fDataName;
