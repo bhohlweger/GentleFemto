@@ -549,7 +549,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     AB_pL.SetNotifications(CATS::nError);
     std::cout << "Killing pL Cat \n";
     AB_pL.KillTheCat();
-    for (vMod_pSigma0 = 0; vMod_pSigma0 < 2; ++vMod_pSigma0) {
+    for (vMod_pSigma0 = 0; vMod_pSigma0 < 4; ++vMod_pSigma0) {
       CATS AB_pSigma0;
       int binwidth = StoreHist->GetXaxis()->GetBinWidth(1); 
       if (vMod_pSigma0 == 1) {  // Haidenbauer WF
