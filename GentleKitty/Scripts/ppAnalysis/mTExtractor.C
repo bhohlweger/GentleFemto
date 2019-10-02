@@ -9,7 +9,28 @@ int main(int argc, char* argv[]) {
   const int nMTBins = atoi(argv[4]);
   const char* cutString = argv[5];
   const int outFileNumber = atoi(argv[6]);
-  const int iAng = argv[7]?atoi(argv[7]):-1;
+  const char* AngFolder = argv[7] ? argv[7] : "";
+
+  TFile* out = nullptr;
+  if (AngFolder != "") {
+    out =
+        TFile::Open(
+            TString::Format("RadppvsmT_%s_%u.root", AngFolder, outFileNumber)
+                .Data(),
+            "read");
+  } else {
+    out = TFile::Open(
+        TString::Format("RadppvsmT_%u.root", outFileNumber).Data(), "read");
+  }
+  if (out) {
+    std::cout
+        << "Already processed "
+        << TString::Format("RadppvsmT_%s_%u.root", AngFolder, outFileNumber)
+            .Data()
+        << "\n";
+    return -1;
+  }
+
   TString avgmTFile = TString::Format("%s/AveragemT.root", DataDir);
   TFile* mTFile = TFile::Open(avgmTFile, "READ");
   if (!mTFile) {
@@ -49,8 +70,9 @@ int main(int argc, char* argv[]) {
     TString mTDataDir = Form("%s/mTBin_%u", DataDir, imt);
     analyser->SetSystematic(mTDataDir.Data());
     TString mTFitDirResonance = Form("%s/mTBin_%u", FitDirResonance, imt);
-    if (iAng > -1) {
-      mTFitDirResonance = TString::Format("%s/Ang_%u", mTFitDirResonance.Data(), iAng);
+    if (AngFolder != "") {
+      mTFitDirResonance = TString::Format("%s/%s", mTFitDirResonance.Data(),
+                                          AngFolder);
     }
     analyser->SetVariation(mTFitDirResonance.Data(), 0);
 //    TString mTFitDirGauss = Form("%s/mTBin_%u", FitDirGauss, imt);
@@ -64,10 +86,12 @@ int main(int argc, char* argv[]) {
     analyser->SetmTBins(mTBins);
   }
   analyser->MakeCFPlotsSingleBand();
-  if (iAng > -1) {
-    analyser->StoreRadvsmT(TString::Format("RadppvsmT_iAng_%u_%u.root",iAng,outFileNumber), 0);
+  if (AngFolder != "") {
+    analyser->StoreRadvsmT(
+        TString::Format("RadppvsmT_%s_%u.root", AngFolder, outFileNumber), 0);
   } else {
-    analyser->StoreRadvsmT(TString::Format("RadppvsmT_%u.root",outFileNumber), 0);
+    analyser->StoreRadvsmT(TString::Format("RadppvsmT_%u.root", outFileNumber),
+                           0);
   }
 
   return 1;
