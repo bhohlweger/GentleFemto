@@ -596,8 +596,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	  lmb_pLS0 = lam_pL_pS0.at(vFrac_pL);
 	  lmb_pLXim = lam_pL_pXm.at(vFrac_pL);
 	  for (int iBL = 0; iBL < 3; iBL++) {
-	    BaseLineMin = FemtoRegion[iBL];
-	    BaseLineMax = FemtoRegion[iBL];
+	    BaseLineMin = BaseLineRegion[iBL][0];
+	    BaseLineMax = BaseLineRegion[iBL][1];
 	    for (BaseLine = 0; BaseLine < 3; ++BaseLine) {
 	      if (BaseLine == 1) {
 		//no pol1 baseline.
@@ -661,7 +661,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	      DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0,
 						NULL);
 	      DLM_CkDecomposition CkDec_pXim("pXim", 3, *Ck_pXim,
-					     CATSinput->GetSigmaFile(3));
+					     NULL);
 	      DLM_CkDecomposition CkDec_pXim1530("pXim1530", 0, *Ck_pXim1530,
 						 NULL);
 	      if (!CATSinput->GetResFile(1)) {
