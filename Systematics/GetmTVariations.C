@@ -7,8 +7,10 @@
 
 #include <iostream>
 int main(int argc, char* argv[]) {
-  std::vector<float> mTppBins = { 1.02, 1.14, 1.26, 4.5 };
-//  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
+//  MB
+//  std::vector<float> mTppBins = { 1.02, 1.14, 1.26, 4.5 };
+//  HM
+  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 1.86, 4.5 };
 //  std::vector<float> mTppBins = { 1.02, 1.14, 1.2, 1.26, 1.38, 1.56, 4.5 };
   const char* filename = argv[1];
   const char* prefix = argv[2];
