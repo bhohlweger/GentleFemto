@@ -73,7 +73,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     fRadiusDist = (TH1D*) gROOT->FindObject("RadDist");
     float radMin = fRadiusDist->GetXaxis()->GetXmin(); //0.9 * (fRadiusDist->GetMean() - fRadiusDist->GetRMS());
     float radMax = fRadiusDist->GetXaxis()->GetXmax(); //1.1 * (fRadiusDist->GetMean() + fRadiusDist->GetRMS());
-    int nRadBims = (radMax - radMin)/(float)(0.1);
+    int nRadBims = (radMax - radMin)/(float)(0.01);
     delete fRadiusDist;
     fRadiusDist = new TH1D("RadDist", "RadDist", nRadBims, radMin, radMax);
 
@@ -81,7 +81,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     fRadiusErrDist = (TH1D*) gROOT->FindObject("RadErrDist");
     float radErrMin = fRadiusErrDist->GetXaxis()->GetXmin(); //0.9 * (fRadiusErrDist->GetMean() - fRadiusErrDist->GetRMS());
     float radErrMax = fRadiusErrDist->GetXaxis()->GetXmax(); //1.1* (fRadiusErrDist->GetMean() + fRadiusErrDist->GetRMS());
-    int nRadErrBims = (radErrMax-radErrMin)/(float)0.1;
+    int nRadErrBims = (radErrMax-radErrMin)/(float)0.01;
     delete fRadiusErrDist;
     fRadiusErrDist = new TH1D("RadErrDist", "RadErrDist", nRadErrBims, radErrMin, radErrMax);
 
