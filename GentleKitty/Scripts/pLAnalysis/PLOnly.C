@@ -47,15 +47,15 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   }
   //This is for the CATS objects, make sure it covers the full femto range
 
-  const unsigned NumMomBins = 20;
+  const unsigned NumMomBins = 25;
   const double kMin = StoreHist->GetXaxis()->GetXmin();
   const double kMax = kMin + StoreHist->GetXaxis()->GetBinWidth(1) * NumMomBins;  //(4 is the bin width)
 
   //if you modify you may need to change the CATS ranges somewhere below
   double FemtoRegion[3];
-  FemtoRegion[0] = 180;
-  FemtoRegion[1] = 204;
-  FemtoRegion[2] = 228;
+  FemtoRegion[0] = 204;
+  FemtoRegion[1] = 224;
+  FemtoRegion[2] = 244;
 
   if (FemtoRegion[2] > kMax) {
     std::cout << "FemtoRegion larger than kMax, please Adjust \n";
@@ -350,7 +350,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   }
   double AvgRadius = 0.;
   
-  float total = 486*4;
+  float total = 729;
   int numIter = NumIter; 
   int uIter = 1; 
   int vFemReg;  //which femto region we use for pp (1 = default)
@@ -549,7 +549,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     AB_pL.SetNotifications(CATS::nError);
     std::cout << "Killing pL Cat \n";
     AB_pL.KillTheCat();
-    for (vMod_pSigma0 = 0; vMod_pSigma0 < 4; ++vMod_pSigma0) {
+    for (vMod_pSigma0 = 0; vMod_pSigma0 < 3; ++vMod_pSigma0) {
       CATS AB_pSigma0;
       int binwidth = StoreHist->GetXaxis()->GetBinWidth(1); 
       if (vMod_pSigma0 == 1) {  // Haidenbauer WF
@@ -564,7 +564,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 				  kMin, kMax_pSigma_NSC97f,
 				  TidyCats::sGaussian, TidyCats::pSigma0NSC97f);
 	AB_pSigma0.KillTheCat();
-      } else if (vMod_pSigma0 == 2) {  // Haidenbauer WF
+      } else if (vMod_pSigma0 == 3) {  // Haidenbauer WF
 	double kMax_pSigma_Haidenbauer = kMin;
 	int NumMomBins_pSigma_Haidenbauer = 0;
 	while (kMax_pSigma_Haidenbauer < 348 - binwidth) {
@@ -576,7 +576,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 				  TidyCats::sGaussian,
 				  TidyCats::pSigma0Haidenbauer);
 	AB_pSigma0.KillTheCat();
-      } else if (vMod_pSigma0 == 3) {  // ESC16 WF
+      } else if (vMod_pSigma0 == 2) {  // ESC16 WF
 	// ESC16 is valid up to 400 MeV, therefore we have to adopt
 	double kMax_pSigma_ESC16 = kMin;
 	int NumMomBins_pSigma_ESC16 = 0;
@@ -591,18 +591,20 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
       }
       for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
 	FemtoFitMax = FemtoRegion[vFemReg];
+	BaseLineMin = FemtoRegion[vFemReg];
+	BaseLineMax = FemtoRegion[vFemReg];
 	for (vFrac_pL = 0; vFrac_pL < 9; ++vFrac_pL) {
 	  lmb_pL = lam_pL.at(vFrac_pL); 
 	  lmb_pLS0 = lam_pL_pS0.at(vFrac_pL);
 	  lmb_pLXim = lam_pL_pXm.at(vFrac_pL);
-	  for (int iBL = 0; iBL < 3; iBL++) {
-	    BaseLineMin = BaseLineRegion[iBL][0];
-	    BaseLineMax = BaseLineRegion[iBL][1];
+	  // for (int iBL = 0; iBL < 3; iBL++)  {
+	    // BaseLineMin = FemtoRegion[iBL];
+	    // BaseLineMax = FemtoRegion[iBL];
 	    for (BaseLine = 0; BaseLine < 3; ++BaseLine) {
-	      if (BaseLine == 1) {
-		//no pol1 baseline.
-		continue;
-	      }
+	      // if (BaseLine == 1) {
+	      // 	no pol1 baseline.
+	      // 	continue;
+	      // }
 	      // Some computation here
 	      auto end = std::chrono::system_clock::now();
 	      double runningAvg = uIter == 1?1:AvgRadius/(double)(uIter-1);
@@ -718,9 +720,9 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	      DLM_Fitter1* fitter;
 	      if (TheSource == TidyCats::sLevy) {
 		fitter = new DLM_Fitter1(1);
-		fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pL, kMin,
-				  FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
-				  BaseLineRegion[iBL][1]);
+		// fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pL, kMin,
+		// 		  FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
+		// 		  BaseLineRegion[iBL][1]);
 		//            fitter->AddSameSource("pXim", "pLambda", 2);
 		//            fitter->AddSameSource("pXim1530", "pLambda", 2);
 
@@ -731,9 +733,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 		fitter = new DLM_Fitter1(1);
 
 		fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pL, kMin,
-				  FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
-				  BaseLineRegion[iBL][1]);
-
+				  FemtoRegion[vFemReg], FemtoRegion[vFemReg], FemtoRegion[vFemReg]); 
+		// fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pL, kMin,
+		// 		  FemtoRegion[vFemReg], BaseLineRegion[iBL][0],
+		// 		  BaseLineRegion[iBL][1]);
 		//            fitter->AddSameSource("pLambda", "pLambda", 1);
 		//            fitter->AddSameSource("pSigma0", "pLambda", 1);
 		//            fitter->AddSameSource("pXim", "pLambda", 1);
@@ -838,7 +841,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	  }
 	}
       }
-    }
+    //}
   }
   std::cout << "\n";
   OutFile->cd();
