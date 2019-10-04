@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
             "read");
   } else {
     out = TFile::Open(
-        TString::Format("RadppvsmT_%u.root", outFileNumber).Data(), "read");
+        TString::Format("RadpLvsmT_%u.root", outFileNumber).Data(), "read");
   }
   if (out) {
     std::cout
