@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
   if (AngFolder != "") {
     out =
         TFile::Open(
-            TString::Format("RadppvsmT_%s_%u.root", AngFolder, outFileNumber)
+            TString::Format("RadpLvsmT_%s_%u.root", AngFolder, outFileNumber)
                 .Data(),
             "read");
   } else {
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
   if (out) {
     std::cout
         << "Already processed "
-        << TString::Format("RadppvsmT_%s_%u.root", AngFolder, outFileNumber)
+        << TString::Format("RadpLvsmT_%s_%u.root", AngFolder, outFileNumber)
             .Data()
         << "\n";
     return -1;
