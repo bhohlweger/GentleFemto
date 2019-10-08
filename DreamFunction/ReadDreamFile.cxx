@@ -6,6 +6,9 @@
  */
 #include "ReadDreamFile.h"
 #include "TCanvas.h"
+#include "TLatex.h"
+#include "TStyle.h"
+#include "TLegend.h"
 #include <iostream>
 #include <iostream>
 #include "stdlib.h"
@@ -320,6 +323,10 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
   double kcutdummy = kcut/1000.;//transform in GeV
   int iPart1;
   int iPart2;
+  double binwidth;
+  TLatex texttmp;
+  TFile* out = TFile::Open("tmp_mT.root", "recreate");
+
 
   fSEmT = new TH2F**[fNPart1];
   fMEmT = new TH2F**[fNPart1];
@@ -335,6 +342,7 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
   std::vector<int> numbersBBar1={0,1,2};
   std::vector<int> numbersBBar2={1,2,3};
 
+  out->cd();
   for (int ip1 = 0; ip1 < numbersBBar1.size(); ++ip1) {
 
 	iPart1=numbersBBar1[ip1];
@@ -377,8 +385,11 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
           Form("SEmTDist_%s", FolderName.Data()));
 
 	  fSEmTProj[iPart1][iPart2] = nullptr;
+
       for(int ikstar = 1; ikstar < fSEmT[iPart1][iPart2]->GetNbinsX()+1; ikstar++)
       {
+      binwidth = fSEmT[iPart1][iPart2]->GetXaxis()->GetBinUpEdge(ikstar)-
+    		  fSEmT[iPart1][iPart2]->GetXaxis()->GetBinLowEdge(ikstar);
 
       fSEmTProj[iPart1][iPart2] = (TH1F*) fSEmT[iPart1][iPart2]->ProjectionY(
     		  	  TString::Format("fSEmTProj_part%i_part%i_%i",iPart1,iPart2,ikstar),ikstar,ikstar);
@@ -392,11 +403,20 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
                     << std::endl;
       }
       TCanvas* ctmp = new TCanvas("ctmp");
-      fSEmTProj[iPart1][iPart2]->SetTitle("; m_T (GeV/c^2); Entries")
-      fSEmTProj[iPart1][iPart2]->Draw();
-      ctmp->Print(TString::Format("mT_p%i_p%i_kbin%i.pdf",iPart1,iPart2,ikstar));
-      delete ctmp;
+      ctmp->cd();
+      fSEmTProj[iPart1][iPart2]->GetXaxis()->SetTitle("m_{T} (GeV/c^{2})");
+      fSEmTProj[iPart1][iPart2]->GetYaxis()->SetTitle("Entries ");
 
+      fSEmTProj[iPart1][iPart2]->Draw();
+
+      auto* leg1= new TLegend(0.55,0.65,0.75,0.8);
+      leg1->AddEntry("",Form("k^{*} = [%.0f,%.0f] MeV/c",1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)-0.5*binwidth),
+			  1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)) , "");//"l" sets the legend as lines
+      leg1->Draw("same");
+
+      ctmp->Print(TString::Format("mT_p%i_p%i_kbin%i.pdf",iPart1,iPart2,ikstar));
+      fSEmTProj[iPart1][iPart2]->Write();
+      delete ctmp;
       }
 
 
@@ -408,7 +428,7 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
 
     }
   }
-
+  out->Close();
   return;
 }
 
