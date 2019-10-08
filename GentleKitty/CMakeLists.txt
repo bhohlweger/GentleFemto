@@ -178,7 +178,6 @@ target_link_libraries(runPhi tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(radPlotter ${PROJECT_SOURCE_DIR}/Scripts/RadiusDrawer.C)
 target_link_libraries(radPlotter tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
-
 add_executable(radPlotterV2 ${PROJECT_SOURCE_DIR}/Scripts/RadiusDrawerPotSep.C)
 target_link_libraries(radPlotterV2 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
