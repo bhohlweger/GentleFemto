@@ -343,7 +343,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   int vFemReg;  //which femto region we use for pp (1 = default)
   float thismT = mTValues[imTBin];
   unsigned int iAngDist = 0;
-  int iRange = 0; 
+  unsigned int iRange = 0; 
   float FemtoFitMax = 0;
   float BaseLineMin = 0;
   float BaseLineMax = 0; 
@@ -419,11 +419,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   for (iAngDist = 3; iAngDist < nAngls; ++iAngDist) {
     if (TheSource == TidyCats::sResonance && iAngDist > 2) {
       nRanges = 3;
-      total = 324*nDeltaAng; 
     } else {
       nRanges = 1;
-      total = 108*nDeltaAng; 
-    } 
+    }
+    total = 162*nRanges*nDeltaAng; 
     for (iRange = 0; iRange < nRanges; ++iRange) { 
       if (TheSource == TidyCats::sResonance) {
 	const double massProton =
