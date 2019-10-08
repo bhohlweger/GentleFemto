@@ -16,7 +16,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.2, 0.4);
   CATSinput->SetFixedkStarMinBin(true, 0.);
-  const int rebin = 3;
+  const int rebin = 1;
   auto counter = new CandidateCounter();
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);//$ particles covered in the BBar analysis
   DreamFile->SetAnalysisFile(filename.Data(), prefix, "0");
