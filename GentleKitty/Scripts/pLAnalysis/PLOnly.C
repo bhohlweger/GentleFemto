@@ -25,9 +25,7 @@
 #include <ctime>
 
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
-                     int source,  
-		     unsigned int ProResMassVariation, unsigned int ProResWidthVariation,
-		     unsigned int LamResMassVariation, unsigned int LamResWidthVariation,
+                     int source, unsigned int ResVariation,
                      TString InputFile, TString HistoName, TString OutputDir) {
   //What source to use: 0 = Gauss; 1=Resonance; 2=Levy
   auto start = std::chrono::system_clock::now();
@@ -369,6 +367,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   float pa; 
   float pb;  
   float pc;
+  unsigned int ProResMassVariation = 0;
+  unsigned int ProResWidthVariation = 0;
+  unsigned int LamResMassVariation = 0; 
+  unsigned int LamResWidthVariation = 0; 
   int vFrac_pL;  //fraction of protons coming from Lambda variation (1 = default)
   float lmb_pp = 0; 
   float lmb_ppL = 0;
@@ -382,6 +384,16 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   float outChiSqNDF;
   TGraph* pointerFitResult = nullptr;
 
+  //set the Resonance variations, index goes from 0-81
+  unsigned int iTmp = ResVariation; 
+  LamResWidthVariation = iTmp%3;
+  iTmp = (iTmp-LamResWidthVariation)/3; 
+  LamResMassVariation = iTmp%3; 
+  iTmp = (iTmp - LamResMassVariation)/3;
+  ProResWidthVariation = iTmp%3;
+  iTmp = (iTmp - ProResWidthVariation)/3;
+  ProResMassVariation = iTmp;
+  
   TTree* outTree = new TTree("ppTree","ppTree");
   outTree->Branch("DataVarID", &numIter, "DataVarID/i"); 
   outTree->Branch("FitVarID", &uIter, "FitVarID/i"); 
@@ -863,8 +875,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
 int main(int argc, char *argv[]) {
   FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]),
-		  argv[9], argv[10], argv[11]);
+                  atoi(argv[5]), argv[6], argv[7], argv[8]);
   return 0;
 }
 
