@@ -422,16 +422,17 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   AB_pXim1530.KillTheCat();
   std::cout << "pXim1530 CaT\n"; 
   CATS AB_pL;
-  for (vMod_pL = 1; vMod_pL < 4; ++vMod_pL) {
-    if (vMod_pL == 1) {
-      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
-                                TidyCats::pUsmani);
-    } else if (vMod_pL == 2) {
-      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
-                                TidyCats::pNLOWF);
-    } else if (vMod_pL == 3) {
+  for (vMod_pL = 0; vMod_pL < 2; ++vMod_pL) {
+
+    if (vMod_pL == 0) {
       tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
                                 TidyCats::pLOWF);
+    } else if (vMod_pL == 1) {
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+                                TidyCats::pNLOWF);
+    } else if (vMod_pL == 2) {
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+                                TidyCats::pUsmani);
     }
     if (TheSource == TidyCats::sResonance) {
       const double massProton = TDatabasePDG::Instance()->GetParticle(2212)
@@ -538,69 +539,70 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	  DLM_Histo<double>* HISTO_PROTON = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile).Data(),TString::Format("%s",PhiHistoName).Data(), RangeProtonMin, RangeProtonMax, false, PhiRebin);
 	  DLM_Histo<double>* HISTO_LAMBDA = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile).Data(),TString::Format("%s",PhiHistoName).Data(), RangeLambdaMin, RangeLambdaMax, false, PhiRebin);
 	    
-	  source->SetUpResoEmission(0, 0, HISTO_PROTON);
-	  source->SetUpResoEmission(1, 0, HISTO_LAMBDA);
-      	}
-      } else {
-	std::cout << "Case for iAng == :" << iAngDist << " not implemented, exiting. \n";
-	return; 
+	    source->SetUpResoEmission(0, 0, HISTO_PROTON);
+	    source->SetUpResoEmission(1, 0, HISTO_LAMBDA);
+	  }
+	} else {
+	  std::cout << "Case for iAng == :" << iAngDist << " not implemented, exiting. \n";
+	  return; 
+	}
       }
-    }
-    AB_pL.SetNotifications(CATS::nError);
-    std::cout << "Killing pL Cat \n";
-    AB_pL.KillTheCat();
-    for (vMod_pSigma0 = 0; vMod_pSigma0 < 3; ++vMod_pSigma0) {
-      CATS AB_pSigma0;
-      int binwidth = StoreHist->GetXaxis()->GetBinWidth(1); 
-      if (vMod_pSigma0 == 1) {  // Haidenbauer WF
-	// NSC97f is valid up to 350 MeV, therefore we have to adopt
-	double kMax_pSigma_NSC97f = kMin;
-	int NumMomBins_pSigma_NSC97f = 0;
-	while (kMax_pSigma_NSC97f < 348 - binwidth) {
-	  kMax_pSigma_NSC97f += binwidth;
-	  ++NumMomBins_pSigma_NSC97f;
+      AB_pL.SetNotifications(CATS::nError);
+      std::cout << "Killing pL Cat \n";
+      AB_pL.KillTheCat();
+      for (vMod_pSigma0 = 0; vMod_pSigma0 < 2; ++vMod_pSigma0) {
+	CATS AB_pSigma0;
+	//case 0 is Lednicky 
+	int binwidth = StoreHist->GetXaxis()->GetBinWidth(1); 
+	if (vMod_pSigma0 == 1) {  // ESC16 WF
+	  // ESC16 is valid up to 400 MeV, therefore we have to adopt
+	  double kMax_pSigma_ESC16 = kMin;
+	  int NumMomBins_pSigma_ESC16 = 0;
+	  while (kMax_pSigma_ESC16 < 398 - binwidth) {
+	    kMax_pSigma_ESC16 += binwidth;
+	    ++NumMomBins_pSigma_ESC16;
+	  }
+	  tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_ESC16, kMin,
+				    kMax_pSigma_ESC16, TidyCats::sGaussian,
+				    TidyCats::pSigma0ESC16);
+	  AB_pSigma0.KillTheCat();
+	} else if (vMod_pSigma0 == 2) {  // Haidenbauer WF between Lednicky and ESC
+	  // NSC97f is valid up to 350 MeV, therefore we have to adopt
+	  double kMax_pSigma_NSC97f = kMin;
+	  int NumMomBins_pSigma_NSC97f = 0;
+	  while (kMax_pSigma_NSC97f < 348 - binwidth) {
+	    kMax_pSigma_NSC97f += binwidth;
+	    ++NumMomBins_pSigma_NSC97f;
+	  }
+	  tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_NSC97f,
+				    kMin, kMax_pSigma_NSC97f,
+				    TidyCats::sGaussian, TidyCats::pSigma0NSC97f);
+	  AB_pSigma0.KillTheCat();
+	} else if (vMod_pSigma0 == 3) {  // Haidenbauer WF yields same result as lednicky
+	  double kMax_pSigma_Haidenbauer = kMin;
+	  int NumMomBins_pSigma_Haidenbauer = 0;
+	  while (kMax_pSigma_Haidenbauer < 348 - binwidth) {
+	    kMax_pSigma_Haidenbauer += binwidth;
+	    ++NumMomBins_pSigma_Haidenbauer;
+	  }
+	  tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_Haidenbauer,
+				    kMin, kMax_pSigma_Haidenbauer,
+				    TidyCats::sGaussian,
+				    TidyCats::pSigma0Haidenbauer);
+	  AB_pSigma0.KillTheCat();
 	}
-	tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_NSC97f,
-				  kMin, kMax_pSigma_NSC97f,
-				  TidyCats::sGaussian, TidyCats::pSigma0NSC97f);
-	AB_pSigma0.KillTheCat();
-      } else if (vMod_pSigma0 == 3) {  // Haidenbauer WF
-	double kMax_pSigma_Haidenbauer = kMin;
-	int NumMomBins_pSigma_Haidenbauer = 0;
-	while (kMax_pSigma_Haidenbauer < 348 - binwidth) {
-	  kMax_pSigma_Haidenbauer += binwidth;
-	  ++NumMomBins_pSigma_Haidenbauer;
-	}
-	tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_Haidenbauer,
-				  kMin, kMax_pSigma_Haidenbauer,
-				  TidyCats::sGaussian,
-				  TidyCats::pSigma0Haidenbauer);
-	AB_pSigma0.KillTheCat();
-      } else if (vMod_pSigma0 == 2) {  // ESC16 WF
-	// ESC16 is valid up to 400 MeV, therefore we have to adopt
-	double kMax_pSigma_ESC16 = kMin;
-	int NumMomBins_pSigma_ESC16 = 0;
-	while (kMax_pSigma_ESC16 < 398 - binwidth) {
-	  kMax_pSigma_ESC16 += binwidth;
-	  ++NumMomBins_pSigma_ESC16;
-	}
-	tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_ESC16, kMin,
-				  kMax_pSigma_ESC16, TidyCats::sGaussian,
-				  TidyCats::pSigma0ESC16);
-	AB_pSigma0.KillTheCat();
-      }
-      for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
-	FemtoFitMax = FemtoRegion[vFemReg];
-	BaseLineMin = FemtoRegion[vFemReg];
-	BaseLineMax = FemtoRegion[vFemReg];
-	for (vFrac_pL = 0; vFrac_pL < 9; ++vFrac_pL) {
-	  lmb_pL = lam_pL.at(vFrac_pL); 
-	  lmb_pLS0 = lam_pL_pS0.at(vFrac_pL);
-	  lmb_pLXim = lam_pL_pXm.at(vFrac_pL);
-	  // for (int iBL = 0; iBL < 3; iBL++)  {
+	for (vFemReg = 0; vFemReg < 3; ++vFemReg) {
+	  FemtoFitMax = FemtoRegion[vFemReg];
+	  BaseLineMin = FemtoRegion[vFemReg];
+	  BaseLineMax = FemtoRegion[vFemReg];
+	  for (vFrac_pL = 0; vFrac_pL < 9; ++vFrac_pL) {
+	    lmb_pL = lam_pL.at(vFrac_pL); 
+	    lmb_pLS0 = lam_pL_pS0.at(vFrac_pL);
+	    lmb_pLXim = lam_pL_pXm.at(vFrac_pL);
+	    // for (int iBL = 0; iBL < 3; iBL++)  {
 	    // BaseLineMin = FemtoRegion[iBL];
 	    // BaseLineMax = FemtoRegion[iBL];
-	    for (BaseLine = 0; BaseLine < 3; ++BaseLine) {
+	    for (BaseLine = 0; BaseLine < 2; ++BaseLine) {
 	      // if (BaseLine == 1) {
 	      // 	no pol1 baseline.
 	      // 	continue;
@@ -674,7 +676,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 		std::cout << "No Calib 2 \n";
 		return;
 	      }
-	      //
+	      
 	      if (TheSource == TidyCats::sLevy) {
 		CkDec_pL.AddContribution(0, lam_pL_pXm.at(vFrac_pL),
 					 DLM_CkDecomposition::cFeedDown,
@@ -841,7 +843,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	  }
 	}
       }
-    //}
+    }
   }
   std::cout << "\n";
   OutFile->cd();
