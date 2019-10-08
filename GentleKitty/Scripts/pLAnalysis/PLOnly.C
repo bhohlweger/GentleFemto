@@ -574,8 +574,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 		RangeLambdaMin = 300/(double)PhiConversion;
 		RangeLambdaMax = 400/(double)PhiConversion;
 	      } else if (iRange == 2) {
-		RangeProtonMin = 250/(double)PhiConversion;
-		RangeProtonMax = 650/(double)PhiConversion;
+		RangeProtonMin = 350/(double)PhiConversion;
+		RangeProtonMax = 620/(double)PhiConversion;
 
 		RangeLambdaMin = 200/(double)PhiConversion;
 		RangeLambdaMax = 500/(double)PhiConversion;
