@@ -25,7 +25,7 @@
 #include <ctime>
 
 void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
-                     int source, int iPotential, 
+                     int source,  
 		     unsigned int ProResMassVariation, unsigned int ProResWidthVariation,
 		     unsigned int LamResMassVariation, unsigned int LamResWidthVariation,
                      TString InputFile, TString HistoName, TString OutputDir) {
@@ -863,8 +863,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
 int main(int argc, char *argv[]) {
   FitPPVariations(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]),
-                  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]),
-		  argv[10], argv[11], argv[12]);
+                  atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]),
+		  argv[9], argv[10], argv[11]);
   return 0;
 }
 
