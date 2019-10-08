@@ -5,6 +5,7 @@
  *      Author: hohlweger
  */
 #include "ReadDreamFile.h"
+#include "TCanvas.h"
 #include <iostream>
 #include <iostream>
 #include "stdlib.h"
@@ -313,6 +314,105 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
   return;
 }
 
+void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const char* prefix,
+                                 const char* addon, double kcut) {
+
+  double kcutdummy = kcut/1000.;//transform in GeV
+  int iPart1;
+  int iPart2;
+
+  fSEmT = new TH2F**[fNPart1];
+  fMEmT = new TH2F**[fNPart1];
+  fSEmTProj = new TH1F** [fNPart1];
+
+  TFile* _file0 = TFile::Open(AnalysisFile, "READ");
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults%s", prefix, addon)));
+  TList *Results;
+  dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
+  TList *PartList;
+
+  std::vector<int> numbersBBar1={0,1,2};
+  std::vector<int> numbersBBar2={1,2,3};
+
+  for (int ip1 = 0; ip1 < numbersBBar1.size(); ++ip1) {
+
+	iPart1=numbersBBar1[ip1];
+    printf("Particle 1 = %i ----\n",iPart1);
+
+    fSEmT[iPart1] = new TH2F*[fNPart2];
+    fMEmT[iPart1] = new TH2F*[fNPart2];
+    fSEmTProj[iPart1] = new TH1F*[fNPart2];
+
+
+    for (int ip2 = 0; ip2 < numbersBBar2.size(); ++ip2) {
+  	  iPart2=numbersBBar2[ip2];
+
+    	if(iPart1==iPart2 || iPart1 > iPart2){
+    		 std::cout << "No pairs " << iPart1 << "--" <<iPart2
+    		                    << std::endl;
+    		 continue;
+    	}
+    	if(iPart1==0 && iPart2==2){
+   		 std::cout << "No pairs " << iPart1 << "--" <<iPart2
+   		                    << std::endl;
+   		 continue;
+    	}
+    	if(iPart1==1 && iPart2==3){
+    	   		 std::cout << "No pairs " << iPart1 << "--" <<iPart2
+    	   		                    << std::endl;
+    	   		 continue;
+    	    	}
+
+
+	  printf("Particle 2 = %i ----\n",iPart2);
+	  std::cout << "Selecting pairs with " << iPart1 << "--" <<iPart2
+						<< std::endl;
+
+      TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
+      PartList = (TList*) Results->FindObject(FolderName.Data());
+
+      fSEmT[iPart1][iPart2] = nullptr;
+      fSEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+          Form("SEmTDist_%s", FolderName.Data()));
+
+	  fSEmTProj[iPart1][iPart2] = nullptr;
+      for(int ikstar = 1; ikstar < fSEmT[iPart1][iPart2]->GetNbinsX()+1; ikstar++)
+      {
+
+      fSEmTProj[iPart1][iPart2] = (TH1F*) fSEmT[iPart1][iPart2]->ProjectionY(
+    		  	  TString::Format("fSEmTProj_part%i_part%i_%i",iPart1,iPart2,ikstar),ikstar,ikstar);
+
+      if(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)>kcutdummy){
+    	  break;
+      }
+      if (!fSEmTProj[iPart1][iPart2]) {
+        if (!fQuiet)
+          std::cout << "fSEmTProj Histogramm missing from " << FolderName.Data()
+                    << std::endl;
+      }
+      TCanvas* ctmp = new TCanvas("ctmp");
+      fSEmTProj[iPart1][iPart2]->SetTitle("; m_T (GeV/c^2); Entries")
+      fSEmTProj[iPart1][iPart2]->Draw();
+      ctmp->Print(TString::Format("mT_p%i_p%i_kbin%i.pdf",iPart1,iPart2,ikstar));
+      delete ctmp;
+
+      }
+
+
+      if (!fSEmT[iPart1][iPart2]) {
+        if (!fQuiet)
+          std::cout << "SEmT Histogramm missing from " << FolderName.Data()
+                    << std::endl;
+      }
+
+    }
+  }
+
+  return;
+}
+
+
 void ReadDreamFile::ReaddEtadPhiAtRadHists(const unsigned int nMaxMix,
                                            const char* AnalysisFile,
                                            const char* prefix,
@@ -516,6 +616,21 @@ DreamKayTee* ReadDreamFile::GetmTPairDistributions(int iPart1, int iPart2,
 
   return pair;
 }
+
+DreamKayTee* ReadDreamFile::GetmTPairDistributionsBBar(int iPart1, int iPart2) {
+//user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEmTDist(0, fSEmT[iPart1][iPart2]);
+  pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
+
+  return pair;
+}
+
+
 
 DreamdEtadPhi* ReadDreamFile::GetdEtadPhiDistribution(int iPart1, int iPart2,
                                                       int iAPart1, int iAPart2,

@@ -10,6 +10,7 @@
 int main(int argc, char *argv[]) {
   const char* filename = argv[1];
   const char* SystFile = argv[2];
+<<<<<<< HEAD
   const char* model = argv[3];
   int selector;
   TString convmodel = model;
@@ -17,6 +18,9 @@ int main(int argc, char *argv[]) {
   if(convmodel=="Lednicky") selector=1;
   if(convmodel=="Coulomb") selector=2;
 
+=======
+  printf("--- debug 1 ---\n");
+>>>>>>> Updates on BBar
   TFile* systFile = TFile::Open(SystFile, "read");
   if (!systFile) {
     std::cout << "no syst file " << std::endl;
