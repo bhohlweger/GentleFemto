@@ -439,7 +439,7 @@ void DreamPlot::SetStyle(bool graypalette, bool title) {
   TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
 }
 
-void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color) {
+void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color, float alpha) {
   histo->GetXaxis()->SetLabelSize(28);
   histo->GetXaxis()->SetTitleSize(28);
   histo->GetXaxis()->SetLabelOffset(0.01);
@@ -453,8 +453,8 @@ void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color) {
   histo->GetYaxis()->SetLabelFont(43);
   histo->GetYaxis()->SetTitleFont(43);
   histo->SetMarkerStyle(marker);
-  histo->SetMarkerColor(color);
-  histo->SetLineColor(color);
+  histo->SetMarkerColorAlpha(color, alpha);
+  histo->SetLineColorAlpha(color, alpha);
 }
 
 void DreamPlot::SetStyleHistoCF(TH1 *histo, int marker, int color, int labelsize) {
@@ -475,7 +475,7 @@ void DreamPlot::SetStyleHistoCF(TH1 *histo, int marker, int color, int labelsize
  histo->SetLineColor(color);
 }
 
-void DreamPlot::SetStyleGraph(TGraph *histo, int marker, int color) {
+void DreamPlot::SetStyleGraph(TGraph *histo, int marker, int color, float alpha) {
   histo->GetXaxis()->SetLabelSize(28);
   histo->GetXaxis()->SetTitleSize(28);
   histo->GetXaxis()->SetLabelOffset(0.01);
@@ -486,8 +486,8 @@ void DreamPlot::SetStyleGraph(TGraph *histo, int marker, int color) {
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
   histo->SetMarkerStyle(marker);
-  histo->SetMarkerColor(color);
-  histo->SetLineColor(color);
+  histo->SetMarkerColorAlpha(color, alpha);
+  histo->SetLineColorAlpha(color, alpha);
 }
 
 void DreamPlot::DrawCorrelationFunctions() {
