@@ -154,7 +154,7 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
 void DreamCF::LoopCorrelations(std::vector<DreamDist*> Pair, const char* name) {
   unsigned int iIter = 0;
   for (auto it : Pair) {
-    TString CFSumName = Form("%s_%i", name, iIter++);
+    TString CFSumName = Form("%s_%i", name, iIter);
     TH1F* CFClone = (TH1F*) it->GetCF()->Clone(CFSumName.Data());
     if (CFClone) {
       fCF.push_back(CFClone);
@@ -167,6 +167,7 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> Pair, const char* name) {
       Warning("DreamCF", "For iteration %i Particle Pair CF (%s) is missing \n",
               iIter, it->GetSEDist()->GetName());
     }
+    iIter++;
   }
 }
 

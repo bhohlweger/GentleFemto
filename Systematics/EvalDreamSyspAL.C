@@ -14,7 +14,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.2, 0.4);
   CATSinput->SetFixedkStarMinBin(true, 0.);
-  const int rebin = 3;//20
+  const int rebin = 3;//default has binning of 12 MeV
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
@@ -35,8 +35,8 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   const int pairCountsDefault = CFpALDef->GetFemtoPairs(0, 0.2);
   printf("pairCountsDefault = %.2i\n", pairCountsDefault);
   DreamSystematics protonAL(DreamSystematics::pAL);
-//  protonL.SetUpperFitRange(0.080);
   if (rebin != 1) {
+	   printf("rebin != 1 -- BE AWARE!!!  \n");
 	  protonAL.SetDefaultHist(CFpALDef, "hCk_ReweightedpALDefMeV_1");
   } else {
 	  protonAL.SetDefaultHist(CFpALDef, "hCk_ReweightedpALDefMeV_0");
@@ -84,13 +84,11 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   }
 
   protonAL.EvalSystematicsBBar(0);
-
   protonAL.EvalDifferenceInPairs();
   protonAL.EvalDifferenceInParticles();
   protonAL.WriteOutput();
-  auto file = new TFile(
-      Form("Systematics_%s.root", protonAL.GetPairName().Data()), "update");
-  CFpALDef->WriteOutput(file, true);
+  CFpALDef->WriteOutput(
+      TString::Format("%s/CF_pAL_Var0.root", gSystem->pwd()).Data());
   std::cout << "Worked through " << iPLCounter << " variations" << std::endl;
   std::cout << "Upper fit range " << upperFitRange << std::endl;
 }

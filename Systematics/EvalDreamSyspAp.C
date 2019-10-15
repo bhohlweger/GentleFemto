@@ -29,20 +29,22 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   printf("Number of AntiTracks = %i\n", nAntiTracks );
   counter->ResetCounter();
   DreamDist* pAp = DreamFile->GetPairDistributions(0, 1, "");
-  DreamCF* CFpApDef = CATSinput->ObtainCFSystBBar(
-    rebin, "pApVar0", DreamFile->GetPairDistributions(0, 1, ""), nullptr);
+  DreamCF* CFpApDef = CATSinput->ObtainCFSystBBar(rebin, "pApVar0", pAp, nullptr);
   const int pairCountsDefault = CFpApDef->GetFemtoPairsBBar(0, 0.2);
   printf("pairCountsDefault = %.2i\n", pairCountsDefault);
-//     CFpApDef->WriteOutput(
-//         TString::Format("%s/CF_pAp_Var0.root", gSystem->pwd()));
+
   DreamSystematics protonAntiproton(DreamSystematics::pAp);
   protonAntiproton.SetUpperFitRange(upperFitRange);
   protonAntiproton.SetBarlowUpperRange(400);
   if (rebin != 1) {
-    protonAntiproton.SetDefaultHist(CFpApDef, "hCk_ReweightedpApVar0MeV_2");
-  } else {
+    printf("rebin != 1 -- BE AWARE!!!  \n");
     protonAntiproton.SetDefaultHist(CFpApDef, "hCk_ReweightedpApVar0MeV_1");
+//    protonAntiproton.SetDefaultHist(CFpApDef, "hCk_ReweightedpApVar0MeV_2");
+  } else {
+    protonAntiproton.SetDefaultHist(CFpApDef, "hCk_ReweightedpApVar0MeV_0");
+//    protonAntiproton.SetDefaultHist(CFpApDef, "hCk_ReweightedpApVar0MeV_1");
   }
+
   int outCounter = 1;
   for (int i = 1; i <= 44; ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(4, 4);
@@ -58,15 +60,15 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
     if (TMath::Abs(relDiff) > 0.2) {
       continue;//exit the loop
     }
-//    printf("--- relDiff (%i) = %.3f ----\n",i,relDiff);
     if(TMath::Abs(relDiff)>=0.1 && TMath::Abs(relDiff)<=0.199)printf("--- BIG relDiff (%i) = %.3f ----\n",i,relDiff);
 
     if (rebin != 1) {
       protonAntiproton.SetVarHist(
-          CFpApVar, TString::Format("Reweighted%sMeV_2", VarName.Data()));
+          CFpApVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+
     } else {
       protonAntiproton.SetVarHist(
-          CFpApVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+          CFpApVar, TString::Format("Reweighted%sMeV_0", VarName.Data()));
     }
     TString VarString = TString::Format("%u", i);
     ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
@@ -75,20 +77,18 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
     counter->SetNumberOfCandidatesBBar(ForgivingFile);
     protonAntiproton.SetPair(pairCountsDefault, CFpApVar->GetFemtoPairsBBar(0, 0.2));
     protonAntiproton.SetParticles(nTracks, nAntiTracks, counter->GetNumberOfTracks(),
-                      counter->GetNumberOfAntiTracks());//Ask Bernie
+                      counter->GetNumberOfAntiTracks());
     CFpApOut->WriteOutput(
-        TString::Format("%s/CF_pAp_Var%u.root", gSystem->pwd(), outCounter++)
-            .Data());
+        TString::Format("%s/CF_pAp_Var%u.root", gSystem->pwd(), outCounter++).Data());
     counter->ResetCounter();
   }
-
   protonAntiproton.EvalSystematicsBBar(0);
   protonAntiproton.EvalDifferenceInParticles();
   protonAntiproton.EvalDifferenceInPairs();
-
   protonAntiproton.WriteOutput();
   CFpApDef->WriteOutput(
       TString::Format("%s/CF_pAp_Var0.root", gSystem->pwd()).Data());
+
   std::cout << "Worked through " << outCounter << " variations" << std::endl;
   std::cout << "Upper fit range " << upperFitRange << std::endl;
 }

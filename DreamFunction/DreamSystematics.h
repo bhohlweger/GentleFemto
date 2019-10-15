@@ -62,10 +62,11 @@ class DreamSystematics {
     }
   }
   void SetDefaultHist(DreamCF* CFDef, const char* CFName) {
-    // printf("name of hist def BEFORE = %s\n", CFName);
+    printf("name of hist defaults = %s\n", CFName);
     SetDefaultHist(CFDef->FindCorrelationFunction(CFName));
   }
   void SetVarHist(DreamCF* CFVar, const char* CFName) {
+	    printf("name of hist variations = %s\n", CFName);
     SetVarHist(CFVar->FindCorrelationFunction(CFName));
   }
   void SetPair(unsigned int nDef, unsigned int nVar) {
