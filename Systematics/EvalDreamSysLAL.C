@@ -38,9 +38,10 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   LambdaAntiLambda.SetUpperFitRange(upperFitRange);
   LambdaAntiLambda.SetBarlowUpperRange(400);
   if (rebin != 1) {
-	  LambdaAntiLambda.SetDefaultHist(CFLALDef, "hCk_ReweightedLALVar0MeV_2");
-  } else {
+	  printf("rebin != 1 -- BE AWARE!!!  \n");
 	  LambdaAntiLambda.SetDefaultHist(CFLALDef, "hCk_ReweightedLALVar0MeV_1");
+  } else {
+	  LambdaAntiLambda.SetDefaultHist(CFLALDef, "hCk_ReweightedLALVar0MeV_0");
   }
   int outCounter = 1;
   for (int i = 1; i <= 44; ++i) {
@@ -62,10 +63,10 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
 
     if (rebin != 1) {
     	LambdaAntiLambda.SetVarHist(
-          CFLALVar, TString::Format("Reweighted%sMeV_2", VarName.Data()));
+          CFLALVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
     } else {
     	LambdaAntiLambda.SetVarHist(
-          CFLALVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));
+          CFLALVar, TString::Format("Reweighted%sMeV_0", VarName.Data()));
     }
     TString VarString = TString::Format("%u", i);
     ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
@@ -74,7 +75,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
     counter->SetNumberOfCandidatesBBar(ForgivingFile);
     LambdaAntiLambda.SetPair(pairCountsDefault, CFLALVar->GetFemtoPairsBBar(0, 0.2));
     LambdaAntiLambda.SetParticles(nv0s, nAntiv0s, counter->GetNumberOfV0s(),
-                      counter->GetNumberOfAntiV0s());//Ask Bernie
+                      counter->GetNumberOfAntiV0s());
     CFLALOut->WriteOutput(
         TString::Format("%s/CF_LAL_Var%u.root", gSystem->pwd(), outCounter++)
             .Data());
@@ -84,7 +85,6 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   LambdaAntiLambda.EvalSystematicsBBar(0);
   LambdaAntiLambda.EvalDifferenceInParticles();
   LambdaAntiLambda.EvalDifferenceInPairs();
-
   LambdaAntiLambda.WriteOutput();
   CFLALDef->WriteOutput(
       TString::Format("%s/CF_LAL_Var0.root", gSystem->pwd()).Data());

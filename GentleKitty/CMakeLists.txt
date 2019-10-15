@@ -65,6 +65,9 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/SidebandSigma.cxx
   ${PROJECT_SOURCE_DIR}/VariationAnalysis.cxx
   ${PROJECT_SOURCE_DIR}/VariationmTAnalysis.cxx
+  ${PROJECT_SOURCE_DIR}/VariationAnalysispAp.cxx
+  ${PROJECT_SOURCE_DIR}/VariationAnalysispAL.cxx
+  ${PROJECT_SOURCE_DIR}/VariationAnalysisLAL.cxx
   )
 
 set(HEADERS
@@ -77,6 +80,9 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/SidebandSigma.h
   ${PROJECT_SOURCE_DIR}/VariationAnalysis.h
   ${PROJECT_SOURCE_DIR}/VariationmTAnalysis.h
+  ${PROJECT_SOURCE_DIR}/VariationAnalysispAp.h
+  ${PROJECT_SOURCE_DIR}/VariationAnalysispAL.h
+  ${PROJECT_SOURCE_DIR}/VariationAnalysisLAL.h
   )
 
 add_library(tidyCATS STATIC ${SRCS})
@@ -178,16 +184,17 @@ target_link_libraries(radPlotterV2 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(lambdaPlotter ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/LambdaExtractor.C)
 target_link_libraries(lambdaPlotter tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
-
-add_subdirectory(Scripts/BBarAnalysis)
-
-add_executable(SysVarExtractor ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractor.C)
-target_link_libraries(SysVarExtractor tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+ 
+add_executable(SysVarExtractorpAp ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractorpAp.C)
+target_link_libraries(SysVarExtractorpAp tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(SysVarExtractorpAL ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractorpAL.C)
 target_link_libraries(SysVarExtractorpAL tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(SysVarExtractorLAL ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractorLAL.C)
 target_link_libraries(SysVarExtractorLAL tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+#add_executable(BBar ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/BBar.C)
+#target_link_libraries(BBar tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_subdirectory(Test)

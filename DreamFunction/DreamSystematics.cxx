@@ -618,7 +618,7 @@ void DreamSystematics::ComputeUncertaintyBBar(int doRebin) {
 }
 
 void DreamSystematics::WriteOutput(const char* outname) {
-  auto file = new TFile(Form("Systematics%s_%s.root", outname,GetPairName().Data()),
+  auto file = new TFile(Form("Systematics%s_%s.root", outname, GetPairName().Data()),
                         "recreate");
   WriteOutput(file, fHistVar, "Raw");
   WriteOutput(file, fHistAbsErr, "AbsErr");
