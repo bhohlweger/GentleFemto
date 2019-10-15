@@ -21,6 +21,9 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fSEMult(nullptr),
       fSEkT(nullptr),
       fSEmT(nullptr),
+	  fSEmTProj(nullptr),
+	  fProjmT(nullptr),
+	  fMeanmT(nullptr),
       fSEdEtadPhimT(nullptr),
       fSEdEtadPhi(nullptr),
       fSEdEtadPhiAtRad(nullptr),
@@ -48,6 +51,12 @@ ReadDreamFile::~ReadDreamFile() {
         delete fSEkT[iPart1][iPart2];
       if (fSEmT && fSEmT[iPart1][iPart2])
         delete fSEmT[iPart1][iPart2];
+      if (fSEmTProj && fSEmTProj[iPart1][iPart2])
+        delete fSEmTProj[iPart1][iPart2];
+      if (fProjmT && fProjmT[iPart1][iPart2])
+        delete fProjmT[iPart1][iPart2];
+      if (fMeanmT && fMeanmT[iPart1][iPart2])
+        delete fMeanmT[iPart1][iPart2];
       if (fSEdEtadPhi && fSEdEtadPhi[iPart1][iPart2])
         delete fSEdEtadPhi[iPart1][iPart2];
       if (fME && fME[iPart1][iPart2])
@@ -317,20 +326,18 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
   return;
 }
 
-void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const char* prefix,
+void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char* prefix,
                                  const char* addon, double kcut) {
 
   double kcutdummy = kcut/1000.;//transform in GeV
-  int iPart1;
-  int iPart2;
   double binwidth;
   TLatex texttmp;
   TFile* out = TFile::Open("tmp_mT.root", "recreate");
 
-
   fSEmT = new TH2F**[fNPart1];
   fMEmT = new TH2F**[fNPart1];
   fSEmTProj = new TH1F** [fNPart1];
+
 
   TFile* _file0 = TFile::Open(AnalysisFile, "READ");
   TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
@@ -339,41 +346,22 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
   dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
   TList *PartList;
 
-  std::vector<int> numbersBBar1={0,1,2};
-  std::vector<int> numbersBBar2={1,2,3};
-
   out->cd();
-  for (int ip1 = 0; ip1 < numbersBBar1.size(); ++ip1) {
-
-	iPart1=numbersBBar1[ip1];
-    printf("Particle 1 = %i ----\n",iPart1);
-
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
     fSEmT[iPart1] = new TH2F*[fNPart2];
     fMEmT[iPart1] = new TH2F*[fNPart2];
     fSEmTProj[iPart1] = new TH1F*[fNPart2];
 
 
-    for (int ip2 = 0; ip2 < numbersBBar2.size(); ++ip2) {
-  	  iPart2=numbersBBar2[ip2];
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
 
-    	if(iPart1==iPart2 || iPart1 > iPart2){
-    		 std::cout << "No pairs " << iPart1 << "--" <<iPart2
-    		                    << std::endl;
-    		 continue;
-    	}
-    	if(iPart1==0 && iPart2==2){
-   		 std::cout << "No pairs " << iPart1 << "--" <<iPart2
-   		                    << std::endl;
-   		 continue;
-    	}
-    	if(iPart1==1 && iPart2==3){
-    	   		 std::cout << "No pairs " << iPart1 << "--" <<iPart2
-    	   		                    << std::endl;
-    	   		 continue;
-    	    	}
+//    if(iPart1==0 && iPart2==1 || iPart1==0 && iPart2==3 || iPart1==1 && iPart2==2 || iPart1==2 && iPart2==3
+//    		|| iPart1==2 && iPart2==2 || iPart1==3 && iPart2==3){
+//    	    		 std::cout << "No pairs " << iPart1 << "--" <<iPart2
+//    	    		                    << std::endl;
+//    	    		 continue;
+//    	    	}
 
-
-	  printf("Particle 2 = %i ----\n",iPart2);
 	  std::cout << "Selecting pairs with " << iPart1 << "--" <<iPart2
 						<< std::endl;
 
@@ -383,9 +371,8 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
       fSEmT[iPart1][iPart2] = nullptr;
       fSEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
           Form("SEmTDist_%s", FolderName.Data()));
-
 	  fSEmTProj[iPart1][iPart2] = nullptr;
-
+//==============================
       for(int ikstar = 1; ikstar < fSEmT[iPart1][iPart2]->GetNbinsX()+1; ikstar++)
       {
       binwidth = fSEmT[iPart1][iPart2]->GetXaxis()->GetBinUpEdge(ikstar)-
@@ -397,6 +384,7 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
       if(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)>kcutdummy){
     	  break;
       }
+
       if (!fSEmTProj[iPart1][iPart2]) {
         if (!fQuiet)
           std::cout << "fSEmTProj Histogramm missing from " << FolderName.Data()
@@ -404,8 +392,12 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
       }
       TCanvas* ctmp = new TCanvas("ctmp");
       ctmp->cd();
+      fSEmTProj[iPart1][iPart2]->SetTitle(TString::Format("[%.0f,%.0f] MeV/c",1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)-0.5*binwidth),
+			  1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)));
       fSEmTProj[iPart1][iPart2]->GetXaxis()->SetTitle("m_{T} (GeV/c^{2})");
+      fSEmTProj[iPart1][iPart2]->GetXaxis()->SetTitleSize(18);
       fSEmTProj[iPart1][iPart2]->GetYaxis()->SetTitle("Entries ");
+      fSEmTProj[iPart1][iPart2]->GetYaxis()->SetTitleSize(18);
 
       fSEmTProj[iPart1][iPart2]->Draw();
 
@@ -414,12 +406,12 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
 			  1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)) , "");//"l" sets the legend as lines
       leg1->Draw("same");
 
-      ctmp->Print(TString::Format("mT_p%i_p%i_kbin%i.pdf",iPart1,iPart2,ikstar));
+//      ctmp->Print(TString::Format("mT_p%i_p%i_kbin%i.pdf",iPart1,iPart2,ikstar));
       fSEmTProj[iPart1][iPart2]->Write();
       delete ctmp;
       }
 
-
+//====================================================
       if (!fSEmT[iPart1][iPart2]) {
         if (!fQuiet)
           std::cout << "SEmT Histogramm missing from " << FolderName.Data()
@@ -429,6 +421,158 @@ void ReadDreamFile::ReadAndProjectmTHistosBBar(const char* AnalysisFile, const c
     }
   }
   out->Close();
+  delete out;
+  return;
+}
+
+
+
+void ReadDreamFile::ExtractmTaverage(const char* OutputFile, double kcut) {
+
+  fProjmT = new TH1F**[fNPart1];
+  int nbins = int (kcut/4.);
+
+  auto* histo = new TH1F("histo","<m_{T}>",nbins,0.,kcut);
+  double mean_mT;
+  double sterr_mT;
+
+  TFile* _file0 = TFile::Open(OutputFile, "READ");
+  TFile* tmp_mean=TFile::Open("tmp_mTmean.root","recreate");
+  tmp_mean->cd();
+
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+
+	  fProjmT[iPart1] = new TH1F*[fNPart2];
+
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+
+  	  fProjmT[iPart1][iPart2] = nullptr;
+  	  histo->SetName(Form("MeanmT_part%i_part%i",iPart1,iPart2));
+
+	  std::cout << "Selecting pairs with " << iPart1 << "--" <<iPart2
+						<< std::endl;
+        for(int ikstar = 1; ikstar < nbins+1; ikstar++)
+        {
+
+        	fProjmT [iPart1][iPart2] = (TH1F*) (_file0->FindObjectAny(
+                 TString::Format("fSEmTProj_part%i_part%i_%i",iPart1,iPart2,ikstar)));
+
+        	mean_mT = fProjmT[iPart1][iPart2]->GetMean();
+        	sterr_mT = fProjmT[iPart1][iPart2]->GetMeanError();
+
+        	std::cout<<"kbin = "<<ikstar<<"---"<<"<m_T> = " << mean_mT <<"+/-"<<sterr_mT<<std::endl;
+
+        	histo->SetBinContent(ikstar,mean_mT);
+        	histo->SetBinError(ikstar,mean_mT,sterr_mT);
+        	histo->GetXaxis()->SetTitle("k* [MeV/c]");
+        	histo->GetYaxis()->SetTitle("<m_{T}> [GeV/c^{2}]");
+
+
+        if (!fProjmT[iPart1][iPart2]) {
+          if (!fQuiet)
+            std::cout << "fProjmT Histogramm missing " << std::endl;
+        }
+
+        }
+    	histo->Write();
+
+    }
+  }
+  tmp_mean->Close();
+  delete tmp_mean;
+  return;
+}
+
+
+void ReadDreamFile::ReadAndProjectkTHistos(const char* AnalysisFile, const char* prefix,
+                                 const char* addon, double kcut) {
+
+  double kcutdummy = kcut/1000.;//transform in GeV
+  double binwidth;
+  TLatex texttmp;
+  TFile* out = TFile::Open("tmp_kT.root", "recreate");
+
+  fSEmT = new TH2F**[fNPart1];
+  fMEmT = new TH2F**[fNPart1];
+  fSEmTProj = new TH1F** [fNPart1];
+
+
+  TFile* _file0 = TFile::Open(AnalysisFile, "READ");
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults%s", prefix, addon)));
+  TList *Results;
+  dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
+  TList *PartList;
+
+  out->cd();
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+    fSEmT[iPart1] = new TH2F*[fNPart2];
+    fMEmT[iPart1] = new TH2F*[fNPart2];
+    fSEmTProj[iPart1] = new TH1F*[fNPart2];
+
+
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+
+	  std::cout << "Selecting pairs with " << iPart1 << "--" <<iPart2
+						<< std::endl;
+
+      TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
+      PartList = (TList*) Results->FindObject(FolderName.Data());
+
+      fSEmT[iPart1][iPart2] = nullptr;
+      fSEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+          Form("SEkTDist_%s", FolderName.Data()));
+	  fSEmTProj[iPart1][iPart2] = nullptr;
+//==============================
+      for(int ikstar = 1; ikstar < fSEmT[iPart1][iPart2]->GetNbinsX()+1; ikstar++)
+      {
+      binwidth = fSEmT[iPart1][iPart2]->GetXaxis()->GetBinUpEdge(ikstar)-
+    		  fSEmT[iPart1][iPart2]->GetXaxis()->GetBinLowEdge(ikstar);
+
+      fSEmTProj[iPart1][iPart2] = (TH1F*) fSEmT[iPart1][iPart2]->ProjectionY(
+    		  	  TString::Format("fSEkTProj_part%i_part%i_%i",iPart1,iPart2,ikstar),ikstar,ikstar);
+
+      if(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)>kcutdummy){
+    	  break;
+      }
+
+      if (!fSEmTProj[iPart1][iPart2]) {
+        if (!fQuiet)
+          std::cout << "fSEkTProj Histogramm missing from " << FolderName.Data()
+                    << std::endl;
+      }
+      TCanvas* ctmp = new TCanvas("ctmp");
+      ctmp->cd();
+      fSEmTProj[iPart1][iPart2]->SetTitle(TString::Format("[%.0f,%.0f] MeV/c",1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)-0.5*binwidth),
+			  1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)));
+      fSEmTProj[iPart1][iPart2]->GetXaxis()->SetTitle("k_{T} (GeV/c)");
+      fSEmTProj[iPart1][iPart2]->GetXaxis()->SetTitleSize(18);
+      fSEmTProj[iPart1][iPart2]->GetYaxis()->SetTitle("Entries ");
+      fSEmTProj[iPart1][iPart2]->GetYaxis()->SetTitleSize(18);
+
+      fSEmTProj[iPart1][iPart2]->Draw();
+
+      auto* leg1= new TLegend(0.55,0.65,0.75,0.8);
+      leg1->AddEntry("",Form("k^{*} = [%.0f,%.0f] MeV/c",1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)-0.5*binwidth),
+			  1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)) , "");//"l" sets the legend as lines
+      leg1->Draw("same");
+
+//      ctmp->Print(TString::Format("kT_p%i_p%i_kbin%i.pdf",iPart1,iPart2,ikstar));
+      fSEmTProj[iPart1][iPart2]->Write();
+      delete ctmp;
+      }
+
+//====================================================
+      if (!fSEmT[iPart1][iPart2]) {
+        if (!fQuiet)
+          std::cout << "SEkT Histogramm missing from " << FolderName.Data()
+                    << std::endl;
+      }
+
+    }
+  }
+  out->Close();
+  delete out;
   return;
 }
 

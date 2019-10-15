@@ -30,8 +30,11 @@ class ReadDreamFile {
                     const char* addon = "");
   void ReadmTHistos(const char* AnalysisFile, const char* prefix,
                     const char* addon = "");
-  void ReadAndProjectmTHistosBBar(const char* AnalysisFile, const char* prefix,
+  void ReadAndProjectmTHistos(const char* AnalysisFile, const char* prefix,
                     const char* addon = "", double kcut = 200.);
+  void ReadAndProjectkTHistos(const char* AnalysisFile, const char* prefix,
+                    const char* addon = "", double kcut = 200.);
+  void ExtractmTaverage(const char* OutputFile, double kcut = 200.);
   void ReaddEtadPhiAtRadHists(const unsigned int nMaxMix,
                               const char* AnalysisFile, const char* prefix,
                               const char* Addon = "");
@@ -60,6 +63,8 @@ class ReadDreamFile {
   TH2F*** fSEkT;
   TH2F*** fSEmT;
   TH1F*** fSEmTProj;
+  TH1F*** fProjmT;
+  TH1F*** fMeanmT;
   TH2F**** fSEdEtadPhimT;
   TH2F***** fSEdEtadPhiAtRad;
   TH2F***** fSEdEtadPhiAtRadSmallkStar;
