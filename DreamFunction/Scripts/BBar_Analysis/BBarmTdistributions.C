@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
   const char* addon = (argv[3]) ? argv[3] : "";
 
 gStyle->SetOptStat(0);
-gStyle->SetOptTitle(kFALSE);
+gStyle->SetOptTitle(0);
 
 DreamPlot::SetStyle();
 
@@ -33,8 +33,13 @@ ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
 TString foldername = filename;
 foldername.ReplaceAll("AnalysisResults.root", "");
 
+double kmax = 200.;
+
 DreamFile->SetQuite();
-DreamFile->ReadAndProjectmTHistosBBar(filename, prefix, addon, 200.);
+DreamFile->ReadAndProjectmTHistos(filename, prefix, addon, kmax);
+DreamFile->ReadAndProjectkTHistos(filename, prefix, addon, kmax);
+
+DreamFile->ExtractmTaverage("tmp_mT.root",kmax);
 
 return 0;
 }

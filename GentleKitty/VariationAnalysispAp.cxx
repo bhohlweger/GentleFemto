@@ -132,6 +132,7 @@ void VariationAnalysispAp::ReadFitFile(TString FileName) {
     fDeviationByBin->Write();
     tmpFile->Write();
     tmpFile->Close();
+
   }
 }
 
