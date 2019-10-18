@@ -106,5 +106,8 @@ target_link_libraries(executeDPhiDEtaBBar DreamFunctions)
 add_executable(executePhi ${PROJECT_SOURCE_DIR}/Scripts/ExecutePhi.C)
 target_link_libraries(executePhi DreamFunctions)
 
+add_executable(executePd ${PROJECT_SOURCE_DIR}/Scripts/ExecutePd.C)
+target_link_libraries(executePd DreamFunctions)
+
 add_executable(executePXi ${PROJECT_SOURCE_DIR}/Scripts/GetpXiVariations.C)
 target_link_libraries(executePXi DreamFunctions)
