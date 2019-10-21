@@ -22,6 +22,9 @@ ForgivingReader::ForgivingReader(const char *filename, const char* prefix,
       fPrefix(prefix),
       fSuffix(suffix) {
   fInput = TFile::Open(Form("%s", filename), "read");
+  if (!fInput) {
+    std::cout << "No input file found for " << filename << std::endl;
+  }
 }
 
 ForgivingReader::~ForgivingReader() {
@@ -30,6 +33,10 @@ ForgivingReader::~ForgivingReader() {
 
 TList* ForgivingReader::GetListInDir(const char* pathToList) {
   TList *outList = nullptr;
+  if (!fInput) {
+    std::cout << "No input file set! \n";
+    return nullptr;
+  }
   fInput->GetObject(pathToList, outList);
   if (!outList) {
     std::cerr << "Error GetListInDir: Does not exist \n";

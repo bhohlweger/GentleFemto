@@ -6,12 +6,13 @@
 #include "TCanvas.h"
 #include <iostream>
 #include "TSystem.h"
-
+#include "DecayQA.h"
 
 void EvalDreamSystematics(TString InputDir, TString prefix,
                           float upperFitRange) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
+  std::cout << filename.Data() << std::endl;
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.240, 0.340);
@@ -37,9 +38,11 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   protonXi.SetBarlowUpperRange(400);
   protonXi.SetDefaultHist(CFpXiDef, "hCk_ReweightedpXiVar0MeV_1");
 
+  TH1F* PurityXi = new TH1F("PurityXiVar", "PurityXiVar", 45, 0.5, 44.5);
+  TH1F* PurityAXi = new TH1F("PurityAXiVar", "PurityAXiVar", 45, 0.5, 44.5);
 
-
-
+  const TString currentWordDir = gSystem->pwd();
+  std::cout << "Current working directory: " << currentWordDir << std::endl;
   int outCounter = 1;
   for (int i = 1; i <= 44; ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
@@ -57,25 +60,39 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
     if (TMath::Abs(relDiff) > 0.2) {
       continue;
     }
+
+    TString QADirectory = TString::Format("%s/Var_%u/", currentWordDir.Data(), i);
+    gSystem->MakeDirectory(QADirectory.Data());
+    gSystem->cd(QADirectory.Data());
+
     protonXi.SetVarHist(CFpXiVar,
                         TString::Format("Reweighted%sMeV_1", VarName.Data()));
-
-
-
-
-
     TString VarString = TString::Format("%u", i);
     ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
                                                          prefix,
                                                          VarString.Data());
+    DecayQA* cascQA = new DecayQA("#Xi^{-}", "#pi#Lambda");
+    cascQA->SetCanvasDivisions(4, 4);
+    cascQA->SetInvMasspTStartBin(2);
+    cascQA->SetIMHistoScale(2.5, 0.8, 0.45);
+    cascQA->SetDecayCuts(ForgivingFile->GetCascadeCuts());
+    cascQA->SetAntiDecayCuts(ForgivingFile->GetAntiCascadeCuts());
+    cascQA->SetRangesFitting(1.31, 1.33, 1.285, 1.365);
+    cascQA->InvariantMassXiMinBooking(1.317, 1.327);
+    PurityXi->SetBinContent(i, cascQA->GetIntegratedPurity(0));
+    PurityXi->SetBinError(i, cascQA->GetIntegratedPurity(0)*0.001);
+    PurityAXi->SetBinContent(i, cascQA->GetIntegratedPurity(1));
+    PurityAXi->SetBinError(i, cascQA->GetIntegratedPurity(1)*0.001);
     counter->SetNumberOfCandidates(ForgivingFile);
     protonXi.SetPair(pairCountsDefault, CFpXiVar->GetFemtoPairs(0, 0.2));
     protonXi.SetParticles(nTracks, nCascades, counter->GetNumberOfTracks(),
                           counter->GetNumberOfCascades());
-    CFpXiOut->WriteOutput(
-        TString::Format("%s/CF_pXi_Var%u.root", gSystem->pwd(), outCounter++)
-            .Data());
+    TString OutputDirCF = TString::Format("%s/CF_pXi_Var%u.root",
+                                          currentWordDir.Data(), outCounter++);
+    CFpXiOut->WriteOutput(OutputDirCF.Data());
     counter->ResetCounter();
+    gSystem->cd(currentWordDir.Data());
+
   }
   protonXi.EvalSystematics();
   protonXi.EvalDifferenceInPairs();
@@ -83,6 +100,35 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   protonXi.WriteOutput();
   CFpXiDef->WriteOutput(
       TString::Format("%s/CF_pXi_Var0.root", gSystem->pwd()).Data());
+  TCanvas* purity = new TCanvas("puritiesVar","puritiesVar",0,0,1200,1000);
+  purity->Divide(2,1);
+  purity->cd(1);
+  PurityXi->GetXaxis()->SetTitle("Variation");
+  PurityXi->GetYaxis()->SetTitle("Purity");
+  PurityXi->GetYaxis()->SetRangeUser(0.9,1.);
+  PurityXi->SetMarkerColor(kBlue);
+  PurityXi->SetLineColor(kBlue);
+  PurityXi->SetMarkerStyle(21);
+  PurityXi->SetMarkerSize(1.2);
+  PurityXi->SetLineWidth(3);
+  PurityXi->Draw();
+  purity->cd(2);
+  PurityAXi->GetXaxis()->SetTitle("Variation");
+  PurityAXi->GetYaxis()->SetTitle("Purity");
+  PurityAXi->GetYaxis()->SetRangeUser(0.9,1.);
+  PurityAXi->SetMarkerStyle(22);
+  PurityAXi->SetMarkerSize(1.2);
+  PurityAXi->SetLineWidth(3);
+  PurityAXi->Draw();
+  purity->SaveAs("PurityVar.pdf");
+  TFile* purityFile = TFile::Open("Purityies.root","recreate");
+  purityFile->cd();
+  PurityXi->Write();
+  PurityAXi->Write();
+  purityFile->Write();
+  purityFile->Close();
+
+
 }
 
 int main(int argc, char* argv[]) {

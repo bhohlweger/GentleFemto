@@ -23,7 +23,8 @@ DecayQA::DecayQA(const char* partLatex, const char* latexProducts)
       fTexOffX(0),
       fTexOffY(0),
       fDecChannel(latexProducts),
-      fPurity(nullptr) {
+      fPurity(nullptr),
+      fIntegratedPurities(){
   // TODO Auto-generated constructor stub
 
 }
@@ -124,6 +125,16 @@ void DecayQA::InvariantMassXi(float CutMin, float CutMax) {
   FitInvariantMass(invMassAntiPart, CutMin, CutMax, "AntiXi");
 }
 
+void DecayQA::InvariantMassXiMinBooking(float CutMin, float CutMax) {
+  auto invMassPart = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fDecayCuts, { "MinimalBooking" }), "InvMassXiPt");
+  FitInvariantMass(invMassPart, CutMin, CutMax, "Xi");
+
+  auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fAntiDecayCuts, { "MinimalBooking" }), "InvMassXiPt");
+  FitInvariantMass(invMassAntiPart, CutMin, CutMax, "AntiXi");
+}
+
 void DecayQA::IvariantMassXiLambda() {
   auto invMassXiLa = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fDecayCuts, { "Cascade" }), "InvMassv0Pt");
@@ -190,6 +201,9 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   fHairyPlotter->DrawLatexLabel(
       invMasspT->GetXaxis()->GetBinLowEdge(fInvMassPtStartBin),
       invMasspT->GetXaxis()->GetXmax(), fFitter, intPad, fPartLatex, 0.8, 0.45);
+  float signal = (float) fFitter->GetSignalCounts();
+  float background = (float) fFitter->GetBackgroundCounts();
+  fIntegratedPurities.push_back(signal / (signal + background));
   fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0,
                           invMass->GetMaximum() * 0.5);
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,

@@ -34,6 +34,7 @@ class DecayQA {
   void GetPeriodQASigma(float CutMin, float CutMax, const char* period);
   void GetPeriodQASigma0(float massCuts, const char* period);
   void InvariantMassXi(float CutMin, float CutMax);
+  void InvariantMassXiMinBooking(float CutMin, float CutMax);
   void IvariantMassXiLambda();
   void PlotKaonRejection(TH1F* invMassKaon, const char* outname);
   void SetCanvasDivisions(unsigned int divX, unsigned int divY) {
@@ -84,6 +85,9 @@ class DecayQA {
   double GetPurity(double pt) const {
     return fPurity->Eval(pt);
   }
+  float GetIntegratedPurity(size_t i) {
+    return i<fIntegratedPurities.size()?fIntegratedPurities.at(i):-1;
+  }
  private:
   void FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                         const char* outname);
@@ -103,6 +107,7 @@ class DecayQA {
   const char* fPartLatex;
   const char* fDecChannel;
   TGraphErrors *fPurity;
+  std::vector<float> fIntegratedPurities;
 };
 
 #endif /* FORGIVINGQA_DECAYQA_H_ */
