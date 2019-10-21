@@ -442,7 +442,6 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   AB_pXim1530.SetAnaSource(0, pSigma0Radius);
   AB_pXim1530.KillTheCat();
   std::cout << "pXim1530 CaT\n"; 
-  CATS AB_pL;
   if (TheSource == TidyCats::sResonance) {
     nAngls = 11;
     iAngDist = 3; // skip this whole random stuff ... 
@@ -459,6 +458,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     } 
     total = 216*nRanges*nDeltaAng; 
     for (iRange = 0; iRange < nRanges; ++iRange) {
+      CATS AB_pL;
       for (vMod_pL = 0; vMod_pL < 2; ++vMod_pL) {
       
 	if (vMod_pL == 0) {
@@ -586,7 +586,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	      }
 	      std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
 			<< RangeProtonMin << " to Proton Max: " << RangeProtonMax
+			<< " and in the range LambdaMin: "
+			<< RangeLambdaMin << " to LambdaMax: " << RangeLambdaMax
 			<< std::endl;
+	      
 	      DLM_Histo<double>* HISTO_PROTON = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile).Data(),TString::Format("%s",PhiHistoName).Data(), RangeProtonMin, RangeProtonMax, false, PhiRebin);
 	      DLM_Histo<double>* HISTO_LAMBDA = tidy->ConvertThetaAngleHisto(TString::Format("~/cernbox/WaveFunctions/ThetaDist/%s", PhiFile).Data(),TString::Format("%s",PhiHistoName).Data(), RangeLambdaMin, RangeLambdaMax, false, PhiRebin);
 	    
