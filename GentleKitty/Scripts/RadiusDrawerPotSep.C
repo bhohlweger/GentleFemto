@@ -94,10 +94,10 @@ int main(int argc, char* argv[]) {
   out->cd();
   auto c4 = new TCanvas("c8", "c8", 1200, 800);
   c4->cd();
-  TLegend* leg = new TLegend(0.55, 0.46, 0.826, 0.6);
+  TLegend* leg = new TLegend(0.55, 0.46, 0.826, 0.65);
   leg->SetFillStyle(0);
   leg->SetTextFont(43);
-  leg->SetNColumns(2);
+//  leg->SetNColumns(2);
   leg->SetTextSizePixels(40);
 
   mTpLNLOHMSys->SetPoint(mTpLNLOHMSys->GetN(), 0.95, 0.5);
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
   mTpLLOHMStat->SetFillColorAlpha(kGreen - 7, 0.7);
   mTpLLOHMStat->SetLineWidth(1);
   mTpLLOHMStat->SetFillStyle(3225);
-  mTpLLOHMStat->SetMarkerStyle(34);
+  mTpLLOHMStat->SetMarkerStyle(49);
   mTpLLOHMStat->SetMarkerSize(2.0);
   mTpLLOHMStat->Draw("pez same");
 
