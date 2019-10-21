@@ -732,6 +732,7 @@ double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {
 }
 
 DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax, bool convertToRad, int Rebin){
+  std::cout << "Angular File Name: " << FileName.Data() << std::endl;
   TFile* InputFile = new TFile(FileName, "read");
   TH2F* InputHisto = NULL;
   if(InputFile){
