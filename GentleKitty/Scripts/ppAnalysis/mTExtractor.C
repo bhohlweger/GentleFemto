@@ -70,10 +70,6 @@ int main(int argc, char* argv[]) {
     TString mTDataDir = Form("%s/mTBin_%u", DataDir, imt);
     analyser->SetSystematic(mTDataDir.Data());
     TString mTFitDirResonance = Form("%s/mTBin_%u", FitDirResonance, imt);
-    if (AngFolder != "") {
-      mTFitDirResonance = TString::Format("%s/%s", mTFitDirResonance.Data(),
-                                          AngFolder);
-    }
     analyser->SetVariation(mTFitDirResonance.Data(), 0);
 //    TString mTFitDirGauss = Form("%s/mTBin_%u", FitDirGauss, imt);
 //    analyser->SetVariation(mTFitDirGauss.Data(), 1);
