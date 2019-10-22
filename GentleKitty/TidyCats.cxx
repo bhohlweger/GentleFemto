@@ -188,7 +188,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       fpLCleverMcLevy = new DLM_CleverMcLevyReso();
       fpLCleverMcLevy->InitNumMcIter(1000000);
       fpLCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fpLCleverMcLevy->InitScale(200, 0.2, 2.6);
+      fpLCleverMcLevy->InitScale(100, 0.2, 2.6);
       fpLCleverMcLevy->InitRad(512, 0, 64);
       fpLCleverMcLevy->InitType(2);
       fpLCleverMcLevy->InitReso(0, 1);  //number of p resonances
@@ -772,11 +772,14 @@ DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, con
   double* MomBins = new double [NumBins+1];
   MomBins[0] = 0;
   //MomBins[1] = CummDistr.GetBinContent(unsigned(0));
-  MomBins[NumBins] = 1;
+  //MomBins[NumBins] = 1;
   int theHappening = 1; //this is done in order to make sure that if two 0 bins follow up on each other shit doesn't go to the toilet. 
-  for(unsigned uBin=1; uBin<NumBins; uBin++){
-    MomBins[uBin] = (CummDistr.GetBinContent(uBin)+CummDistr.GetBinContent(uBin-1)+1e-6*(theHappening++))*0.5;
-    //printf("MomBins[%u] = %f\n",uBin,MomBins[uBin]);
+  for(unsigned uBin=1; uBin<=NumBins; uBin++){
+    MomBins[uBin] = (CummDistr.GetBinContent(uBin)+CummDistr.GetBinContent(uBin-1))*0.5;
+    if(MomBins[uBin]<=MomBins[uBin-1]) {
+      MomBins[uBin] = MomBins[uBin-1]+1e-6;
+    }
+    //printf("MomBins[%u] = %e\n",uBin,MomBins[uBin]);
   }
   DLM_Histo<double>* Result = new DLM_Histo<double>();
   Result->SetUp(1);
