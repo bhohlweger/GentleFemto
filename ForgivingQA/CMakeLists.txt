@@ -54,3 +54,6 @@ target_link_libraries(sigmaQA ForgivingFnct)
 
 add_executable(sigmaPeriodQA ${PROJECT_SOURCE_DIR}/Scripts/PeriodQASigma.C)
 target_link_libraries(sigmaPeriodQA ForgivingFnct)
+
+add_executable(timeForBBarQA ${PROJECT_SOURCE_DIR}/Scripts/MakeBBarQA.C)
+target_link_libraries(timeForBBarQA ForgivingFnct)

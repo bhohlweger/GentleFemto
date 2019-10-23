@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   ProtonAntiLambda->SetUnitConversionData(1);
   ProtonAntiLambda->SetUnitConversionCATS(1);
   ProtonAntiLambda->SetCorrelationFunction(analysis->GetCorrelationFunction(0));
-  ProtonAntiLambda->SetSystematics(systematic, 6);
+  ProtonAntiLambda->SetSystematics(systematic, 8);
   ProtonAntiLambda->FemtoModelFitBands(analysis->GetModel(), 2, 1, 3, -3000, true);
   ProtonAntiLambda->FemtoModelDeviations(analysis->GetDeviationByBin(), 2);
 

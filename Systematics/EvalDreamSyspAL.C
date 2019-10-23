@@ -14,7 +14,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.2, 0.4);
   CATSinput->SetFixedkStarMinBin(true, 0.);
-  const int rebin = 3;//default has binning of 12 MeV
+  const int rebin = 5;//default = 4 has binning of 16 MeV
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
