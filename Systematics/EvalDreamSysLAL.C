@@ -59,7 +59,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
     if (TMath::Abs(relDiff) > 0.2) {
       continue;//exit the loop
     }
-    if(TMath::Abs(relDiff)>=0.1 && TMath::Abs(relDiff)<=0.199)printf("--- BIG relDiff (%i) = %.3f ----\n",i,relDiff);
+    if(TMath::Abs(relDiff)>=0.1 && TMath::Abs(relDiff)<=0.199)printf("--- relDiff (%i) = %.3f ----\n",i,relDiff);
 
     if (rebin != 1) {
     	LambdaAntiLambda.SetVarHist(
