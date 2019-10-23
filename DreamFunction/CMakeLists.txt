@@ -64,6 +64,9 @@ target_link_libraries(DreamFunctions ${ROOT_LIBRARIES} femtoGami)
 add_executable(executeDream ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFDream.C)
 target_link_libraries(executeDream DreamFunctions)
 
+add_executable(executeDreamBBar ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFDreamBBar.C)
+target_link_libraries(executeDreamBBar DreamFunctions)
+
 add_executable(executeEmmTee ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFmT.C)
 target_link_libraries(executeEmmTee DreamFunctions)
 
