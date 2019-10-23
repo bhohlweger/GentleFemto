@@ -355,16 +355,8 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
 
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
 
-//    if(iPart1==0 && iPart2==1 || iPart1==0 && iPart2==3 || iPart1==1 && iPart2==2 || iPart1==2 && iPart2==3
-//    		|| iPart1==2 && iPart2==2 || iPart1==3 && iPart2==3){
-//    	    		 std::cout << "No pairs " << iPart1 << "--" <<iPart2
-//    	    		                    << std::endl;
-//    	    		 continue;
-//    	    	}
-
 	  std::cout << "Selecting pairs with " << iPart1 << "--" <<iPart2
 						<< std::endl;
-
       TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
       PartList = (TList*) Results->FindObject(FolderName.Data());
 
@@ -372,8 +364,8 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
       fSEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
           Form("SEmTDist_%s", FolderName.Data()));
 	  fSEmTProj[iPart1][iPart2] = nullptr;
-//==============================
-      for(int ikstar = 1; ikstar < fSEmT[iPart1][iPart2]->GetNbinsX()+1; ikstar++)
+
+	  for(int ikstar = 1; ikstar < fSEmT[iPart1][iPart2]->GetNbinsX()+1; ikstar++)
       {
       binwidth = fSEmT[iPart1][iPart2]->GetXaxis()->GetBinUpEdge(ikstar)-
     		  fSEmT[iPart1][iPart2]->GetXaxis()->GetBinLowEdge(ikstar);
@@ -406,7 +398,6 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
 			  1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)) , "");//"l" sets the legend as lines
       leg1->Draw("same");
 
-//      ctmp->Print(TString::Format("mT_p%i_p%i_kbin%i.pdf",iPart1,iPart2,ikstar));
       fSEmTProj[iPart1][iPart2]->Write();
       delete ctmp;
       }
@@ -448,7 +439,6 @@ void ReadDreamFile::ExtractmTaverage(const char* OutputFile, double kcut) {
 
   	  fProjmT[iPart1][iPart2] = nullptr;
   	  histo->SetName(Form("MeanmT_part%i_part%i",iPart1,iPart2));
-
 	  std::cout << "Selecting pairs with " << iPart1 << "--" <<iPart2
 						<< std::endl;
         for(int ikstar = 1; ikstar < nbins+1; ikstar++)
@@ -459,9 +449,7 @@ void ReadDreamFile::ExtractmTaverage(const char* OutputFile, double kcut) {
 
         	mean_mT = fProjmT[iPart1][iPart2]->GetMean();
         	sterr_mT = fProjmT[iPart1][iPart2]->GetMeanError();
-
         	std::cout<<"kbin = "<<ikstar<<"---"<<"<m_T> = " << mean_mT <<"+/-"<<sterr_mT<<std::endl;
-
         	histo->SetBinContent(ikstar,mean_mT);
         	histo->SetBinError(ikstar,mean_mT,sterr_mT);
         	histo->GetXaxis()->SetTitle("k* [MeV/c]");
@@ -523,8 +511,8 @@ void ReadDreamFile::ReadAndProjectkTHistos(const char* AnalysisFile, const char*
       fSEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
           Form("SEkTDist_%s", FolderName.Data()));
 	  fSEmTProj[iPart1][iPart2] = nullptr;
-//==============================
-      for(int ikstar = 1; ikstar < fSEmT[iPart1][iPart2]->GetNbinsX()+1; ikstar++)
+
+	  for(int ikstar = 1; ikstar < fSEmT[iPart1][iPart2]->GetNbinsX()+1; ikstar++)
       {
       binwidth = fSEmT[iPart1][iPart2]->GetXaxis()->GetBinUpEdge(ikstar)-
     		  fSEmT[iPart1][iPart2]->GetXaxis()->GetBinLowEdge(ikstar);
@@ -556,8 +544,6 @@ void ReadDreamFile::ReadAndProjectkTHistos(const char* AnalysisFile, const char*
       leg1->AddEntry("",Form("k^{*} = [%.0f,%.0f] MeV/c",1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)-0.5*binwidth),
 			  1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)) , "");//"l" sets the legend as lines
       leg1->Draw("same");
-
-//      ctmp->Print(TString::Format("kT_p%i_p%i_kbin%i.pdf",iPart1,iPart2,ikstar));
       fSEmTProj[iPart1][iPart2]->Write();
       delete ctmp;
       }

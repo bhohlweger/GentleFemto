@@ -59,7 +59,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
     if (TMath::Abs(relDiff) > 0.2) {
       continue;
     }
-    if(TMath::Abs(relDiff)>=0.1 && TMath::Abs(relDiff)<=0.199)printf("--- BIG relDiff (%i) = %.3f ----\n",i,relDiff);
+    if(TMath::Abs(relDiff)>=0.1 && TMath::Abs(relDiff)<=0.199)printf("--- relDiff (%i) = %.3f ----\n",i,relDiff);
     if (rebin != 1) {
     	protonAL.SetVarHist(
     			CFpALVar, TString::Format("Reweighted%sMeV_1", VarName.Data()));

@@ -51,7 +51,6 @@ class DreamSystematics {
       Warning("SetDefaultHist", "No Histogram exists, nothing set \n");
     } else {
       fHistDefault = histDef;
-      // printf("name of hist def fHistDefault = %s\n", fHistDefault->GetName());
     }
   }
   void SetVarHist(TH1F* histVar) {
@@ -62,11 +61,9 @@ class DreamSystematics {
     }
   }
   void SetDefaultHist(DreamCF* CFDef, const char* CFName) {
-    printf("name of hist defaults = %s\n", CFName);
     SetDefaultHist(CFDef->FindCorrelationFunction(CFName));
   }
   void SetVarHist(DreamCF* CFVar, const char* CFName) {
-	    printf("name of hist variations = %s\n", CFName);
     SetVarHist(CFVar->FindCorrelationFunction(CFName));
   }
   void SetPair(unsigned int nDef, unsigned int nVar) {
