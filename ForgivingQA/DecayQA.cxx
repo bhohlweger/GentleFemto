@@ -108,14 +108,14 @@ void DecayQA::GetPeriodQA(float CutMin, float CutMax,
   auto invMassPart = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fDecayCuts, pathToList), histname);
   auto* invMass = (TH1F*) invMassPart->ProjectionY("InvMassClone", 0, -1, "e");
-  fFitter->FitInvariantMass(invMass, CutMin, CutMax);
+  fFitter->FitInvariantMass(invMass, CutMin, CutMax, fStyler.drawSignalFitColor, fStyler.drawBackgroundFitColor);
 }
 
 void DecayQA::GetPeriodQASigma(float CutMin, float CutMax, const char* period) {
   auto invMasspT = (TH2F*) fReader->Get2DHistInList(fDecayCuts, "InvMassPt");
   invMasspT->RebinX(10);
   auto* invMass = (TH1F*) invMasspT->ProjectionY("InvMassClone", 0, -1, "e");
-  fFitter->FitInvariantMass(invMass, CutMin, CutMax);
+  fFitter->FitInvariantMass(invMass, CutMin, CutMax, fStyler.drawSignalFitColor, fStyler.drawBackgroundFitColor);
 }
 
 void DecayQA::GetPeriodQASigma0(float massCuts, const char* period) {
@@ -128,7 +128,7 @@ void DecayQA::GetPeriodQASigma0(float massCuts, const char* period) {
   if (invMasspT->GetEntries() < 12000) {
     return;
   }
-  fFitter->FitInvariantMassSigma(invMass, massCuts);
+  fFitter->FitInvariantMassSigma(invMass, massCuts, fStyler.drawSignalFitColor, fStyler.drawBackgroundFitColor);
 }
 
 void DecayQA::InvariantMassXi(float CutMin, float CutMax) {
@@ -155,7 +155,7 @@ void DecayQA::IvariantMassXiLambda() {
   auto invMassXiLa = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fDecayCuts, { "Cascade" }), "InvMassv0Pt");
   auto invMassLa = (TH1F*) invMassXiLa->ProjectionY("invMassXiLas", 0, -1, "e");
-  fHairyPlotter->FormatHistogram(invMassLa, 0, 0);
+  fHairyPlotter->FormatHistogram(invMassLa, fStyler);
   auto cInvLa = new TCanvas("invMassXiLa", "invMassXiLa");
   fFitter->ShittyInvariantMass(invMassLa, cInvLa, 0.2, 6.3, "#Lambda");
   cInvLa->SaveAs("InvariantMassXiLa.pdf");
@@ -164,7 +164,7 @@ void DecayQA::IvariantMassXiLambda() {
       fReader->GetListInList(fAntiDecayCuts, { "Cascade" }), "InvMassv0Pt");
   auto invMassAntiLa = (TH1F*) invMassAntiXiLa->ProjectionY("invMassXiALas", 0,
                                                             -1, "e");
-  fHairyPlotter->FormatHistogram(invMassAntiLa, 0, 0);
+  fHairyPlotter->FormatHistogram(invMassAntiLa, fStyler);
   auto cInvALa = new TCanvas("invMassAXiALa", "invMassAXiALa");
   fFitter->ShittyInvariantMass(invMassAntiLa, cInvALa, 0.2, 6.3, "#Lambda");
   cInvALa->SaveAs("InvariantMassAXiALa.pdf");
@@ -179,7 +179,7 @@ void DecayQA::IvariantMassXiLambda() {
     TPad* tmppadLa = (TPad*) cInvLapT->cd(iPt);
     auto invMassLapT = (TH1F*) invMassXiLa->ProjectionY(
         Form("invMassLaPt_%u", iPt + 1), iPt + 1, iPt + 1, "e");
-    fHairyPlotter->FormatSmallHistogram(invMassLapT, 0, 0);
+    fHairyPlotter->FormatSmallHistogram(invMassLapT, fStyler);
     fFitter->ShittyInvariantMass(
         invMassLapT, tmppadLa, invMassXiLa->GetXaxis()->GetBinLowEdge(iPt + 1),
         invMassXiLa->GetXaxis()->GetBinUpEdge(iPt + 1), "#Lambda");
@@ -187,7 +187,7 @@ void DecayQA::IvariantMassXiLambda() {
     TPad* tmppadALa = (TPad*) cInvALapT->cd(iPt);
     auto invMassALapT = (TH1F*) invMassAntiXiLa->ProjectionY(
         Form("invMassALaPt_%u", iPt + 1), iPt + 1, iPt + 1, "e");
-    fHairyPlotter->FormatSmallHistogram(invMassALapT, 0, 0);
+    fHairyPlotter->FormatSmallHistogram(invMassALapT, fStyler);
     fFitter->ShittyInvariantMass(
         invMassALapT, tmppadALa,
         invMassAntiXiLa->GetXaxis()->GetBinLowEdge(iPt + 1),
@@ -205,14 +205,16 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   auto* invMass = (TH1F*) invMasspT->ProjectionY(Form("InvMass%s", outname), 0,
                                                  -1, "e");
   TPad* intPad = (TPad*) cMassIntegrated->cd();
-  fFitter->FitInvariantMass(invMass, CutMin, CutMax);
+  fFitter->FitInvariantMass(invMass, CutMin, CutMax, fStyler.drawSignalFitColor, fStyler.drawBackgroundFitColor);
   invMass->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
   invMass->GetYaxis()->SetRangeUser(0, invMass->GetMaximum() * 1.8);
   //invMass->GetYaxis()->SetMaxDigits(3);
   invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} (GeV/#it{c}^{2})^{-1}");
   invMass->GetXaxis()->SetTitle(
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
-  fHairyPlotter->FormatHistogram(invMass, 0, 0, 0.8);
+  double peakVal = invMass->GetBinContent(
+      invMass->GetXaxis()->FindBin(fFitter->GetMeanMass()));
+  fHairyPlotter->FormatHistogram(invMass, fStyler);
   fHairyPlotter->DrawOnPad( { invMass }, intPad, "P");
   fHairyPlotter->DrawLatexLabel(
       invMasspT->GetXaxis()->GetBinLowEdge(fInvMassPtStartBin),
@@ -221,9 +223,9 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   float background = (float) fFitter->GetBackgroundCounts();
   fIntegratedPurities.push_back(signal / (signal + background));
   fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0,
-                          invMass->GetMaximum() * 0.5);
+                          peakVal * 0.85, fStyler.drawLineColor);
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,
-                          invMass->GetMaximum() * 0.5);
+                          peakVal * 0.85, fStyler.drawLineColor);
   cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
 
   auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname));
@@ -237,7 +239,7 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
                           invMasspT->GetXaxis()->GetNbins(),
                           invMasspT->GetXaxis()->GetXmin(),
                           invMasspT->GetXaxis()->GetXmax());
-  Purity->GetXaxis()->SetTitle("p_{T} (GeV/#it{c})");
+  Purity->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
   Purity->GetYaxis()->SetTitle(
       Form("Purity / %.1f (GeV/#it{c})^{-1}", Purity->GetBinWidth(1)));
   for (int ipT = fInvMassPtStartBin;
@@ -253,34 +255,34 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
     CurrentPad->SetRightMargin(0.03);
     auto invMasspTBin = (TH1F*) invMasspT->ProjectionY(
         Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
-    fFitter->FitInvariantMass(invMasspTBin, CutMin, CutMax);
+    fFitter->FitInvariantMass(invMasspTBin, CutMin, CutMax, fStyler.drawSignalFitColor, fStyler.drawBackgroundFitColor);
     invMasspTBin->GetXaxis()->SetRangeUser(0.99 * CutMin, 1.01 * CutMax);
     invMasspTBin->GetYaxis()->SetRangeUser(
         0, invMasspTBin->GetMaximum() * fScaleMax);
     invMasspTBin->GetXaxis()->SetTitle(
         Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
+    peakVal = invMasspTBin->GetBinContent(
+        invMasspTBin->GetXaxis()->FindBin(fFitter->GetMeanMass()));
     //invMasspTBin->GetXaxis()->SetMaxDigits(2);
     invMasspTBin->GetXaxis()->SetNdivisions(505);
     //invMasspTBin->GetYaxis()->SetMaxDigits(3);
     invMasspTBin->GetYaxis()->SetNdivisions(210);
-    fHairyPlotter->FormatSmallHistogram(invMasspTBin, 0, 0, 0.7);
+    fHairyPlotter->FormatSmallHistogram(invMasspTBin, fStyler.drawMarker, fStyler.drawColor, 0.7);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad, "");
     fHairyPlotter->DrawLatexLabel(invMasspT->GetXaxis()->GetBinLowEdge(ipT),
                                   invMasspT->GetXaxis()->GetBinUpEdge(ipT),
                                   fFitter, CurrentPad, fPartLatex, fTexOffX,
                                   fTexOffY);
     fHairyPlotter->DrawLine(CurrentPad, CutMin, CutMin, 0,
-                            invMasspTBin->GetMaximum() * 0.5);
+                            peakVal * 0.85, fStyler.drawLineColor);
     fHairyPlotter->DrawLine(CurrentPad, CutMax, CutMax, 0,
-                            invMasspTBin->GetMaximum() * 0.5);
-    float signal = (float) fFitter->GetSignalCounts();
-    float background = (float) fFitter->GetBackgroundCounts();
-    Purity->SetBinContent(ipT, signal / (signal + background));
+                            peakVal * 0.85, fStyler.drawLineColor);
+    Purity->SetBinContent(ipT, fFitter->GetPurity());
 //    Purity->SetBinError(ipT, 0.03 * signal / (signal + background));
   }
   Purity->GetYaxis()->SetRangeUser(0.7, 1.1);
   cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
-  fHairyPlotter->FormatHistogram(Purity, 0, 0, 1.5);
+  fHairyPlotter->FormatHistogram(Purity, fStyler.drawMarker, fStyler.drawColor, 1.5);
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
 
@@ -294,7 +296,8 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   auto* invMass = (TH1F*) invMasspT->ProjectionY(Form("InvMass%s", outname), 0,
                                                  -1, "e");
   TPad* intPad = (TPad*) cMassIntegrated->cd();
-  fFitter->FitInvariantMassSigma(invMass, massCuts);
+  fFitter->FitInvariantMassSigma(invMass, massCuts, fStyler.drawSignalFitColor,
+                                 fStyler.drawBackgroundFitColor);
   const double CutMin = fFitter->GetMeanMass() - massCuts;
   const double CutMax = fFitter->GetMeanMass() + massCuts;
   double peakVal = invMass->GetBinContent(invMass->GetXaxis()->FindBin(fFitter->GetMeanMass()));
@@ -307,13 +310,13 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} (GeV/#it{c}^{2})^{-1}");
   invMass->GetXaxis()->SetTitle(
       Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
-  fHairyPlotter->FormatHistogram(invMass, 2, 8, 1.1);
+  fHairyPlotter->FormatHistogram(invMass, fStyler.drawMarker, fStyler.drawColor, 1.1);
   fHairyPlotter->DrawOnPad( { invMass }, intPad, "P");
   fHairyPlotter->DrawPublication(fFitter, intPad, fPartLatex, 0.205, 0.87, 1, 10);
   fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0,
-                          invMass->GetMaximum() * 0.5, kTeal + 3);
+                          peakVal * 0.85, fStyler.drawLineColor);
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,
-                          invMass->GetMaximum() * 0.5, kTeal + 3);
+                          peakVal * 0.85, fStyler.drawLineColor);
   fFitter->GetBackgroundFunction()->Draw("same");
   cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
   auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname), 0,
@@ -345,7 +348,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
     CurrentPad->SetRightMargin(0.03);
     auto invMasspTBin = (TH1F*) invMasspT->ProjectionY(
         Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
-    fFitter->FitInvariantMassSigma(invMasspTBin, massCuts);
+    fFitter->FitInvariantMassSigma(invMasspTBin, massCuts, fStyler.drawSignalFitColor, fStyler.drawBackgroundFitColor);
     double CutMinpT = fFitter->GetMeanMass() - massCuts;
     double CutMaxpT = fFitter->GetMeanMass() + massCuts;
     double peakVal = invMasspTBin->GetBinContent(invMasspTBin->GetXaxis()->FindBin(fFitter->GetMeanMass()));
@@ -359,23 +362,23 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
     invMasspTBin->GetXaxis()->SetNdivisions(505);
     invMasspTBin->GetYaxis()->SetMaxDigits(3);
     invMasspTBin->GetYaxis()->SetNdivisions(505);
-    fHairyPlotter->FormatHistogram(invMasspTBin, 2, 8, 0.8);
+    fHairyPlotter->FormatHistogram(invMasspTBin, fStyler.drawMarker, fStyler.drawColor, 0.8);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, CurrentPad, "");
     fHairyPlotter->DrawLatexLabel(invMasspT->GetXaxis()->GetBinLowEdge(ipT),
                                   invMasspT->GetXaxis()->GetBinUpEdge(ipT),
                                   fFitter, CurrentPad, fPartLatex, fTexOffX,
                                   fTexOffY);
     fHairyPlotter->DrawLine(CurrentPad, CutMinpT, CutMinpT, 0, peakVal * 0.85,
-                            kTeal + 3);
+                            fStyler.drawLineColor);
     fHairyPlotter->DrawLine(CurrentPad, CutMaxpT, CutMaxpT, 0, peakVal * 0.85,
-                            kTeal + 3);
+                            fStyler.drawLineColor);
 
     auto cpt = new TCanvas(Form("cInt%i%s", ipT, outname),
                            Form("cInt%i%s", ipT, outname), 0, 0, 650, 550);
     cpt->SetTopMargin(0.05);
     cpt->SetRightMargin(0.025);
     TPad *intPadpt = (TPad*) cpt->cd();
-    fHairyPlotter->FormatHistogram(invMasspTBin, 2, 8, 1.1);
+    fHairyPlotter->FormatHistogram(invMasspTBin, fStyler.drawMarker, fStyler.drawColor, 1.1);
     fHairyPlotter->DrawOnPad( { invMasspTBin }, intPadpt, "P");
     fFitter->GetBackgroundFunction()->Draw("same");
     fHairyPlotter->DrawPublication(fFitter, intPadpt, fPartLatex, 0.205, 0.87,
@@ -393,7 +396,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   }
   Purity->GetYaxis()->SetRangeUser(0.1, 0.7);
   cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
-  fHairyPlotter->FormatHistogram(Purity, 0, 0, 1.5);
+  fHairyPlotter->FormatHistogram(Purity, fStyler.drawMarker, fStyler.drawColor, 1.5);
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
 
@@ -405,17 +408,29 @@ void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname) {
   invMassKaon->GetXaxis()->SetTitle("#it{M}_{#pi#pi} (GeV/#it{c}^{2})");
   ForgivingFitter *kaonFit = new ForgivingFitter();
   kaonFit->SetRanges(0.485, 0.515, 0.44, 0.56);
-  kaonFit->FitInvariantMass(invMassKaon, 0.49, 0.51);
-  fHairyPlotter->FormatHistogram(invMassKaon, 0, 0, 1.0);
+  kaonFit->FitInvariantMass(invMassKaon, 0.49, 0.51, fStyler.drawSignalFitColor, fStyler.drawBackgroundFitColor);
+  fHairyPlotter->FormatHistogram(invMassKaon, fStyler);
   auto* canKaon = new TCanvas(Form("CanKaon%s", outname),
                               Form("CanKaon%s", outname));
   TPad* tmppad = (TPad*) canKaon->cd();
   fHairyPlotter->DrawOnPad( { invMassKaon }, tmppad, "PE");
   fHairyPlotter->DrawLatexLabel(0.3, 4.3, kaonFit, tmppad, "K^{0}", 0.8, 0.45);
-  fHairyPlotter->DrawLine(tmppad, 0.48, 0.48, 0,
-                          invMassKaon->GetMaximum() * 0.5);
-  fHairyPlotter->DrawLine(tmppad, 0.515, 0.515, 0,
-                          invMassKaon->GetMaximum() * 0.5);
+  fHairyPlotter->DrawLine(
+      tmppad,
+      KaonCutMin,
+      KaonCutMin,
+      0,
+      invMassKaon->GetBinContent(invMassKaon->FindBin(kaonFit->GetMeanMass()))
+          * 0.8,
+      fStyler.drawLineColor);
+  fHairyPlotter->DrawLine(
+      tmppad,
+      KaonCutMax,
+      KaonCutMax,
+      0,
+      invMassKaon->GetBinContent(invMassKaon->FindBin(kaonFit->GetMeanMass()))
+          * 0.8,
+      fStyler.drawLineColor);
   canKaon->SaveAs(Form("%sKaon.pdf", outname));
   delete kaonFit;
   delete canKaon;
@@ -431,6 +446,7 @@ void DecayQA::PlotQATopologyLambda() {
   PlotQATopologyLambda(fDecayCuts, "Lambda");
   PlotQATopologyLambda(fAntiDecayCuts, "AntiLambda");
 }
+
 void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
   auto dcaDaugVtx = (TH1F*) fReader->Get1DHistInList(
       fReader->GetListInList(v0Cuts, { "v0Cuts", "after" }),
@@ -441,7 +457,7 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
   dcaDaugVtx->GetXaxis()->SetRangeUser(0, 3.);
   dcaDaugVtx->GetXaxis()->SetTitle("DCA(p,#pi) (cm)");
   dcaDaugVtx->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(dcaDaugVtx, 0, 1);
+  fHairyPlotter->FormatHistogram(dcaDaugVtx, fStyler);
   fHairyPlotter->DrawLogYAndStore( { dcaDaugVtx },
                                   Form("%sdcaDaugDecVtx", outname));
 
@@ -453,9 +469,9 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
               << std::endl;
   }
   v0TRad->GetXaxis()->SetRangeUser(0, 120.);
-  v0TRad->GetXaxis()->SetTitle("r_{xy} (cm)");
+  v0TRad->GetXaxis()->SetTitle("#it{r}_{#it{xy}} (cm)");
   v0TRad->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(v0TRad, 0, 1);
+  fHairyPlotter->FormatHistogram(v0TRad, fStyler);
   fHairyPlotter->DrawAndStore( { v0TRad }, Form("%sTransRad", outname));
 
   auto DCAPos = (TH1F*) fReader->Get1DHistInList(
@@ -468,7 +484,7 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
   DCAPos->GetXaxis()->SetRangeUser(0, 100);
   DCAPos->GetXaxis()->SetTitle("DCA(Pos Daug,PV) (cm)");
   DCAPos->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(DCAPos, 0, 1);
+  fHairyPlotter->FormatHistogram(DCAPos, fStyler);
   fHairyPlotter->DrawLogYAndStore( { DCAPos }, Form("%sDCAPVPosDaug", outname));
 
   auto DCANeg = (TH1F*) fReader->Get1DHistInList(
@@ -481,7 +497,7 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
   DCANeg->GetXaxis()->SetRangeUser(0, 100.);
   DCANeg->GetXaxis()->SetTitle("DCA(Neg Daug,PV) (cm)");
   DCANeg->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(DCANeg, 0, 1);
+  fHairyPlotter->FormatHistogram(DCANeg, fStyler);
   fHairyPlotter->DrawLogYAndStore( { DCANeg }, Form("%sDCAPVNegDaug", outname));
 
   auto* pTDist = (TH1F*) fReader->Get1DHistInList(
@@ -492,7 +508,7 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
   pTDist->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
   pTDist->GetYaxis()->SetTitle(
       Form("Entries/ %.1f GeV/#it{c}", pTDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(pTDist, 0, 1);
+  fHairyPlotter->FormatHistogram(pTDist, fStyler);
   fHairyPlotter->DrawLogYAndStore( { pTDist }, Form("%spT", outname), "PE");
 
   auto* phiDist = (TH1F*) fReader->Get1DHistInList(
@@ -500,10 +516,11 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
   if (!phiDist) {
     std::cerr << "phi Distribution missing for " << outname << std::endl;
   }
+  phiDist->SetMinimum(0);
   phiDist->GetXaxis()->SetTitle("#varphi (rad)");
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(phiDist, 0, 1);
+  fHairyPlotter->FormatHistogram(phiDist, fStyler);
   fHairyPlotter->DrawAndStore( { phiDist }, Form("%s_phi", outname));
 
   auto* etaDist = (TH1F*) fReader->Get1DHistInList(
@@ -515,10 +532,10 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
   etaDist->GetXaxis()->SetRangeUser(-1., 1.);
   etaDist->GetYaxis()->SetTitle(
       Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(etaDist, 0, 1);
+  fHairyPlotter->FormatHistogram(etaDist, fStyler);
   fHairyPlotter->DrawAndStore( { etaDist }, Form("%s_eta", outname), "hist");
-
 }
+
 void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   // DCAr
   auto dcar = (TH1F*) (fReader->Get2DHistInList(
@@ -528,9 +545,9 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
     std::cerr << "dcar is missing for " << outname << std::endl;
   }
   dcar->GetXaxis()->SetRangeUser(0, 5);
-  dcar->GetXaxis()->SetTitle("DCA_{R} (cm)");
+  dcar->GetXaxis()->SetTitle("DCA_{#it{xy}} (cm)");
   dcar->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(dcar, 0, 1);
+  fHairyPlotter->FormatHistogram(dcar, fStyler);
   fHairyPlotter->DrawAndStore( { dcar },
                               Form("%sdcaR", outname));
 
@@ -542,9 +559,9 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
     std::cerr << "dcaz is missing for " << outname << std::endl;
   }
   dcaz->GetXaxis()->SetRangeUser(0, 5);
-  dcaz->GetXaxis()->SetTitle("DCA_{Z} (cm)");
+  dcaz->GetXaxis()->SetTitle("DCA_{#it{z}} (cm)");
   dcaz->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(dcaz, 0, 1);
+  fHairyPlotter->FormatHistogram(dcaz, fStyler);
   fHairyPlotter->DrawAndStore( { dcaz },
                               Form("%sdcaZ", outname));
 
@@ -558,9 +575,9 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
               << std::endl;
   }
   v0TRad->GetXaxis()->SetRangeUser(0, 120.);
-  v0TRad->GetXaxis()->SetTitle("r_{xy} (cm)");
+  v0TRad->GetXaxis()->SetTitle("#it{r}_{#it{xy}} (cm)");
   v0TRad->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(v0TRad, 0, 1);
+  fHairyPlotter->FormatHistogram(v0TRad, fStyler);
   fHairyPlotter->DrawAndStore( { v0TRad }, Form("%sTransRad", outname));
 
   // DCA pos daughter to PV
@@ -574,7 +591,7 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   DCAPos->GetXaxis()->SetRangeUser(0, 7.5);
   DCAPos->GetXaxis()->SetTitle("DCA(Pos Daug,PV) (cm)");
   DCAPos->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(DCAPos, 0, 1);
+  fHairyPlotter->FormatHistogram(DCAPos, fStyler);
   fHairyPlotter->DrawLogYAndStore( { DCAPos }, Form("%sDCAPVPosDaug", outname));
 
   // DCA neg daughter to PV
@@ -588,7 +605,7 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   DCANeg->GetXaxis()->SetRangeUser(0, 7.5);
   DCANeg->GetXaxis()->SetTitle("DCA(Neg Daug,PV) (cm)");
   DCANeg->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(DCANeg, 0, 1);
+  fHairyPlotter->FormatHistogram(DCANeg, fStyler);
   fHairyPlotter->DrawLogYAndStore( { DCANeg }, Form("%sDCAPVNegDaug", outname));
 
   // pT
@@ -600,7 +617,7 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   pTDist->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
   pTDist->GetYaxis()->SetTitle(
       Form("Entries/ %.1f GeV/#it{c}", pTDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(pTDist, 0, 1);
+  fHairyPlotter->FormatHistogram(pTDist, fStyler);
   fHairyPlotter->DrawLogYAndStore( { pTDist }, Form("%spT", outname), "PE");
 
   // Phi
@@ -613,7 +630,7 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   phiDist->GetXaxis()->SetTitle("#varphi (rad)");
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(phiDist, 0, 1);
+  fHairyPlotter->FormatHistogram(phiDist, fStyler);
   fHairyPlotter->DrawAndStore( { phiDist }, Form("%s_phi", outname));
 
   // Eta
@@ -627,7 +644,7 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   etaDist->GetXaxis()->SetRangeUser(-1., 1.);
   etaDist->GetYaxis()->SetTitle(
       Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(etaDist, 0, 1);
+  fHairyPlotter->FormatHistogram(etaDist, fStyler);
   fHairyPlotter->DrawAndStore( { etaDist }, Form("%s_eta", outname), "hist");
 
   // Cosine pointing angle
@@ -640,7 +657,7 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   cpa->GetXaxis()->SetTitle("cos(#alpha)");
   cpa->GetXaxis()->SetRangeUser(0.99, 1.);
   cpa->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(cpa, 0, 1);
+  fHairyPlotter->FormatHistogram(cpa, fStyler);
   fHairyPlotter->DrawAndStore( { cpa }, Form("%sCPA", outname));
 }
 
@@ -659,7 +676,7 @@ void DecayQA::PlotPIDLambda(TList* v0Cuts, const char* outname) {
     std::cerr << "Armenteros is missing for " << outname << std::endl;
   }
   armenteros->SetTitle("Armenteros-Podolandski");
-  fHairyPlotter->FormatHistogram(armenteros, 0, 1);
+  fHairyPlotter->FormatHistogram(armenteros);
   std::vector<TH2*> drawVecTPC = { armenteros };
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
                                   "colz");
@@ -736,7 +753,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   pTDist->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
   pTDist->GetYaxis()->SetTitle(
       Form("Entries/ %.1f GeV/#it{c}", pTDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(pTDist, 0, 1);
+  fHairyPlotter->FormatHistogram(pTDist, fStyler);
   fHairyPlotter->DrawLogYAndStore( { pTDist }, Form("%spT", outname), "PE");
 
   // Phi
@@ -749,7 +766,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   phiDist->SetMinimum(0);
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(phiDist, 0, 1);
+  fHairyPlotter->FormatHistogram(phiDist, fStyler);
   fHairyPlotter->DrawAndStore( { phiDist }, Form("%s_phi", outname));
 
   // Eta
@@ -763,7 +780,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   etaDist->GetXaxis()->SetRangeUser(-1., 1.);
   etaDist->GetYaxis()->SetTitle(
       Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(etaDist, 0, 1);
+  fHairyPlotter->FormatHistogram(etaDist, fStyler);
   fHairyPlotter->DrawAndStore( { etaDist }, Form("%s_eta", outname), "hist");
 
   // Number of Sigma Candidates
@@ -774,7 +791,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   }
   nSigma->GetXaxis()->SetTitle(Form("Number of %s candidates", fPartLatex));
   nSigma->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(nSigma, 0, 1);
+  fHairyPlotter->FormatHistogram(nSigma, fStyler);
   fHairyPlotter->DrawLogYAndStore( { nSigma }, Form("%s_nSigma", outname),
                                   "hist");
 
@@ -785,7 +802,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
               << outname << std::endl;
   }
   nLambdaLabel->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(nLambdaLabel, 0, 1);
+  fHairyPlotter->FormatHistogram(nLambdaLabel, fStyler);
   fHairyPlotter->DrawLogYAndStore( { nLambdaLabel },
                                   Form("%s_nLambdaLabel", outname), "hist");
 
@@ -796,7 +813,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
               << outname << std::endl;
   }
   nPhotonLabel->GetYaxis()->SetTitle("Entries");
-  fHairyPlotter->FormatHistogram(nPhotonLabel, 0, 1);
+  fHairyPlotter->FormatHistogram(nPhotonLabel, fStyler);
   fHairyPlotter->DrawLogYAndStore( { nPhotonLabel },
                                   Form("%s_nPhotonLabel", outname), "hist");
 }

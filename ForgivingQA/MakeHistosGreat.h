@@ -13,13 +13,25 @@
 #include "TPad.h"
 #include "ForgivingFitter.h"
 #include <vector>
+
+struct DrawStyle {
+  int drawMarker = 0;
+  unsigned int drawColor = 1;
+  int drawLineColor =  kOrange - 1;
+  int drawSignalFitColor =  kBlue;
+  int drawBackgroundFitColor =  kBlue;
+  float drawSize = 1.;
+};
+
 class MakeHistosGreat {
  public:
   MakeHistosGreat();
   MakeHistosGreat(const char* outfile);
   virtual ~MakeHistosGreat();
+  void FormatHistogram(TH1* hist, DrawStyle styler);
   void FormatHistogram(TH1* hist, unsigned int marker, unsigned int color,
                        float size = 1);
+  void FormatSmallHistogram(TH1* hist, DrawStyle styler);
   void FormatSmallHistogram(TH1* hist, unsigned int marker, unsigned int color,
                             float size = 1);
   void FormatHistogram(TH2 *histo);
@@ -51,5 +63,13 @@ class MakeHistosGreat {
   bool fTightMargin;
   TFile *fOutfile;
 };
+
+inline void MakeHistosGreat::FormatHistogram(TH1* hist, DrawStyle styler) {
+  FormatHistogram(hist, styler.drawMarker, styler.drawColor, styler. drawSize);
+}
+
+inline void MakeHistosGreat::FormatSmallHistogram(TH1* hist, DrawStyle styler) {
+  FormatSmallHistogram(hist, styler.drawMarker, styler.drawColor, styler. drawSize);
+}
 
 #endif /* FORGIVINGQA_MAKEHISTOSGREAT_H_ */

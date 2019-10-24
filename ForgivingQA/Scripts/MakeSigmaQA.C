@@ -13,7 +13,16 @@ int main(int argc, char* argv[]) {
   ForgivingReader* reader = new ForgivingReader(filename, prefix, addon);
   TString suffix = TString::Format("%s", addon);
 
+  DrawStyle styler;
+  styler.drawMarker = 2;
+  styler.drawColor = 8;
+  styler.drawSize = 1.1;
+  styler.drawLineColor = kTeal + 3;
+  styler.drawSignalFitColor = kBlue + 4;
+  styler.drawBackgroundFitColor = kGreen + 2;
+
   EventQA* evtQA = new EventQA("Event");
+  evtQA->SetStyler(styler);
   evtQA->SetLooseMargin();
   evtQA->SetQAList(reader->GetQA());
   evtQA->SetEventCuts(reader->GetEventCuts());
@@ -32,6 +41,7 @@ int main(int argc, char* argv[]) {
   delete evtQA;
 
   TrackQA* trkQA = new TrackQA("Proton");
+  trkQA->SetStyler(styler);
   trkQA->SetTrackCuts(reader->GetTrackCuts());
   trkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
   if (suffix == "0") {
@@ -41,7 +51,8 @@ int main(int argc, char* argv[]) {
   delete trkQA;
 
   DecayQA* v0QA = new DecayQA("#Lambda", "p#pi", "Lambda");
-  v0QA->SetCanvasDivisions(5, 2);
+  v0QA->SetStyler(styler);
+  v0QA->SetCanvasDivisions(4, 2);
   v0QA->SetDecayCuts(reader->Getv0Cuts());
   v0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   v0QA->SetAntiDecayCuts(reader->GetAntiv0Cuts());

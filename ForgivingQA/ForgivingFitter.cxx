@@ -78,7 +78,7 @@ TH1F* ForgivingFitter::getSignalHisto(TF1 *function, TH1F *histo,
 
 // second order polynomial + double gaus to Lambda peak
 void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
-                                       float massCutMax) {
+                                       float massCutMax, int signalColor, int backgroundColor) {
   // Fit Background with second order polynomial, excluding Mlambda +/- 10 MeV
   if (!fRangesSet) {
     std::cout
@@ -89,6 +89,7 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
              fBkgRangeMax * 0.995);
   histo->GetXaxis()->SetRangeUser(1.07, 1.18);
   CreateContinousBackgroundFunction();
+  fContinousBackGround->SetLineColor(backgroundColor);
   TH1F *signalOnly = getSignalHisto(fContinousBackGround, histo,
                                     fSigRangeMin * 0.98, fSigRangeMax * 1.02,
                                     Form("%s_signal_only", histo->GetName()));
@@ -112,17 +113,18 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   fWeightB = fSingleGaussian->Integral(fSigRangeMin, fSigRangeMax)
       / double(histo->GetBinWidth(1));
   CreateFullFitFunction(histo);
+  fFullFitFnct->SetLineColor(signalColor);
   histo->Fit(fFullFitFnct, "R Q 0", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
   histo->GetListOfFunctions()->Add(
       fFullFitFnct->Clone(Form("fnc%s", histo->GetName())));
-  CalculateBackgorund(histo, massCutMin, massCutMax);
+  CalculateBackgorund(histo, massCutMin, massCutMax, backgroundColor);
   fMeanMass = weightedMean(fWeightA, fFullFitFnct->GetParameter(4), fWeightB,
                            fFullFitFnct->GetParameter(7));
   fMeanWidth = weightedMean(fWeightA, fFullFitFnct->GetParameter(5), fWeightB,
                             fFullFitFnct->GetParameter(8));
 }
 
-void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lineColor) {
+void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int signalColor, int backgroundColor) {
   // Fit Background with third order polynomial
   if (fBackGround) {
     delete fBackGround;
@@ -149,7 +151,7 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lin
   fContinousBackGround->SetParameter(2, fBackGround->GetParameter(2));
   fContinousBackGround->SetParameter(3, fBackGround->GetParameter(3));
   fContinousBackGround->SetLineStyle(2);
-  fContinousBackGround->SetLineColor(kGreen + 2);
+  fContinousBackGround->SetLineColor(backgroundColor);
   TH1F *signalOnly = getSignalHisto(fContinousBackGround, histo,
                                     fBkgRangeMin * 0.8, fBkgRangeMax * 1.2,
                                     Form("%s_signal_only", histo->GetName()));
@@ -170,7 +172,7 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int lin
   }
   fFullFitFnct = new TF1("fFullFitFnct", "fBackground2 + fSignalSingleGauss",
                          fBkgRangeMin * 0.5, fBkgRangeMax * 2);
-  fFullFitFnct->SetLineColor(lineColor);
+  fFullFitFnct->SetLineColor(signalColor);
   fFullFitFnct->SetNpx(1000);
   fFullFitFnct->FixParameter(0, fBackGround->GetParameter(0));
   fFullFitFnct->FixParameter(1, fBackGround->GetParameter(1));
@@ -335,14 +337,14 @@ void ForgivingFitter::CreateFullFitFunction(TH1F* targetHisto) {
                             "WidthGausTwo");
 }
 void ForgivingFitter::CalculateBackgorund(TH1F* targetHisto, float massCutMin,
-                                          float massCutMax) {
+                                          float massCutMax, int backgroundColor) {
   TF1 *fLambda_background = new TF1("fLambda_background", "pol2(0)",
                                     fBkgRangeMin, fBkgRangeMax);
   fLambda_background->SetParameter(0, fFullFitFnct->GetParameter(0));
   fLambda_background->SetParameter(1, fFullFitFnct->GetParameter(1));
   fLambda_background->SetParameter(2, fFullFitFnct->GetParameter(2));
   fLambda_background->SetLineStyle(3);
-  fLambda_background->SetLineColor(kBlue);
+  fLambda_background->SetLineColor(backgroundColor);
 
   fBackgroundCounts = fLambda_background->Integral(massCutMin, massCutMax)
       / double(targetHisto->GetBinWidth(1));

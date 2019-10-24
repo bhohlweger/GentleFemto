@@ -40,7 +40,7 @@ void EventQA::PlotCutCounter() {
   if (!cutStats) {
     std::cerr << "PlotCutCounter: No cutStat Hist\n";
   }
-  fHairyPlotter->FormatHistogram(cutStats, 0, 1);
+  fHairyPlotter->FormatHistogram(cutStats, fStyler);
   fHairyPlotter->DrawAndStore( { cutStats }, "Evt_CutStats");
 }
 
@@ -55,7 +55,7 @@ void EventQA::PlotEventProperties(unsigned int multMax) {
   }
   multiplicity->GetXaxis()->SetRangeUser(0, multMax);
   multiplicity->GetYaxis()->SetTitle(Form("N_{Events}"));
-  fHairyPlotter->FormatHistogram(multiplicity, 0, 1);
+  fHairyPlotter->FormatHistogram(multiplicity, fStyler);
   fHairyPlotter->DrawLogYAndStore( { multiplicity }, "EvtProp_eventMult");
 
   auto* zVtx = (TH2F*) fReader->Get1DHistInList(
@@ -67,7 +67,7 @@ void EventQA::PlotEventProperties(unsigned int multMax) {
   zVtx->GetXaxis()->SetTitle("v_{z} (cm)");
   zVtx->GetXaxis()->SetRangeUser(-11, 11);
   zVtx->GetYaxis()->SetTitle(Form("N_{Events}/%.1f cm", zVtx->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(zVtx, 0, 1);
+  fHairyPlotter->FormatHistogram(zVtx, fStyler);
   std::vector<TH2*> drawVec = { { zVtx } };
   fHairyPlotter->DrawAndStore(drawVec, "EvtProp_zVtx");
 }
@@ -113,7 +113,7 @@ void EventQA::PlotStatsTrackCleaner(std::vector<const char*> TrackDecay,
     TString nameAxis = Form("# %s pairs with shared tracks/event", it);
     trackDecay->GetXaxis()->SetTitle(nameAxis.Data());
     trackDecay->GetXaxis()->SetRangeUser(0, xMax);
-    fHairyPlotter->FormatHistogram(trackDecay, 0, 1);
+    fHairyPlotter->FormatHistogram(trackDecay, fStyler);
     fHairyPlotter->DrawLogYAndStore( { trackDecay },
                                     Form("DecTrack_%u", itrDec));
 
@@ -132,7 +132,7 @@ void EventQA::PlotStatsTrackCleaner(std::vector<const char*> TrackDecay,
     TString nameAxis = Form("# %s pairs with shared tracks/event", it);
     DecayDecay->GetXaxis()->SetTitle(nameAxis.Data());
     DecayDecay->GetXaxis()->SetRangeUser(0, xMax);
-    fHairyPlotter->FormatHistogram(DecayDecay, 0, 1);
+    fHairyPlotter->FormatHistogram(DecayDecay, fStyler);
     fHairyPlotter->DrawLogYAndStore( { DecayDecay },
                                     Form("Decdec_%u", iDecDec));
 

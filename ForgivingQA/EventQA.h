@@ -27,6 +27,7 @@ class EventQA {
   }
   ;
   void MakeEventQA();
+  void SetStyler(DrawStyle styler) { fStyler = styler; }
   void PlotCutCounter();
   void SetTightMargin() {
     fHairyPlotter->SetTightMargin(true);
@@ -48,6 +49,7 @@ class EventQA {
   TList* fEventCuts;
   MakeHistosGreat* fHairyPlotter;
   int fNEvts;
+  DrawStyle fStyler;
 };
 
 inline

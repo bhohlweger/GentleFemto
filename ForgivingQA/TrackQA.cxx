@@ -65,7 +65,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   pTDist->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
   pTDist->GetYaxis()->SetTitle(
       Form("Entries/ %.1f GeV/#it{c}", pTDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(pTDist, 0, 1);
+  fHairyPlotter->FormatHistogram(pTDist, fStyler);
   fHairyPlotter->DrawLogYAndStore( { pTDist }, Form("%s_pT", outname));
 
   auto* phiDist = (TH1F*) fReader->Get1DHistInList(
@@ -76,7 +76,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   phiDist->GetXaxis()->SetTitle("#varphi (rad)");
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(phiDist, 0, 1);
+  fHairyPlotter->FormatHistogram(phiDist, fStyler);
   fHairyPlotter->DrawAndStore( { phiDist }, Form("%s_phi", outname));
 
   auto* etaDist = (TH1F*) fReader->Get1DHistInList(
@@ -88,7 +88,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   etaDist->GetXaxis()->SetRangeUser(-1., 1.);
   etaDist->GetYaxis()->SetTitle(
       Form("Entries/ %.2f ", etaDist->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(etaDist, 0, 1);
+  fHairyPlotter->FormatHistogram(etaDist, fStyler);
   fHairyPlotter->DrawAndStore( { etaDist }, Form("%s_eta", outname), "hist");
 
   auto* dcaXY2DDistBef = (TH2F*) fReader->Get2DHistInList(cuts,
@@ -116,7 +116,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   dcaXYDistAfter->GetYaxis()->SetRangeUser(1.e3, 1.e8);
   dcaXYDistAfter->GetYaxis()->SetTitle(
       Form("Entries/ %.2f cm ", dcaXYDistAfter->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(dcaXYDistAfter, 0, 1);
+  fHairyPlotter->FormatHistogram(dcaXYDistAfter, fStyler);
   std::vector<TH1*> dcaPlot = { dcaXYDistAfter };
   if (dcaXYDistBef) {
     dcaPlot.push_back(dcaXYDistBef);

@@ -16,6 +16,7 @@ class TrackQA {
   TrackQA();
   TrackQA(const char* outname);
   virtual ~TrackQA();
+  void SetStyler(DrawStyle styler) { fStyler = styler; }
   void PlotKinematic();
   void PlotKinematic(TList *cuts, const char* outname);
   void PlotPID();
@@ -32,6 +33,7 @@ class TrackQA {
  private:
   ForgivingReader* fReader;
   MakeHistosGreat* fHairyPlotter;
+  DrawStyle fStyler;
   TList *fTrackCuts;
   TList *fAntiTrackCuts;
 };

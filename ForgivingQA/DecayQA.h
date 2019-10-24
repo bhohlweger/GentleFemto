@@ -30,6 +30,7 @@ class DecayQA {
   void InvariantMassLambda(float CutMin, float CutMax, bool minBook = false);
   void InvariantMassSigma0(float massCuts, const char* name = "Sigma0",
                            bool isSum = true);
+  void SetStyler(DrawStyle styler) { fStyler = styler; }
   void GetPeriodQA(float CutMin, float CutMax,
                    std::vector<const char*> pathToList, const char* histname);
   void GetPeriodQASigma(float CutMin, float CutMax, const char* period);
@@ -109,6 +110,7 @@ class DecayQA {
   const char* fDecChannel;
   TGraphErrors *fPurity;
   std::vector<float> fIntegratedPurities;
+  DrawStyle fStyler;
 };
 
 #endif /* FORGIVINGQA_DECAYQA_H_ */
