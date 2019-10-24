@@ -272,7 +272,7 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
     fHairyPlotter->DrawLatexLabel(invMasspT->GetXaxis()->GetBinLowEdge(ipT),
                                   invMasspT->GetXaxis()->GetBinUpEdge(ipT),
                                   fFitter, CurrentPad, fPartLatex, fTexOffX,
-                                  fTexOffY);
+                                  fTexOffY, 0.05);
     fHairyPlotter->DrawLine(CurrentPad, CutMin, CutMin, 0,
                             peakVal * 0.85, fStyler.drawLineColor);
     fHairyPlotter->DrawLine(CurrentPad, CutMax, CutMax, 0,
@@ -394,7 +394,8 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
     fPurity->SetPoint(counter, invMasspT->GetXaxis()->GetBinCenter(ipT), fFitter->GetPurity());
     fPurity->SetPointError(counter++, invMasspT->GetXaxis()->GetBinWidth(ipT)/2.f, fFitter->GetPurityErr());
   }
-  Purity->GetYaxis()->SetRangeUser(0.1, 0.7);
+  Purity->SetTitle(";#it{p}_{T} (GeV/#it{c}); Purity");
+  Purity->GetYaxis()->SetRangeUser(0.1, 0.8);
   cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
   fHairyPlotter->FormatHistogram(Purity, fStyler.drawMarker, fStyler.drawColor, 1.5);
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
@@ -517,7 +518,7 @@ void DecayQA::PlotQATopologyLambda(TList *v0Cuts, const char* outname) {
     std::cerr << "phi Distribution missing for " << outname << std::endl;
   }
   phiDist->SetMinimum(0);
-  phiDist->GetXaxis()->SetTitle("#varphi (rad)");
+  phiDist->GetXaxis()->SetTitle("#phi (rad)");
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(phiDist, fStyler);
@@ -548,8 +549,7 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   dcar->GetXaxis()->SetTitle("DCA_{#it{xy}} (cm)");
   dcar->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(dcar, fStyler);
-  fHairyPlotter->DrawAndStore( { dcar },
-                              Form("%sdcaR", outname));
+  fHairyPlotter->DrawLogYAndStore( { dcar }, Form("%sdcaR", outname));
 
   // DCAz
   auto dcaz = (TH1F*) (fReader->Get2DHistInList(
@@ -562,8 +562,7 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
   dcaz->GetXaxis()->SetTitle("DCA_{#it{z}} (cm)");
   dcaz->GetYaxis()->SetTitle("Entries");
   fHairyPlotter->FormatHistogram(dcaz, fStyler);
-  fHairyPlotter->DrawAndStore( { dcaz },
-                              Form("%sdcaZ", outname));
+  fHairyPlotter->DrawLogYAndStore( { dcaz }, Form("%sdcaZ", outname));
 
   // Transverse radius
   auto v0TRad =
@@ -627,7 +626,7 @@ void DecayQA::PlotQATopologySigma0Daughter(TList* v0Cuts, const char* outname) {
     std::cerr << "phi Distribution missing for " << outname << std::endl;
   }
   phiDist->SetMinimum(0);
-  phiDist->GetXaxis()->SetTitle("#varphi (rad)");
+  phiDist->GetXaxis()->SetTitle("#phi (rad)");
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(phiDist, fStyler);
@@ -687,7 +686,9 @@ void DecayQA::PlotPIDLambda(TList* v0Cuts, const char* outname) {
   if (!posPID) {
     std::cerr << "Pos PID is missing for " << outname << std::endl;
   }
-  fHairyPlotter->FormatHistogram(posPID, 0, 1);
+  posPID->SetTitle("; #it{p}_{TPC} (GeV/#it{c}); #it{n}_{#sigma, TPC}");
+  posPID->GetYaxis()->SetRangeUser(-8, 8);
+  fHairyPlotter->FormatHistogram(posPID);
   drawVecTPC = {posPID};
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_PosPID", outname),
                                   "colz");
@@ -698,7 +699,9 @@ void DecayQA::PlotPIDLambda(TList* v0Cuts, const char* outname) {
   if (!negPID) {
     std::cerr << "Neg PID is missing for " << outname << std::endl;
   }
-  fHairyPlotter->FormatHistogram(negPID, 0, 1);
+  negPID->SetTitle("; #it{p}_{TPC} (GeV/#it{c}); #it{n}_{#sigma, TPC}");
+  negPID->GetYaxis()->SetRangeUser(-8, 8);
+  fHairyPlotter->FormatHistogram(negPID);
   drawVecTPC = {negPID};
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_NegPID", outname),
                                   "colz");
@@ -711,7 +714,7 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
     std::cerr << "Armenteros is missing for " << outname << std::endl;
   }
   armenteros->SetTitle("Armenteros-Podolandski");
-  fHairyPlotter->FormatHistogram(armenteros, 0, 1);
+  fHairyPlotter->FormatHistogram(armenteros);
   std::vector<TH2*> drawVecTPC = { armenteros };
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_ArmenterosPID", outname),
                                   "colz");
@@ -723,7 +726,9 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
   if (!posPID) {
     std::cerr << "Pos PID is missing for " << outname << std::endl;
   }
-  fHairyPlotter->FormatHistogram(posPID, 0, 1);
+  posPID->SetTitle("; #it{p}_{TPC} (GeV/#it{c}); #it{n}_{#sigma, TPC}");
+  posPID->GetYaxis()->SetRangeUser(-8, 8);
+  fHairyPlotter->FormatHistogram(posPID);
   drawVecTPC = {posPID};
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_PosPID", outname),
                                   "colz");
@@ -735,7 +740,9 @@ void DecayQA::PlotPIDSigma0Daughter(TList* v0Cuts, const char* outname) {
   if (!negPID) {
     std::cerr << "Neg PID is missing for " << outname << std::endl;
   }
-  fHairyPlotter->FormatHistogram(negPID, 0, 1);
+  negPID->SetTitle("; #it{p}_{TPC} (GeV/#it{c}); #it{n}_{#sigma, TPC}");
+  negPID->GetYaxis()->SetRangeUser(-8, 8);
+  fHairyPlotter->FormatHistogram(negPID);
   drawVecTPC = {negPID};
   fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_NegPID", outname),
                                   "colz");
@@ -762,7 +769,7 @@ void DecayQA::PlotQATopologySigma0(TList* v0Cuts, const char* outname) {
   if (!phiDist) {
     std::cerr << "phi Distribution missing for " << outname << std::endl;
   }
-  phiDist->GetXaxis()->SetTitle("#varphi (rad)");
+  phiDist->GetXaxis()->SetTitle("#phi (rad)");
   phiDist->SetMinimum(0);
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));

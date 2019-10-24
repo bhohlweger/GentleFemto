@@ -65,6 +65,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   pTDist->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
   pTDist->GetYaxis()->SetTitle(
       Form("Entries/ %.1f GeV/#it{c}", pTDist->GetBinWidth(1)));
+  pTDist->SetMinimum(pTDist->GetBinContent(pTDist->FindLastBinAbove(1000)) * 0.5);
   fHairyPlotter->FormatHistogram(pTDist, fStyler);
   fHairyPlotter->DrawLogYAndStore( { pTDist }, Form("%s_pT", outname));
 
@@ -73,7 +74,8 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   if (!phiDist) {
     std::cerr << "phi Distribution missing for " << outname << std::endl;
   }
-  phiDist->GetXaxis()->SetTitle("#varphi (rad)");
+  phiDist->SetMinimum(0);
+  phiDist->GetXaxis()->SetTitle("#phi (rad)");
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(phiDist, fStyler);
@@ -100,7 +102,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   } else {
     dcaXYDistBef = (TH1F*) dcaXY2DDistBef->ProjectionY(
         Form("dcaXYProjBef_%s", outname));
-    fHairyPlotter->FormatHistogram(dcaXYDistBef, 0, 2);
+    fHairyPlotter->FormatHistogram(dcaXYDistBef, fStyler);
   }
   auto* dcaXY2DDistAfter = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(cuts, { "after" }), "DCAXYProp_after");
@@ -111,12 +113,12 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   auto dcaXYDistAfter = (TH1F*) dcaXY2DDistAfter->ProjectionY(
       Form("dcaXYProjAfter_%s", outname));
 
-  dcaXYDistAfter->GetXaxis()->SetTitle("DCA_{XY} (cm)");
+  dcaXYDistAfter->GetXaxis()->SetTitle("DCA_{#it{xy}} (cm)");
   dcaXYDistAfter->GetXaxis()->SetRangeUser(-4., 4.);
   dcaXYDistAfter->GetYaxis()->SetRangeUser(1.e3, 1.e8);
   dcaXYDistAfter->GetYaxis()->SetTitle(
       Form("Entries/ %.2f cm ", dcaXYDistAfter->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(dcaXYDistAfter, fStyler);
+  fHairyPlotter->FormatHistogram(dcaXYDistAfter, fStyler.drawMarker, fStyler.drawColor - 2);
   std::vector<TH1*> dcaPlot = { dcaXYDistAfter };
   if (dcaXYDistBef) {
     dcaPlot.push_back(dcaXYDistBef);
@@ -137,9 +139,10 @@ void TrackQA::PlotPID(TList* cuts, const char* outname) {
   }
   fHairyPlotter->FormatHistogram(TPCdEdx);
   TPCdEdx->GetYaxis()->SetRangeUser(-5, 5);
-  TPCdEdx->GetXaxis()->SetTitle("p_{TPC} (GeV/#it{c})");
+  TPCdEdx->GetXaxis()->SetTitle("#it{p}_{TPC} (GeV/#it{c})");
+  TPCdEdx->GetYaxis()->SetTitle("#it{n}_{#sigma, TPC}");
   std::vector<TH2*> drawVecTPC = { TPCdEdx };
-  fHairyPlotter->DrawAndStore(drawVecTPC, "nSigTPC", "COLZ");
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, "nSigTPC", "COLZ");
 
   auto* TOF = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(cuts, { "after" }), "NSigTOF_after");
@@ -148,7 +151,8 @@ void TrackQA::PlotPID(TList* cuts, const char* outname) {
   }
   fHairyPlotter->FormatHistogram(TOF);
   TOF->GetYaxis()->SetRangeUser(-5, 5);
-  TOF->GetXaxis()->SetTitle("p_{TPC} (GeV/#it{c})");
+  TOF->GetXaxis()->SetTitle("#it{p}_{TPC} (GeV/#it{c})");
+  TOF->GetYaxis()->SetTitle("#it{n}_{#sigma, TOF}");
   std::vector<TH2*> drawVecTOF = { TOF };
-  fHairyPlotter->DrawAndStore(drawVecTOF, "nSigTOF", "COLZ");
+  fHairyPlotter->DrawLogZAndStore(drawVecTOF, "nSigTOF", "COLZ");
 }

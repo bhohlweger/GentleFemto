@@ -31,12 +31,17 @@ int main(int argc, char* argv[]) {
     evtQA->PlotEventProperties(200);
     evtQA->PlotPileUpRejection();
     evtQA->SetTightMargin();
-    evtQA->PlotStatsTrackCleaner( { "p-#Sigma^{0}", "#bar{p}-#bar{#Sigma^{0}}",
-                                     "p-#Lambda#gamma (up)",
-                                     "#bar{p}-#bar{#Lambda}#gamma (up)",
-                                     "p-#Lambda#gamma (down)",
-                                     "#bar{p}-#bar{#Lambda}#gamma (down)" },
-                                 { }, 6);
+    evtQA->PlotStatsTrackCleaner(
+        { "p#minus#kern[-0.95]{ }#Sigma^{0}",
+            "#bar{p}#minus#kern[-0.85]{ }#bar{#Sigma^{0}}",
+            "p#minus#kern[-0.65]{ }(#Lambda#gamma) (up)",
+            "#bar{p}#minus#kern[-0.4]{ }(#bar{#Lambda}#gamma) (up)",
+            "p#minus#kern[-0.65]{ }(#Lambda#gamma) (down)",
+            "#bar{p}#minus#kern[-0.4]{ }(#bar{#Lambda}#gamma) (down)" },
+        { "#Lambda#minus#kern[-0.4]{ }#Lambda", "#bar{#Lambda}#minus#kern[-0.4]{ }#bar{#Lambda}",
+            "#gamma#minus#kern[-0.4]{ }#gamma", "#Lambda#minus#kern[-0.4]{ }#bar{#Lambda}",
+            "#Lambda#minus#kern[-0.4]{ }#gamma", "#bar{#Lambda}#minus#kern[-0.4]{ }#gamma" },
+        6);
   }
   delete evtQA;
 
@@ -66,6 +71,7 @@ int main(int argc, char* argv[]) {
 
   if (suffix == "0") {
     DecayQA* gammaQA = new DecayQA("#gamma", "e^{+}e^{-}", "Photon");
+    gammaQA->SetStyler(styler);
     gammaQA->PlotQATopologySigma0Daughter(reader->GetOtherCuts("PhotonCuts"),
                                           "Photon");
     gammaQA->PlotPIDSigma0Daughter(reader->GetOtherCuts("PhotonCuts"),
@@ -74,6 +80,7 @@ int main(int argc, char* argv[]) {
   }
 
   DecayQA* sigma0QA = new DecayQA("#Sigma^{0}", "#Lambda#gamma", "Sigma0");
+  sigma0QA->SetStyler(styler);
   sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigma0QA->SetCanvasDivisions(3, 3);
   sigma0QA->SetInvMasspTStartBin(3);
@@ -88,6 +95,7 @@ int main(int argc, char* argv[]) {
 
   DecayQA* antiSigma0QA = new DecayQA("#bar{#Sigma^{0}}",
                                       "#bar{#Lambda}#gamma", "AntiSigma0");
+  antiSigma0QA->SetStyler(styler);
   antiSigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   antiSigma0QA->SetCanvasDivisions(3, 3);
   antiSigma0QA->SetInvMasspTStartBin(3);
@@ -102,6 +110,7 @@ int main(int argc, char* argv[]) {
 
   DecayQA* sigmaSumQA = new DecayQA("#Sigma^{0} + #bar{#Sigma^{0}}",
                                     "#Lambda#gamma + #bar{#Lambda}#gamma", "Sigma0Combined");
+  sigmaSumQA->SetStyler(styler);
   sigmaSumQA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigmaSumQA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   sigmaSumQA->SetCanvasDivisions(3, 3);

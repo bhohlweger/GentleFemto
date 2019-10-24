@@ -47,28 +47,28 @@ void EventQA::PlotCutCounter() {
 void EventQA::PlotEventProperties(unsigned int multMax) {
   //Method also Sets the Number of Events!
 
-  auto* multiplicity = (TH2F*) fReader->Get1DHistInList(
+  auto* multiplicity = (TH1F*) fReader->Get1DHistInList(
       fReader->GetListInList(fEventCuts, { { "after" } }),
       "MultiplicityRef08_after");
   if (!multiplicity) {
     std::cerr << "PlotEventProperties: Missing Multiplicity Histogram! \n";
   }
   multiplicity->GetXaxis()->SetRangeUser(0, multMax);
-  multiplicity->GetYaxis()->SetTitle(Form("N_{Events}"));
+  multiplicity->GetYaxis()->SetTitle(Form("#it{N}_{events}"));
   fHairyPlotter->FormatHistogram(multiplicity, fStyler);
   fHairyPlotter->DrawLogYAndStore( { multiplicity }, "EvtProp_eventMult");
 
-  auto* zVtx = (TH2F*) fReader->Get1DHistInList(
+  auto* zVtx = (TH1F*) fReader->Get1DHistInList(
       fReader->GetListInList(fEventCuts, { { "after" } }), "VtxZ_after");
   if (!zVtx) {
     std::cerr << "PlotEventProperties: Missing zVtx Histogram! \n";
   }
   fNEvts = zVtx->GetEntries();
-  zVtx->GetXaxis()->SetTitle("v_{z} (cm)");
-  zVtx->GetXaxis()->SetRangeUser(-11, 11);
-  zVtx->GetYaxis()->SetTitle(Form("N_{Events}/%.1f cm", zVtx->GetBinWidth(1)));
+  zVtx->GetXaxis()->SetTitle("Vertex #it{z} (cm)");
+  zVtx->GetXaxis()->SetRangeUser(-12, 12);
+  zVtx->GetYaxis()->SetTitle(Form("#it{N}_{events}/%.1f cm", zVtx->GetBinWidth(1)));
   fHairyPlotter->FormatHistogram(zVtx, fStyler);
-  std::vector<TH2*> drawVec = { { zVtx } };
+  std::vector<TH1*> drawVec = { { zVtx } };
   fHairyPlotter->DrawAndStore(drawVec, "EvtProp_zVtx");
 }
 
@@ -81,16 +81,16 @@ void EventQA::PlotPileUpRejection() {
       "SPDTrackletsVsClusterL01Sum_after");
   if (TkltsVsClusterBefore && TkltsVsClusterAfter) {
     fHairyPlotter->FormatHistogram(TkltsVsClusterBefore);
-    TkltsVsClusterBefore->GetXaxis()->SetTitle("N_{SPD Tracklets}");
-    TkltsVsClusterBefore->GetYaxis()->SetTitle("N_{SPD Cluster}");
+    TkltsVsClusterBefore->GetXaxis()->SetTitle("#it{N}_{SPD Tracklets}");
+    TkltsVsClusterBefore->GetYaxis()->SetTitle("#it{N}_{SPD Cluster}");
     std::vector<TH2*> drawVecBefore = { { TkltsVsClusterBefore} };
-    fHairyPlotter->DrawAndStore(drawVecBefore,"TrackletsVsClustBefore", "COLZ");
+    fHairyPlotter->DrawLogZAndStore(drawVecBefore,"TrackletsVsClustBefore", "COLZ");
 
     fHairyPlotter->FormatHistogram(TkltsVsClusterAfter);
-    TkltsVsClusterAfter->GetXaxis()->SetTitle("N_{SPD Tracklets}");
-    TkltsVsClusterAfter->GetYaxis()->SetTitle("N_{SPD Cluster}");
+    TkltsVsClusterAfter->GetXaxis()->SetTitle("#it{N}_{SPD Tracklets}");
+    TkltsVsClusterAfter->GetYaxis()->SetTitle("#it{N}_{SPD Cluster}");
     std::vector<TH2*> drawVecAfter = { { TkltsVsClusterAfter } };
-    fHairyPlotter->DrawAndStore(drawVecAfter,"TrackletsVsClustAfter", "COLZ");
+    fHairyPlotter->DrawLogZAndStore(drawVecAfter,"TrackletsVsClustAfter", "COLZ");
 
   } else {
    std::cerr << "No Tracklets vs. Clust Plot \n";
@@ -110,9 +110,10 @@ void EventQA::PlotStatsTrackCleaner(std::vector<const char*> TrackDecay,
       std::cerr << "PlotStatsTracksCleaner: "
                 << Form("DaugthersSharedTracks_%u", itrDec) << " missing \n";
     }
-    TString nameAxis = Form("# %s pairs with shared tracks/event", it);
+    TString nameAxis = Form("%s pairs with shared tracks/event", it);
     trackDecay->GetXaxis()->SetTitle(nameAxis.Data());
     trackDecay->GetXaxis()->SetRangeUser(0, xMax);
+    trackDecay->GetYaxis()->SetTitle("Entries");
     fHairyPlotter->FormatHistogram(trackDecay, fStyler);
     fHairyPlotter->DrawLogYAndStore( { trackDecay },
                                     Form("DecTrack_%u", itrDec));
@@ -129,8 +130,9 @@ void EventQA::PlotStatsTrackCleaner(std::vector<const char*> TrackDecay,
                 << Form("DaugthersSharedDaughters_%u", iDecDec)
                 << " missing \n";
     }
-    TString nameAxis = Form("# %s pairs with shared tracks/event", it);
+    TString nameAxis = Form("%s pairs with shared tracks/event", it);
     DecayDecay->GetXaxis()->SetTitle(nameAxis.Data());
+    DecayDecay->GetYaxis()->SetTitle("Entries");
     DecayDecay->GetXaxis()->SetRangeUser(0, xMax);
     fHairyPlotter->FormatHistogram(DecayDecay, fStyler);
     fHairyPlotter->DrawLogYAndStore( { DecayDecay },

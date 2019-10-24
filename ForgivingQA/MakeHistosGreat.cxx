@@ -183,6 +183,8 @@ void MakeHistosGreat::DrawAndStore(std::vector<TH2*> hist, const char* outname,
   if (fTightMargin) {
     c1->SetTopMargin(0.02);
     c1->SetRightMargin(0.01);
+  } else {
+    c1->SetRightMargin(0.14);
   }
   c1->cd();
   TString DrawOpt = Form("%s", drawOption);
@@ -219,6 +221,8 @@ void MakeHistosGreat::DrawLogZAndStore(std::vector<TH2*> hist,
   if (fTightMargin) {
     c1->SetTopMargin(0.02);
     c1->SetRightMargin(0.01);
+  } else {
+    c1->SetRightMargin(0.14);
   }
   c1->cd();
   c1->SetLogz();
@@ -294,26 +298,43 @@ void MakeHistosGreat::SetStyle(bool title) {
 
 void MakeHistosGreat::DrawLatexLabel(float pTMin, float pTMax,
                                      ForgivingFitter* fit, TPad* pad,
-                                     const char* part, float xPos, float yPos) {
-  float signal = (float) fit->GetSignalCounts();
-  float background = (float) fit->GetBackgroundCounts();
-  float meanMass = fit->GetMeanMass();
-  float meanWidthActual = fit->GetMeanWidth();
+                                     const char* part, float xPos, float yPos, float offset) {
+  const int signal = fit->GetSignalCounts();
+  const float purity = fit->GetPurity();
+  const float meanMass = fit->GetMeanMass();
+  const float meanWidthActual = fit->GetMeanWidth();
   pad->cd();
   TLatex Label;
   Label.SetNDC(kTRUE);
-  Label.SetTextSize(gStyle->GetTextSize() * 1.25);
+  Label.SetTextSize(gStyle->GetTextSize() * 1.2);
+  int counter = 0;
+
+  float signalC = signal;
+  int decimal = 0;
+  while ( int(signalC) % 1000 != 0 ) {
+    signalC /= 1000;
+    decimal += 3;
+  }
+  signalC *= 1000;
+  decimal -= 3;
+
+  Label.DrawLatex(gPad->GetUxmax() - xPos,
+                  gPad->GetUymax() - yPos + offset * counter++,
+                  Form("Purity = %.1f %%", purity * 100.f));
   Label.DrawLatex(
       gPad->GetUxmax() - xPos,
-      gPad->GetUymax() - yPos,
-      Form("#splitline{#splitline{#splitline{#splitline"
-           "{%.2f < #it{p}_{T} < %.2f GeV/#it{c}}"
-           "{%s: %.0f}}"
-           "{#LT #it{M} #GT = %.1f MeV/#it{c}^{2}}}"
-           "{#sigma= %.1f MeV/#it{c}^{2}}}"
-           "{Purity = %.1f %%}",
-           pTMin, pTMax, part, signal, meanMass * 1000.f,
-           meanWidthActual * 1000.f, signal / (signal + background) * 100.f));
+      gPad->GetUymax() - yPos + offset * counter++,
+      Form("#sigma_{%s} = %.1f MeV/#it{c}^{2}", part,
+           meanWidthActual * 1000.f));
+  Label.DrawLatex(
+      gPad->GetUxmax() - xPos, gPad->GetUymax() - yPos + offset * counter++,
+      Form("#LT#it{M}_{%s}#GT = %.1f MeV/#it{c}^{2}", part, meanMass * 1000.f));
+  Label.DrawLatex(gPad->GetUxmax() - xPos,
+                  gPad->GetUymax() - yPos + offset * counter++,
+                  Form("%s: %.1f #times 10^{%d}", part, signalC, decimal));
+  Label.DrawLatex(gPad->GetUxmax() - xPos,
+                  gPad->GetUymax() - yPos + offset * counter++,
+                  Form("%.2f < #it{p}_{T} < %.2f GeV/#it{c}", pTMin, pTMax));
 }
 
 void MakeHistosGreat::DrawPerformance(ForgivingFitter* fit, TPad* pad,

@@ -51,7 +51,7 @@ class MakeHistosGreat {
   }
   ;
   void DrawLatexLabel(float pTMin, float pTMax, ForgivingFitter* fit, TPad* pad,
-                      const char* part, float xPos, float yPos);
+                      const char* part, float xPos, float yPos, float offset = 0.07);
   void DrawPerformance(ForgivingFitter* fit, TPad* pad, const char* part,
                        float xPos, float yPos, float pTmin = -1, float pTmax =
                            -1);
