@@ -31,15 +31,19 @@ MakeHistosGreat::~MakeHistosGreat() {
 
 void MakeHistosGreat::FormatHistogram(TH1* hist, unsigned int marker,
                                       unsigned int color, float size) {
-  hist->GetXaxis()->SetLabelSize(0.045);
+  hist->GetXaxis()->SetLabelSize(28);
   hist->GetXaxis()->SetLabelOffset(0.01);
-  hist->GetYaxis()->SetLabelSize(0.045);
+  hist->GetYaxis()->SetLabelSize(28);
   hist->GetYaxis()->SetLabelOffset(0.01);
+  hist->GetXaxis()->SetLabelFont(43);
+  hist->GetXaxis()->SetTitleFont(43);
 
-  hist->GetXaxis()->SetTitleSize(0.05);
-  hist->GetXaxis()->SetTitleOffset(1.2);
-  hist->GetYaxis()->SetTitleSize(0.05);
+  hist->GetXaxis()->SetTitleSize(28);
+  hist->GetXaxis()->SetLabelOffset(0.01);
+  hist->GetYaxis()->SetTitleSize(28);
   hist->GetYaxis()->SetTitleOffset(1.25);
+  hist->GetYaxis()->SetLabelFont(43);
+  hist->GetYaxis()->SetTitleFont(43);
 
   hist->SetMarkerStyle(fMarkers[marker]);
   hist->SetMarkerColor(fColors[color]);
@@ -50,15 +54,20 @@ void MakeHistosGreat::FormatHistogram(TH1* hist, unsigned int marker,
 
 void MakeHistosGreat::FormatSmallHistogram(TH1* hist, unsigned int marker,
                                            unsigned int color, float size) {
-  hist->GetXaxis()->SetLabelSize(0.08);
+  hist->GetXaxis()->SetLabelSize(15);
   hist->GetXaxis()->SetLabelOffset(0.01);
-  hist->GetYaxis()->SetLabelSize(0.08);
-  hist->GetYaxis()->SetLabelOffset(0.01);
+  hist->GetXaxis()->SetTitleSize(15);
+  hist->GetXaxis()->SetTitleOffset(2.2);
+  hist->GetXaxis()->SetLabelFont(43);
+  hist->GetXaxis()->SetTitleFont(43);
 
-  hist->GetXaxis()->SetTitleSize(0.08);
-  hist->GetXaxis()->SetTitleOffset(0.9);
-  hist->GetYaxis()->SetTitleSize(0.08);
+  hist->GetYaxis()->SetMaxDigits(2);
+  hist->GetYaxis()->SetLabelSize(15);
+  hist->GetYaxis()->SetLabelOffset(0.01);
+  hist->GetYaxis()->SetTitleSize(15);
   hist->GetYaxis()->SetTitleOffset(1.0);
+  hist->GetYaxis()->SetLabelFont(43);
+  hist->GetYaxis()->SetTitleFont(43);
 
   hist->SetMarkerStyle(fMarkers[marker]);
   hist->SetMarkerColor(fColors[color]);
@@ -68,19 +77,19 @@ void MakeHistosGreat::FormatSmallHistogram(TH1* hist, unsigned int marker,
 }
 
 void MakeHistosGreat::FormatHistogram(TH2 *histo) {
-  histo->GetXaxis()->SetLabelSize(0.045);
+  histo->GetXaxis()->SetLabelSize(28);
   histo->GetXaxis()->SetLabelOffset(0.01);
-  histo->GetYaxis()->SetLabelSize(0.045);
+  histo->GetYaxis()->SetLabelSize(28);
   histo->GetYaxis()->SetLabelOffset(0.01);
+  histo->GetXaxis()->SetLabelFont(43);
+  histo->GetXaxis()->SetTitleFont(43);
 
-  histo->GetXaxis()->SetTitleSize(0.05);
-  histo->GetXaxis()->SetTitleOffset(1.2);
-  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetTitleSize(28);
+  histo->GetXaxis()->SetLabelOffset(0.01);
+  histo->GetYaxis()->SetTitleSize(28);
   histo->GetYaxis()->SetTitleOffset(1.25);
-
-//  histo->SetMarkerStyle(fMarkers[marker]);
-//  histo->SetMarkerColor(fColors[color]);
-//  histo->SetLineColor(fColors[color]);
+  histo->GetYaxis()->SetLabelFont(43);
+  histo->GetYaxis()->SetTitleFont(43);
 }
 
 void MakeHistosGreat::DrawAndStore(std::vector<TH1*> hist, const char* outname,
@@ -156,6 +165,10 @@ void MakeHistosGreat::DrawAndStore(std::vector<TH2*> hist, const char* outname,
   bool oneTime = false;
   for (auto it : hist) {
     it->Draw(DrawOpt.Data());
+    it->GetZaxis()->SetTitleFont(43);
+    it->GetZaxis()->SetTitleSize(28);
+    it->GetZaxis()->SetLabelFont(43);
+    it->GetZaxis()->SetLabelSize(28);
     if (!oneTime) {
       oneTime = true;
       DrawOpt += "same";
@@ -197,7 +210,7 @@ void MakeHistosGreat::SetStyle(bool title) {
   gStyle->SetOptTitle(title);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetOptStat(0);
-  gStyle->SetCanvasColor(10);
+  gStyle->SetCanvasColor(0);
   gStyle->SetCanvasBorderMode(0);
   gStyle->SetFrameLineWidth(1);
   gStyle->SetFrameFillColor(kWhite);
@@ -206,18 +219,21 @@ void MakeHistosGreat::SetStyle(bool title) {
   gStyle->SetPadTickY(1);
   gStyle->SetPadBottomMargin(0.15);
   gStyle->SetPadLeftMargin(0.15);
+  gStyle->SetPadTopMargin(0.075);
+  gStyle->SetPadRightMargin(0.05);
   gStyle->SetHistLineWidth(1);
   gStyle->SetHistLineColor(kRed);
   gStyle->SetFuncWidth(2);
   gStyle->SetFuncColor(kGreen);
   gStyle->SetLineWidth(2);
-  gStyle->SetLabelSize(0.045, "xyz");
-  gStyle->SetLabelOffset(0.01, "y");
-  gStyle->SetLabelOffset(0.01, "x");
+  gStyle->SetLabelFont(43, "xyz");
+  gStyle->SetTitleFont(43, "xyz");
+  gStyle->SetLabelSize(28, "xyz");
+  gStyle->SetTitleSize(28, "xyz");
+  gStyle->SetLabelOffset(0.01, "xy");
   gStyle->SetLabelColor(kBlack, "xyz");
-  gStyle->SetTitleSize(0.05, "xyz");
   gStyle->SetTitleOffset(1.25, "y");
-  gStyle->SetTitleOffset(1.2, "x");
+  gStyle->SetTitleOffset(1.25, "x");
   gStyle->SetTitleFillColor(kWhite);
   gStyle->SetTextSizePixels(26);
   gStyle->SetTextFont(42);

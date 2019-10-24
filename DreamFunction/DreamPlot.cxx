@@ -392,7 +392,7 @@ void DreamPlot::SetStyle(bool graypalette, bool title) {
     gStyle->SetPalette(8, 0);
   else
     gStyle->SetPalette(1);
-  gStyle->SetCanvasColor(10);
+  gStyle->SetCanvasColor(0);
   gStyle->SetCanvasBorderMode(0);
   gStyle->SetFrameLineWidth(1);
   gStyle->SetFrameFillColor(kWhite);
@@ -401,6 +401,8 @@ void DreamPlot::SetStyle(bool graypalette, bool title) {
   gStyle->SetPadTickY(1);
   gStyle->SetPadBottomMargin(0.15);
   gStyle->SetPadLeftMargin(0.15);
+  gStyle->SetPadTopMargin(0.025);
+  gStyle->SetPadRightMargin(0.05);
   gStyle->SetHistLineWidth(1);
   gStyle->SetHistLineColor(kRed);
   gStyle->SetFuncWidth(2);
@@ -410,11 +412,10 @@ void DreamPlot::SetStyle(bool graypalette, bool title) {
   gStyle->SetTitleFont(43, "xyz");
   gStyle->SetLabelSize(28, "xyz");
   gStyle->SetTitleSize(28, "xyz");
-  gStyle->SetLabelOffset(0.01, "y");
-  gStyle->SetLabelOffset(0.01, "x");
+  gStyle->SetLabelOffset(0.01, "xy");
   gStyle->SetLabelColor(kBlack, "xyz");
   gStyle->SetTitleOffset(1.25, "y");
-  gStyle->SetTitleOffset(1.2, "x");
+  gStyle->SetTitleOffset(1.25, "x");
   gStyle->SetTitleFillColor(kWhite);
   gStyle->SetTextSizePixels(26);
   gStyle->SetTextFont(42);
