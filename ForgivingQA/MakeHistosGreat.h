@@ -7,6 +7,7 @@
 
 #ifndef FORGIVINGQA_MAKEHISTOSGREAT_H_
 #define FORGIVINGQA_MAKEHISTOSGREAT_H_
+#include "TFile.h"
 #include "TH1.h"
 #include "TH2.h"
 #include "TPad.h"
@@ -15,6 +16,7 @@
 class MakeHistosGreat {
  public:
   MakeHistosGreat();
+  MakeHistosGreat(const char* outfile);
   virtual ~MakeHistosGreat();
   void FormatHistogram(TH1* hist, unsigned int marker, unsigned int color,
                        float size = 1);
@@ -47,6 +49,7 @@ class MakeHistosGreat {
   void DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax, int color =  kOrange - 1);
  private:
   bool fTightMargin;
+  TFile *fOutfile;
 };
 
 #endif /* FORGIVINGQA_MAKEHISTOSGREAT_H_ */

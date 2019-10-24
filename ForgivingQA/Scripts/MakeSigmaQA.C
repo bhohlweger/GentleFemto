@@ -11,11 +11,12 @@ int main(int argc, char* argv[]) {
   const char* addon = (argv[3]) ? argv[3] : "";
   MakeHistosGreat::SetStyle(false);
   ForgivingReader* reader = new ForgivingReader(filename, prefix, addon);
-  EventQA* evtQA = new EventQA();
+  TString suffix = TString::Format("%s", addon);
+
+  EventQA* evtQA = new EventQA("Event");
   evtQA->SetLooseMargin();
   evtQA->SetQAList(reader->GetQA());
   evtQA->SetEventCuts(reader->GetEventCuts());
-  TString suffix = TString::Format("%s", addon);
   if (suffix == "0") {
     evtQA->PlotCutCounter();
     evtQA->PlotEventProperties(200);
@@ -28,16 +29,18 @@ int main(int argc, char* argv[]) {
                                      "#bar{p}-#bar{#Lambda}#gamma (down)" },
                                  { }, 6);
   }
+  delete evtQA;
 
-  TrackQA* trkQA = new TrackQA();
+  TrackQA* trkQA = new TrackQA("Proton");
   trkQA->SetTrackCuts(reader->GetTrackCuts());
   trkQA->SetAntiTrackCuts(reader->GetAntiTrackCuts());
   if (suffix == "0") {
     trkQA->PlotKinematic();
     trkQA->PlotPID();
   }
+  delete trkQA;
 
-  DecayQA* v0QA = new DecayQA("#Lambda", "p#pi");
+  DecayQA* v0QA = new DecayQA("#Lambda", "p#pi", "Lambda");
   v0QA->SetCanvasDivisions(5, 2);
   v0QA->SetDecayCuts(reader->Getv0Cuts());
   v0QA->SetIMHistoScale(1.75, 0.8, 0.35);
@@ -48,16 +51,18 @@ int main(int argc, char* argv[]) {
     v0QA->PlotQATopologyLambda();
     v0QA->PlotPIDLambda();
   }
+  delete v0QA;
 
   if (suffix == "0") {
-    DecayQA* gammaQA = new DecayQA("#gamma", "e^{+}e^{-}");
+    DecayQA* gammaQA = new DecayQA("#gamma", "e^{+}e^{-}", "Photon");
     gammaQA->PlotQATopologySigma0Daughter(reader->GetOtherCuts("PhotonCuts"),
                                           "Photon");
     gammaQA->PlotPIDSigma0Daughter(reader->GetOtherCuts("PhotonCuts"),
                                    "Photon");
+    delete gammaQA;
   }
 
-  DecayQA* sigma0QA = new DecayQA("#Sigma^{0}", "#Lambda#gamma");
+  DecayQA* sigma0QA = new DecayQA("#Sigma^{0}", "#Lambda#gamma", "Sigma0");
   sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigma0QA->SetCanvasDivisions(3, 3);
   sigma0QA->SetInvMasspTStartBin(3);
@@ -71,7 +76,7 @@ int main(int argc, char* argv[]) {
   delete sigma0QA;
 
   DecayQA* antiSigma0QA = new DecayQA("#bar{#Sigma^{0}}",
-                                      "#bar{#Lambda}#gamma");
+                                      "#bar{#Lambda}#gamma", "AntiSigma0");
   antiSigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   antiSigma0QA->SetCanvasDivisions(3, 3);
   antiSigma0QA->SetInvMasspTStartBin(3);
@@ -85,7 +90,7 @@ int main(int argc, char* argv[]) {
   delete antiSigma0QA;
 
   DecayQA* sigmaSumQA = new DecayQA("#Sigma^{0} + #bar{#Sigma^{0}}",
-                                    "#Lambda#gamma + #bar{#Lambda}#gamma");
+                                    "#Lambda#gamma + #bar{#Lambda}#gamma", "Sigma0Combined");
   sigmaSumQA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigmaSumQA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   sigmaSumQA->SetCanvasDivisions(3, 3);

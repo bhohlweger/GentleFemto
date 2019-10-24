@@ -20,12 +20,18 @@ std::vector<int> fMarkers = { kFullCircle, kFullSquare, kOpenCircle,
     kOpenStar };
 
 MakeHistosGreat::MakeHistosGreat()
-    : fTightMargin(false) {
-  // TODO Auto-generated constructor stub
+    : fTightMargin(false),
+      fOutfile(nullptr) {
+}
 
+MakeHistosGreat::MakeHistosGreat(const char* outname)
+    : fTightMargin(false),
+      fOutfile(nullptr) {
+  fOutfile = new TFile(Form("%s.root", outname), "RECREATE");
 }
 
 MakeHistosGreat::~MakeHistosGreat() {
+  delete fOutfile;
   // TODO Auto-generated destructor stub
 }
 
@@ -110,6 +116,15 @@ void MakeHistosGreat::DrawAndStore(std::vector<TH1*> hist, const char* outname,
     }
   }
   c1->SaveAs(Form("%s.pdf", outname));
+
+  if(fOutfile) {
+    fOutfile->cd();
+    for (auto it : hist) {
+      it->Write();
+    }
+    c1->Write(outname);
+  }
+
   delete c1;
   return;
 }
@@ -149,6 +164,15 @@ void MakeHistosGreat::DrawLogYAndStore(std::vector<TH1*> hist,
     }
   }
   c1->SaveAs(Form("%s.pdf", outname));
+
+  if(fOutfile) {
+    fOutfile->cd();
+    for (auto it : hist) {
+      it->Write();
+    }
+    c1->Write(outname);
+  }
+
   delete c1;
   return;
 }
@@ -175,6 +199,15 @@ void MakeHistosGreat::DrawAndStore(std::vector<TH2*> hist, const char* outname,
     }
   }
   c1->SaveAs(Form("%s.pdf", outname));
+
+  if(fOutfile) {
+    fOutfile->cd();
+    for (auto it : hist) {
+      it->Write();
+    }
+    c1->Write(outname);
+  }
+
   delete c1;
   return;
 }
@@ -193,12 +226,25 @@ void MakeHistosGreat::DrawLogZAndStore(std::vector<TH2*> hist,
   bool oneTime = false;
   for (auto it : hist) {
     it->Draw(DrawOpt.Data());
+    it->GetZaxis()->SetTitleFont(43);
+    it->GetZaxis()->SetTitleSize(28);
+    it->GetZaxis()->SetLabelFont(43);
+    it->GetZaxis()->SetLabelSize(28);
     if (!oneTime) {
       oneTime = true;
       DrawOpt += "same";
     }
   }
   c1->SaveAs(Form("%s.pdf", outname));
+
+  if(fOutfile) {
+    fOutfile->cd();
+    for (auto it : hist) {
+      it->Write();
+    }
+    c1->Write(outname);
+  }
+
   delete c1;
   return;
 }

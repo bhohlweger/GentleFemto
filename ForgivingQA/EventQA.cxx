@@ -15,11 +15,18 @@ EventQA::EventQA()
       fEventCuts(nullptr),
       fHairyPlotter(new MakeHistosGreat()),
       fNEvts(-1) {
-  // TODO Auto-generated constructor stub
+}
+
+EventQA::EventQA(const char* outname)
+    : fReader(),
+      fQA(nullptr),
+      fEventCuts(nullptr),
+      fHairyPlotter(new MakeHistosGreat(outname)),
+      fNEvts(-1) {
 }
 
 EventQA::~EventQA() {
-  // TODO Auto-generated destructor stub
+  delete fHairyPlotter;
 }
 
 void EventQA::MakeEventQA() {

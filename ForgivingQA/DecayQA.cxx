@@ -26,11 +26,27 @@ DecayQA::DecayQA(const char* partLatex, const char* latexProducts)
       fPurity(nullptr),
       fIntegratedPurities(){
   // TODO Auto-generated constructor stub
+}
 
+DecayQA::DecayQA(const char* partLatex, const char* latexProducts, const char* outname)
+    : fReader(),
+      fHairyPlotter(new MakeHistosGreat(outname)),
+      fFitter(new ForgivingFitter()),
+      fDecayCuts(nullptr),
+      fAntiDecayCuts(nullptr),
+      fDivCanX(0),
+      fDivCanY(0),
+      fInvMassPtStartBin(1),
+      fPartLatex(partLatex),
+      fScaleMax(0),
+      fTexOffX(0),
+      fTexOffY(0),
+      fDecChannel(latexProducts),
+      fPurity(nullptr) {
 }
 
 DecayQA::~DecayQA() {
-  // TODO Auto-generated destructor stub
+  delete fHairyPlotter;
   delete fPurity;
 }
 

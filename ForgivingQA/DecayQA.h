@@ -17,6 +17,7 @@
 class DecayQA {
  public:
   DecayQA(const char* partLatex, const char* latexProducts);
+  DecayQA(const char* partLatex, const char* latexProducts, const char* outname);
   virtual ~DecayQA();
   void SetDecayCuts(TList* DecayCuts) {
     fDecayCuts = DecayCuts;

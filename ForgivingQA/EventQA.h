@@ -15,6 +15,7 @@
 class EventQA {
  public:
   EventQA();
+  EventQA(const char* outname);
   virtual ~EventQA();
   void GetCutStats();
   void SetQAList(TList* QA) {

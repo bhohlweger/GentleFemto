@@ -14,12 +14,18 @@ TrackQA::TrackQA()
       fHairyPlotter(new MakeHistosGreat()),
       fTrackCuts(nullptr),
       fAntiTrackCuts(nullptr) {
-  // TODO Auto-generated constructor stub
-
 }
 
+TrackQA::TrackQA(const char* outname)
+    : fReader(),
+      fHairyPlotter(new MakeHistosGreat(outname)),
+      fTrackCuts(nullptr),
+      fAntiTrackCuts(nullptr) {
+}
+
+
 TrackQA::~TrackQA() {
-  // TODO Auto-generated destructor stub
+  delete fHairyPlotter;
 }
 
 void TrackQA::PlotKinematic() {

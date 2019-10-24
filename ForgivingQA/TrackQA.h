@@ -14,6 +14,7 @@
 class TrackQA {
  public:
   TrackQA();
+  TrackQA(const char* outname);
   virtual ~TrackQA();
   void PlotKinematic();
   void PlotKinematic(TList *cuts, const char* outname);
