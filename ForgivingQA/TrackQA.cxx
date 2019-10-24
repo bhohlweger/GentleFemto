@@ -142,7 +142,7 @@ void TrackQA::PlotPID(TList* cuts, const char* outname) {
   TPCdEdx->GetXaxis()->SetTitle("#it{p}_{TPC} (GeV/#it{c})");
   TPCdEdx->GetYaxis()->SetTitle("#it{n}_{#sigma, TPC}");
   std::vector<TH2*> drawVecTPC = { TPCdEdx };
-  fHairyPlotter->DrawLogZAndStore(drawVecTPC, "nSigTPC", "COLZ");
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_nSigTPC", outname), "COLZ");
 
   auto* TOF = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(cuts, { "after" }), "NSigTOF_after");
@@ -154,5 +154,5 @@ void TrackQA::PlotPID(TList* cuts, const char* outname) {
   TOF->GetXaxis()->SetTitle("#it{p}_{TPC} (GeV/#it{c})");
   TOF->GetYaxis()->SetTitle("#it{n}_{#sigma, TOF}");
   std::vector<TH2*> drawVecTOF = { TOF };
-  fHairyPlotter->DrawLogZAndStore(drawVecTOF, "nSigTOF", "COLZ");
+  fHairyPlotter->DrawLogZAndStore(drawVecTOF, Form("%s_nSigTOF", outname), "COLZ");
 }
