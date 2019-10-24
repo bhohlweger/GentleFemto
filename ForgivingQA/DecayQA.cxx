@@ -159,6 +159,7 @@ void DecayQA::IvariantMassXiLambda() {
   auto cInvLa = new TCanvas("invMassXiLa", "invMassXiLa");
   fFitter->ShittyInvariantMass(invMassLa, cInvLa, 0.2, 6.3, "#Lambda");
   cInvLa->SaveAs("InvariantMassXiLa.pdf");
+  fHairyPlotter->DumpToFile(cInvLa, invMassLa, "InvariantMassXiLa");
 
   auto invMassAntiXiLa = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fAntiDecayCuts, { "Cascade" }), "InvMassv0Pt");
@@ -168,6 +169,7 @@ void DecayQA::IvariantMassXiLambda() {
   auto cInvALa = new TCanvas("invMassAXiALa", "invMassAXiALa");
   fFitter->ShittyInvariantMass(invMassAntiLa, cInvALa, 0.2, 6.3, "#Lambda");
   cInvALa->SaveAs("InvariantMassAXiALa.pdf");
+  fHairyPlotter->DumpToFile(cInvALa, invMassAntiLa, "InvariantMassAXiALa");
 
   auto cInvLapT = new TCanvas("InvMassXiLaPT", "InvMassXiLaPT", 0, 0, 2000,
                               1500);
@@ -194,7 +196,9 @@ void DecayQA::IvariantMassXiLambda() {
         invMassAntiXiLa->GetXaxis()->GetBinUpEdge(iPt + 1), "#Lambda");
   }
   cInvLapT->SaveAs("InvMassXiLaPt.pdf");
+  fHairyPlotter->DumpToFile(cInvLapT, nullptr, "InvMassXiLaPt");
   cInvALapT->SaveAs("InvMassAXiALaPt.pdf");
+  fHairyPlotter->DumpToFile(cInvALapT, nullptr, "InvMassAXiALaPt");
 }
 
 void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
@@ -227,6 +231,7 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0,
                           peakVal * 0.85, fStyler.drawLineColor);
   cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
+  fHairyPlotter->DumpToFile(cMassIntegrated, invMass, Form("InvInt%s", outname));
 
   auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname));
   cMassBins->Divide(fDivCanX, fDivCanY);
@@ -282,6 +287,7 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
   }
   Purity->GetYaxis()->SetRangeUser(0.7, 1.1);
   cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
+  fHairyPlotter->DumpToFile(cMassBins, nullptr, Form("InvMasspT_%s", outname));
   fHairyPlotter->FormatHistogram(Purity, fStyler.drawMarker, fStyler.drawColor, 1.5);
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
@@ -319,6 +325,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
                           peakVal * 0.85, fStyler.drawLineColor);
   fFitter->GetBackgroundFunction()->Draw("same");
   cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
+  fHairyPlotter->DumpToFile(cMassIntegrated, invMass, Form("InvInt%s", outname));
   auto* cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname), 0,
                                 0, 650, 550);
   cMassBins->Divide(fDivCanX, fDivCanY);
@@ -385,6 +392,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
                                    invMasspT->GetXaxis()->GetBinLowEdge(ipT),
                                    invMasspT->GetXaxis()->GetBinUpEdge(ipT));
     cpt->SaveAs(Form("InvInt%s_%i.pdf", outname, iPad));
+    fHairyPlotter->DumpToFile(cpt, invMasspTBin, Form("InvInt%s_%i", outname, iPad));
     delete cpt;
 
     float signal = (float) fFitter->GetSignalCounts();
@@ -397,6 +405,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   Purity->SetTitle(";#it{p}_{T} (GeV/#it{c}); Purity");
   Purity->GetYaxis()->SetRangeUser(0.1, 0.8);
   cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
+  fHairyPlotter->DumpToFile(cMassBins, nullptr, Form("InvMasspT_%s", outname));
   fHairyPlotter->FormatHistogram(Purity, fStyler.drawMarker, fStyler.drawColor, 1.5);
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
@@ -433,6 +442,7 @@ void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname, float Ka
           * 0.8,
       fStyler.drawLineColor);
   canKaon->SaveAs(Form("%sKaon.pdf", outname));
+  fHairyPlotter->DumpToFile(canKaon, invMassKaon, Form("Kaon_%s", outname));
   delete kaonFit;
   delete canKaon;
 }

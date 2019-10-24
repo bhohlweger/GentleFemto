@@ -59,6 +59,8 @@ class MakeHistosGreat {
                        float xPos, float yPos, float pTmin = -1, float pTmax =
                            -1);
   void DrawLine(TPad* pad, float xMin, float xMax, float yMin, float yMax, int color =  kOrange - 1);
+
+  void DumpToFile(TCanvas *c, TH1* hist, const char* name);
  private:
   bool fTightMargin;
   TFile *fOutfile;
@@ -70,6 +72,17 @@ inline void MakeHistosGreat::FormatHistogram(TH1* hist, DrawStyle styler) {
 
 inline void MakeHistosGreat::FormatSmallHistogram(TH1* hist, DrawStyle styler) {
   FormatSmallHistogram(hist, styler.drawMarker, styler.drawColor, styler. drawSize);
+}
+
+inline void MakeHistosGreat::DumpToFile(TCanvas *c, TH1* hist, const char* name) {
+  if (fOutfile) {
+    if (c) {
+      c->Write(name);
+    }
+    if (hist) {
+      hist->Write(name);
+    }
+  }
 }
 
 #endif /* FORGIVINGQA_MAKEHISTOSGREAT_H_ */
