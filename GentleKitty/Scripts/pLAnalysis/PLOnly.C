@@ -456,7 +456,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     } else {
       nRanges = 1;
     } 
-    total = 216*nRanges*nDeltaAng; 
+    total = 216*nRanges*nDeltaAng/3; 
     for (iRange = 0; iRange < nRanges; ++iRange) {
       CATS AB_pL;
       for (vMod_pL = 0; vMod_pL < 2; ++vMod_pL) {
@@ -584,6 +584,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 			  << " is not a viable option \n";
 		return;
 	      }
+	      if (iAngDist == 5 && RangeLambdaMin < 320) { 
+		RangeLambdaMin = 320; //a tempo... permanent change to make it work with DLM Histos... below that range it creates a floating point exception 
+	      }
+	      
 	      std::cout << "Using file: " << PhiFile << " in the range ProtonMin: "
 			<< RangeProtonMin << " to Proton Max: " << RangeProtonMax
 			<< " and in the range LambdaMin: "
@@ -649,7 +653,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 	    FemtoFitMax = FemtoRegion[vFemReg];
 	    BaseLineMin = FemtoRegion[vFemReg];
 	    BaseLineMax = FemtoRegion[vFemReg];
-	    for (vFrac_pL = 0; vFrac_pL < 9; ++vFrac_pL) {
+	    for (vFrac_pL = 0; vFrac_pL < 9; vFrac_pL+=3) {
 	      lmb_pL = lam_pL.at(vFrac_pL); 
 	      lmb_pLS0 = lam_pL_pS0.at(vFrac_pL);
 	      lmb_pLXim = lam_pL_pXm.at(vFrac_pL);
