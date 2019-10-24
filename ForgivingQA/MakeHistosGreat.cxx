@@ -225,8 +225,9 @@ void MakeHistosGreat::SetStyle(bool title) {
   gStyle->SetLegendFillColor(kWhite);
   gStyle->SetLegendFont(42);
   gStyle->SetLegendBorderSize(0);
-  gStyle->SetPalette(kBird);
-//  TGaxis::SetMaxDigits(8);
+  gStyle->SetHatchesLineWidth(1);
+  gStyle->SetHatchesSpacing(0.5);
+  gStyle->SetPalette(kCividis);
 }
 
 void MakeHistosGreat::DrawLatexLabel(float pTMin, float pTMax,

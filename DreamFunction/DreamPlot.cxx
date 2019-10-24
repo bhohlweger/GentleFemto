@@ -425,18 +425,7 @@ void DreamPlot::SetStyle(bool graypalette, bool title) {
   gStyle->SetErrorX(0.005);
   gStyle->SetHatchesLineWidth(1);
   gStyle->SetHatchesSpacing(0.5);
-  const int NRGBs = 6;
-  Double_t stops[NRGBs];
-  for (int i = 0; i < NRGBs; ++i)
-    stops[i] = float(i) / (NRGBs - 1);
-
-  Double_t red[NRGBs] = { 1., 29. / 255., 25. / 255., 27. / 255., 32. / 255.,
-      24. / 255. };
-  Double_t green[NRGBs] = { 1., 221. / 255., 160. / 255., 113. / 255., 74.
-      / 255., 37. / 255. };
-  Double_t blue[NRGBs] = { 1., 221. / 255., 184. / 255., 154. / 255., 129.
-      / 255., 98. / 255. };
-  TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+  gStyle->SetPalette(kCividis);
 }
 
 void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color, float alpha) {
