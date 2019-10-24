@@ -50,7 +50,7 @@ DecayQA::~DecayQA() {
   delete fPurity;
 }
 
-void DecayQA::InvariantMassLambda(float CutMin, float CutMax, bool minBook) {
+void DecayQA::InvariantMassLambda(float CutMin, float CutMax, bool minBook, float KaonCutMin, float KaonCutMax) {
   const char* listName = minBook ? "MinimalBooking" : "v0Cuts";
   auto invMassPart = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fDecayCuts, { listName }), "InvMassPt");
@@ -61,7 +61,7 @@ void DecayQA::InvariantMassLambda(float CutMin, float CutMax, bool minBook) {
         (TH1F*) fReader->Get1DHistInList(fReader->GetListInList(fDecayCuts, {
                                                                     listName }),
                                          "InvMassKaon"),
-        "Lambda");
+        "Lambda", KaonCutMin, KaonCutMax);
   }
 
   auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(
@@ -73,7 +73,7 @@ void DecayQA::InvariantMassLambda(float CutMin, float CutMax, bool minBook) {
         (TH1F*) fReader->Get1DHistInList(
             fReader->GetListInList(fAntiDecayCuts, { listName }),
             "InvMassKaon"),
-        "AntiLambda");
+        "AntiLambda", KaonCutMin, KaonCutMax);
   }
 }
 
@@ -400,7 +400,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
 
-void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname) {
+void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname, float KaonCutMin, float KaonCutMax) {
   invMassKaon->SetName(Form("%s%s", outname, invMassKaon->GetName()));
   invMassKaon->GetXaxis()->SetRangeUser(0.44, 0.56);
   invMassKaon->GetYaxis()->SetRangeUser(0, 1.8 * invMassKaon->GetMaximum());

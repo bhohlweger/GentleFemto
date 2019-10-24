@@ -54,10 +54,10 @@ int main(int argc, char* argv[]) {
   v0QA->SetStyler(styler);
   v0QA->SetCanvasDivisions(4, 2);
   v0QA->SetDecayCuts(reader->Getv0Cuts());
-  v0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   v0QA->SetAntiDecayCuts(reader->GetAntiv0Cuts());
+  v0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   v0QA->SetRangesFitting(1.109, 1.121, 1.09, 1.15);
-  v0QA->InvariantMassLambda(1.112, 1.120, (suffix != "0"));
+  v0QA->InvariantMassLambda(1.112, 1.120, (suffix != "0"), 0.493, 0.504);
   if (suffix == "0") {
     v0QA->PlotQATopologyLambda();
     v0QA->PlotPIDLambda();

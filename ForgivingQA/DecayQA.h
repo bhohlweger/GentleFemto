@@ -27,7 +27,8 @@ class DecayQA {
     fAntiDecayCuts = DecayCuts;
   }
   ;
-  void InvariantMassLambda(float CutMin, float CutMax, bool minBook = false);
+  void InvariantMassLambda(float CutMin, float CutMax, bool minBook = false,
+                           float KaonCutMin = 0.48, float KaonCutMax = 0.515);
   void InvariantMassSigma0(float massCuts, const char* name = "Sigma0",
                            bool isSum = true);
   void SetStyler(DrawStyle styler) { fStyler = styler; }
@@ -38,7 +39,7 @@ class DecayQA {
   void InvariantMassXi(float CutMin, float CutMax);
   void InvariantMassXiMinBooking(float CutMin, float CutMax);
   void IvariantMassXiLambda();
-  void PlotKaonRejection(TH1F* invMassKaon, const char* outname);
+  void PlotKaonRejection(TH1F* invMassKaon, const char* outname, float KaonCutMin, float KaonCutMax);
   void SetCanvasDivisions(unsigned int divX, unsigned int divY) {
     fDivCanX = divX;
     fDivCanY = divY;
