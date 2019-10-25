@@ -4,6 +4,7 @@
 #include "CATSInput.h"
 #include "SideBandFit.h"
 
+#include "TF1.h"
 #include "DLM_CkDecomposition.h"
 
 static double cutOff = 1000;  // at this value the calculation and doing of the cf stops
@@ -14,29 +15,42 @@ TH1F* BaseLine(TH1F* dataCF);
 TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF, unsigned int varSideNorm);
 TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF);
 int main(int argc, char *argv[]) {
+  const char* fileName = argv[1];
+  const char* HistName = argv[2];
+  TFile* inFile = TFile::Open(fileName, "READ");
+  if (!inFile) {
+    Error("Main", "No Input file\n");
+    return -1;
+  }
   LambdaGami* XiGami = new LambdaGami();
   //read histogram
-  TH1F* CFMeasured = nullptr;
-
+  TH1F* CFMeasured = (TH1F*) inFile->FindObjectAny(HistName);
+  if (!CFMeasured) {
+    Error("Main", "No Input Histo found\n");
+    inFile->ls();
+    return -2;
+  }
   //Get rid of the bassline or vaseline
-
+  TH1F* CFBLFree = BaseLine(CFMeasured);
   //Setup the Lambda Parameters
   double lamGenuine = SetupLambdaPars(XiGami, 1., 1., 1.);
   //Get rid of the sidebands
   TH1F* unfoldedSideBand = XimSideband(XiGami, CFMeasured, 1);
   //Unfold for momentum resolution
-  TH1F* unfoldedMomRes;
+  TH1F* unfoldedMomRes = unfoldedSideBand;
   //Get rid of the p-Xim1530 smeared
-  TH1F* unfoldedFeedDown = Xim1530FeedDown(XiGami,unfoldedMomRes);
+  TH1F* unfoldedFeedDown = Xim1530FeedDown(XiGami, unfoldedMomRes);
   //Unfold to the genuine CF
   TH1F* unfoldedGenuine = XiGami->UnfoldGenuine(unfoldedFeedDown, lamGenuine);
   return 0;
 }
 
 TH1F* BaseLine(TH1F* dataCF) {
-  TString bslName = TString::Format("%s_woBL",dataCF->GetName()).Data();
-  TH1F* BaseLineFree = (TH1F*)dataCF->Clone(bslName.Data());
-
+  TString bslName = TString::Format("%s_woBL", dataCF->GetName()).Data();
+  TH1F* BaseLineFree = (TH1F*) dataCF->Clone(bslName.Data());
+  TF1* funct_1 = new TF1("myPol1", "pol1", 0, cutOff);
+  dataCF->Fit(funct_1, "SN", "", 400, 900);
+  BaseLineFree->Divide(funct_1);
   return BaseLineFree;
 }
 
@@ -100,28 +114,37 @@ TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   kMin = dataCF->GetXaxis()->GetXmin();
   if (cutOff > dataCF->GetXaxis()->GetXmax()) {
     nkBin = dataCF->FindBin(cutOff);
+    std::cout << "dataCF->GetBinWidth(1): " << dataCF->GetBinWidth(1)
+              << std::endl;
     kMax = kMin + nkBin * dataCF->GetBinWidth(1);  //assumes a constant binning
   } else {
     kMax = dataCF->GetXaxis()->GetXmax();
     nkBin = dataCF->GetNbinsX();
   }
-
   CATS AB_pXim1530;
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, nkBin, kMin, kMax,
                                  TidyCats::sGaussian);
 
   AB_pXim1530.SetAnaSource(0, 0.92);  //for now 1.2 fm .. ADJUST!
   AB_pXim1530.KillTheCat();
+
   DLM_Ck* ck = new DLM_Ck(AB_pXim1530.GetNumSourcePars(), 0, AB_pXim1530);
   DLM_CkDecomposition dec = DLM_CkDecomposition("dummy", 0, *ck, nullptr);
-  DLM_ResponseMatrix* resp = new DLM_ResponseMatrix(AB_pXim1530, NULL,
+  DLM_ResponseMatrix* resp = new DLM_ResponseMatrix(*ck, NULL,
                                                     CATSinput->GetResFile(3),
                                                     false);
-  DLM_Histo<double>* smeared = new DLM_Histo<double>(*ck);
-  smeared->SetBinContentAll(0);
-  smeared->SetBinErrorAll(0);
-  tidy->Smear(ck, resp, smeared);
-  TH1F* pXim1530Converted = tidy->Convert2LesserOf2Evils(smeared, dataCF);
+//  smeared = nullptr;
+  DLM_Histo<double>*CkSmeared = new DLM_Histo<double>();
+  CkSmeared->SetUp(1);
+  CkSmeared->SetUp(0, ck->GetNbins(0), ck->GetLowEdge(0),
+                   ck->GetUpEdge(0));
+  CkSmeared->Initialize();
+  CkSmeared->SetBinContentAll(0);
+  CkSmeared->SetBinErrorAll(0);
+
+  tidy->Smear(ck, resp, CkSmeared);
+
+  TH1F* pXim1530Converted = tidy->Convert2LesserOf2Evils(CkSmeared, dataCF);
   pXim1530Converted->SetName("pXim1530Converted");
   pXim1530Converted->SetTitle("pXim1530Converted");
 
