@@ -819,3 +819,30 @@ DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName,
   delete InputFile;
   return Result;
 }
+
+void TidyCats::Smear(const DLM_Histo<double>* CkToSmear,
+                     const DLM_ResponseMatrix* SmearMatrix,
+                     DLM_Histo<double>* CkSmeared) {
+  if (!CkSmeared) {
+    //create a histo ...
+
+  }
+  if (!SmearMatrix) {
+    CkSmeared[0] = CkToSmear[0];
+  } else {
+    for (unsigned uBinSmear = 0; uBinSmear < CkToSmear->GetNbins();
+        uBinSmear++) {
+      CkSmeared->SetBinContent(uBinSmear, 0);
+      for (unsigned uBinTrue = 0; uBinTrue < CkToSmear->GetNbins();
+          uBinTrue++) {
+        //as the response matrix is normalized to the size of the bin, during the integration we multiply for it
+        CkSmeared->Add(
+            uBinSmear,
+            SmearMatrix->ResponseMatrix[uBinSmear][uBinTrue]
+                * CkToSmear->GetBinContent(uBinTrue)
+                * CkToSmear->GetBinSize(uBinTrue)
+                * CkSmeared->GetBinSize(uBinSmear));
+      }
+    }
+  }
+}

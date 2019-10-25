@@ -7,6 +7,7 @@
 #include "CATS.h"
 #include "DLM_Potentials.h"
 #include "DLM_Source.h"
+#include "DLM_ResponseMatrix.h"
 #include "TString.h"
 #ifndef GENTLEKITTY_TIDYCATS_H_
 #define GENTLEKITTY_TIDYCATS_H_
@@ -63,7 +64,14 @@ class TidyCats {
                            double kMax, TidyCats::Sources source,
                            TidyCats::pSigma0Pot pot);
   static double ESC16_pXim_EXAMPLE(double* Parameters);
-  DLM_Histo<double>* ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax, bool convertToRad, int Rebin = 1);
+  DLM_Histo<double>* ConvertThetaAngleHisto(const TString& FileName,
+                                            const TString& HistoName,
+                                            const double kMin,
+                                            const double kMax,
+                                            bool convertToRad, int Rebin = 1);
+  void Smear(const DLM_Histo<double>* CkToSmear,
+             const DLM_ResponseMatrix* SmearMatrix,
+             DLM_Histo<double>* CkSmeared);
  private:
   DLM_CleverLevy* fppCleverLevy;
   DLM_CleverMcLevyReso* fppCleverMcLevy;
