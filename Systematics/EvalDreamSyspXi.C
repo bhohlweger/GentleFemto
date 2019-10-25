@@ -8,22 +8,21 @@
 #include "TSystem.h"
 #include "DecayQA.h"
 
-void EvalDreamSystematics(TString InputDir, TString prefix,
+void EvalDreamSystematics(TString InputFile, TString prefix,
                           float upperFitRange) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
-  TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
-  std::cout << filename.Data() << std::endl;
+  std::cout << InputFile.Data() << std::endl;
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
-  CATSinput->SetNormalization(0.240, 0.340);
+  CATSinput->SetNormalization(0.500, 0.700);
   CATSinput->SetFixedkStarMinBin(true, 0.);
   const int rebin = 5;
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
-  DreamFile->SetAnalysisFile(filename.Data(), prefix, "0");
+  DreamFile->SetAnalysisFile(InputFile.Data(), prefix, "0");
 
-  ForgivingReader* ForgivingFileDef = new ForgivingReader(filename.Data(),
+  ForgivingReader* ForgivingFileDef = new ForgivingReader(InputFile.Data(),
                                                           prefix, "0");
   counter->SetNumberOfCandidates(ForgivingFileDef);
   const int nTracks = counter->GetNumberOfTracks();
@@ -46,8 +45,8 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   int outCounter = 1;
   for (int i = 1; i <= 44; ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(6, 6);
-    DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
-    TString VarName = TString::Format("pXiVar%u", i);
+    DreamVarFile->SetAnalysisFile(InputFile.Data(), prefix, Form("%u", i));
+    TString VarName = TString::Format("ppVar%u", outCounter);
     DreamCF* CFpXiVar = CATSinput->ObtainCFSyst(
         rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 4, ""),
         DreamVarFile->GetPairDistributions(1, 5, ""));
@@ -68,7 +67,7 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
     protonXi.SetVarHist(CFpXiVar,
                         TString::Format("Reweighted%sMeV_1", VarName.Data()));
     TString VarString = TString::Format("%u", i);
-    ForgivingReader* ForgivingFile = new ForgivingReader(filename.Data(),
+    ForgivingReader* ForgivingFile = new ForgivingReader(InputFile.Data(),
                                                          prefix,
                                                          VarString.Data());
     DecayQA* cascQA = new DecayQA("#Xi^{-}", "#pi#Lambda");
@@ -97,6 +96,13 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   protonXi.EvalSystematics();
   protonXi.EvalDifferenceInPairs();
   protonXi.EvalDifferenceInParticles();
+
+  protonXi.GetDefault()->SetLineColor(kBlack);
+  protonXi.GetDefault()->SetLineWidth(3);
+  protonXi.GetDefault()->SetMarkerColor(kBlack);
+  protonXi.GetDefault()->SetMarkerStyle(24);
+  protonXi.GetDefault()->SetMarkerSize(1.2);
+
   protonXi.WriteOutput();
   CFpXiDef->WriteOutput(
       TString::Format("%s/CF_pXi_Var0.root", gSystem->pwd()).Data());
