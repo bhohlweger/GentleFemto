@@ -8,32 +8,33 @@ static double cutOff = 1000;  // at this value the calculation and doing of the 
 
 double SetupLambdaPars(LambdaGami* XiGami, double ProVar, double OmegaVar,
                        double Xi1530Var);
-void SetupXimSideband();
-void SetupXim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF);
+TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF);
+TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF);
 int main(int argc, char *argv[]) {
   LambdaGami* XiGami = new LambdaGami();
   //read histogram
+  TH1F* CFMeasured = nullptr;
 
   //Get rid of the bassline or vaseline
 
   //Setup the Lambda Parameters
   double lamGenuine = SetupLambdaPars(XiGami, 1., 1., 1.);
   //Get rid of the sidebands
-  TH1F* unfoldedSideBand = XiGami->UnfoldResidual(nullptr, nullptr, 0);
+  TH1F* unfoldedSideBand = XimSideband(XiGami, CFMeasured);
   //Unfold for momentum resolution
-
+  TH1F* unfoldedMomRes;
   //Get rid of the p-Xim1530 smeared
-  TH1F* unfoldedFeedDown = XiGami->UnfoldResidual(nullptr, nullptr, 0);
+  TH1F* unfoldedFeedDown = Xim1530FeedDown(XiGami,unfoldedMomRes);
   //Unfold to the genuine CF
-  TH1F* unfoldedGenuine = XiGami->UnfoldGenuine(nullptr, lamGenuine);
+  TH1F* unfoldedGenuine = XiGami->UnfoldGenuine(unfoldedFeedDown, lamGenuine);
   return 0;
 }
 
-void SetupXimSideband() {
-  return;
+TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF) {
+  return XiGami->UnfoldResidual(dataCF, nullptr, XiGami->GetLamdaPar(1));
 }
 
-void SetupXim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
+TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
   TString SigmaFileName = "Sample6_MeV_compact.root";
 
@@ -73,6 +74,8 @@ void SetupXim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
 
   delete ck;
   delete resp;
+
+  return XiGami->UnfoldResidual(dataCF, nullptr, XiGami->GetLamdaPar(1));
 }
 
 double SetupLambdaPars(LambdaGami* XiGami, double ProVar, double OmegaVar,
