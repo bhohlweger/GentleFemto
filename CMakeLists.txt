@@ -8,4 +8,5 @@ add_subdirectory(DreamFunction)
 add_subdirectory(GentleKitty)
 add_subdirectory(Systematics)
 add_subdirectory(ForgivingQA )
+add_subdirectory(FemtoGami )
 
