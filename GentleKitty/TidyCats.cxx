@@ -823,11 +823,8 @@ DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName,
 void TidyCats::Smear(const DLM_Histo<double>* CkToSmear,
                      const DLM_ResponseMatrix* SmearMatrix,
                      DLM_Histo<double>* CkSmeared) {
-  if (!CkSmeared) {
-    //create a histo ...
-    CkSmeared = new DLM_Histo<double>(*CkToSmear);
-    CkSmeared->SetBinContentAll(0);
-    CkSmeared->SetBinErrorAll(0);
+  if (!CkToSmear || !SmearMatrix || !CkSmeared) {
+    Error("TidyCats::Smear", "Missing Input Histo");
   }
   if (!SmearMatrix) {
     CkSmeared[0] = CkToSmear[0];
@@ -855,6 +852,7 @@ DLM_Histo<double>* TidyCats::Convert2LargerOf2Evils(TH1F* CkInput) {
   output->SetUp(1);
   output->SetUp(1, nBins, CkInput->GetXaxis()->GetXmin(),
                 CkInput->GetXaxis()->GetXmax());
+  output->Initialize();
   for (int iBims = 1; iBims < nBins + 1; iBims++) {
     if (TMath::Abs(
         output->GetBinCenter(0, iBims) - CkInput->GetBinCenter(iBims - 1))
@@ -874,17 +872,21 @@ TH1F* TidyCats::Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim) {
   if (dim) {
     nBins = dim->GetNbinsX();
     output = new TH1F("TidyCats::RenameMe", "TidyCats::RenameMe", nBins,
-                      dim->GetXaxis()->GetXbins()->GetArray());
+                      dim->GetXaxis()->GetXmin(), dim->GetXaxis()->GetXmax());
   } else {
     nBins = CkInput->GetNbins(0);
     output = new TH1F("TidyCats::RenameMe", "TidyCats::RenameMe", nBins,
-                       CkInput->GetLowEdge(0), CkInput->GetUpEdge(0));
+                      CkInput->GetLowEdge(0), CkInput->GetUpEdge(0));
   }
   for (int iBims = 1; iBims < nBins + 1; iBims++) {
     if (TMath::Abs(
         output->GetBinCenter(iBims) - CkInput->GetBinCenter(0, iBims - 1))
-        < 1e-3) {
+        > 1e-3) {
       Error("TidyCats::Convert2LesserOf2Evils", "Bin Centers differ!");
+      std::cout << "iBin: " << iBims << " output->GetBinCenter(iBims): "
+                << output->GetBinCenter(iBims)
+                << " CkInput->GetBinCenter(0, iBims - 1): "
+                << CkInput->GetBinCenter(0, iBims - 1) << std::endl;
       return nullptr;
     }
     output->SetBinContent(iBims, CkInput->GetBinContent(iBims - 1));
