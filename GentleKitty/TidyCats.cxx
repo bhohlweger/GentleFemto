@@ -665,7 +665,10 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
   switch (pot) {
     case TidyCats::pSigma0Haidenbauer:
       ExternalWF = Init_pSigma0_Haidenbauer(
-          TString::Format("%s/cernbox/SystematicsAndCalib/Sigma0/HaidenbauerWF/", HomeDir.Data()), AB_pSigma0);
+          TString::Format(
+              "%s/cernbox/SystematicsAndCalib/Sigma0/HaidenbauerWF/",
+              HomeDir.Data()),
+          AB_pSigma0);
       for (unsigned uCh = 0; uCh < AB_pSigma0->GetNumChannels(); uCh++) {
         AB_pSigma0->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                             ExternalWF[1][uCh][0]);
@@ -673,8 +676,10 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       CleanUpWfHisto(AB_pSigma0->GetNumChannels(), ExternalWF);
       break;
     case TidyCats::pSigma0ESC16:
-      ExternalWF = Init_pS0_ESC16(TString::Format("%s/cernbox/SystematicsAndCalib/Sigma0/ESC16/", HomeDir.Data()),
-                                  AB_pSigma0);
+      ExternalWF = Init_pS0_ESC16(
+          TString::Format("%s/cernbox/SystematicsAndCalib/Sigma0/ESC16/",
+                          HomeDir.Data()),
+          AB_pSigma0);
       AB_pSigma0->SetExternalWaveFunction(0, 0, ExternalWF[0][0][0],
                                           ExternalWF[1][0][0]);
       AB_pSigma0->SetExternalWaveFunction(1, 0, ExternalWF[0][1][0],
@@ -683,7 +688,8 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       break;
     case TidyCats::pSigma0NSC97f:
       ExternalWF = Init_pSigma0_Haidenbauer(
-          TString::Format("%s/cernbox/SystematicsAndCalib/Sigma0/NSC97f/", HomeDir.Data()),
+          TString::Format("%s/cernbox/SystematicsAndCalib/Sigma0/NSC97f/",
+                          HomeDir.Data()),
           AB_pSigma0);
       for (unsigned uCh = 0; uCh < AB_pSigma0->GetNumChannels(); uCh++) {
         AB_pSigma0->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
@@ -731,69 +737,85 @@ double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {
   return gPot->Eval(Parameters[0]);
 }
 
-DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName, const TString& HistoName, const double kMin, const double kMax, bool convertToRad, int Rebin){
+DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName,
+                                                    const TString& HistoName,
+                                                    const double kMin,
+                                                    const double kMax,
+                                                    bool convertToRad,
+                                                    int Rebin) {
   std::cout << "Angular File Name: " << FileName.Data() << std::endl;
   TFile* InputFile = new TFile(FileName, "read");
   TH2F* InputHisto = NULL;
-  if(InputFile){
-    InputHisto = (TH2F*)InputFile->Get(HistoName);
+  if (InputFile) {
+    InputHisto = (TH2F*) InputFile->Get(HistoName);
   } else {
-    std::cout << "no Input file found under the name " << FileName.Data() << " doei.. \n";  
-    return nullptr; 
+    std::cout << "no Input file found under the name " << FileName.Data()
+              << " doei.. \n";
+    return nullptr;
   }
   if (Rebin > 1) {
-    InputHisto->Rebin2D(Rebin,Rebin); 
-  } 
-  TH1D* Projection=NULL;
-  if(InputHisto){
-    Projection = InputHisto->ProjectionX("ConvertThetaAngleHisto",InputHisto->GetYaxis()->FindBin(kMin),InputHisto->GetYaxis()->FindBin(kMax));
+    InputHisto->Rebin2D(Rebin, Rebin);
+  }
+  TH1D* Projection = NULL;
+  if (InputHisto) {
+    Projection = InputHisto->ProjectionX("ConvertThetaAngleHisto",
+                                         InputHisto->GetYaxis()->FindBin(kMin),
+                                         InputHisto->GetYaxis()->FindBin(kMax));
   } else {
-    std::cout << "No input Histo found for " << HistoName.Data() << " exiting doei ... \n " ;
-    return nullptr; 
+    std::cout << "No input Histo found for " << HistoName.Data()
+              << " exiting doei ... \n ";
+    return nullptr;
   }
 
   const unsigned NumBins = Projection->GetNbinsX();
-  Projection->Scale(1./Projection->Integral(1,NumBins));
+  Projection->Scale(1. / Projection->Integral(1, NumBins));
 
   DLM_Histo<double> CummDistr;
   CummDistr.SetUp(1);
   if (convertToRad) {
-    CummDistr.SetUp(0,NumBins,Projection->GetBinLowEdge(1)*DegToRad,Projection->GetXaxis()->GetBinUpEdge(NumBins)*DegToRad);
+    CummDistr.SetUp(0, NumBins, Projection->GetBinLowEdge(1) * DegToRad,
+                    Projection->GetXaxis()->GetBinUpEdge(NumBins) * DegToRad);
   } else {
-    CummDistr.SetUp(0,NumBins,Projection->GetBinLowEdge(1),Projection->GetXaxis()->GetBinUpEdge(NumBins));
+    CummDistr.SetUp(0, NumBins, Projection->GetBinLowEdge(1),
+                    Projection->GetXaxis()->GetBinUpEdge(NumBins));
   }
   CummDistr.Initialize();
 
-  CummDistr.SetBinContent(unsigned(0),Projection->GetBinContent(1));
-  for(unsigned uBin=1; uBin<NumBins; uBin++){
-    CummDistr.SetBinContent(uBin,CummDistr.GetBinContent(uBin-1)+Projection->GetBinContent(uBin+1));
+  CummDistr.SetBinContent(unsigned(0), Projection->GetBinContent(1));
+  for (unsigned uBin = 1; uBin < NumBins; uBin++) {
+    CummDistr.SetBinContent(
+        uBin,
+        CummDistr.GetBinContent(uBin - 1)
+            + Projection->GetBinContent(uBin + 1));
   }
 
-  double* MomBins = new double [NumBins+1];
+  double* MomBins = new double[NumBins + 1];
   MomBins[0] = 0;
   //MomBins[1] = CummDistr.GetBinContent(unsigned(0));
   //MomBins[NumBins] = 1;
-  int theHappening = 1; //this is done in order to make sure that if two 0 bins follow up on each other shit doesn't go to the toilet. 
-  for(unsigned uBin=1; uBin<=NumBins; uBin++){
-    MomBins[uBin] = (CummDistr.GetBinContent(uBin)+CummDistr.GetBinContent(uBin-1))*0.5;
-    if(MomBins[uBin]<=MomBins[uBin-1]) {
-      MomBins[uBin] = MomBins[uBin-1]+1e-6;
+  int theHappening = 1;  //this is done in order to make sure that if two 0 bins follow up on each other shit doesn't go to the toilet.
+  for (unsigned uBin = 1; uBin <= NumBins; uBin++) {
+    MomBins[uBin] = (CummDistr.GetBinContent(uBin)
+        + CummDistr.GetBinContent(uBin - 1)) * 0.5;
+    if (MomBins[uBin] <= MomBins[uBin - 1]) {
+      MomBins[uBin] = MomBins[uBin - 1] + 1e-6;
     }
     //printf("MomBins[%u] = %e\n",uBin,MomBins[uBin]);
   }
   DLM_Histo<double>* Result = new DLM_Histo<double>();
   Result->SetUp(1);
-  Result->SetUp(0,NumBins,MomBins);
+  Result->SetUp(0, NumBins, MomBins);
   Result->Initialize();
 
-  for(unsigned uBin=0; uBin<NumBins; uBin++){
-    if(!Projection) break;
-    Result->SetBinCenter(0,uBin,CummDistr.GetBinContent(uBin));//cum. value
-    Result->SetBinContent(uBin,CummDistr.GetBinCenter(0,uBin));//momentum value
+  for (unsigned uBin = 0; uBin < NumBins; uBin++) {
+    if (!Projection)
+      break;
+    Result->SetBinCenter(0, uBin, CummDistr.GetBinContent(uBin));  //cum. value
+    Result->SetBinContent(uBin, CummDistr.GetBinCenter(0, uBin));  //momentum value
     //printf("%u: x=%.4f; y=%.4f;\n",uBin,CummDistr.GetBinContent(uBin),CummDistr.GetBinCenter(0,uBin));
   }
 
-  delete [] MomBins;
+  delete[] MomBins;
   delete InputFile;
   return Result;
 }
