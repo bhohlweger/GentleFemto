@@ -825,7 +825,9 @@ void TidyCats::Smear(const DLM_Histo<double>* CkToSmear,
                      DLM_Histo<double>* CkSmeared) {
   if (!CkSmeared) {
     //create a histo ...
-    CkSmeared = new DLM_Histo<double>(*CkSmeared);
+    CkSmeared = new DLM_Histo<double>(*CkToSmear);
+    CkSmeared->SetBinContentAll(0);
+    CkSmeared->SetBinErrorAll(0);
   }
   if (!SmearMatrix) {
     CkSmeared[0] = CkToSmear[0];
@@ -847,6 +849,25 @@ void TidyCats::Smear(const DLM_Histo<double>* CkToSmear,
   }
 }
 
+DLM_Histo<double>* TidyCats::Convert2LargerOf2Evils(TH1F* CkInput) {
+  DLM_Histo<double>* output = new DLM_Histo<double>();
+  int nBins = CkInput->GetXaxis()->GetNbins();
+  output->SetUp(1);
+  output->SetUp(1, nBins, CkInput->GetXaxis()->GetXmin(),
+                CkInput->GetXaxis()->GetXmax());
+  for (int iBims = 1; iBims < nBins + 1; iBims++) {
+    if (TMath::Abs(
+        output->GetBinCenter(0, iBims) - CkInput->GetBinCenter(iBims - 1))
+        < 1e-3) {
+      Error("TidyCats::Convert2LargerOf2Evils", "Bin Centers differ!");
+      return nullptr;
+    }
+    output->SetBinContent(iBims, CkInput->GetBinContent(iBims - 1));
+    output->SetBinError(iBims, CkInput->GetBinError(iBims - 1));
+  }
+  return output;
+}
+
 TH1F* TidyCats::Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim) {
   TH1F* output = nullptr;
   int nBins;
@@ -855,17 +876,19 @@ TH1F* TidyCats::Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim) {
     output = new TH1F("TidyCats::RenameMe", "TidyCats::RenameMe", nBins,
                       dim->GetXaxis()->GetXbins()->GetArray());
   } else {
-    Error("TidyCats::Convert2LesserOf2Evils",
-          "Cannot convert Histogram without Dimensions");
+    nBins = CkInput->GetNbins(0);
+    output = new TH1F("TidyCats::RenameMe", "TidyCats::RenameMe", nBins,
+                       CkInput->GetLowEdge(0), CkInput->GetUpEdge(0));
   }
   for (int iBims = 1; iBims < nBins + 1; iBims++) {
     if (TMath::Abs(
         output->GetBinCenter(iBims) - CkInput->GetBinCenter(0, iBims - 1))
         < 1e-3) {
-      Error("TidyCats::Convert2LesserOf2Evils","Bin Centers differ!");
+      Error("TidyCats::Convert2LesserOf2Evils", "Bin Centers differ!");
       return nullptr;
     }
     output->SetBinContent(iBims, CkInput->GetBinContent(iBims - 1));
+    output->SetBinError(iBims, CkInput->GetBinError(iBims - 1));
   }
   return output;
 }
