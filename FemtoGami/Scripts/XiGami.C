@@ -2,13 +2,16 @@
 #include "CATSLambdaParam.h"
 #include "TidyCats.h"
 #include "CATSInput.h"
+#include "SideBandFit.h"
+
 #include "DLM_CkDecomposition.h"
 
 static double cutOff = 1000;  // at this value the calculation and doing of the cf stops
 
 double SetupLambdaPars(LambdaGami* XiGami, double ProVar, double OmegaVar,
                        double Xi1530Var);
-TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF);
+TH1F* BaseLine(TH1F* dataCF);
+TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF, unsigned int varSideNorm);
 TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF);
 int main(int argc, char *argv[]) {
   LambdaGami* XiGami = new LambdaGami();
@@ -20,7 +23,7 @@ int main(int argc, char *argv[]) {
   //Setup the Lambda Parameters
   double lamGenuine = SetupLambdaPars(XiGami, 1., 1., 1.);
   //Get rid of the sidebands
-  TH1F* unfoldedSideBand = XimSideband(XiGami, CFMeasured);
+  TH1F* unfoldedSideBand = XimSideband(XiGami, CFMeasured, 1);
   //Unfold for momentum resolution
   TH1F* unfoldedMomRes;
   //Get rid of the p-Xim1530 smeared
@@ -30,8 +33,53 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF) {
-  return XiGami->UnfoldResidual(dataCF, nullptr, XiGami->GetLamdaPar(0));
+TH1F* BaseLine(TH1F* dataCF) {
+  TString bslName = TString::Format("%s_woBL",dataCF->GetName()).Data();
+  TH1F* BaseLineFree = (TH1F*)dataCF->Clone(bslName.Data());
+
+  return BaseLineFree;
+}
+
+TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF, unsigned int varSideNorm) {
+  double normvarCont[3][2];
+  normvarCont[0][0] = 450;
+  normvarCont[0][1] = 650;
+  normvarCont[1][0] = 400;
+  normvarCont[1][1] = 600;
+  normvarCont[2][0] = 500;
+  normvarCont[2][1] = 700;
+
+  SideBandFit* side = new SideBandFit();
+  side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/latestSystematic", "HM",
+                        "103", "104");
+  side->SetNormalizationRange(normvarCont[varSideNorm][0],
+                              normvarCont[varSideNorm][1]);
+  side->SideBandCFs(false);
+  TH1F* fitme = side->GetSideBands(5);
+  double SideBandPars[4];
+  side->FitSideBands(fitme, SideBandPars);
+
+  unsigned int nkBin = 0;
+  double kMin, kMax;
+  kMin = dataCF->GetXaxis()->GetXmin();
+  if (cutOff > dataCF->GetXaxis()->GetXmax()) {
+    nkBin = dataCF->FindBin(cutOff);
+    kMax = kMin + nkBin * dataCF->GetBinWidth(1);  //assumes a constant binning
+  } else {
+    kMax = dataCF->GetXaxis()->GetXmax();
+    nkBin = dataCF->GetNbinsX();
+  }
+  TString histName = TString::Format("%sSideBand", dataCF->GetName());
+  TH1F* sideBand = new TH1F(histName.Data(), histName.Data(), nkBin, kMin,
+                            kMax);
+  double* mom = new double(0);
+  for (int iBims = 1; iBims < nkBin + 1; ++iBims) {
+    *mom = sideBand->GetBinCenter(iBims);
+    sideBand->SetBinContent(
+        iBims, SideBandFit::ParameterizationROOT(mom, SideBandPars));
+  }
+  delete mom;
+  return XiGami->UnfoldResidual(dataCF, sideBand, XiGami->GetLamdaPar(0));
 }
 
 TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
@@ -70,6 +118,8 @@ TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
                                                     CATSinput->GetResFile(3),
                                                     false);
   DLM_Histo<double>* smeared = new DLM_Histo<double>(*ck);
+  smeared->SetBinContentAll(0);
+  smeared->SetBinErrorAll(0);
   tidy->Smear(ck, resp, smeared);
   TH1F* pXim1530Converted = tidy->Convert2LesserOf2Evils(smeared, dataCF);
   pXim1530Converted->SetName("pXim1530Converted");
