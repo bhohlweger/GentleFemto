@@ -19,11 +19,11 @@ int main(int argc, char *argv[]) {
   //Setup the Lambda Parameters
   double lamGenuine = SetupLambdaPars(XiGami, 1., 1., 1.);
   //Get rid of the sidebands
-  TH1F* unfoldedSideBand = XiGami->UnfoldResidual(nullptr, nullptr ,0);
+  TH1F* unfoldedSideBand = XiGami->UnfoldResidual(nullptr, nullptr, 0);
   //Unfold for momentum resolution
 
   //Get rid of the p-Xim1530 smeared
-  TH1F* unfoldedSideBand = XiGami->UnfoldResidual(nullptr, nullptr ,0);
+  TH1F* unfoldedFeedDown = XiGami->UnfoldResidual(nullptr, nullptr, 0);
   //Unfold to the genuine CF
   TH1F* unfoldedGenuine = XiGami->UnfoldGenuine(nullptr, lamGenuine);
   return 0;
@@ -64,11 +64,12 @@ void SetupXim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   AB_pXim1530.SetAnaSource(0, 0.92);  //for now 1.2 fm .. ADJUST!
   AB_pXim1530.KillTheCat();
   DLM_Ck* ck = new DLM_Ck(AB_pXim1530.GetNumSourcePars(), 0, AB_pXim1530);
-  DLM_CkDecomposition dec;
+  DLM_CkDecomposition dec = DLM_CkDecomposition("dummy", 0, *ck, nullptr);
   DLM_ResponseMatrix* resp = new DLM_ResponseMatrix(AB_pXim1530, NULL,
-                                               CATSinput->GetResFile(3), false);
-  DLM_Histo<double>* smeared = new DLM_Histo<double> (ck);
-  dec.Smear(ck,resp, smeared);
+                                                    CATSinput->GetResFile(3),
+                                                    false);
+  DLM_Histo<double>* smeared = new DLM_Histo<double>(*ck);
+  tidy->Smear(ck, resp, smeared);
 
   delete ck;
   delete resp;
