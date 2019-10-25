@@ -1,5 +1,5 @@
-#include "GetCorrelationsNano.C"
-#include "GetCorrelationsBbarB.C"
+#include "GetCorrelations.C"
+//#include "GetCorrelationsNano.C"
 #include "METoSEReweighting.C"
 #include "TSystem.h"
 int main(int argc, char* argv[]) {
