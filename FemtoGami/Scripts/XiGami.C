@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 }
 
 TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF) {
-  return XiGami->UnfoldResidual(dataCF, nullptr, XiGami->GetLamdaPar(1));
+  return XiGami->UnfoldResidual(dataCF, nullptr, XiGami->GetLamdaPar(0));
 }
 
 TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
@@ -71,11 +71,14 @@ TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
                                                     false);
   DLM_Histo<double>* smeared = new DLM_Histo<double>(*ck);
   tidy->Smear(ck, resp, smeared);
+  TH1F* pXim1530Converted = tidy->Convert2LesserOf2Evils(smeared, dataCF);
+  pXim1530Converted->SetName("pXim1530Converted");
+  pXim1530Converted->SetTitle("pXim1530Converted");
 
   delete ck;
   delete resp;
-
-  return XiGami->UnfoldResidual(dataCF, nullptr, XiGami->GetLamdaPar(1));
+  return XiGami->UnfoldResidual(dataCF, pXim1530Converted,
+                                XiGami->GetLamdaPar(1));
 }
 
 double SetupLambdaPars(LambdaGami* XiGami, double ProVar, double OmegaVar,
