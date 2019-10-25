@@ -261,10 +261,9 @@ void MakeHistosGreat::SetStyle(bool title) {
   gStyle->SetTitleBorderSize(0);
   gStyle->SetOptStat(0);
   gStyle->SetCanvasColor(0);
+  gStyle->SetPadColor(0);
   gStyle->SetCanvasBorderMode(0);
   gStyle->SetFrameLineWidth(1);
-  gStyle->SetFrameFillColor(kWhite);
-  gStyle->SetPadColor(10);
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetPadBottomMargin(0.15);
@@ -284,11 +283,9 @@ void MakeHistosGreat::SetStyle(bool title) {
   gStyle->SetLabelColor(kBlack, "xyz");
   gStyle->SetTitleOffset(1.25, "y");
   gStyle->SetTitleOffset(1.25, "x");
-  gStyle->SetTitleFillColor(kWhite);
   gStyle->SetTextSizePixels(26);
   gStyle->SetTextFont(42);
   gStyle->SetLegendBorderSize(0);
-  gStyle->SetLegendFillColor(kWhite);
   gStyle->SetLegendFont(42);
   gStyle->SetLegendBorderSize(0);
   gStyle->SetHatchesLineWidth(1);
