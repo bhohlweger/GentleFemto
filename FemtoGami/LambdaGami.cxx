@@ -34,7 +34,7 @@ TH1F* LambdaGami::UnfoldResidual(TH1F* cf, TH1F* res, double lamRes) {
     double content = cf->GetBinContent(iBin);
     double residual = res->GetBinContent(iBin) - 1;
     residual /= lamRes;
-    outHist->SetBinContent(iBin, content - res);
+    outHist->SetBinContent(iBin, content - residual);
   }
   return outHist;
 }
