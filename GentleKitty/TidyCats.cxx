@@ -846,3 +846,26 @@ void TidyCats::Smear(const DLM_Histo<double>* CkToSmear,
     }
   }
 }
+
+TH1F* TidyCats::Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim) {
+  TH1F* output = nullptr;
+  int nBins;
+  if (dim) {
+    nBins = dim->GetNbinsX();
+    output = new TH1F("TidyCats::RenameMe", "TidyCats::RenameMe", nBins,
+                      dim->GetXaxis()->GetXbins()->GetArray());
+  } else {
+    Error("TidyCats::Convert2LesserOf2Evils",
+          "Cannot convert Histogram without Dimensions");
+  }
+  for (int iBims = 1; iBims < nBins + 1; iBims++) {
+    if (TMath::Abs(
+        output->GetBinCenter(iBims) - CkInput->GetBinCenter(0, iBims - 1))
+        < 1e-3) {
+      Error("TidyCats::Convert2LesserOf2Evils","Bin Centers differ!");
+      return nullptr;
+    }
+    output->SetBinContent(iBims, CkInput->GetBinContent(iBims - 1));
+  }
+  return output;
+}

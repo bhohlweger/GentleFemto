@@ -72,6 +72,7 @@ class TidyCats {
   void Smear(const DLM_Histo<double>* CkToSmear,
              const DLM_ResponseMatrix* SmearMatrix,
              DLM_Histo<double>* CkSmeared);
+  TH1F* Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim);
  private:
   DLM_CleverLevy* fppCleverLevy;
   DLM_CleverMcLevyReso* fppCleverMcLevy;
