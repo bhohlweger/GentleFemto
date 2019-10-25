@@ -2,6 +2,7 @@
 #include "ReadDreamFile.h"
 #include "TCanvas.h"
 #include "TLegend.h"
+#include "TSystem.h"
 #include <iostream>
 
 void GetCorrelations(const float fixShift, const char* filename,
@@ -93,7 +94,7 @@ void GetCorrelations(const float fixShift, const char* filename,
   std::cout << "==Rebinning & Weighting==" << std::endl;
   std::cout << "=========================" << std::endl;
 
-  std::vector<int> rebinVec = { { 3 } };
+  std::vector<int> rebinVec = { {  5, 25 } };
   for (size_t iReb = 0; iReb < rebinVec.size(); ++iReb) {
     std::cout << "==Rebinning==" << std::endl;
     pL->Rebin(pL->GetPairFixShifted(0), rebinVec[iReb]);
@@ -135,22 +136,21 @@ void GetCorrelations(const float fixShift, const char* filename,
   std::cout << "=========CFs=============" << std::endl;
   std::cout << "=========================" << std::endl;
 
-  TString foldername = filename;
-  foldername.ReplaceAll("AnalysisResults.root", "");
-
+  TString foldername = gSystem->pwd();
+  std::cout << foldername.Data() << std::endl;
   CF_pp->SetPairs(pp, ApAp);
   CF_pp->GetCorrelations();
-  CF_pp->WriteOutput(Form("%sCFOutput_pp.root", foldername.Data()));
+  CF_pp->WriteOutput(Form("%s/CFOutput_pp.root", foldername.Data()));
 
   CF_pL->SetPairs(pL, ApAL);
   CF_pL->GetCorrelations();
-  CF_pL->WriteOutput(Form("%sCFOutput_pL.root", foldername.Data()));
+  CF_pL->WriteOutput(Form("%s/CFOutput_pL.root", foldername.Data()));
 
   CF_LL->SetPairs(LL, ALAL);
   CF_LL->GetCorrelations();
-  CF_LL->WriteOutput(Form("%sCFOutput_LL.root", foldername.Data()));
+  CF_LL->WriteOutput(Form("%s/CFOutput_LL.root", foldername.Data()));
 
   CF_pXi->SetPairs(pXi, ApAXi);
   CF_pXi->GetCorrelations();
-  CF_pXi->WriteOutput(Form("%sCFOutput_pXi.root", foldername.Data()));
+  CF_pXi->WriteOutput(Form("%s/CFOutput_pXi.root", foldername.Data()));
 }
