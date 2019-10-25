@@ -825,7 +825,7 @@ void TidyCats::Smear(const DLM_Histo<double>* CkToSmear,
                      DLM_Histo<double>* CkSmeared) {
   if (!CkSmeared) {
     //create a histo ...
-
+    CkSmeared = new DLM_Histo<double>(*CkSmeared);
   }
   if (!SmearMatrix) {
     CkSmeared[0] = CkToSmear[0];
