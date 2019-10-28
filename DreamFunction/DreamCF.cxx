@@ -73,6 +73,8 @@ void DreamCF::GetCorrelations(const char* pairName) {
                        Form("hCk_Rebinned%s", pairName));
       LoopCorrelations(fPairOne->GetReweighted(), fPairTwo->GetReweighted(),
                        Form("hCk_Reweighted%s", pairName));
+      LoopCorrelations(fPairOne->GetUnfolded(), fPairTwo->GetUnfolded(),
+                       Form("hCk_Unfolded%s", pairName));
     } else {
       Warning("DreamCF", "Pair 1 with %i histograms, Pair 2 with %i histograms",
               fPairOne->GetNDists(), fPairTwo->GetNDists());
@@ -85,6 +87,7 @@ void DreamCF::GetCorrelations(const char* pairName) {
     LoopCorrelations(fPairOne->GetRebinned(), Form("hCk_Rebinned%s", pairName));
     LoopCorrelations(fPairOne->GetReweighted(),
                      Form("hCk_Reweighted%s", pairName));
+    LoopCorrelations(fPairOne->GetUnfolded(), Form("hCk_Unfolded%s", pairName));
   } else if (fPairTwo && !fPairOne) {
     LoopCorrelations(fPairTwo->GetShiftedEmpty(),
                      Form("hCk_Shifted%s", pairName));
@@ -93,6 +96,7 @@ void DreamCF::GetCorrelations(const char* pairName) {
     LoopCorrelations(fPairTwo->GetRebinned(), Form("hCk_Rebinned%s", pairName));
     LoopCorrelations(fPairTwo->GetReweighted(),
                      Form("hCk_Reweighted%s", pairName));
+    LoopCorrelations(fPairTwo->GetUnfolded(), Form("hCk_Unfolded%s", pairName));
   } else {
     Error("DreamCF", "Pair 1 and Pair 2 missing");
   }
