@@ -14,6 +14,7 @@ DreamPair::DreamPair(const char* name, float normleft, float normright)
       fPairShifted(),
       fPairRebinned(),
       fPairReweighted(),
+      fPairUnfolded(),
       fFirstBin(-99),
       fNormLeft(normleft),
       fNormRight(normright),
@@ -36,11 +37,15 @@ DreamPair::~DreamPair() {
   for (auto it : fPairReweighted) {
     delete it;
   }
+  for (auto it : fPairUnfolded) {
+    delete it;
+  }
 }
 
 int DreamPair::GetNDists() {
   //1 for the fPair itself
-  return 1 + fPairShifted.size() + fPairRebinned.size() + fPairReweighted.size();
+  return 1 + fPairShifted.size() + fPairRebinned.size() + fPairReweighted.size()
+      + fPairUnfolded.size();
 }
 
 void DreamPair::ShiftForEmpty(DreamDist* pair) {
@@ -364,6 +369,21 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax, Dr
   return;
 }
 
+
+void DreamPair::UnfoldMomentum(DreamDist* pair, MomentumGami *mom) {
+  DreamDist* Unfolded = new DreamDist(pair, "_Unfolded");
+  TH1F* SEUnfolded = Unfolded->GetSEDist();
+  TH1F* MEUnfolded = Unfolded->GetMEDist();
+  mom->Unfold(pair->GetSEDist(),SEUnfolded);
+  mom->Unfold(pair->GetMEDist(),MEUnfolded);
+  //clear mult. dists since these are meaningless!
+  Unfolded->GetSEMultDist()->Reset();
+  Unfolded->GetMEMultDist()->Reset();
+  Unfolded->Calculate_CF(fNormLeft, fNormRight);
+  fPairUnfolded.push_back(Unfolded);
+  return;
+}
+
 void DreamPair::WriteOutput(TList *Outlist) {
   TList *PairList = new TList();
   PairList->SetName("Pair");
@@ -390,6 +410,11 @@ void DreamPair::WriteOutput(TList *Outlist) {
   PairReweightedList->SetOwner();
   Outlist->Add(PairReweightedList);
 
+  TList *PairUnfoldedList = new TList();
+  PairUnfoldedList->SetName("PairUnfolded");
+  PairUnfoldedList->SetOwner();
+  Outlist->Add(PairUnfoldedList);
+
   fPair->WriteOutput(PairList);
   for (auto& it : fPairShifted)
     it->WriteOutput(PairShiftedList);
@@ -399,4 +424,6 @@ void DreamPair::WriteOutput(TList *Outlist) {
     it->WriteOutput(PairRebinnedList);
   for (auto& it : fPairReweighted)
     it->WriteOutput(PairReweightedList);
+  for (auto& it : fPairUnfolded)
+    it->WriteOutput(PairUnfoldedList);
 }

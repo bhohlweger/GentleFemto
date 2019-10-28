@@ -9,6 +9,7 @@
 #define DREAMFUNCTION_DREAMPAIR_H_
 #include <vector>
 #include "TFile.h"
+#include "MomentumGami.h"
 #include "DreamDist.h"
 class DreamPair {
  public:
@@ -58,6 +59,14 @@ class DreamPair {
     return fPairReweighted;
   }
   ;
+  DreamDist* GetPairUnfolded(unsigned int iIter) {
+    return iIter < fPairUnfolded.size() ? fPairUnfolded.at(iIter) : nullptr;
+  }
+  ;
+  std::vector<DreamDist*> GetUnfolded() {
+    return fPairUnfolded;
+  }
+  ;
   const char* GetName() {
     return fName;
   }
@@ -74,6 +83,7 @@ class DreamPair {
                 float kMin1, float kMin2);
   void Rebin(DreamDist* pair, int rebin, bool seMean = false);
   void ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax, DreamDist* pairNotRebinned = nullptr);
+  void UnfoldMomentum(DreamDist* pairUnfolded, MomentumGami *mom);
   void WriteOutput(TList *Outlist);
  private:
   DreamDist* fPair;
@@ -81,6 +91,7 @@ class DreamPair {
   std::vector<DreamDist*> fPairFixShifted;
   std::vector<DreamDist*> fPairRebinned;
   std::vector<DreamDist*> fPairReweighted;
+  std::vector<DreamDist*> fPairUnfolded;
   float fFirstBin;
   float fNormLeft;
   float fNormRight;
