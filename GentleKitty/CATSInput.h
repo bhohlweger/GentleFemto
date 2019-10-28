@@ -10,6 +10,7 @@
 #include "TString.h"
 #include "TH2F.h"
 #include "ReadDreamFile.h"
+#include "MomentumGami.h"
 #include <vector>
 class CATSInput {
  public:
@@ -67,6 +68,9 @@ DreamCF* ObtainCFSystBBar(int rebin, const char* name, DreamDist* pApDist,
     fFixBinningExternal = doIt;
     fFixkMin = kMin;
   }
+  void SetMomentumGami(MomentumGami* gami) {
+    fMomGami = gami;
+  }
  protected:
   ReadDreamFile* fDreamFile;
   float fnormalizationLeft;
@@ -74,6 +78,7 @@ DreamCF* ObtainCFSystBBar(int rebin, const char* name, DreamDist* pApDist,
   DreamCF* fCF_pp;
   DreamCF* fCF_pAp;
  private:
+  MomentumGami* fMomGami;
   bool fFixBinningExternal;
   float fFixkMin;
   TString fNameBasedir;
