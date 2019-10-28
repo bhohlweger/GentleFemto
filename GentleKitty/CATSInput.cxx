@@ -13,7 +13,13 @@
 #include "TF1.h"
 
 CATSInput::CATSInput()
-    : fFixBinningExternal(false),
+    : fDreamFile(nullptr),
+      fnormalizationLeft(-100),
+      fnormalizationRight(-100),
+      fCF_pp(nullptr),
+      fCF_pAp(nullptr),
+      fMomGami(nullptr),
+      fFixBinningExternal(false),
       fFixkMin(0.),
       fNameBasedir(),
       fNameMomResFile(),
@@ -24,14 +30,9 @@ CATSInput::CATSInput()
       fUnitConv_Sig(0),
       fRes(),
       fSigma(),
-      fDreamFile(nullptr),
-      fCF_pp(nullptr),
-      fCF_pAp(nullptr),
       fCF_pL(nullptr),
       fCF_LL(nullptr),
-      fCF_pXi(nullptr),
-      fnormalizationLeft(-100),
-      fnormalizationRight(-100) {
+      fCF_pXi(nullptr) {
   // TODO Auto-generated constructor stub
   TH1::AddDirectory(kFALSE);
   TH2::AddDirectory(kFALSE);
@@ -42,8 +43,8 @@ CATSInput::~CATSInput() {
     delete fDreamFile;
   if (fCF_pp)
     delete fCF_pp;
-    if (fCF_pAp)
-      delete fCF_pAp;
+  if (fCF_pAp)
+    delete fCF_pAp;
   if (fCF_pL)
     delete fCF_pL;
   if (fCF_LL)
@@ -334,10 +335,8 @@ DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
   ApAp->ShiftForEmpty(ApAp->GetPair());
 
   if (fFixBinningExternal) {
-    pp->FixShift(pp->GetPair(), ApAp->GetPair(),
-                 fFixkMin, true);
-    ApAp->FixShift(ApAp->GetPair(), pp->GetPair(),
-                   fFixkMin, true);
+    pp->FixShift(pp->GetPair(), ApAp->GetPair(), fFixkMin, true);
+    ApAp->FixShift(ApAp->GetPair(), pp->GetPair(), fFixkMin, true);
   } else {
     pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
                  ApAp->GetFirstBin());
@@ -365,12 +364,12 @@ DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
 }
 
 //For the Baryon-antiBaryon analysis
-DreamCF* CATSInput::ObtainCFSystBBar(int rebin, const char* name, DreamDist* pApDist,
-                                 DreamDist* pApFake) {
+DreamCF* CATSInput::ObtainCFSystBBar(int rebin, const char* name,
+                                     DreamDist* pApDist, DreamDist* pApFake) {
   //normleft & right in MeV!
   DreamCF* outCF = new DreamCF();
   DreamPair* pAp = new DreamPair("PartAntiPart", fnormalizationLeft,
-                                fnormalizationRight);
+                                 fnormalizationRight);
 
   if (fnormalizationLeft == 0 || fnormalizationRight == 0) {
     std::cout << "Normalization is 0! Bad results incoming! \n";
@@ -384,15 +383,13 @@ DreamCF* CATSInput::ObtainCFSystBBar(int rebin, const char* name, DreamDist* pAp
     pAp->GetPair()->SetMEMultDist(pApFake->GetMEMultDist(), "");
   }
 
-
   pAp->ShiftForEmpty(pAp->GetPair());
 
   if (fFixBinningExternal) {
-    pAp->FixShift(pAp->GetPair(), pAp->GetPair(),
-                 fFixkMin, true);
+    pAp->FixShift(pAp->GetPair(), pAp->GetPair(), fFixkMin, true);
   } else {
     pAp->FixShift(pAp->GetPairShiftedEmpty(0), pAp->GetPairShiftedEmpty(0),
-                 pAp->GetFirstBin());
+                  pAp->GetFirstBin());
   }
   pAp->ReweightMixedEvent(pAp->GetPairFixShifted(0), 0.2, 0.9);
 
@@ -406,9 +403,6 @@ DreamCF* CATSInput::ObtainCFSystBBar(int rebin, const char* name, DreamDist* pAp
   return outCF;
 
 }
-
-
-
 
 TH1F* CATSInput::GetCF(TString pair, TString hist) {
   TH1F* output = nullptr;
