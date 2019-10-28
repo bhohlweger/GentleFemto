@@ -9,6 +9,7 @@
 #define FEMTOGAMI_LAMBDAGAMI_H_
 #include <vector>
 #include "TH1F.h"
+#include "TFile.h"
 
 class LambdaGami {
  public:
@@ -22,8 +23,11 @@ class LambdaGami {
   double GetLamdaPar(size_t idx) {
     return idx < fLamPars.size()?fLamPars.at(idx):999;
   }
+  void StoreStatErr(TH1F* cfMeasured);
+  void AddStatErr(TH1F* cfOut);
  private:
   std::vector<double> fLamPars;
+  TH1F* fRelError;
 };
 
 #endif /* FEMTOGAMI_LAMBDAGAMI_H_ */

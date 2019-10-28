@@ -7,10 +7,11 @@
 
 #include "LambdaGami.h"
 #include "TError.h"
+
 #include <iostream>
 
-LambdaGami::LambdaGami() {
-
+LambdaGami::LambdaGami()
+    : fRelError(nullptr) {
 }
 
 LambdaGami::~LambdaGami() {
@@ -18,10 +19,11 @@ LambdaGami::~LambdaGami() {
 
 TH1F* LambdaGami::UnfoldResidual(TH1F* cf, TH1F* res, double lamRes) {
   if (!cf) {
-    Warning("LambdaGami::UnfoldResidual", "No Input hist");
+    Error("LambdaGami::UnfoldResidual", "No Input hist");
     return nullptr;
   }
   const unsigned int nBins = cf->GetNbinsX();
+
   TString outName = TString::Format("%s_ResGami", cf->GetName());
   TH1F* outHist = new TH1F(outName.Data(), outName.Data(), nBins,
                            cf->GetXaxis()->GetXmin(),
@@ -38,7 +40,7 @@ TH1F* LambdaGami::UnfoldResidual(TH1F* cf, TH1F* res, double lamRes) {
     }
     double content = cf->GetBinContent(iBin);
     double residual = res->GetBinContent(iBin) - 1;
-    residual /= lamRes;
+    residual *= lamRes;
     outHist->SetBinContent(iBin, content - residual);
   }
   return outHist;
@@ -61,4 +63,25 @@ TH1F* LambdaGami::UnfoldGenuine(TH1F* cf, double lamGen) {
     outHist->SetBinContent(iBin, content);
   }
   return outHist;
+}
+
+void LambdaGami::StoreStatErr(TH1F* cfMeasured) {
+  TString Name = TString::Format("%sRelErr", cfMeasured->GetName());
+  fRelError = (TH1F*) cfMeasured->Clone(Name.Data());
+  for (int iBin = 1; iBin < fRelError->GetNbinsX() + 1; ++iBin) {
+    fRelError->SetBinContent(
+        iBin, fRelError->GetBinError(iBin) / fRelError->GetBinContent(iBin));
+    fRelError->SetBinError(iBin, 0);
+  }
+}
+
+void LambdaGami::AddStatErr(TH1F* cfMeasured) {
+  if (!fRelError) {
+    Error("LambdaGami::AddStatErr","No rel error stored!\n");
+    return;
+  }
+  for (int iBin = 1; iBin < fRelError->GetNbinsX() + 1; ++iBin) {
+    cfMeasured->SetBinError(
+        iBin, cfMeasured->GetBinContent(iBin) * fRelError->GetBinContent(iBin));
+  }
 }
