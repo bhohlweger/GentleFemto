@@ -352,6 +352,11 @@ DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
     ApAp->Rebin(ApAp->GetPairFixShifted(0), rebin);
     pp->ReweightMixedEvent(pp->GetPairRebinned(0), 0.2, 0.9);
     ApAp->ReweightMixedEvent(ApAp->GetPairRebinned(0), 0.2, 0.9);
+
+    if (fMomGami) {
+      pp->UnfoldMomentum(pp->GetPairReweighted(1), fMomGami);
+      ApAp->UnfoldMomentum(ApAp->GetPairReweighted(1), fMomGami);
+    }
   }
 
   outCF->SetPairs(pp, ApAp);
