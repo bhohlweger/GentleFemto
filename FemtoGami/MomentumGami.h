@@ -7,11 +7,23 @@
 
 #ifndef FEMTOGAMI_MOMENTUMGAMI_H_
 #define FEMTOGAMI_MOMENTUMGAMI_H_
+#include "TH2F.h"
+#include "TH1F.h"
 
 class MomentumGami {
  public:
-  MomentumGami();
+  MomentumGami(float maxkStar);
+  double Eval(double *x, double *p);
   virtual ~MomentumGami();
+  void SetResolution(TH2F* resoMatrix, float UnitConversion = 1);
+  void Unfold(TH1F* InputDist, TH1F* OutputDist);
+  Double_t func(int ii, Double_t *par);
+  void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
+ private:
+  TH2F* fResolution;
+  std::vector<TH1F*> fResProjection;
+  TH1F* fToUnfold;
+  float fMaxkStar;
 };
 
 #endif /* FEMTOGAMI_MOMENTUMGAMI_H_ */
