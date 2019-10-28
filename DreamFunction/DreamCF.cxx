@@ -107,7 +107,8 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
                                std::vector<DreamDist*> PairTwo,
                                const char* name) {
   if (PairOne.size() != PairTwo.size()) {
-    Warning("DreamCF", "Different size of pair (%i) and antiparticle pair (%i)", PairOne.size(), PairTwo.size());
+    Warning("DreamCF", "Different size of pair (%i) and antiparticle pair (%i)",
+            PairOne.size(), PairTwo.size());
   } else {
     unsigned int iIter = 0;
     while (iIter < PairOne.size()) {
@@ -118,7 +119,8 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
                           CFSumName.Data());
       if (CFSum) {
         fCF.push_back(CFSum);
-        auto CFgrSum = AddCF(CFSum, {{fPairOne, fPairTwo}}, Form("Gr%s", CFSumName.Data()));
+        auto CFgrSum = AddCF(CFSum, { { fPairOne, fPairTwo } },
+                             Form("Gr%s", CFSumName.Data()));
         TString CFSumMeVName = Form("%sMeV_%i", name, iIter);
         TH1F* CFMeVSum = ConvertToOtherUnit(CFSum, 1000, CFSumMeVName.Data());
         if (CFMeVSum) {
@@ -170,7 +172,7 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> Pair, const char* name) {
 
 void DreamCF::WriteOutput(const char* name) {
   TFile* output = TFile::Open(name, "RECREATE");
-  WriteOutput(output,true);
+  WriteOutput(output, true);
 }
 
 void DreamCF::WriteOutput(TFile* output, bool closeFile) {
@@ -183,14 +185,14 @@ void DreamCF::WriteOutput(TFile* output, bool closeFile) {
     it->Write();
     delete it;
   }
-  if (fRatio.size()>0) {
+  if (fRatio.size() > 0) {
     TList *RatioList = new TList();
     RatioList->SetOwner();
     RatioList->SetName("Ratios");
     for (auto& it : fRatio) {
       RatioList->Add(it);
     }
-    RatioList->Write("RatioList",1);
+    RatioList->Write("RatioList", 1);
   }
   if (fPairOne) {
     TList *PairDist = new TList();
@@ -210,7 +212,8 @@ void DreamCF::WriteOutput(TFile* output, bool closeFile) {
   } else {
     Warning("DreamCF", "not writing Pair 2");
   }
-  if (closeFile)output->Close();
+  if (closeFile)
+    output->Close();
   return;
 }
 
@@ -218,7 +221,7 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
   TH1F* hist_CF_sum = nullptr;
   if (CF1 && CF2) {
     if (CF1->GetXaxis()->GetXmin() == CF2->GetXaxis()->GetXmin()) {
-      TH1F* Ratio = (TH1F*) CF1->Clone(TString::Format("%sRatio",name));
+      TH1F* Ratio = (TH1F*) CF1->Clone(TString::Format("%sRatio", name));
       Ratio->Divide(CF2);
       fRatio.push_back(Ratio);
       //Calculate CFs with error weighting
@@ -261,7 +264,8 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
   return hist_CF_sum;
 }
 
-TGraphAsymmErrors* DreamCF::AddCF(TH1F* histSum, std::vector<DreamPair*> pairs, const char* name) {
+TGraphAsymmErrors* DreamCF::AddCF(TH1F* histSum, std::vector<DreamPair*> pairs,
+                                  const char* name) {
   TGraphAsymmErrors* hist_CF_sum = new TGraphAsymmErrors(histSum);
   hist_CF_sum->Set(0);
 
@@ -298,12 +302,13 @@ TGraphAsymmErrors* DreamCF::AddCF(TH1F* histSum, std::vector<DreamPair*> pairs, 
   return hist_CF_sum;
 }
 
-TGraphAsymmErrors* DreamCF::ConvertToOtherUnit(TGraphAsymmErrors* HistCF, int Scale, const char* name) {
+TGraphAsymmErrors* DreamCF::ConvertToOtherUnit(TGraphAsymmErrors* HistCF,
+                                               int Scale, const char* name) {
   int nBins = HistCF->GetN();
   TGraphAsymmErrors* hist_CF_MeV = new TGraphAsymmErrors();
   hist_CF_MeV->SetName(name);
   double x, y;
-  for (int i=0; i<nBins; ++i) {
+  for (int i = 0; i < nBins; ++i) {
     HistCF->GetPoint(i, x, y);
     hist_CF_MeV->SetPoint(i, x * 1000.f, y);
     hist_CF_MeV->SetPointError(i, HistCF->GetErrorXlow(i) * 1000.f,
@@ -331,7 +336,8 @@ TH1F* DreamCF::FindCorrelationFunction(TString name) {
   for (auto it : fCF) {
     TString itName = it->GetName();
     if (itName.Contains(name.Data())) {
-      Warning("DreamCF", "For Histo: %s \t we use the %s", name.Data(), itName.Data());
+      Warning("DreamCF", "For Histo: %s \t we use the %s", name.Data(),
+              itName.Data());
       output = it;
     }
   }

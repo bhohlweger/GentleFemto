@@ -6,7 +6,6 @@
  */
 
 #include "DreamPair.h"
-
 #include "TCanvas.h"
 #include <iostream>
 DreamPair::DreamPair(const char* name, float normleft, float normright)
@@ -159,7 +158,7 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
   } else {
     //we only need to do this in case this pair has a different starting bin.
     if (fFirstBin > kMin || fixedShift) {
-      TH1F* otherSE = fixedShift?nullptr:otherDist->GetSEDist();
+      TH1F* otherSE = fixedShift ? nullptr : otherDist->GetSEDist();
 
       TH1F* SE = pair->GetSEDist();
       TH2F* SEMult = pair->GetSEMultDist();
@@ -268,7 +267,8 @@ void DreamPair::Rebin(DreamDist* pair, int rebin, bool seMean) {
   return;
 }
 
-void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax, DreamDist* pairNotRebinned) {
+void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax,
+                                   DreamDist* pairNotRebinned) {
   DreamDist* PairReweighted = new DreamDist(pair, "_Reweighted");
 
   TH1F* SE = pair->GetSEDist();
@@ -330,7 +330,8 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax, Dr
   //  MultProjMEReweighted->Scale(1./MultProjMEReweighted->Integral());
   //  MultProjMEReweighted->DrawCopy("same");
   if (pairNotRebinned) {
-    PairReweighted->Calculate_CF(fNormLeft, fNormRight, pairNotRebinned->GetSEDist());
+    PairReweighted->Calculate_CF(fNormLeft, fNormRight,
+                                 pairNotRebinned->GetSEDist());
   } else {
     PairReweighted->Calculate_CF(fNormLeft, fNormRight);
   }
