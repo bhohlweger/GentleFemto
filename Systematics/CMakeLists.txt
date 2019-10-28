@@ -17,9 +17,12 @@ add_definitions(${ROOT_CXX_FLAGS})
 SET(KITTY_PATH "${CMAKE_SOURCE_DIR}/GentleKitty")#where are all CATS related .h files
 SET(DREAM_PATH "${CMAKE_SOURCE_DIR}/DreamFunction")#where are all CATS related .h files
 SET(FORGIVEN_PATH "${CMAKE_SOURCE_DIR}/ForgivingQA")#where are all CATS related .h files
+SET(GAMI_PATH "${CMAKE_SOURCE_DIR}/FemtoGami")#where are all CATS related .h files
+
 include_directories(${KITTY_PATH})
 include_directories(${DREAM_PATH})
 include_directories(${FORGIVEN_PATH})
+include_directories(${GAMI_PATH})
 
 add_executable(systematicsSigma ${PROJECT_SOURCE_DIR}/EvalSigmaSystematics.C)
 target_link_libraries(systematicsSigma tidyCATS DreamFunctions ForgivingFnct)

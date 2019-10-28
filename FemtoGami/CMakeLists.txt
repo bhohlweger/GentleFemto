@@ -36,14 +36,16 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 set(SRCS
   ${PROJECT_SOURCE_DIR}/LambdaGami.cxx
+  ${PROJECT_SOURCE_DIR}/MomentumGami.cxx
   )
 
 set(HEADERS
   ${PROJECT_SOURCE_DIR}/LambdaGami.h
+  ${PROJECT_SOURCE_DIR}/MomentumGami.h
   )
   
 add_library(femtoGami STATIC ${SRCS})
-set_target_properties(femtoGami PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+set_target_properties(  PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 target_link_libraries(femtoGami tidyCATS DreamFunctions ForgivingFnct)
 
 add_executable(XiGami ${PROJECT_SOURCE_DIR}/Scripts/XiGami.C)
