@@ -37,11 +37,13 @@ include_directories(${PROJECT_SOURCE_DIR})
 set(SRCS
   ${PROJECT_SOURCE_DIR}/LambdaGami.cxx
   ${PROJECT_SOURCE_DIR}/MomentumGami.cxx
+  ${PROJECT_SOURCE_DIR}/AnalyseProXi.cxx
   )
 
 set(HEADERS
   ${PROJECT_SOURCE_DIR}/LambdaGami.h
   ${PROJECT_SOURCE_DIR}/MomentumGami.h
+  ${PROJECT_SOURCE_DIR}/AnalyseProXi.h
   )
   
 add_library(femtoGami STATIC ${SRCS})
