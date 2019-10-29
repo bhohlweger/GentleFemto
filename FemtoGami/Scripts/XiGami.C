@@ -18,6 +18,7 @@ TH1F* BaseLine(TH1F* dataCF);
 TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF, unsigned int varSideNorm);
 TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF);
 void StoreModels(TH1F* unfoldedGenuine, TFile* QAOutput);
+
 int main(int argc, char *argv[]) {
   const char* fileName = argv[1];
   const char* prefix = argv[2];
@@ -47,8 +48,11 @@ int main(int argc, char *argv[]) {
   DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 5, "");
   DreamCF* CFpXiDef = CATSinput->ObtainCFSyst(rebin, "pXiVar0", pXi, ApAXi);
   TH1F* CFMeasured = CFpXiDef->FindCorrelationFunction(
-      "hCk_ReweightedpXiVar0MeV_1");
+      "hCk_UnfoldedpXiVar0MeV_0");
   CFMeasured = (TH1F*)CFMeasured->Clone("InputCF");
+
+  CFpXiDef->WriteOutput("CFinput.root");
+
   QAOutput = TFile::Open(
       TString::Format("%s/debug.root", gSystem->pwd()).Data(), "recreate");
 //  CFMeasured->SetDirectory(0);
@@ -86,7 +90,7 @@ int main(int argc, char *argv[]) {
   unfoldedGenuine->Write();
 
 //  StoreModels(unfoldedGenuine, QAOutput);
-  CFpXiDef->WriteOutput(QAOutput, false);
+
   QAOutput->Close();
 
   return 0;
