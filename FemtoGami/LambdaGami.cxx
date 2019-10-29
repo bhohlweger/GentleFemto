@@ -66,6 +66,9 @@ TH1F* LambdaGami::UnfoldGenuine(TH1F* cf, double lamGen) {
 }
 
 void LambdaGami::StoreStatErr(TH1F* cfMeasured) {
+  if (fRelError) {
+    delete fRelError;
+  }
   TString Name = TString::Format("%sRelErr", cfMeasured->GetName());
   fRelError = (TH1F*) cfMeasured->Clone(Name.Data());
   for (int iBin = 1; iBin < fRelError->GetNbinsX() + 1; ++iBin) {

@@ -20,6 +20,9 @@ class LambdaGami {
   void SetLambdaPar(double LamPars) {
     fLamPars.push_back(LamPars);
   }
+  void UnSetLambdaPar() {
+    fLamPars.clear();
+  }
   double GetLamdaPar(size_t idx) {
     return idx < fLamPars.size()?fLamPars.at(idx):999;
   }
