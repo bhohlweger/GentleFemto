@@ -16,7 +16,7 @@ class MomentumGami {
   double Eval(double *x, double *p);
   virtual ~MomentumGami();
   void SetResolution(TH2F* resoMatrix, float UnitConversion = 1);
-  void Unfold(TH1F* InputDist, TH1F* OutputDist);
+  void Unfold(TH1F* InputDist);
   Double_t func(int ii, Double_t *par);
   void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
  private:

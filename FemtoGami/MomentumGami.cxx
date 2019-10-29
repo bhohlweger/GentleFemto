@@ -16,7 +16,7 @@ MomentumGami::MomentumGami(float maxkStar)
       fToUnfold(nullptr),
       fMaxkStar(maxkStar) {
   // TODO Auto-generated constructor stub
-
+  gRandom->SetSeed(0);
 }
 
 MomentumGami::~MomentumGami() {
@@ -40,7 +40,7 @@ void MomentumGami::SetResolution(TH2F* resoMatrix, float UnitConversion) {
   }
 }
 
-void MomentumGami::Unfold(TH1F* InputDist, TH1F* OutputDist) {
+void MomentumGami::Unfold(TH1F* InputDist) {
   if (InputDist->FindBin(fMaxkStar) > InputDist->GetNbinsX()) {
     Error("MomentumGami::Unfold",
           "Distribution has smaller kStar range than unfolding");
@@ -49,27 +49,31 @@ void MomentumGami::Unfold(TH1F* InputDist, TH1F* OutputDist) {
 
   fToUnfold = (TH1F*) InputDist->Clone("ToUnfold");
   TF1 * momSmearing = new TF1("momSmearing", this, &MomentumGami::Eval, 0,
-                              fMaxkStar, fToUnfold->FindBin(fMaxkStar) - 3,
+                              fMaxkStar, fToUnfold->FindBin(fMaxkStar) - 5,
                               "momSmearing", "momSmearing");  // create TF1 class.
-  for (int iPar = 0; iPar < fToUnfold->FindBin(fMaxkStar) - 3; ++iPar) {
-    momSmearing->SetParameter(iPar, gRandom->Uniform(0.8, 1.2));
+  momSmearing->SetParameter(0, 1.5);
+  momSmearing->SetParLimits(0, 0.5, 1.9);
+  momSmearing->SetParameter(1, 1.1);
+  momSmearing->SetParLimits(1, 0.5, 1.9);
+  for (int iPar = 2; iPar < fToUnfold->FindBin(fMaxkStar) - 5; ++iPar) {
+    momSmearing->SetParameter(iPar, 1);
+    momSmearing->SetParLimits(iPar, 0.9, 1.1);
   }
   fToUnfold->Fit("momSmearing", "R");
 
-  for (int iBim = 1; iBim < InputDist->FindBin(fMaxkStar) - 2; ++iBim) {
+  for (int iBim = 1; iBim < InputDist->FindBin(fMaxkStar) - 4; ++iBim) {
     int ParNmb = iBim - 1;
-    OutputDist->SetBinContent(
+    InputDist->SetBinContent(
         iBim,
         momSmearing->GetParameter(ParNmb) * InputDist->GetBinContent(iBim));
-    OutputDist->SetBinError(iBim, InputDist->GetBinError(iBim));
-  }
-  for (int iBim = InputDist->FindBin(fMaxkStar) - 2;
-      iBim < InputDist->GetNbinsX() + 1; ++iBim) {
-    OutputDist->SetBinContent(iBim, InputDist->GetBinContent(iBim));
-    OutputDist->SetBinError(iBim, InputDist->GetBinError(iBim));
+    //keep the same relative error
+    InputDist->SetBinError(
+        iBim,
+        momSmearing->GetParameter(ParNmb) * InputDist->GetBinError(iBim));
   }
   delete momSmearing;
   delete fToUnfold;
+  return;
 }
 
 double MomentumGami::Eval(double *x, double *p) {
@@ -81,23 +85,22 @@ double MomentumGami::Eval(double *x, double *p) {
   }
   //corrected "imaginary histo"
   const int nbinsProj = fToUnfold->FindBin(fMaxkStar);
-  float zz[nbinsProj];
+  std::vector<float> zz;
   for (int i = 0; i < nbinsProj - 3; i++) {
-    zz[i] = p[i] * fToUnfold->GetBinContent(i + 1);
+    zz.push_back(p[i] * fToUnfold->GetBinContent(i + 1));
   }
 
 //now build uncorrected: take zz "imaginary corrected" and smear it:
-  float uncorr[fToUnfold->GetNbinsX()];
-  for (int i = 0; i < fToUnfold->GetNbinsX(); i++) {
-    uncorr[i] = 0.;
-  }
+  std::vector<float> uncorr;
 
   for (int iproj = 0; iproj < nbinsProj; iproj++) {
-    for (int ibin = 1; ibin <= nbinsProj - 3; ibin++) {
-      uncorr[ibin - 1] += fResProjection[iproj]->GetBinContent(ibin)
-          * zz[ibin - 1];
+    float binCont = 0;
+    for (int ibin = 1; ibin <= nbinsProj - 5; ibin++) {
+      binCont += fResProjection[iproj]->GetBinContent(ibin) * zz[ibin - 1];
     }
+    uncorr.push_back(binCont);
   }
+
   return uncorr[fToUnfold->FindBin(x[0]) - 1];
 }
 
