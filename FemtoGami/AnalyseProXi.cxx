@@ -16,14 +16,37 @@
 
 #include "DLM_CkDecomposition.h"
 
-AnalyseProXi::AnalyseProXi(double cutoff) :
-fcutOff(cutoff),
-fQAOutput(nullptr),
-fFilename(""),
-fPrefix("")
-{
-  // TODO Auto-generated constructor stub
+AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
+    : fcutOff(cutoff),
+      fFilename(""),
+      fPrefix(""),
+      fQAOutput(nullptr),
+      fXiGami(new LambdaGami()),
+      fMomGami(new MomentumGami(smearing)),
+      fNormVar(1),
+      fSideNormVar(1),
+      fBaselineVar(1),
+      fLamVarProton(1),
+      fLamVarOmega(1),
+      fLamVarXim1530(1),
+      fRadVarXim1530(1) {
+  fNormMin = {0.500,0.500,0.600};
+  fNormMax = {0.800,0.700,0.800};
+  fSidebandNormMin = {450,400,500};
+  fSidebandNormMax = {650,600,700};
+  fBLfunct = {"pol0","pol1"};
+  fLamVars = {0.95,1.0,1.05};
+  fXim1530Rad = {0.89,0.92,0.95};
 
+  auto CATSinput = new CATSInput();
+  TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
+  TString SigmaFileName = "Sample6_MeV_compact.root";
+  CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
+  CATSinput->SetSigmaFileName(SigmaFileName.Data());
+  CATSinput->ReadSigmaFile();
+  TH2F* momReso = (TH2F*) CATSinput->GetSigmaFile(3)->Clone("MomResolution");
+  momReso->Rebin2D(2);
+  fMomGami->SetResolution(momReso, 1000);
 }
 
 AnalyseProXi::~AnalyseProXi() {
@@ -32,26 +55,14 @@ AnalyseProXi::~AnalyseProXi() {
 
 TH1F* AnalyseProXi::GetVariation(int varnumber) {
 
-  LambdaGami* XiGami = new LambdaGami();
-  MomentumGami* MomGami = new MomentumGami(0.5);
-
   auto CATSinput = new CATSInput();
-  CATSinput->SetNormalization(0.500, 0.700);
+  CATSinput->SetNormalization(fNormMin[fNormVar], fNormMax[fNormVar]);
   CATSinput->SetFixedkStarMinBin(true, 0.);
   const int rebin = 5;
 
-  TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
-  TString SigmaFileName = "Sample6_MeV_compact.root";
-  CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
-  CATSinput->SetSigmaFileName(SigmaFileName.Data());
-  CATSinput->ReadSigmaFile();
-  TH2F* momReso = (TH2F*) CATSinput->GetSigmaFile(3)->Clone("MomResolution");
-  momReso->Rebin2D(2);
-  MomGami->SetResolution(momReso, 1000);
-  CATSinput->SetMomentumGami(MomGami);
+  CATSinput->SetMomentumGami(fMomGami);
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
-  std::cout << fFilename <<'\t' << fPrefix << std::endl;
   DreamFile->SetAnalysisFile(fFilename, fPrefix, "0");
 
   DreamDist* pXi = DreamFile->GetPairDistributions(0, 4, "");
@@ -61,43 +72,48 @@ TH1F* AnalyseProXi::GetVariation(int varnumber) {
       "hCk_UnfoldedpXiVar0MeV_0");
   CFMeasured = (TH1F*) CFMeasured->Clone("InputCF");
 
-  CFpXiDef->WriteOutput("CFinput.root");
+  CFpXiDef->WriteOutput(
+      TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data());
 
   fQAOutput = TFile::Open(
-      TString::Format("%s/debug.root", gSystem->pwd()).Data(), "recreate");
+      TString::Format("%s/debug_Var%u.root", gSystem->pwd(), varnumber).Data(),
+      "recreate");
 //  CFMeasured->SetDirectory(0);
-  XiGami->StoreStatErr(CFMeasured);
+  fXiGami->UnSetLambdaPar();
+  fXiGami->StoreStatErr(CFMeasured);
   fQAOutput->cd();
   CFMeasured->Write();
 
-  double lamGenuine = SetupLambdaPars(XiGami, 1., 1., 1.);
+  double lamGenuine = SetupLambdaPars(fXiGami, fLamVars[fLamVarProton],
+                                      fLamVars[fLamVarOmega],
+                                      fLamVars[fLamVarXim1530]);
   //Loop over variations, but set pointer for default to be passed on ?
 
   //Get rid of the sidebands
-  TH1F* unfoldedSideBand = XimSideband(XiGami, CFMeasured, 1);
+  TH1F* unfoldedSideBand = XimSideband(fXiGami, CFMeasured);
   fQAOutput->cd();
-  XiGami->AddStatErr(unfoldedSideBand);
+  fXiGami->AddStatErr(unfoldedSideBand);
   unfoldedSideBand->Write();
 
   //Get rid of the bassline or vaseline
   TH1F* CFBLFree = BaseLine(unfoldedSideBand);
   fQAOutput->cd();
-  XiGami->AddStatErr(CFBLFree);
+  fXiGami->AddStatErr(CFBLFree);
   CFBLFree->Write();
 
   //Setup the Lambda Parameters
 
   //Get rid of the p-Xim1530 smeared
-  TH1F* unfoldedFeedDown = Xim1530FeedDown(XiGami, CFBLFree);
+  TH1F* unfoldedFeedDown = Xim1530FeedDown(fXiGami, CFBLFree);
   fQAOutput->cd();
-  XiGami->AddStatErr(unfoldedFeedDown);
+  fXiGami->AddStatErr(unfoldedFeedDown);
   unfoldedFeedDown->Write();
 
   //Unfold to the genuine CF
-  TH1F* unfoldedGenuine = XiGami->UnfoldGenuine(unfoldedFeedDown, lamGenuine);
+  TH1F* unfoldedGenuine = fXiGami->UnfoldGenuine(unfoldedFeedDown, lamGenuine);
   fQAOutput->cd();
-  XiGami->AddStatErr(unfoldedGenuine);
-  TH1F* outputHist = (TH1F*)unfoldedGenuine->Clone("outputhist");
+  fXiGami->AddStatErr(unfoldedGenuine);
+  TH1F* outputHist = (TH1F*) unfoldedGenuine->Clone("outputhist");
   unfoldedGenuine->Write();
 
   fQAOutput->Close();
@@ -108,7 +124,8 @@ TH1F* AnalyseProXi::GetVariation(int varnumber) {
 TH1F* AnalyseProXi::BaseLine(TH1F* dataCF) {
   TString bslName = TString::Format("%s_woBL", dataCF->GetName()).Data();
   TH1F* BaseLineFree = (TH1F*) dataCF->Clone(bslName.Data());
-  TF1* funct_1 = new TF1("myPol1", "pol1", 0, fcutOff);
+  TF1* funct_1 = new TF1("myBaseline", fBLfunct[fBaselineVar].Data(), 0,
+                         fcutOff);
   dataCF->Fit(funct_1, "SN", "", 400, 900);
   BaseLineFree->Divide(funct_1);
   fQAOutput->cd();
@@ -116,21 +133,13 @@ TH1F* AnalyseProXi::BaseLine(TH1F* dataCF) {
   return BaseLineFree;
 }
 
-TH1F* AnalyseProXi::XimSideband(LambdaGami* XiGami, TH1F* dataCF,
-                                unsigned int varSideNorm) {
-  double normvarCont[3][2];
-  normvarCont[0][0] = 450;
-  normvarCont[0][1] = 650;
-  normvarCont[1][0] = 400;
-  normvarCont[1][1] = 600;
-  normvarCont[2][0] = 500;
-  normvarCont[2][1] = 700;
+TH1F* AnalyseProXi::XimSideband(LambdaGami* XiGami, TH1F* dataCF) {
 
   SideBandFit* side = new SideBandFit();
   side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/latestSystematic", "HM",
                         "103", "104");
-  side->SetNormalizationRange(normvarCont[varSideNorm][0],
-                              normvarCont[varSideNorm][1]);
+  side->SetNormalizationRange(fSidebandNormMin[fSideNormVar],
+                              fSidebandNormMax[fSideNormVar]);
   side->SideBandCFs(false);
   TH1F* fitme = side->GetSideBands(5);
   double SideBandPars[4];
@@ -190,7 +199,7 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, nkBin, kMin, kMax,
                                  TidyCats::sGaussian);
 
-  AB_pXim1530.SetAnaSource(0, 0.92);  //for now 1.2 fm .. ADJUST!
+  AB_pXim1530.SetAnaSource(0, fXim1530Rad.at(fRadVarXim1530));  //for now 1.2 fm .. ADJUST!
   AB_pXim1530.KillTheCat();
   DLM_Ck* ck = new DLM_Ck(AB_pXim1530.GetNumSourcePars(), 0, AB_pXim1530);
   DLM_CkDecomposition dec = DLM_CkDecomposition("dummy", 0, *ck, nullptr);
@@ -216,6 +225,8 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   }
   delete ck;
   delete resp;
+  delete tidy;
+  delete CATSinput;
   fQAOutput->cd();
   pXim1530Converted->Write();
   return XiGami->UnfoldResidual(dataCF, pXim1530Converted,
