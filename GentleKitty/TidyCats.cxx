@@ -15,6 +15,7 @@
 #include "TFile.h"
 #include "TGraph.h"
 #include "TH2F.h"
+#include "TError.h"
 
 static double DegToRad = 0.01745;
 
