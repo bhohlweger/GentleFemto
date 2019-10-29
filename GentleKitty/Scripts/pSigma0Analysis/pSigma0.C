@@ -708,7 +708,7 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
               if (iterID == 0) {
                 /// beautification
                 DreamPlot::SetStyleGraph(currentGr, 24, kBlue + 3);
-                DreamPlot::SetStyleGraph(currentSidebandGr, 20, kRed + 2);
+                DreamPlot::SetStyleGraph(currentSidebandGr, kOpenSquare, kRed + 3);
                 currentGr->GetXaxis()->SetTitleSize(28);
                 currentGr->GetYaxis()->SetTitleSize(28);
                 currentSidebandGr->GetXaxis()->SetTitleSize(28);
@@ -724,11 +724,13 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
 
                 if (debugPlots) {
                   auto f = new TCanvas("baseline");
+                  f->SetTopMargin(0.065);
                   currentSidebandGr->Draw("APEZ");
+                  currentSidebandGr->SetMarkerColor(kRed + 3);
                   currentSidebandGr->GetXaxis()->SetRangeUser(0, 600);
+                  currentSidebandGr->GetYaxis()->SetRangeUser(0.85, 1.7);
                   currentSidebandGr->GetYaxis()->SetTitle("C(#it{k}*)");
                   currentGr->Draw("pezsame");
-                  currentGr->GetXaxis()->SetRangeUser(0, 600);
                   const int nBins = prefit_a.size();
                   TF1* baselines[nBins];
                   for (int i = 0; i < nBins; ++i) {
@@ -736,32 +738,39 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
                                            900);
                     baselines[i]->SetParameter(0, prefit_a[i]);
                     baselines[i]->SetParameter(1, prefit_b[i]);
-                    baselines[i]->SetLineColor(kGreen + 2);
+                    baselines[i]->SetLineColor(kGreen + 3);
                     baselines[i]->Draw("same");
                   }
-                  auto leg2 = new TLegend(0.4, 0.68, 0.6, 0.85);
+                  auto leg2 = new TLegend(0.45, 0.7, 0.65, 0.9);
                   leg2->SetTextFont(42);
                   leg2->SetTextSize(0.05);
-                  leg2->AddEntry(currentGr, "p#minus#Sigma^{0}", "pe");
+                  leg2->AddEntry(currentGr, "p#minus#kern[-0.95]{ }#Sigma^{0}", "pe");
                   leg2->AddEntry(currentSidebandGr,
-                                 "p#minus(#Lambda#gamma) sideband (unscaled)",
+                                 "p#minus#kern[-1.]{ }(#Lambda#gamma) baseline (unscaled)",
                                  "pe");
                   leg2->AddEntry(baselines[0], "Baseline fits", "l");
                   leg2->Draw("same");
                   f->Print(Form("%s/CF_baseline.pdf", OutputDir.Data()));
                   delete f;
 
-                    auto g = new TCanvas();
+                  auto g = new TCanvas();
+                  g->SetTopMargin(0.065);
                   DreamPlot::SetStyleGraph (grPrefitContour);
                   grPrefitContour->SetTitle("; #it{a}; #it{b}");
                   grPrefitContour->SetLineStyle(2);
                   auto grDots = new TGraph();
-                  DreamPlot::SetStyleGraph(grDots, 20, kRed + 2);
+                  DreamPlot::SetStyleGraph(grDots, 20, kRed + 3);
                   for (size_t i = 0; i < prefit_a.size(); ++i) {
                     grDots->SetPoint(i, prefit_a[i],
                                      prefit_b[i]);
                   }
                   grPrefitContour->Draw("AL");
+                  grPrefitContour->GetXaxis()->SetNdivisions(505);
+                  grPrefitContour->GetXaxis()->SetRangeUser(0.99, 1.02);
+                  grPrefitContour->GetXaxis()->SetLimits(0.99, 1.015);
+                  grPrefitContour->GetYaxis()->SetMaxDigits(2);
+                  grPrefitContour->GetYaxis()->SetRangeUser(-35e-6, 15e-6);
+                  grPrefitContour->GetYaxis()->SetNdivisions(505);
                   grDots->Draw("PEsame");
                   g->Print(
                       Form("%s/Prefit_%i.pdf", OutputDir.Data(), potential));

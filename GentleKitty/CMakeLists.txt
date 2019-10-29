@@ -117,6 +117,9 @@ target_link_libraries(pSigma0 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/plotSigmaModels.C)
 target_link_libraries(PlotSigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(PlotSigmaSmear ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/pSigma0smear.C)
+target_link_libraries(PlotSigmaSmear tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(sigmaModels ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/drawSigmaModelPlot.C)
 target_link_libraries(sigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
