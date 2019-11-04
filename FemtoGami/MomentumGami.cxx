@@ -59,7 +59,7 @@ void MomentumGami::Unfold(TH1F* InputDist) {
     momSmearing->SetParameter(iPar, 1);
     momSmearing->SetParLimits(iPar, 0.9, 1.1);
   }
-  fToUnfold->Fit("momSmearing", "R");
+  fToUnfold->Fit("momSmearing", "QR");
 
   for (int iBim = 1; iBim < InputDist->FindBin(fMaxkStar) - 4; ++iBim) {
     int ParNmb = iBim - 1;
