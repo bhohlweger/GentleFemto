@@ -703,6 +703,14 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<T*>& histvec,
     case Pair::LAL:
       c->Divide(7, 7);
       break;
+    case Pair::pXiNorm:
+      c->Divide(2,3);
+      break;
+    case Pair::pXiLam:
+      c->Divide(5,3);
+      break;
+    default:
+      break;
   }
 
   int iVar = 0;
