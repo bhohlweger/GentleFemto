@@ -52,4 +52,7 @@ target_link_libraries(femtoGami tidyCATS DreamFunctions ForgivingFnct)
 
 add_executable(XiGami ${PROJECT_SOURCE_DIR}/Scripts/XiGami.C)
 target_link_libraries(XiGami femtoGami) #tidyCATS -L${DREAM_LIB_PATH} DreamFunctions
+
+add_executable(XiDraw ${PROJECT_SOURCE_DIR}/Scripts/XiDrawWithError.C)
+target_link_libraries(XiDraw femtoGami) #tidyCATS -L${DREAM_LIB_PATH} DreamFunctions
  
