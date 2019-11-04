@@ -137,21 +137,78 @@ int main(int argc, char* argv[]) {
   grSigma0NSC97f_smear->SetLineWidth(lineWidth);
   grSigma0NSC97f_smear->SetLineStyle(2);
 
-  DLM_CkDecomposition CkDec_Sigma0chiEFT("CkDec_Sigma0chiEFT", 1, *Sigma0chiEFT,
-                                         CATSinput->GetSigmaFile(1));
-  DLM_CkDecomposition CkDec_Sigma0ESC16("CkDec_Sigma0ESC16", 1, *Sigma0ESC16,
-                                        CATSinput->GetSigmaFile(1));
-  DLM_CkDecomposition CkDec_Sigma0NSC97f("CkDec_Sigma0NSC97f", 1, *Sigma0NSC97f,
-                                         CATSinput->GetSigmaFile(1));
-  DLM_CkDecomposition CkDec_Sigma0fss2("CkDec_Sigma0fss2", 1, *Sigma0fss2,
-                                       CATSinput->GetSigmaFile(1));
+  DLM_CkDecomposition CkDec_Sigma0chiEFT_smear("CkDec_Sigma0chiEFT_smear", 1,
+                                               *Sigma0chiEFT,
+                                               CATSinput->GetSigmaFile(1));
+  DLM_CkDecomposition CkDec_Sigma0ESC16_smear("CkDec_Sigma0ESC16_smear", 1,
+                                              *Sigma0ESC16,
+                                              CATSinput->GetSigmaFile(1));
+  DLM_CkDecomposition CkDec_Sigma0NSC97f_smear("CkDec_Sigma0NSC97f_smear", 1,
+                                               *Sigma0NSC97f,
+                                               CATSinput->GetSigmaFile(1));
+  DLM_CkDecomposition CkDec_Sigma0fss2_smear("CkDec_Sigma0fss2_smear", 1,
+                                             *Sigma0fss2,
+                                             CATSinput->GetSigmaFile(1));
 
   for (unsigned int i = 0; i < Sigma0chiEFT->GetNbins(); ++i) {
     const float mom = Sigma0chiEFT->GetBinCenter(0, i);
-    grSigma0chiEFT_smear->SetPoint(i, mom, CkDec_Sigma0chiEFT.EvalCk(mom));
-    grSigma0ESC16_smear->SetPoint(i, mom, CkDec_Sigma0ESC16.EvalCk(mom));
-    grSigma0NSC97f_smear->SetPoint(i, mom, CkDec_Sigma0NSC97f.EvalCk(mom));
-    grSigma0fss2_smear->SetPoint(i, mom, CkDec_Sigma0fss2.EvalCk(mom));
+    grSigma0chiEFT_smear->SetPoint(i, mom,
+                                   CkDec_Sigma0chiEFT_smear.EvalCk(mom));
+    grSigma0ESC16_smear->SetPoint(i, mom, CkDec_Sigma0ESC16_smear.EvalCk(mom));
+    grSigma0NSC97f_smear->SetPoint(i, mom,
+                                   CkDec_Sigma0NSC97f_smear.EvalCk(mom));
+    grSigma0fss2_smear->SetPoint(i, mom, CkDec_Sigma0fss2_smear.EvalCk(mom));
+  }
+
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // Lambda Param
+
+  const double lambdaPrimary = 0.22;
+
+  auto grSigma0fss2_lambda = new TGraph();
+  DreamPlot::SetStyleGraph(grSigma0fss2_lambda, 20, colorfss2, alphafss2);
+  grSigma0fss2_lambda->SetLineWidth(lineWidth);
+  grSigma0fss2_lambda->SetLineStyle(2);
+  auto grSigma0chiEFT_lambda = new TGraph();
+  DreamPlot::SetStyleGraph(grSigma0chiEFT_lambda, 20, colorchiEFT, alphaEFT);
+  grSigma0chiEFT_lambda->SetLineWidth(lineWidth);
+  grSigma0chiEFT_lambda->SetLineStyle(2);
+  auto grSigma0ESC16_lambda = new TGraph();
+  DreamPlot::SetStyleGraph(grSigma0ESC16_lambda, 20, colorESC16, alphaESC16);
+  grSigma0ESC16_lambda->SetLineWidth(lineWidth);
+  grSigma0ESC16_lambda->SetLineStyle(2);
+  auto grSigma0NSC97f_lambda = new TGraph();
+  DreamPlot::SetStyleGraph(grSigma0NSC97f_lambda, 20, colorNSC97f, alphaNSC97f);
+  grSigma0NSC97f_lambda->SetLineWidth(lineWidth);
+  grSigma0NSC97f_lambda->SetLineStyle(2);
+
+
+  DLM_CkDecomposition CkDec_Sigma0chiEFT_lambda("CkDec_Sigma0chiEFT_lambda", 1,
+                                                *Sigma0chiEFT, nullptr);
+  DLM_CkDecomposition CkDec_Sigma0ESC16_lambda("CkDec_Sigma0ESC16_lambda", 1,
+                                               *Sigma0ESC16, nullptr);
+  DLM_CkDecomposition CkDec_Sigma0NSC97f_lambda("CkDec_Sigma0NSC97f_lambda", 1,
+                                                *Sigma0NSC97f, nullptr);
+  DLM_CkDecomposition CkDec_Sigma0fss2_lambda("CkDec_Sigma0fss2_lambda", 1,
+                                              *Sigma0fss2, nullptr);
+
+  CkDec_Sigma0chiEFT_lambda.AddContribution(0, 1.f - lambdaPrimary, DLM_CkDecomposition::cFake);
+  CkDec_Sigma0chiEFT_lambda.Update();
+  CkDec_Sigma0ESC16_lambda.AddContribution(0, 1.f - lambdaPrimary, DLM_CkDecomposition::cFake);
+  CkDec_Sigma0ESC16_lambda.Update();
+  CkDec_Sigma0NSC97f_lambda.AddContribution(0, 1.f - lambdaPrimary, DLM_CkDecomposition::cFake);
+  CkDec_Sigma0NSC97f_lambda.Update();
+  CkDec_Sigma0fss2_lambda.AddContribution(0, 1.f - lambdaPrimary, DLM_CkDecomposition::cFake);
+  CkDec_Sigma0fss2_lambda.Update();
+
+  for (unsigned int i = 0; i < Sigma0chiEFT->GetNbins(); ++i) {
+    const float mom = Sigma0chiEFT->GetBinCenter(0, i);
+    grSigma0chiEFT_lambda->SetPoint(i, mom,
+                                   CkDec_Sigma0chiEFT_lambda.EvalCk(mom));
+    grSigma0ESC16_lambda->SetPoint(i, mom, CkDec_Sigma0ESC16_lambda.EvalCk(mom));
+    grSigma0NSC97f_lambda->SetPoint(i, mom,
+                                   CkDec_Sigma0NSC97f_lambda.EvalCk(mom));
+    grSigma0fss2_lambda->SetPoint(i, mom, CkDec_Sigma0fss2_lambda.EvalCk(mom));
   }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -175,7 +232,7 @@ int main(int argc, char* argv[]) {
   dummyGraphSmeared->SetLineWidth(lineWidth);
   dummyGraphSmeared->SetLineStyle(2);
 
-  auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 550);
+  auto c = new TCanvas("CFpSigma_smear", "CFpSigma_smear", 0, 0, 650, 550);
   c->SetRightMargin(right);
   c->SetTopMargin(top);
   dummyHist->Draw();
@@ -205,5 +262,36 @@ int main(int argc, char* argv[]) {
   leg->Draw("same");
   leg->Draw("same");
   c->Print("Sigma0_smeared.pdf");
+
+  auto d = new TCanvas("CFpSigma_lambda", "CFpSigma_lambda", 0, 0, 650, 550);
+  d->SetRightMargin(right);
+  d->SetTopMargin(top);
+  dummyHist->Draw();
+  dummyHist->GetYaxis()->SetRangeUser(yminSigma, ymaxSigma);
+  dummyHist->GetXaxis()->SetNdivisions(504);
+  grSigma0chiEFT->Draw("L3same");
+  grSigma0ESC16->Draw("L3same");
+  grSigma0NSC97f->Draw("L3same");
+  grSigma0fss2->Draw("L3same");
+
+  grSigma0chiEFT_lambda->Draw("L3same");
+  grSigma0ESC16_lambda->Draw("L3same");
+  grSigma0NSC97f_lambda->Draw("L3same");
+  grSigma0fss2_lambda->Draw("L3same");
+
+  auto leg2 = new TLegend(0.49, 0.725, 0.49+0.45, 0.725+0.225);
+  leg2->SetBorderSize(0);
+  leg2->SetTextFont(42);
+  leg2->SetNColumns(2);
+  leg2->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg2->AddEntry(grSigma0fss2, "fss2", "l");
+  leg2->AddEntry(grSigma0chiEFT, "#chiEFT (NLO)", "l");
+  leg2->AddEntry(grSigma0ESC16, "ESC16", "l");
+  leg2->AddEntry(grSigma0NSC97f, "NSC97f", "l");
+  leg2->AddEntry(dummyGraph, "Genuine", "l");
+  leg2->AddEntry(dummyGraphSmeared, "#lambda = 0.22", "l");
+  leg2->Draw("same");
+  leg2->Draw("same");
+  d->Print("Sigma0_lambda.pdf");
 
 }
