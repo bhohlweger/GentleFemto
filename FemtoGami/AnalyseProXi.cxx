@@ -35,7 +35,7 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
   fSidebandNormMin = {450,400,500};
   fSidebandNormMax = {650,600,700};
   fBLfunct = {"pol0","pol1"};
-  fLamVars = {0.95,1.0,1.05};
+  fLamVars = {0.8,1.0,1.2};
   fXim1530Rad = {0.89,0.92,0.95};
 
   auto CATSinput = new CATSInput();
