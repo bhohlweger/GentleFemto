@@ -1,15 +1,24 @@
 #include "VariationAnalysis.h"
 #include "TFile.h"
 #include "DreamData.h"
+#include "DreamPlot.h"
 #include "TLatex.h"
 #include "TStyle.h"
+#include "TApplication.h"
 
 int main(int argc, char *argv[]) {
-  const char* cf_fileName = argv[1];
-  const char* sysData_fileName = argv[2];
-  const char* varName = argv[3];
+  DreamPlot::SetStyle();
+  const char* WorkDir = argv[1];
+  TApplication app("TheApp",&argc,argv);
+  TString cfName = TString::Format("%s/debug_Var0.root", WorkDir).Data();
+  TString sysDataName =
+      TString::Format("%s/Systematics_pXi.root", WorkDir).Data();
+  TString sysNormName = TString::Format("%s/SystematicsNorm_pXi.root", WorkDir)
+      .Data();
+  TString sysLamName = TString::Format("%s/SystematicsFeedDown_pXi.root",
+                                       WorkDir).Data();
 
-  TFile* cfFile = TFile::Open(cf_fileName, "read");
+  TFile* cfFile = TFile::Open(cfName, "read");
   TH1F* cf_default = (TH1F*) cfFile->FindObjectAny(
       "InputCF_ResGami_woBL_ResGami_GenuineGami");
   if (!cf_default) {
@@ -17,35 +26,61 @@ int main(int argc, char *argv[]) {
     cfFile->ls();
     return 0;
   }
-  TFile* sysFile = TFile::Open(sysData_fileName, "read");
-  TF1* systErr = (TF1*) sysFile->FindObjectAny("SystError");
-  if (!systErr) {
-    std::cout << "systErr not found \n";
-    systErr->ls();
+  TGraphErrors* coulomb = (TGraphErrors*) cfFile->FindObjectAny("Coulomb");
+  TGraphErrors* hal = (TGraphErrors*) cfFile->FindObjectAny("HalQCD");
+  TGraphErrors* esc = (TGraphErrors*) cfFile->FindObjectAny("ESC");
+
+  TFile* sysDataFile = TFile::Open(sysDataName, "read");
+  TF1* systDataErr = (TF1*) sysDataFile->FindObjectAny("SystError");
+  if (!systDataErr) {
+    std::cout << "systDataErr not found \n";
+    sysDataFile->ls();
     return 0;
   }
-  TColor myColor1;
-  TFile* shittymodel = TFile::Open("~/cernbox/debug.root", "read");
-  TGraph* coulomb = (TGraph*)shittymodel->Get("coulomb");
-  coulomb->SetMarkerColor( myColor1.GetColor(178,223,138) );
-  coulomb->SetLineColor( myColor1.GetColor(178,223,138) );
-  coulomb->SetLineWidth(2);
-  TGraph* halqcd = (TGraph*)shittymodel->Get("halqcd");
-  halqcd->SetMarkerColor(myColor1.GetColor(255,127,0) );
-  halqcd->SetLineColor( myColor1.GetColor(255,127,0) );
-  halqcd->SetLineWidth(2);
-  TGraph* esc = (TGraph*)shittymodel->Get("esc");
-  esc->SetMarkerColor(    myColor1.GetColor(31,120,180)  );
-  esc->SetLineColor(     myColor1.GetColor(31,120,180) );
-  esc->SetLineWidth(2);
+  TFile* sysNormFile = TFile::Open(sysNormName, "read");
+  TH1F* systNormErr = (TH1F*) sysNormFile->FindObjectAny("SystErrRel");
+  if (!systNormErr) {
+    std::cout << "systNormErr not found \n";
+    sysNormFile->ls();
+    return 0;
+  }
+  TFile* sysLamFile = TFile::Open(sysLamName, "read");
+  TF1* systLamErr = (TF1*) sysLamFile->FindObjectAny("SystError");
+  if (!systLamErr) {
+    std::cout << "systLamErr not found \n";
+    sysLamFile->ls();
+    return 0;
+  }
+
+  TH1F* SystError = (TH1F*)cf_default->Clone("Sytematics");
+  SystError->Reset();
+
+  for (int iBin = 1; iBin <= SystError->GetNbinsX(); ++iBin) {
+    double kStar = cf_default->GetBinCenter(iBin);
+    double Ck = cf_default->GetBinContent(iBin);
+    double errSystData = systDataErr->Eval(kStar) * Ck;
+    double errSystNorm = systNormErr->GetBinContent(iBin) * Ck;
+    double errSystLam = systLamErr->Eval(kStar) * Ck;
+    double totErr = TMath::Sqrt(
+        errSystData * errSystData + errSystNorm * errSystNorm
+            + errSystLam * errSystLam);
+    SystError->SetBinContent(iBin, totErr);
+  }
+
   TCanvas* c1;
   std::vector<const char*> LegNames;
   LegNames.push_back("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+}");
+  LegNames.push_back("Coulomb");
+  LegNames.push_back("Coulomb + HAL-QCD");
+  LegNames.push_back("Coulomb + ESC 16");
   std::vector<const char*> LegOptions;
   LegOptions.push_back("fpe");
+  LegOptions.push_back("fl");
+  LegOptions.push_back("fl");
+  LegOptions.push_back("fl");
 
   c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
-  TFile* out = TFile::Open(Form("out_%s.root",varName), "recreate");
+  TFile* out = TFile::Open(Form("out.root"), "recreate");
   TPad* pad;
   float LatexX = 0.;
   c1 = new TCanvas(Form("c"), Form("c"), 0, 0, 650, 650);
@@ -63,15 +98,20 @@ int main(int argc, char *argv[]) {
   Data->SetUnitConversionData(1);
   Data->SetUnitConversionCATS(1);
   Data->SetCorrelationFunction(cf_default);
-  Data->SetSystematics(systErr, 2);
+  Data->SetSystematics(SystError, 2);
   Data->SetLegendName(LegNames, LegOptions);
   Data->SetDrawAxis(true);
-  Data->SetRangePlotting(fXmin, fXmax, 0.7, cf_default->GetMaximum() * 1.17);  //ranges
+  Data->FemtoModelFitBands(coulomb, 12, 1, 3, -4000, true);
+  Data->FemtoModelFitBands(hal, 10, 10, 0, -4000, true);
+  Data->FemtoModelFitBands(esc, 11, 8, 0, -4000, true);
+//  Data->FemtoModelFitBands(hal, 10, 10, 0, 3252, true);
+//  Data->FemtoModelFitBands(esc, 11, 8, 0, 3225, true);
+  Data->SetRangePlotting(fXmin, fXmax, 0.6, cf_default->GetMaximum() * 1.5);  //ranges
   Data->SetNDivisions(505);
 
   float legXmin = fTextXMin - 0.02;
-  Data->SetLegendCoordinates(legXmin, 0.625 - 0.09 * Data->GetNumberOfModels(),
-                             legXmin + 0.4, 0.66);
+  Data->SetLegendCoordinates(legXmin, 0.675 - 0.09 * Data->GetNumberOfModels(),
+                             legXmin + 0.4, 0.75);
   Data->DrawCorrelationPlot(pad);
   pad->cd();
   TLatex BeamText;
@@ -84,16 +124,10 @@ int main(int argc, char *argv[]) {
       fTextXMin,
       0.79,
       "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
-
-  TLatex text;
-  text.SetNDC();
-  text.SetTextColor(1);
-  text.SetTextSize(gStyle->GetTextSize() * 0.85);
-  c1->cd();
-  coulomb->Draw("lsame");
-  halqcd->Draw("lsame");
-  esc->Draw("lsame");
   out->cd();
   c1->Write();
-  c1->SaveAs(Form("WithSys%s.pdf",varName));
+  c1->SaveAs(Form("WithSys.pdf"));
+  SystError->Write();
+  out->Close();
+  app.Run();
 }
