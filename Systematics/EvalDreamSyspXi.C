@@ -12,7 +12,7 @@ void EvalDreamSystematics(TString InputFile, TString prefix,
                           float upperFitRange) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   std::cout << InputFile.Data() << std::endl;
-  DreamPlot::SetStyle(false, true);
+  DreamPlot::SetStyle();
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(0.500, 0.700);
   CATSinput->SetFixedkStarMinBin(true, 0.);
