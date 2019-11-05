@@ -14,6 +14,7 @@
 static double cutOff = 1000;  // at this value the calculation and doing of the cf stops
 
 int main(int argc, char *argv[]) {
+  DreamPlot::SetStyle();
   const char* fileName = argv[1];
   const char* prefix = argv[2];
   AnalyseProXi* ana = new AnalyseProXi(cutOff, 0.5);
@@ -27,14 +28,14 @@ int main(int argc, char *argv[]) {
 
   ana->SetAnalysisFile(fileName, prefix);
   ana->Default();
-  TH1F* DefVar = ana->GetVariation(0);
+  TH1F* DefVar = ana->GetVariation(10000, false);
   protonNorm.SetDefaultHist((TH1F*) DefVar->Clone("defVarNorm"));
-  protonFeeddown.SetDefaultHist((TH1F*) DefVar->Clone("defVarNorm"));
+  protonFeeddown.SetDefaultHist((TH1F*) DefVar->Clone("defVarFeedDown"));
   //create dream sys object, set default for norm/bl vars
   int varCounter = 1;
   for (int iNorm = 0; iNorm < 3; ++iNorm) {
     for (int iBLfnct = 0; iBLfnct < 2; ++iBLfnct) {
-      if (iNorm == 1 && iBLfnct == 1) {
+      if (iNorm == 1 && iBLfnct == 0) {
         continue;  //default case
       }
       ana->Default();
