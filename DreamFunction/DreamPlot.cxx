@@ -439,8 +439,13 @@ void DreamPlot::SetStyleHisto(TH1 *histo, int marker, int color, float alpha) {
   histo->GetYaxis()->SetLabelFont(43);
   histo->GetYaxis()->SetTitleFont(43);
   histo->SetMarkerStyle(marker);
-  histo->SetMarkerColorAlpha(color, alpha);
-  histo->SetLineColorAlpha(color, alpha);
+  if (alpha > 0) {
+    histo->SetMarkerColorAlpha(color, alpha);
+    histo->SetLineColorAlpha(color, alpha);
+  } else {
+    histo->SetMarkerColor(color);
+    histo->SetLineColor(color);
+  }
 }
 
 void DreamPlot::SetStyleHistoCF(TH1 *histo, int marker, int color, int labelsize) {
