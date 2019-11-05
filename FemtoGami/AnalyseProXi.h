@@ -10,6 +10,7 @@
 
 #include "TH1F.h"
 #include "TSystem.h"
+#include "TGraphErrors.h"
 #include "LambdaGami.h"
 #include "MomentumGami.h"
 #include "TFile.h"
@@ -23,8 +24,10 @@ class AnalyseProXi {
   TH1F* BaseLine(TH1F* dataCF);
   TH1F* XimSideband(LambdaGami* XiGami, TH1F* dataCF);
   TH1F* Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF);
-  void StoreModels(TH1F* unfoldedGenuine, TFile* QAOutput);
-  TH1F* GetVariation(int varnumber);
+  TGraphErrors* GetCoulomb(TH1F* unfoldedGenuine);
+  TGraphErrors* GetHalQCD(TH1F* unfoldedGenuine);
+  TGraphErrors* GetESC16(TH1F* unfoldedGenuine);
+  TH1F* GetVariation(int varnumber, bool getModels = false);
   void SetAnalysisFile(const char* Path, const char* Prefix) {
     fFilename = Path;
     fPrefix = Prefix;

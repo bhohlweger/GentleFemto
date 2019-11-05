@@ -53,7 +53,7 @@ AnalyseProXi::~AnalyseProXi() {
   // TODO Auto-generated destructor stub
 }
 
-TH1F* AnalyseProXi::GetVariation(int varnumber) {
+TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
 
   auto CATSinput = new CATSInput();
   CATSinput->SetNormalization(fNormMin[fNormVar], fNormMax[fNormVar]);
@@ -115,7 +115,11 @@ TH1F* AnalyseProXi::GetVariation(int varnumber) {
   fXiGami->AddStatErr(unfoldedGenuine);
   TH1F* outputHist = (TH1F*) unfoldedGenuine->Clone("outputhist");
   unfoldedGenuine->Write();
-
+  if (getModels) {
+    GetCoulomb(unfoldedGenuine);
+    GetHalQCD(unfoldedGenuine);
+    GetESC16(unfoldedGenuine);
+  }
   fQAOutput->Close();
 
   return outputHist;
@@ -213,7 +217,6 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   CkSmeared->Initialize();
   CkSmeared->SetBinContentAll(0);
   CkSmeared->SetBinErrorAll(0);
-
   tidy->Smear(ck, resp, CkSmeared);
 
   TH1F* pXim1530Converted = tidy->Convert2LesserOf2Evils(CkSmeared, dataCF);
@@ -300,10 +303,10 @@ double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
                                CATSLambdaParam::Primary);
 }
 
-void AnalyseProXi::StoreModels(TH1F* unfoldedGenuine, TFile* QAOutput) {
-  int nBins = unfoldedGenuine->FindBin(520);
-  double xmin = 0;
-  double xmax = 520;
+TGraphErrors* AnalyseProXi::GetCoulomb(TH1F* unfoldedGenuine) {
+  int nBins = 300;
+  double xmin = 0.5;
+  double xmax = 300.5;
   TidyCats* tidy = new TidyCats();
   TidyCats::Sources TheSource = TidyCats::sGaussian;
   float ppRadii[3];
@@ -311,41 +314,110 @@ void AnalyseProXi::StoreModels(TH1F* unfoldedGenuine, TFile* QAOutput) {
   ppRadii[1] = 0.79;
   ppRadii[2] = 0.82;
 
-  CATS Coulomb;
+  CATS CoulombUp;
+  CATS CoulombLow;
 
-  tidy->GetCatsProtonXiMinus(&Coulomb, nBins, xmin, xmax, TheSource,
+  tidy->GetCatsProtonXiMinus(&CoulombUp, nBins, xmin, xmax, TheSource,
                              TidyCats::pCoulomb, 0);
-  Coulomb.SetAnaSource(0, ppRadii[1]);
-  Coulomb.KillTheCat();
+  tidy->GetCatsProtonXiMinus(&CoulombLow, nBins, xmin, xmax, TheSource,
+                             TidyCats::pCoulomb, 0);
 
-  CATS HAL;
-  tidy->GetCatsProtonXiMinus(&HAL, nBins, xmin, xmax, TheSource,
-                             TidyCats::pHALQCD, 12);
-  HAL.SetAnaSource(0, ppRadii[1]);
-  HAL.KillTheCat();
+  CoulombUp.SetAnaSource(0, ppRadii[0]);
+  CoulombUp.KillTheCat();
 
-  CATS ESC16;
-  tidy->GetCatsProtonXiMinus(&ESC16, nBins, xmin, xmax, TheSource,
-                             TidyCats::pRikkenPot, 0);
-  ESC16.SetAnaSource(0, ppRadii[1]);
-  ESC16.KillTheCat();
+  CoulombLow.SetAnaSource(0, ppRadii[2]);
+  CoulombLow.KillTheCat();
 
-  TGraph* cou = new TGraph();
-  TGraph* hal = new TGraph();
-  TGraph* esc = new TGraph();
+  TGraphErrors* cou = new TGraphErrors();
+  cou->SetName("Coulomb");
+  for (auto it = 0; it < nBins ; ++it) {
+    double kStar = CoulombUp.GetMomentum(it);
+    double mean = 0.5 * (CoulombUp.GetCorrFun(it) + CoulombLow.GetCorrFun(it));
+    double Err = TMath::Abs(mean - CoulombUp.GetCorrFun(it));
 
-  for (auto it = 0; it < unfoldedGenuine->FindBin(xmax); ++it) {
-    double kStar = unfoldedGenuine->GetBinCenter(it + 1);
-    cou->SetPoint(it, kStar, Coulomb.GetCorrFun(it));
-    hal->SetPoint(it, kStar, HAL.GetCorrFun(it));
-    esc->SetPoint(it, kStar, ESC16.GetCorrFun(it));
+    cou->SetPoint(it, kStar, mean);
+    cou->SetPointError(it, 0, Err);
   }
-  QAOutput->cd();
-  cou->SetName("coulomb");
+  fQAOutput->cd();
   cou->Write();
-  hal->SetName("halqcd");
+  return cou;
+}
+
+TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
+  int nBins = 300;
+  double xmin = 0.5;
+  double xmax = 300.5;
+  TidyCats* tidy = new TidyCats();
+  TidyCats::Sources TheSource = TidyCats::sGaussian;
+  float ppRadii[3];
+  ppRadii[0] = 0.76;
+  ppRadii[1] = 0.79;
+  ppRadii[2] = 0.82;
+
+  CATS HalUp;
+  CATS HalLow;
+
+  tidy->GetCatsProtonXiMinus(&HalUp, nBins, xmin, xmax, TheSource,
+                             TidyCats::pHALQCD, 11);
+  tidy->GetCatsProtonXiMinus(&HalLow, nBins, xmin, xmax, TheSource,
+                             TidyCats::pHALQCD, 13);
+
+  HalUp.SetAnaSource(0, ppRadii[0]);
+  HalUp.KillTheCat();
+
+  HalLow.SetAnaSource(0, ppRadii[2]);
+  HalLow.KillTheCat();
+
+  TGraphErrors* hal = new TGraphErrors();
+  hal->SetName("HalQCD");
+  for (auto it = 0; it < nBins-10; ++it) {
+    double kStar = HalUp.GetMomentum(it);
+    double mean = 0.5 * (HalUp.GetCorrFun(it) + HalLow.GetCorrFun(it));
+    double Err = TMath::Abs(mean - HalUp.GetCorrFun(it));
+    hal->SetPoint(it, kStar, mean);
+    hal->SetPointError(it, 0, Err);
+  }
+  fQAOutput->cd();
   hal->Write();
-  esc->SetName("esc");
+  return hal;
+}
+
+TGraphErrors* AnalyseProXi::GetESC16(TH1F* unfoldedGenuine) {
+  int nBins = 300;
+  double xmin = 0.5;
+  double xmax = 300.5;
+  TidyCats* tidy = new TidyCats();
+  TidyCats::Sources TheSource = TidyCats::sGaussian;
+  float ppRadii[3];
+  ppRadii[0] = 0.76;
+  ppRadii[1] = 0.79;
+  ppRadii[2] = 0.82;
+
+  CATS ESCUp;
+  CATS ESCLow;
+
+  tidy->GetCatsProtonXiMinus(&ESCUp, nBins, xmin, xmax, TheSource,
+                             TidyCats::pRikkenPot, 0);
+  tidy->GetCatsProtonXiMinus(&ESCLow, nBins, xmin, xmax, TheSource,
+                             TidyCats::pRikkenPot, 0);
+
+  ESCUp.SetAnaSource(0, ppRadii[0]);
+  ESCUp.KillTheCat();
+
+  ESCLow.SetAnaSource(0, ppRadii[2]);
+  ESCLow.KillTheCat();
+
+  TGraphErrors* esc = new TGraphErrors();
+  esc->SetName("ESC");
+  for (auto it = 0; it < nBins; ++it) {
+    double kStar = ESCUp.GetMomentum(it);
+    double mean = 0.5 * (ESCUp.GetCorrFun(it) + ESCLow.GetCorrFun(it));
+    double Err = TMath::Abs(mean - ESCUp.GetCorrFun(it));
+
+    esc->SetPoint(it, kStar, mean);
+    esc->SetPointError(it, 0, Err);
+  }
+  fQAOutput->cd();
   esc->Write();
-  return;
+  return esc;
 }
