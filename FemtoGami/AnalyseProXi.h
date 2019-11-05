@@ -35,7 +35,7 @@ class AnalyseProXi {
   void Default() {
     fNormVar = 1;
     fSideNormVar = 1;
-    fBaselineVar = 1;
+    fBaselineVar = 0;
     fLamVarProton = 1;
     fLamVarOmega = 1;
     fLamVarXim1530 = 1;
