@@ -707,7 +707,7 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<T*>& histvec,
       c->Divide(2,3);
       break;
     case Pair::pXiLam:
-      c->Divide(5,3);
+      c->Divide(5,2);
       break;
     default:
       break;
@@ -751,7 +751,7 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<T*>& histvec,
     fHistDefault->SetMarkerSize(0.7);
     int iCount = 0;
     for (auto &it : fHistVar) {
-      DreamPlot::SetStyleHisto(it, 20 + iCount, ++iCount);
+      DreamPlot::SetStyleHisto(it, 20 + iCount, ++iCount, -1);
       it->Draw("same");
     }
     fHistDefault->Draw("same");
