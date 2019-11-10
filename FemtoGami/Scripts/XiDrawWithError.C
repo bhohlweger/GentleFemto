@@ -69,21 +69,20 @@ int main(int argc, char *argv[]) {
 
   TCanvas* c1;
   std::vector<const char*> LegNames;
-  LegNames.push_back("p-#Xi^{-} #oplus #bar{p}-#bar{#Xi}^{+}");
+  LegNames.push_back("p-#Xi^{-} #bf{ALICE} data");
   LegNames.push_back("Coulomb");
-  LegNames.push_back("Coulomb + HAL-QCD");
-  LegNames.push_back("Coulomb + ESC 16");
+  LegNames.push_back("HAL-QCD");
+  LegNames.push_back("ESC 16");
   std::vector<const char*> LegOptions;
   LegOptions.push_back("fpe");
-  LegOptions.push_back("fl");
-  LegOptions.push_back("fl");
-  LegOptions.push_back("fl");
+  LegOptions.push_back("f");
+  LegOptions.push_back("f");
+  LegOptions.push_back("f");
 
-  c1 = new TCanvas("c2", "c2", 0, 0, 500, 800);
+  c1 = new TCanvas("c2", "c2", 0, 0, 800, 600);
   TFile* out = TFile::Open(Form("out.root"), "recreate");
   TPad* pad;
   float LatexX = 0.;
-  c1 = new TCanvas(Form("c"), Form("c"), 0, 0, 650, 650);
   pad = (TPad*) c1->cd(0);
   pad->SetRightMargin(0.025);
   pad->SetTopMargin(0.025);
@@ -91,8 +90,9 @@ int main(int argc, char *argv[]) {
   pad->Draw();
   pad->cd();
   float fXmin = 0;
-  float fXmax = 230;
+  float fXmax = 300;
   float fTextXMin = 0.35;
+  float ymaxL = 0.81;
   DreamData *Data = new DreamData(Form("Data"));
   Data->SetMultiHisto(false);
   Data->SetUnitConversionData(1);
@@ -104,14 +104,11 @@ int main(int argc, char *argv[]) {
   Data->FemtoModelFitBands(coulomb, 12, 1, 3, -4000, true);
   Data->FemtoModelFitBands(hal, 10, 10, 0, -4000, true);
   Data->FemtoModelFitBands(esc, 11, 8, 0, -4000, true);
-//  Data->FemtoModelFitBands(hal, 10, 10, 0, 3252, true);
-//  Data->FemtoModelFitBands(esc, 11, 8, 0, 3225, true);
   Data->SetRangePlotting(fXmin, fXmax, 0.6, cf_default->GetMaximum() * 1.5);  //ranges
-  Data->SetNDivisions(505);
+  Data->SetNDivisions(803);
 
   float legXmin = fTextXMin - 0.02;
-  Data->SetLegendCoordinates(legXmin, 0.675 - 0.09 * Data->GetNumberOfModels(),
-                             legXmin + 0.4, 0.75);
+  Data->SetLegendCoordinates(0.45,  0.6,  0.8, ymaxL+0.03);
   Data->DrawCorrelationPlot(pad);
   pad->cd();
   TLatex BeamText;
