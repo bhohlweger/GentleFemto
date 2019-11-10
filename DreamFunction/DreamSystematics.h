@@ -22,9 +22,9 @@ class DreamSystematics {
     pSigma0 = 1,       ///< Proton-Sigma0 correlation function
     pXi = 2,
     pL = 3,
-    pAp = 4,///< Proton-AntiProton correlation function
-    pAL = 5,///< Proton-AntiLambda correlation function
-    LAL = 6,///< Lambda-AntiLambda correlation function
+    pAp = 4,       ///< Proton-AntiProton correlation function
+    pAL = 5,       ///< Proton-AntiLambda correlation function
+    LAL = 6,       ///< Lambda-AntiLambda correlation function
     pXiNorm = 7,
     pXiLam = 8
   };
@@ -48,7 +48,7 @@ class DreamSystematics {
 
   void SetDefaultHist(TH1F* histDef) {
     if (!histDef) {
-      Warning("SetDefaultHist","No Histogram exists, nothing set \n");
+      Warning("SetDefaultHist", "No Histogram exists, nothing set \n");
     } else {
       fHistDefault = histDef;
       // printf("name of hist def fHistDefault = %s\n", fHistDefault->GetName());
@@ -56,7 +56,7 @@ class DreamSystematics {
   }
   void SetVarHist(TH1F* histVar) {
     if (!histVar) {
-      Warning("SetDefaultHist","No Histogram exists, nothing set \n");
+      Warning("SetDefaultHist", "No Histogram exists, nothing set \n");
     } else {
       fHistVar.emplace_back(histVar);
     }
@@ -193,7 +193,8 @@ class DreamSystematics {
 
   const std::vector<int> vars = { { ppVariations, pSigma0Variations,
       pXiVariations, pLVariations } };
-  const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi", "pL", "pAp", "pAL","LAL", "pXi", "pXi" } };
+  const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi", "pL", "pAp",
+      "pAL", "LAL", "pXiNorm", "pXiLam" } };
 };
 
 inline
