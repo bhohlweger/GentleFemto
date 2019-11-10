@@ -30,8 +30,8 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
       fLamVarOmega(1),
       fLamVarXim1530(1),
       fRadVarXim1530(1) {
-  fNormMin = {0.500,0.500,0.600};
-  fNormMax = {0.800,0.700,0.800};
+  fNormMin = {1000, 500, 500, 500, 600, 600, 600, 700, 700, 800};
+  fNormMax = {1000, 900, 800, 700, 1000, 900, 800, 1000, 900, 1000};
   fSidebandNormMin = {450,400,500};
   fSidebandNormMax = {650,600,700};
   fBLfunct = {"pol0","pol1"};
@@ -56,7 +56,7 @@ AnalyseProXi::~AnalyseProXi() {
 TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
 
   auto CATSinput = new CATSInput();
-  CATSinput->SetNormalization(fNormMin[fNormVar], fNormMax[fNormVar]);
+  CATSinput->SetNormalization(0.4, 0.6);
   CATSinput->SetFixedkStarMinBin(true, 0.);
   const int rebin = 5;
 
@@ -130,7 +130,7 @@ TH1F* AnalyseProXi::BaseLine(TH1F* dataCF) {
   TH1F* BaseLineFree = (TH1F*) dataCF->Clone(bslName.Data());
   TF1* funct_1 = new TF1("myBaseline", fBLfunct[fBaselineVar].Data(), 0,
                          fcutOff);
-  dataCF->Fit(funct_1, "SN", "", 400, 900);
+  dataCF->Fit(funct_1, "SNR", "", fNormMin[fNormVar], fNormMax[fNormVar]);
   BaseLineFree->Divide(funct_1);
   fQAOutput->cd();
   funct_1->Write();
@@ -330,7 +330,7 @@ TGraphErrors* AnalyseProXi::GetCoulomb(TH1F* unfoldedGenuine) {
 
   TGraphErrors* cou = new TGraphErrors();
   cou->SetName("Coulomb");
-  for (auto it = 0; it < nBins ; ++it) {
+  for (auto it = 0; it < nBins; ++it) {
     double kStar = CoulombUp.GetMomentum(it);
     double mean = 0.5 * (CoulombUp.GetCorrFun(it) + CoulombLow.GetCorrFun(it));
     double Err = TMath::Abs(mean - CoulombUp.GetCorrFun(it));
@@ -370,7 +370,7 @@ TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
 
   TGraphErrors* hal = new TGraphErrors();
   hal->SetName("HalQCD");
-  for (auto it = 0; it < nBins-10; ++it) {
+  for (auto it = 0; it < nBins - 10; ++it) {
     double kStar = HalUp.GetMomentum(it);
     double mean = 0.5 * (HalUp.GetCorrFun(it) + HalLow.GetCorrFun(it));
     double Err = TMath::Abs(mean - HalUp.GetCorrFun(it));
