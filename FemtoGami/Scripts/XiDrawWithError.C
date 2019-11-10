@@ -13,9 +13,9 @@ int main(int argc, char *argv[]) {
   TString cfName = TString::Format("%s/debug_Var0.root", WorkDir).Data();
   TString sysDataName =
       TString::Format("%s/Systematics_pXi.root", WorkDir).Data();
-  TString sysNormName = TString::Format("%s/SystematicsNorm_pXi.root", WorkDir)
+  TString sysNormName = TString::Format("%s/Systematics_pXiNorm.root", WorkDir)
       .Data();
-  TString sysLamName = TString::Format("%s/SystematicsFeedDown_pXi.root",
+  TString sysLamName = TString::Format("%s/Systematics_pXiLam.root",
                                        WorkDir).Data();
 
   TFile* cfFile = TFile::Open(cfName, "read");

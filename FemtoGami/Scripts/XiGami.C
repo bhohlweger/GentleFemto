@@ -19,23 +19,23 @@ int main(int argc, char *argv[]) {
   const char* prefix = argv[2];
   AnalyseProXi* ana = new AnalyseProXi(cutOff, 0.5);
   DreamSystematics protonNorm(DreamSystematics::pXiNorm);
-  protonNorm.SetUpperFitRange(300);
+  protonNorm.SetUpperFitRange(1000);
   protonNorm.SetBarlowUpperRange(400);
 
   DreamSystematics protonFeeddown(DreamSystematics::pXiLam);
-  protonFeeddown.SetUpperFitRange(300);
+  protonFeeddown.SetUpperFitRange(1000);
   protonFeeddown.SetBarlowUpperRange(400);
 
   ana->SetAnalysisFile(fileName, prefix);
   ana->Default();
-  TH1F* DefVar = ana->GetVariation(10000, false);
+  TH1F* DefVar = ana->GetVariation(0, true);
   protonNorm.SetDefaultHist((TH1F*) DefVar->Clone("defVarNorm"));
   protonFeeddown.SetDefaultHist((TH1F*) DefVar->Clone("defVarFeedDown"));
   //create dream sys object, set default for norm/bl vars
   int varCounter = 1;
-  for (int iNorm = 0; iNorm < 3; ++iNorm) {
+  for (int iNorm = 0; iNorm < 10; ++iNorm) {
     for (int iBLfnct = 0; iBLfnct < 2; ++iBLfnct) {
-      if (iNorm == 1 && iBLfnct == 0) {
+      if (iNorm == 2 && iBLfnct == 0) {
         continue;  //default case
       }
       ana->Default();
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     }
   }
   protonNorm.EvalSystematics();
-  protonNorm.WriteOutput("Norm");
+  protonNorm.WriteOutput("");
 
   //create dream sys object, set default for lam/sideband/pxi rad vars
   for (int iSBNorm = 0; iSBNorm < 3; ++iSBNorm) {
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
     protonFeeddown.SetVarHist(Var);
   }
   protonFeeddown.EvalSystematics();
-  protonFeeddown.WriteOutput("FeedDown");
+  protonFeeddown.WriteOutput("");
 
   return 0;
 }
