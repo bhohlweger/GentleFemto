@@ -19,11 +19,11 @@ int main(int argc, char *argv[]) {
   const char* prefix = argv[2];
   AnalyseProXi* ana = new AnalyseProXi(cutOff, 0.5);
   DreamSystematics protonNorm(DreamSystematics::pXiNorm);
-  protonNorm.SetUpperFitRange(1000);
+  protonNorm.SetUpperFitRange(800);
   protonNorm.SetBarlowUpperRange(400);
 
   DreamSystematics protonFeeddown(DreamSystematics::pXiLam);
-  protonFeeddown.SetUpperFitRange(1000);
+  protonFeeddown.SetUpperFitRange(800);
   protonFeeddown.SetBarlowUpperRange(400);
 
   ana->SetAnalysisFile(fileName, prefix);
