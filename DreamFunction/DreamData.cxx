@@ -275,8 +275,8 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
     TGraph *grFakeModel = new TGraph();
     grFakeModel->SetLineColor(useDefaultColors ? fColors[color] : color);
     grFakeModel->SetFillColor(useDefaultColors ? fColors[color] : color);
-    grFakeModel->SetLineWidth(lineWidth * 1.8);
-    grFakeModel->SetLineStyle(lineStyle);
+//    grFakeModel->SetLineWidth(lineWidth * 1.8);
+//    grFakeModel->SetLineStyle(lineStyle);
     if (fillStyle > 0) {
       grFakeModel->SetFillStyle(fillStyle);
     }
