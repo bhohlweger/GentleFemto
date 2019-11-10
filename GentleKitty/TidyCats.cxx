@@ -15,30 +15,28 @@
 #include "TFile.h"
 #include "TGraph.h"
 #include "TH2F.h"
+#include "TNtuple.h"
 #include "TError.h"
+#include "TRandom.h"
 
 static double DegToRad = 0.01745;
 
 TidyCats::TidyCats()
-    : fppCleverLevy(nullptr),
+    : fHomeDir(),
+      fkStarCutOff(200.),
       fppCleverMcLevy(nullptr),
-      fpLCleverLevy(nullptr),
       fpLCleverMcLevy(nullptr),
       fpXimCleverLevy(nullptr),
       fpXimCleverMcLevy(nullptr),
       fpXim1530CleverLevy(nullptr),
       fpSigma0CleverMcLevy(nullptr) {
+  gRandom->SetSeed(0);
+  fHomeDir = gSystem->GetHomeDirectory().c_str();
 }
 
 TidyCats::~TidyCats() {
-  if (fppCleverLevy) {
-    delete fppCleverLevy;
-  }
   if (fppCleverMcLevy) {
     delete fppCleverMcLevy;
-  }
-  if (fpLCleverLevy) {
-    delete fpLCleverLevy;
   }
   if (fpLCleverMcLevy) {
     delete fpLCleverMcLevy;
@@ -91,52 +89,96 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
   const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
   double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
-  double Pars_pp[6] = { 1.4, 1.65, 0.3578, 1361.52, massProton, massPion };
   CATSparameters* cPars;
 
-  switch (source) {
-    case TidyCats::sGaussian:
-      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
-      cPars->SetParameter(0, 1.2);
-      AB_pp->SetAnaSource(GaussSource, *cPars);
-      break;
-    case TidyCats::sResonance:
-      fppCleverMcLevy = new DLM_CleverMcLevyReso();
-      fppCleverMcLevy->InitNumMcIter(1000000);
-      fppCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fppCleverMcLevy->InitScale(100, 0.2, 2.6);
-      fppCleverMcLevy->InitRad(512, 0, 64);
-      fppCleverMcLevy->InitType(2);
-      fppCleverMcLevy->InitReso(0, 1);  //number of p resonances
-      fppCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
-      AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
-      AB_pp->SetAnaSource(0, 1.2);
-      AB_pp->SetAnaSource(1, 2.0);
-      break;
-    case TidyCats::sLevy:
-      fppCleverMcLevy = new DLM_CleverMcLevyReso();
-      fppCleverMcLevy->InitNumMcIter(1000000);
-      fppCleverMcLevy->InitStability(20, 1, 2);
-      fppCleverMcLevy->InitScale(100, 0.2, 2.6);
-      fppCleverMcLevy->InitRad(512, 0, 64);
-      fppCleverMcLevy->InitType(2);
-      fppCleverMcLevy->InitReso(0, 1);  //number of p resonances
-      fppCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
-      fppCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-                                 massPion);
-      fppCleverMcLevy->SetUpReso(1, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-                                 massPion);
-      //Nolan Parameterization.
-      AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
-      AB_pp->SetAnaSource(0, 1.2);  //r0
-      AB_pp->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
-      break;
-    default:
-      std::cout << "Source not implemented \n";
-      break;
+  if (source == TidyCats::sGaussian) {
+    cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+    cPars->SetParameter(0, 1.2);
+    AB_pp->SetAnaSource(GaussSource, *cPars);
+  } else if (source == TidyCats::sResonance) {
+    fppCleverMcLevy = new DLM_CleverMcLevyResoTM();
+    fppCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+    fppCleverMcLevy->InitScale(38, 0.15, 2.0);
+    fppCleverMcLevy->InitRad(257, 0, 64);
+    fppCleverMcLevy->InitType(2);
+
+    fppCleverMcLevy->SetUpReso(0, 0.6422);
+    fppCleverMcLevy->SetUpReso(1, 0.6422);
+
+    double RanVal1;
+    double RanVal2;
+
+    Float_t k_D;
+    Float_t fP1;
+    Float_t fP2;
+    Float_t fM1;
+    Float_t fM2;
+    Float_t Tau1;
+    Float_t Tau2;
+    Float_t AngleRcP1;
+    Float_t AngleRcP2;
+    Float_t AngleP1P2;
+
+    TFile* F_EposDisto_p_pReso = new TFile(TString::Format("%s/EposDisto_p_pReso.root", fHomeDir.Data()).Data());
+    TNtuple* T_EposDisto_p_pReso = (TNtuple*) F_EposDisto_p_pReso->Get(
+        "InfoTuple_ClosePairs");
+    unsigned N_EposDisto_p_pReso = T_EposDisto_p_pReso->GetEntries();
+    T_EposDisto_p_pReso->SetBranchAddress("k_D", &k_D);
+    T_EposDisto_p_pReso->SetBranchAddress("P1", &fP1);
+    T_EposDisto_p_pReso->SetBranchAddress("P2", &fP2);
+    T_EposDisto_p_pReso->SetBranchAddress("M1", &fM1);
+    T_EposDisto_p_pReso->SetBranchAddress("M2", &fM2);
+    T_EposDisto_p_pReso->SetBranchAddress("Tau1", &Tau1);
+    T_EposDisto_p_pReso->SetBranchAddress("Tau2", &Tau2);
+    T_EposDisto_p_pReso->SetBranchAddress("AngleRcP1", &AngleRcP1);
+    T_EposDisto_p_pReso->SetBranchAddress("AngleRcP2", &AngleRcP2);
+    T_EposDisto_p_pReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
+    for (unsigned uEntry = 0; uEntry < N_EposDisto_p_pReso; uEntry++) {
+      T_EposDisto_p_pReso->GetEntry(uEntry);
+      Tau1 = 0;
+      Tau2 = 1.65;
+      if (k_D > fkStarCutOff)
+        continue;
+      RanVal1 = gRandom->Exp(fM2 / (fP2 * Tau2));
+      fppCleverMcLevy->AddBGT_PR(RanVal1, -cos(AngleRcP2));
+      fppCleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP2));
+    }
+    delete F_EposDisto_p_pReso;
+
+    TFile* F_EposDisto_pReso_pReso = new TFile(TString::Format("%s/EposDisto_pReso_pReso.root", fHomeDir.Data()).Data());
+    TNtuple* T_EposDisto_pReso_pReso = (TNtuple*) F_EposDisto_pReso_pReso->Get(
+        "InfoTuple_ClosePairs");
+    unsigned N_EposDisto_pReso_pReso = T_EposDisto_pReso_pReso->GetEntries();
+    T_EposDisto_pReso_pReso->SetBranchAddress("k_D", &k_D);
+    T_EposDisto_pReso_pReso->SetBranchAddress("P1", &fP1);
+    T_EposDisto_pReso_pReso->SetBranchAddress("P2", &fP2);
+    T_EposDisto_pReso_pReso->SetBranchAddress("M1", &fM1);
+    T_EposDisto_pReso_pReso->SetBranchAddress("M2", &fM2);
+    T_EposDisto_pReso_pReso->SetBranchAddress("Tau1", &Tau1);
+    T_EposDisto_pReso_pReso->SetBranchAddress("Tau2", &Tau2);
+    T_EposDisto_pReso_pReso->SetBranchAddress("AngleRcP1", &AngleRcP1);
+    T_EposDisto_pReso_pReso->SetBranchAddress("AngleRcP2", &AngleRcP2);
+    T_EposDisto_pReso_pReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
+    for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_pReso; uEntry++) {
+      T_EposDisto_pReso_pReso->GetEntry(uEntry);
+      Tau1 = 1.65;
+      Tau2 = 1.65;
+      if (k_D > fkStarCutOff)
+        continue;
+      RanVal1 = gRandom->Exp(fM1 / (fP1 * Tau1));
+      RanVal2 = gRandom->Exp(fM2 / (fP2 * Tau2));
+      fppCleverMcLevy->AddBGT_RR(RanVal1, cos(AngleRcP1), RanVal2,
+                                 cos(AngleRcP2), cos(AngleP1P2));
+    }
+    delete F_EposDisto_pReso_pReso;
+
+    fppCleverMcLevy->InitNumMcIter(262144);
+    AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
+    AB_pp->SetAnaSource(0, 1.2);
+    AB_pp->SetAnaSource(1, 2.0);
+  } else {
+    std::cout << "Source not implemented \n";
   }
-  // AB_pp->SetEpsilonConv(1e-7);
-  // AB_pp->SetEpsilonProp(1e-7);
   AB_pp->SetUseAnalyticSource(true);
   AB_pp->SetMomentumDependentSource(false);
   AB_pp->SetThetaDependentSource(false);
@@ -176,54 +218,115 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
   const double massLambda = TDatabasePDG::Instance()->GetParticle(3122)->Mass()
       * 1000;
   double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
-  double Pars_pL[11] = { 1.4, 1.65, 0.3578, 1361.52, massProton, massPion, 4.69,
-      0.3562, 1462.93, massLambda, massPion };
   CATSparameters* cPars;
-  switch (source) {
-    case TidyCats::sGaussian:
-      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
-      cPars->SetParameter(0, 1.2);
-      AB_pL->SetAnaSource(GaussSource, *cPars);
-      break;
-    case TidyCats::sResonance:
-      fpLCleverMcLevy = new DLM_CleverMcLevyReso();
-      fpLCleverMcLevy->InitNumMcIter(1000000);
-      fpLCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fpLCleverMcLevy->InitScale(100, 0.2, 2.6);
-      fpLCleverMcLevy->InitRad(512, 0, 64);
-      fpLCleverMcLevy->InitType(2);
-      fpLCleverMcLevy->InitReso(0, 1);  //number of p resonances
-      fpLCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
-      // fpLCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-      //                            massPion);
-      // fpLCleverMcLevy->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
-      //                            massPion);
-      AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverMcLevy, 2);
-      AB_pL->SetAnaSource(0, 1.2);
-      AB_pL->SetAnaSource(1, 2.0);
-      break;
-    case TidyCats::sLevy:
-      fpLCleverLevy = new DLM_CleverLevy();
-      fpLCleverMcLevy = new DLM_CleverMcLevyReso();
-      fpLCleverMcLevy->InitNumMcIter(1000000);
-      fpLCleverMcLevy->InitStability(20, 1, 2);
-      fpLCleverMcLevy->InitScale(100, 0.1, 2.6);
-      fpLCleverMcLevy->InitRad(512, 0, 64);
-      fpLCleverMcLevy->InitType(2);
-      fpLCleverMcLevy->InitReso(0, 1);  //number of p resonances
-      fpLCleverMcLevy->InitReso(1, 1);  //number of Xi resonances
-      fpLCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, massProton,
-                                 massPion);
-      fpLCleverMcLevy->SetUpReso(1, 0, 1. - 0.3562, 1462.93, 4.69, massLambda,
-                                 massPion);
-      //Nolan Parameterization.
-      AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverMcLevy, 2);
-      AB_pL->SetAnaSource(0, 1.2);  //r0
-      AB_pL->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
-      break;
-    default:
-      std::cout << "Source not implemented \n";
-      break;
+  if (source == TidyCats::sGaussian) {
+    cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+    cPars->SetParameter(0, 1.2);
+    AB_pL->SetAnaSource(GaussSource, *cPars);
+  } else if (source == TidyCats::sResonance) {
+    fpLCleverMcLevy = new DLM_CleverMcLevyResoTM();
+
+    fpLCleverMcLevy->SetUpReso(0, 0.6422);
+    fpLCleverMcLevy->SetUpReso(1, 0.6438);
+
+    double RanVal1;
+    double RanVal2;
+
+    Float_t k_D;
+    Float_t fP1;
+    Float_t fP2;
+    Float_t fM1;
+    Float_t fM2;
+    Float_t Tau1;
+    Float_t Tau2;
+    Float_t AngleRcP1;
+    Float_t AngleRcP2;
+    Float_t AngleP1P2;
+
+    TFile* F_EposDisto_p_LamReso = new TFile(
+        TString::Format("%s/EposDisto_p_LamReso.root", fHomeDir.Data()).Data());
+    TNtuple* T_EposDisto_p_LamReso = (TNtuple*) F_EposDisto_p_LamReso->Get(
+        "InfoTuple_ClosePairs");
+    unsigned N_EposDisto_p_LamReso = T_EposDisto_p_LamReso->GetEntries();
+    T_EposDisto_p_LamReso->SetBranchAddress("k_D", &k_D);
+    T_EposDisto_p_LamReso->SetBranchAddress("P1", &fP1);
+    T_EposDisto_p_LamReso->SetBranchAddress("P2", &fP2);
+    T_EposDisto_p_LamReso->SetBranchAddress("M1", &fM1);
+    T_EposDisto_p_LamReso->SetBranchAddress("M2", &fM2);
+    T_EposDisto_p_LamReso->SetBranchAddress("Tau1", &Tau1);
+    T_EposDisto_p_LamReso->SetBranchAddress("Tau2", &Tau2);
+    T_EposDisto_p_LamReso->SetBranchAddress("AngleRcP1", &AngleRcP1);
+    T_EposDisto_p_LamReso->SetBranchAddress("AngleRcP2", &AngleRcP2);
+    T_EposDisto_p_LamReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
+    for (unsigned uEntry = 0; uEntry < N_EposDisto_p_LamReso; uEntry++) {
+      T_EposDisto_p_LamReso->GetEntry(uEntry);
+      Tau1 = 0;
+      Tau2 = 4.69;
+      if (k_D > fkStarCutOff)
+        continue;
+      RanVal2 = gRandom->Exp(fM2 / (fP2 * Tau2));
+      fpLCleverMcLevy->AddBGT_PR(RanVal2, cos(AngleRcP2));
+    }
+    delete F_EposDisto_p_LamReso;
+
+    TFile* F_EposDisto_pReso_Lam = new TFile(
+        TString::Format("%s/EposDisto_pReso_Lam.root", fHomeDir.Data()).Data());
+    TNtuple* T_EposDisto_pReso_Lam = (TNtuple*) F_EposDisto_pReso_Lam->Get(
+        "InfoTuple_ClosePairs");
+    unsigned N_EposDisto_pReso_Lam = T_EposDisto_pReso_Lam->GetEntries();
+    T_EposDisto_pReso_Lam->SetBranchAddress("k_D", &k_D);
+    T_EposDisto_pReso_Lam->SetBranchAddress("P1", &fP1);
+    T_EposDisto_pReso_Lam->SetBranchAddress("P2", &fP2);
+    T_EposDisto_pReso_Lam->SetBranchAddress("M1", &fM1);
+    T_EposDisto_pReso_Lam->SetBranchAddress("M2", &fM2);
+    T_EposDisto_pReso_Lam->SetBranchAddress("Tau1", &Tau1);
+    T_EposDisto_pReso_Lam->SetBranchAddress("Tau2", &Tau2);
+    T_EposDisto_pReso_Lam->SetBranchAddress("AngleRcP1", &AngleRcP1);
+    T_EposDisto_pReso_Lam->SetBranchAddress("AngleRcP2", &AngleRcP2);
+    T_EposDisto_pReso_Lam->SetBranchAddress("AngleP1P2", &AngleP1P2);
+    for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_Lam; uEntry++) {
+      T_EposDisto_pReso_Lam->GetEntry(uEntry);
+      Tau1 = 1.65;
+      Tau2 = 0;
+      if (k_D > fkStarCutOff)
+        continue;
+      RanVal1 = gRandom->Exp(fM1 / (fP1 * Tau1));
+      fpLCleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP1));
+    }
+    delete F_EposDisto_pReso_Lam;
+
+    TFile* F_EposDisto_pReso_LamReso = new TFile(
+        TString::Format("%s/EposDisto_pReso_LamReso.root", fHomeDir.Data()).Data());
+    TNtuple* T_EposDisto_pReso_LamReso = (TNtuple*) F_EposDisto_pReso_LamReso
+        ->Get("InfoTuple_ClosePairs");
+    unsigned N_EposDisto_pReso_LamReso =
+        T_EposDisto_pReso_LamReso->GetEntries();
+    T_EposDisto_pReso_LamReso->SetBranchAddress("k_D", &k_D);
+    T_EposDisto_pReso_LamReso->SetBranchAddress("P1", &fP1);
+    T_EposDisto_pReso_LamReso->SetBranchAddress("P2", &fP2);
+    T_EposDisto_pReso_LamReso->SetBranchAddress("M1", &fM1);
+    T_EposDisto_pReso_LamReso->SetBranchAddress("M2", &fM2);
+    T_EposDisto_pReso_LamReso->SetBranchAddress("Tau1", &Tau1);
+    T_EposDisto_pReso_LamReso->SetBranchAddress("Tau2", &Tau2);
+    T_EposDisto_pReso_LamReso->SetBranchAddress("AngleRcP1", &AngleRcP1);
+    T_EposDisto_pReso_LamReso->SetBranchAddress("AngleRcP2", &AngleRcP2);
+    T_EposDisto_pReso_LamReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
+    for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_LamReso; uEntry++) {
+      T_EposDisto_pReso_LamReso->GetEntry(uEntry);
+      Tau1 = 1.65;
+      Tau2 = 4.69;
+      if (k_D > fkStarCutOff)
+        continue;
+      RanVal1 = gRandom->Exp(fM1 / (fP1 * Tau1));
+      RanVal2 = gRandom->Exp(fM2 / (fP2 * Tau2));
+      fpLCleverMcLevy->AddBGT_RR(RanVal1, cos(AngleRcP1), RanVal2,
+                                 cos(AngleRcP2), cos(AngleP1P2));
+    }
+    delete F_EposDisto_pReso_LamReso;
+    fpLCleverMcLevy->InitNumMcIter(262144);
+    AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverMcLevy, 2);
+  } else {
+    std::cout << "Source not implemented \n";
   }
   AB_pL->SetUseAnalyticSource(true);
   AB_pL->SetMomentumDependentSource(false);
@@ -279,33 +382,6 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     std::cout << "potential " << pot << "not implemented \n";
   }
   return;
-
-//  if (pot == "LO") {
-//    ExternalWF =
-//        Init_pL_Haidenbauer(
-//            "/home/dmihaylov/Dudek_Ubuntu/Work/Kclus/GeneralFemtoStuff/CorrelationFiles_2018/Haidenbauer/pLambdaLO_600/",
-//            Kitty, 0, 600);
-//    NumChannels = 2;
-//  } else if (pot == "LO_Coupled_S") {
-//    ExternalWF =
-//        Init_pL_Haidenbauer(
-//            "/home/dmihaylov/Dudek_Ubuntu/Work/Kclus/GeneralFemtoStuff/CorrelationFiles_2018/Haidenbauer/pLambdaLO_Coupling/",
-//            Kitty, 1, 600);
-//    NumChannels = 4;
-//  } else if (pot == "NLO") {
-//    ExternalWF =
-//        Init_pL_Haidenbauer(
-//            "/home/dmihaylov/Dudek_Ubuntu/Work/Kclus/GeneralFemtoStuff/CorrelationFiles_2018/Haidenbauer/pLambdaNLO/",
-//            Kitty, 10, 600);
-//    NumChannels = 2;
-//  } else if (pot == "NLO_Coupled_S") {
-//    ExternalWF =
-//        Init_pL_Haidenbauer(
-//            "/home/dmihaylov/Dudek_Ubuntu/Work/Kclus/GeneralFemtoStuff/CorrelationFiles_2018/Haidenbauer/pLambdaNLO_Coupling/",
-//            Kitty, 11, 600);
-//    NumChannels = 4;
-//  }
-
 }
 
 void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,

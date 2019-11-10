@@ -44,12 +44,12 @@ class TidyCats {
   virtual ~TidyCats();
   void GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin, double kMax,
                            TidyCats::Sources source);
-  DLM_CleverMcLevyReso* GetSourceProtonProton() {
+  DLM_CleverMcLevyResoTM* GetSourceProtonProton() {
     return fppCleverMcLevy;
   }
   void GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin, double kMax,
                            TidyCats::Sources source, TidyCats::pLPot pot);
-  DLM_CleverMcLevyReso* GetSourceProtonLambda() {
+  DLM_CleverMcLevyResoTM* GetSourceProtonLambda() {
     return fpLCleverMcLevy;
   }
   void GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
@@ -75,10 +75,10 @@ class TidyCats {
   DLM_Histo<double>* Convert2LargerOf2Evils(TH1F* CkInput);
   TH1F* Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim);
  private:
-  DLM_CleverLevy* fppCleverLevy;
-  DLM_CleverMcLevyReso* fppCleverMcLevy;
-  DLM_CleverLevy* fpLCleverLevy;
-  DLM_CleverMcLevyReso* fpLCleverMcLevy;
+  TString fHomeDir;
+  const double fkStarCutOff;
+  DLM_CleverMcLevyResoTM* fppCleverMcLevy;
+  DLM_CleverMcLevyResoTM* fpLCleverMcLevy;
   DLM_CleverLevy* fpXimCleverLevy;
   DLM_CleverMcLevyReso* fpXimCleverMcLevy;
   DLM_CleverLevy* fpXim1530CleverLevy;
