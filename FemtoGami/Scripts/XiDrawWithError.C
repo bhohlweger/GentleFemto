@@ -26,6 +26,7 @@ int main(int argc, char *argv[]) {
     cfFile->ls();
     return 0;
   }
+  cf_default->SetName("DefaultMeV");
   TGraphErrors* coulomb = (TGraphErrors*) cfFile->FindObjectAny("Coulomb");
   TGraphErrors* hal = (TGraphErrors*) cfFile->FindObjectAny("HalQCD");
   TGraphErrors* esc = (TGraphErrors*) cfFile->FindObjectAny("ESC");
@@ -78,15 +79,28 @@ int main(int argc, char *argv[]) {
   LegOptions.push_back("f");
   LegOptions.push_back("f");
   LegOptions.push_back("f");
+  float xmin = 0.;
+  float xmax = 300.;
+  float ymin = 0.6;
+  float ymax = 10.2;
 
   c1 = new TCanvas("c2", "c2", 0, 0, 800, 600);
+  TH1 * h = c1->DrawFrame(0,0.6,300,4.5);
+  const char *  texPtY="#it{C}(#it{k}*)";
+  const char *  texPtX="#it{k}* (MeV/#it{c})";
+  h->SetXTitle(texPtX);
+  h->SetYTitle(texPtY);
+  h->GetXaxis()->SetTitleOffset(1.1);
+  h->GetYaxis()->SetTitleOffset(1.);
+  h->GetXaxis()->SetNdivisions(803);
   TFile* out = TFile::Open(Form("out.root"), "recreate");
   TPad* pad;
   float LatexX = 0.;
   pad = (TPad*) c1->cd(0);
-  pad->SetRightMargin(0.025);
-  pad->SetTopMargin(0.025);
-  pad->SetBottomMargin(0.12);
+  pad->SetRightMargin(0.1);
+  pad->SetLeftMargin(0.1);
+  pad->SetTopMargin(0.1);
+  pad->SetBottomMargin(0.1);
   pad->Draw();
   pad->cd();
   float fXmin = 0;
@@ -100,27 +114,17 @@ int main(int argc, char *argv[]) {
   Data->SetCorrelationFunction(cf_default);
   Data->SetSystematics(SystError, 2);
   Data->SetLegendName(LegNames, LegOptions);
-  Data->SetDrawAxis(true);
-  Data->FemtoModelFitBands(coulomb, 12, 1, 3, -4000, true);
-  Data->FemtoModelFitBands(hal, 10, 10, 0, -4000, true);
-  Data->FemtoModelFitBands(esc, 11, 8, 0, -4000, true);
+  Data->SetDrawAxis(false);
+  Data->FemtoModelFitBands(coulomb, kGreen+1, 1,  3, -4000, true, false);
+  Data->FemtoModelFitBands(hal,     kOrange+1, 10, 0, -4000, true, false);
+  Data->FemtoModelFitBands(esc,     11, 8,  0, -4000, true);
   Data->SetRangePlotting(fXmin, fXmax, 0.6, cf_default->GetMaximum() * 1.5);  //ranges
-  Data->SetNDivisions(803);
+  Data->SetNDivisions(505);
 
   float legXmin = fTextXMin - 0.02;
   Data->SetLegendCoordinates(0.45,  0.6,  0.8, ymaxL+0.03);
   Data->DrawCorrelationPlot(pad);
   pad->cd();
-  TLatex BeamText;
-  BeamText.SetTextSize(gStyle->GetTextSize() * .85);
-  BeamText.SetNDC(kTRUE);
-  BeamText.DrawLatex(fTextXMin, 0.91,
-                     Form("ALICE %s #sqrt{#it{s}} = %i TeV", "pp", (int) 13));
-  BeamText.DrawLatex(fTextXMin, 0.85, "High-mult.");
-  BeamText.DrawLatex(
-      fTextXMin,
-      0.79,
-      "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
   out->cd();
   c1->Write();
   c1->SaveAs(Form("WithSys.pdf"));
