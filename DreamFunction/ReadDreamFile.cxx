@@ -60,20 +60,27 @@ ReadDreamFile::~ReadDreamFile() {
   }
 }
 
-void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
-                                    const char* Prefix, const char* Addon) {
-  TFile* _file0 = TFile::Open(PathAnalysisFile, "READ");
+void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFileF,
+                                    const char* PrefixF, const char* AddonF) {
+  const TString PathAnalysisFile =  PathAnalysisFileF;
+  const TString Prefix =  PrefixF;
+  const TString Addon =  AddonF;
 
+  TFile* _file0 = TFile::Open(PathAnalysisFile.Data(), "READ");
   TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
-      Form("%sResults%s", Prefix, Addon)));
+      TString::Format("%sResults%s", Prefix.Data(), Addon.Data()).Data()));
   if (!dirResults) {
-    std::cout << "no dir results " << Form("%sResults%s", Prefix, Addon)
+    std::cout << "no dir results "
+              << TString::Format("%sResults%s", Prefix.Data(), Addon.Data()).Data()
               << std::endl;
   }
   TList *Results = nullptr;
-  dirResults->GetObject(Form("%sResults%s", Prefix, Addon), Results);
+  dirResults->GetObject(TString::Format("%sResults%s", Prefix.Data(), Addon.Data()).Data(),
+                        Results);
   if (!Results) {
-    std::cout << "No results List for " << Form("%sResults%s", Prefix, Addon) << std::endl;
+    std::cout << "No results List for "
+              << TString::Format("%sResults%s", Prefix.Data(), Addon.Data()).Data()
+              << std::endl;
     dirResults->ls();
     return;
   }
