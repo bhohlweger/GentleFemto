@@ -325,6 +325,8 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     delete F_EposDisto_pReso_LamReso;
     fpLCleverMcLevy->InitNumMcIter(262144);
     AB_pL->SetAnaSource(CatsSourceForwarder, fpLCleverMcLevy, 2);
+    AB_pL->SetAnaSource(0, 1.2);
+    AB_pL->SetAnaSource(1, 2.0);
   } else {
     std::cout << "Source not implemented \n";
   }
