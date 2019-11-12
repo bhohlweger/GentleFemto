@@ -490,7 +490,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     TidyCats::pLPot PLpot;
     CATS AB_pL;
     if (vMod_pL == 0) {
-      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, TheSource,
+      tidy->GetCatsProtonLambda(&AB_pL, NumMomBins, kMin, kMax, FeeddownSource,
                                 TidyCats::pLOWF);
       AB_pL.SetAnaSource(0, pFeeddownRadius);
     } else if (vMod_pL == 1) {
