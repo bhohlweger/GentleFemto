@@ -58,10 +58,9 @@ int main(int argc, char *argv[]) {
 
   for (int iBin = 1; iBin <= SystError->GetNbinsX(); ++iBin) {
     double kStar = cf_default->GetBinCenter(iBin);
-    double Ck = cf_default->GetBinContent(iBin);
-    double errSystData = systDataErr->Eval(kStar) * Ck;
-    double errSystNorm = systNormErr->GetBinContent(iBin) * Ck;
-    double errSystLam = systLamErr->Eval(kStar) * Ck;
+    double errSystData = systDataErr->Eval(kStar);
+    double errSystNorm = systNormErr->GetBinContent(iBin);
+    double errSystLam = systLamErr->Eval(kStar);
     double totErr = TMath::Sqrt(
         errSystData * errSystData + errSystNorm * errSystNorm
             + errSystLam * errSystLam);
