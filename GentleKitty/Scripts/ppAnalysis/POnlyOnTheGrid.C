@@ -443,21 +443,14 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   TidyCats* tidy = new TidyCats();
 
   //Setup the source stuff
+  total = 108;
 
   CATS AB_pp;
-  tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
 
-  total = 162;
-
-  const double massProton = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
-      * 1000;
-  const double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass()
-      * 1000;
-
-  const std::vector<double> ResProMass = { 1347.91, 1361.52, 1375.13 };
   const std::vector<double> ResProWidth = { 1.62, 1.65, 1.68 };
-  const std::vector<double> ResLamMass = { 1448.30, 1462.93, 1477.56 };
+  const std::vector<double> ResProMass = { 1347.91, 1361.52, 1375.13 };
   const std::vector<double> ResLamWidth = { 4.15, 4.69, 5.39 };
+  const std::vector<double> ResLamMass = { 1448.30, 1462.93, 1477.56 };
 
   const double massProtonRes = ResProMass[ProResMassVariation];
   const double widthProtonRes = ResProWidth[ProResWidthVariation];
@@ -469,6 +462,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
             << massProtonRes << " and Width = " << widthProtonRes
             << " \n Resonance Lambda Mass = " << massLambdaRes
             << " and Width = " << widthLambdaRes << std::endl;
+
+  tidy->SetTau(widthProtonRes, widthLambdaRes);
+  tidy->SetMass(massProtonRes, massLambdaRes);
+  tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
 
   AB_pp.KillTheCat();
 
