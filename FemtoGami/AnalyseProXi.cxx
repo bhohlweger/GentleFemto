@@ -20,6 +20,7 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
     : fcutOff(cutoff),
       fFilename(""),
       fPrefix(""),
+      fSuffix(""),
       fQAOutput(nullptr),
       fXiGami(new LambdaGami()),
       fMomGami(new MomentumGami(smearing)),
@@ -50,6 +51,8 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
 }
 
 AnalyseProXi::~AnalyseProXi() {
+  delete fXiGami;
+  delete fMomGami;
   // TODO Auto-generated destructor stub
 }
 
@@ -63,7 +66,7 @@ TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
   CATSinput->SetMomentumGami(fMomGami);
 
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
-  DreamFile->SetAnalysisFile(fFilename, fPrefix, "0");
+  DreamFile->SetAnalysisFile(fFilename, fPrefix, fSuffix);
 
   DreamDist* pXi = DreamFile->GetPairDistributions(0, 4, "");
   DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 5, "");

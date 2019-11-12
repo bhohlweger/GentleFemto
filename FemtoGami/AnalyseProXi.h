@@ -28,9 +28,10 @@ class AnalyseProXi {
   TGraphErrors* GetHalQCD(TH1F* unfoldedGenuine);
   TGraphErrors* GetESC16(TH1F* unfoldedGenuine);
   TH1F* GetVariation(int varnumber, bool getModels = false);
-  void SetAnalysisFile(const char* Path, const char* Prefix) {
+  void SetAnalysisFile(const char* Path, const char* Prefix, const char* Suffix = "0") {
     fFilename = Path;
     fPrefix = Prefix;
+    fSuffix = Suffix;
   }
   void Default() {
     fNormVar = 2;
@@ -40,7 +41,6 @@ class AnalyseProXi {
     fLamVarOmega = 1;
     fLamVarXim1530 = 1;
     fRadVarXim1530 = 1;
-
   }
   ;
   void SetNormVar(int iVar) {
@@ -69,6 +69,7 @@ class AnalyseProXi {
   double fcutOff;  // at this value the calculation and doing of the cf stops
   const char* fFilename;
   const char* fPrefix;
+  const char* fSuffix;
   TFile* fQAOutput;
   LambdaGami* fXiGami;
   MomentumGami* fMomGami;
