@@ -74,9 +74,21 @@ class TidyCats {
              DLM_Histo<double>* CkSmeared);
   DLM_Histo<double>* Convert2LargerOf2Evils(TH1F* CkInput);
   TH1F* Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim);
+  void SetTau(double tauProRes, double tauLamRes) {
+    ftauProRes = tauProRes;
+    ftauLamRes= tauLamRes;
+  };
+  void SetMass(double massProRes, double massLamRes) {
+    fmassProRes = massProRes;
+    fmassLamRes = massLamRes;
+  };
  private:
   TString fHomeDir;
-  const double fkStarCutOff;
+  double fkStarCutOff;
+  double ftauProRes;
+  double fmassProRes;
+  double ftauLamRes;
+  double fmassLamRes;
   DLM_CleverMcLevyResoTM* fppCleverMcLevy;
   DLM_CleverMcLevyResoTM* fpLCleverMcLevy;
   DLM_CleverLevy* fpXimCleverLevy;

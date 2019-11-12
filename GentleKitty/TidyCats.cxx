@@ -24,6 +24,10 @@ static double DegToRad = 0.01745;
 TidyCats::TidyCats()
     : fHomeDir(),
       fkStarCutOff(200.),
+      ftauProRes(1.65),
+      fmassProRes(1361.52),
+      ftauLamRes(4.69),
+      fmassLamRes(1462.93),
       fppCleverMcLevy(nullptr),
       fpLCleverMcLevy(nullptr),
       fpXimCleverLevy(nullptr),
@@ -119,7 +123,10 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
     Float_t AngleRcP2;
     Float_t AngleP1P2;
 
-    TFile* F_EposDisto_p_pReso = new TFile(TString::Format("%s/cernbox/WaveFunctions/ThetaDist/EposDisto_p_pReso.root", fHomeDir.Data()).Data());
+    TFile* F_EposDisto_p_pReso = new TFile(
+        TString::Format(
+            "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_p_pReso.root",
+            fHomeDir.Data()).Data());
     TNtuple* T_EposDisto_p_pReso = (TNtuple*) F_EposDisto_p_pReso->Get(
         "InfoTuple_ClosePairs");
     unsigned N_EposDisto_p_pReso = T_EposDisto_p_pReso->GetEntries();
@@ -135,8 +142,10 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
     T_EposDisto_p_pReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
     for (unsigned uEntry = 0; uEntry < N_EposDisto_p_pReso; uEntry++) {
       T_EposDisto_p_pReso->GetEntry(uEntry);
+      fM1 = 0;
+      fM2 = fmassProRes;
       Tau1 = 0;
-      Tau2 = 1.65;
+      Tau2 = ftauProRes;
       if (k_D > fkStarCutOff)
         continue;
       RanVal1 = gRandom->Exp(fM2 / (fP2 * Tau2));
@@ -145,7 +154,10 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
     }
     delete F_EposDisto_p_pReso;
 
-    TFile* F_EposDisto_pReso_pReso = new TFile(TString::Format("%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_pReso.root", fHomeDir.Data()).Data());
+    TFile* F_EposDisto_pReso_pReso = new TFile(
+        TString::Format(
+            "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_pReso.root",
+            fHomeDir.Data()).Data());
     TNtuple* T_EposDisto_pReso_pReso = (TNtuple*) F_EposDisto_pReso_pReso->Get(
         "InfoTuple_ClosePairs");
     unsigned N_EposDisto_pReso_pReso = T_EposDisto_pReso_pReso->GetEntries();
@@ -161,8 +173,10 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
     T_EposDisto_pReso_pReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
     for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_pReso; uEntry++) {
       T_EposDisto_pReso_pReso->GetEntry(uEntry);
-      Tau1 = 1.65;
-      Tau2 = 1.65;
+      fM1 = fmassProRes;
+      fM2 = fmassProRes;
+      Tau1 = ftauProRes;
+      Tau2 = ftauProRes;
       if (k_D > fkStarCutOff)
         continue;
       RanVal1 = gRandom->Exp(fM1 / (fP1 * Tau1));
@@ -244,7 +258,9 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     Float_t AngleP1P2;
 
     TFile* F_EposDisto_p_LamReso = new TFile(
-        TString::Format("%s/cernbox/WaveFunctions/ThetaDist/EposDisto_p_LamReso.root", fHomeDir.Data()).Data());
+        TString::Format(
+            "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_p_LamReso.root",
+            fHomeDir.Data()).Data());
     TNtuple* T_EposDisto_p_LamReso = (TNtuple*) F_EposDisto_p_LamReso->Get(
         "InfoTuple_ClosePairs");
     unsigned N_EposDisto_p_LamReso = T_EposDisto_p_LamReso->GetEntries();
@@ -260,8 +276,10 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     T_EposDisto_p_LamReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
     for (unsigned uEntry = 0; uEntry < N_EposDisto_p_LamReso; uEntry++) {
       T_EposDisto_p_LamReso->GetEntry(uEntry);
+      fM1 = 0;
+      fM2 = fmassLamRes;
       Tau1 = 0;
-      Tau2 = 4.69;
+      Tau2 = ftauLamRes;
       if (k_D > fkStarCutOff)
         continue;
       RanVal2 = gRandom->Exp(fM2 / (fP2 * Tau2));
@@ -270,7 +288,9 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     delete F_EposDisto_p_LamReso;
 
     TFile* F_EposDisto_pReso_Lam = new TFile(
-        TString::Format("%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Lam.root", fHomeDir.Data()).Data());
+        TString::Format(
+            "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Lam.root",
+            fHomeDir.Data()).Data());
     TNtuple* T_EposDisto_pReso_Lam = (TNtuple*) F_EposDisto_pReso_Lam->Get(
         "InfoTuple_ClosePairs");
     unsigned N_EposDisto_pReso_Lam = T_EposDisto_pReso_Lam->GetEntries();
@@ -286,7 +306,9 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     T_EposDisto_pReso_Lam->SetBranchAddress("AngleP1P2", &AngleP1P2);
     for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_Lam; uEntry++) {
       T_EposDisto_pReso_Lam->GetEntry(uEntry);
-      Tau1 = 1.65;
+      fM1 = fmassProRes;
+      fM2 = 0;
+      Tau1 = ftauProRes;
       Tau2 = 0;
       if (k_D > fkStarCutOff)
         continue;
@@ -296,7 +318,9 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     delete F_EposDisto_pReso_Lam;
 
     TFile* F_EposDisto_pReso_LamReso = new TFile(
-        TString::Format("%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_LamReso.root", fHomeDir.Data()).Data());
+        TString::Format(
+            "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_LamReso.root",
+            fHomeDir.Data()).Data());
     TNtuple* T_EposDisto_pReso_LamReso = (TNtuple*) F_EposDisto_pReso_LamReso
         ->Get("InfoTuple_ClosePairs");
     unsigned N_EposDisto_pReso_LamReso =
@@ -313,8 +337,10 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     T_EposDisto_pReso_LamReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
     for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_LamReso; uEntry++) {
       T_EposDisto_pReso_LamReso->GetEntry(uEntry);
-      Tau1 = 1.65;
-      Tau2 = 4.69;
+      fM1 = fmassProRes;
+      fM2 = fmassLamRes;
+      Tau1 = ftauProRes;
+      Tau2 = ftauLamRes;
       if (k_D > fkStarCutOff)
         continue;
       RanVal1 = gRandom->Exp(fM1 / (fP1 * Tau1));
