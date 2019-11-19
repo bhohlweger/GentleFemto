@@ -71,9 +71,9 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     }
     resultTree->Draw("Radius>>RadDist");
     fRadiusDist = (TH1D*) gROOT->FindObject("RadDist");
-    float radMin = fRadiusDist->GetXaxis()->GetXmin(); //0.9 * (fRadiusDist->GetMean() - fRadiusDist->GetRMS());
-    float radMax = fRadiusDist->GetXaxis()->GetXmax(); //1.1 * (fRadiusDist->GetMean() + fRadiusDist->GetRMS());
-    int nRadBims = (radMax - radMin)/(float)(0.01);
+    float radMin = 0.9*fRadiusDist->GetXaxis()->GetXmin(); //0.9 * (fRadiusDist->GetMean() - fRadiusDist->GetRMS());
+    float radMax = 1.1*fRadiusDist->GetXaxis()->GetXmax(); //1.1 * (fRadiusDist->GetMean() + fRadiusDist->GetRMS());
+    int nRadBims = (radMax - radMin)/(float)(0.005);
     delete fRadiusDist;
     fRadiusDist = new TH1D("RadDist", "RadDist", nRadBims, radMin, radMax);
 
@@ -237,14 +237,14 @@ void VariationAnalysis::EvalRadius(const char* bin) {
 
   auto *canRad2 = new TCanvas();
   canRad2->cd();
-  fRadiusDist->Rebin(2);
+//  fRadiusDist->Rebin(2);
   DreamPlot::SetStyleHisto(fRadiusDist, 20, 1);
   fRadiusDist->GetXaxis()->SetTitle("Core Radius (fm)");
   fRadiusDist->GetYaxis()->SetTitle("Number of Entries");
   fRadiusDist->Draw();
   auto histRadLimits = (TH1F*) fRadiusDist->Clone("histRadLimits");
   histRadLimits->Reset();
-  for (int i = 0; i < fRadiusDist->GetNbinsX(); ++i) {
+  for (int i = 1; i < fRadiusDist->GetNbinsX()+1; ++i) {
     if (fRadiusDist->GetBinCenter(i) < radMin
         || fRadiusDist->GetBinCenter(i) > radMax)
       continue;
