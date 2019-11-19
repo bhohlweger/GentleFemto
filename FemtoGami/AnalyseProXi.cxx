@@ -37,7 +37,7 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
   fSidebandNormMax = {650,600,700};
   fBLfunct = {"pol0","pol1"};
   fLamVars = {0.8,1.0,1.2};
-  fXim1530Rad = {0.89,0.92,0.95};
+  fXim1530Rad = {0.95,1.00,1.05};
 
   auto CATSinput = new CATSInput();
   TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
@@ -74,7 +74,6 @@ TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
   TH1F* CFMeasured = CFpXiDef->FindCorrelationFunction(
       "hCk_UnfoldedpXiVar0MeV_0");
   CFMeasured = (TH1F*) CFMeasured->Clone("InputCF");
-
   CFpXiDef->WriteOutput(
       TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data());
 
@@ -307,15 +306,16 @@ double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
 }
 
 TGraphErrors* AnalyseProXi::GetCoulomb(TH1F* unfoldedGenuine) {
+  std::cout << "Coulomb\n";
   int nBins = 300;
   double xmin = 0.5;
   double xmax = 300.5;
   TidyCats* tidy = new TidyCats();
-  TidyCats::Sources TheSource = TidyCats::sGaussian;
+  TidyCats::Sources TheSource = TidyCats::sResonance;
   float ppRadii[3];
-  ppRadii[0] = 0.76;
-  ppRadii[1] = 0.79;
-  ppRadii[2] = 0.82;
+  ppRadii[0] = 0.886647;
+  ppRadii[1] = 0.932114;
+  ppRadii[2] = 0.979453;
 
   CATS CoulombUp;
   CATS CoulombLow;
@@ -347,15 +347,16 @@ TGraphErrors* AnalyseProXi::GetCoulomb(TH1F* unfoldedGenuine) {
 }
 
 TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
+  std::cout <<"HAL QCD \n";
   int nBins = 300;
   double xmin = 0.5;
   double xmax = 300.5;
   TidyCats* tidy = new TidyCats();
-  TidyCats::Sources TheSource = TidyCats::sGaussian;
+  TidyCats::Sources TheSource = TidyCats::sResonance;
   float ppRadii[3];
-  ppRadii[0] = 0.76;
-  ppRadii[1] = 0.79;
-  ppRadii[2] = 0.82;
+  ppRadii[0] = 0.886647;
+  ppRadii[1] = 0.932114;
+  ppRadii[2] = 0.979453;
 
   CATS HalUp;
   CATS HalLow;
@@ -386,15 +387,16 @@ TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
 }
 
 TGraphErrors* AnalyseProXi::GetESC16(TH1F* unfoldedGenuine) {
+  std::cout << "ESC16 \n";
   int nBins = 300;
   double xmin = 0.5;
   double xmax = 300.5;
   TidyCats* tidy = new TidyCats();
-  TidyCats::Sources TheSource = TidyCats::sGaussian;
+  TidyCats::Sources TheSource = TidyCats::sResonance;
   float ppRadii[3];
-  ppRadii[0] = 0.76;
-  ppRadii[1] = 0.79;
-  ppRadii[2] = 0.82;
+  ppRadii[0] = 0.886647;
+  ppRadii[1] = 0.932114;
+  ppRadii[2] = 0.979453;
 
   CATS ESCUp;
   CATS ESCLow;
