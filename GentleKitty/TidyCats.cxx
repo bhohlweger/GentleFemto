@@ -11,13 +11,13 @@
 #include "CATStools.h"
 #include "DLM_Source.h"
 #include "DLM_WfModel.h"
+#include "DLM_Random.h"
 #include "TSystem.h"
 #include "TFile.h"
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TNtuple.h"
 #include "TError.h"
-#include "TRandom.h"
 
 static double DegToRad = 0.01745;
 
@@ -34,7 +34,6 @@ TidyCats::TidyCats()
       fpXimCleverMcLevy(nullptr),
       fpXim1530CleverLevy(nullptr),
       fpSigma0CleverMcLevy(nullptr) {
-  gRandom->SetSeed(0);
   fHomeDir = gSystem->GetHomeDirectory().c_str();
 }
 
@@ -108,7 +107,7 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
 
     fppCleverMcLevy->SetUpReso(0, 0.6422);
     fppCleverMcLevy->SetUpReso(1, 0.6422);
-
+    DLM_Random RanGen(11);
     double RanVal1;
     double RanVal2;
 
@@ -148,7 +147,8 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       Tau2 = ftauProRes;
       if (k_D > fkStarCutOff)
         continue;
-      RanVal1 = gRandom->Exp(fM2 / (fP2 * Tau2));
+//      RanVal1 = gRandom->Exp(fM2 / (fP2 * Tau2));
+      RanVal1 = RanGen.Exponential(fM2 / (fP2 * Tau2));
       fppCleverMcLevy->AddBGT_PR(RanVal1, -cos(AngleRcP2));
       fppCleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP2));
     }
@@ -179,8 +179,10 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
       Tau2 = ftauProRes;
       if (k_D > fkStarCutOff)
         continue;
-      RanVal1 = gRandom->Exp(fM1 / (fP1 * Tau1));
-      RanVal2 = gRandom->Exp(fM2 / (fP2 * Tau2));
+      RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+      RanVal2 = RanGen.Exponential(fM2 / (fP2 * Tau2));
+//      RanVal1 = gRandom->Exp(fM1 / (fP1 * Tau1));
+//      RanVal2 = gRandom->Exp(fM2 / (fP2 * Tau2));
       fppCleverMcLevy->AddBGT_RR(RanVal1, cos(AngleRcP1), RanVal2,
                                  cos(AngleRcP2), cos(AngleP1P2));
     }
@@ -243,6 +245,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     fpLCleverMcLevy->SetUpReso(0, 0.6422);
     fpLCleverMcLevy->SetUpReso(1, 0.6438);
 
+    DLM_Random RanGen(11);
     double RanVal1;
     double RanVal2;
 
@@ -282,7 +285,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       Tau2 = ftauLamRes;
       if (k_D > fkStarCutOff)
         continue;
-      RanVal2 = gRandom->Exp(fM2 / (fP2 * Tau2));
+      RanVal2 = RanGen.Exponential(fM2 / (fP2 * Tau2));
       fpLCleverMcLevy->AddBGT_PR(RanVal2, cos(AngleRcP2));
     }
     delete F_EposDisto_p_LamReso;
@@ -312,7 +315,7 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       Tau2 = 0;
       if (k_D > fkStarCutOff)
         continue;
-      RanVal1 = gRandom->Exp(fM1 / (fP1 * Tau1));
+      RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
       fpLCleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP1));
     }
     delete F_EposDisto_pReso_Lam;
@@ -343,8 +346,8 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
       Tau2 = ftauLamRes;
       if (k_D > fkStarCutOff)
         continue;
-      RanVal1 = gRandom->Exp(fM1 / (fP1 * Tau1));
-      RanVal2 = gRandom->Exp(fM2 / (fP2 * Tau2));
+      RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+      RanVal2 = RanGen.Exponential(fM2 / (fP2 * Tau2));
       fpLCleverMcLevy->AddBGT_RR(RanVal1, cos(AngleRcP1), RanVal2,
                                  cos(AngleRcP2), cos(AngleP1P2));
     }
