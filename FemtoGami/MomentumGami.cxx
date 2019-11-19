@@ -74,6 +74,22 @@ void MomentumGami::Unfold(TH1F* InputDist) {
   return;
 }
 
+TH1F* MomentumGami::Fold(TH1F* InputDist) {
+  TH1F* uncorr = (TH1F*) InputDist->Clone(
+      TString::Format("%s_Refolded", InputDist->GetName()).Data());
+  uncorr->Reset();
+  const int nbinsProj = fToUnfold->FindBin(fMaxkStar);
+  for (int iTRUE = 1; iTRUE < nbinsProj; iTRUE++) {
+    for (int iRECO = 1; iRECO <= nbinsProj - 5; iRECO++) {
+      float binCont = uncorr->GetBinContent(iRECO);
+      binCont += fResProjection[iTRUE - 1]->GetBinContent(iRECO)
+          * InputDist->GetBinContent(iTRUE);
+      uncorr->SetBinContent(iRECO, binCont);
+    }
+  }
+  return uncorr;
+}
+
 double MomentumGami::Eval(double *x, double *p) {
   if (fToUnfold->FindBin(x[0]) == 0
       || fToUnfold->FindBin(x[0]) > fToUnfold->GetNbinsX()) {
