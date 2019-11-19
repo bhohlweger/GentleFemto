@@ -67,8 +67,7 @@ void MomentumGami::Unfold(TH1F* InputDist) {
         momSmearing->GetParameter(ParNmb) * InputDist->GetBinContent(iBim));
     //keep the same relative error
     InputDist->SetBinError(
-        iBim,
-        momSmearing->GetParameter(ParNmb) * InputDist->GetBinError(iBim));
+        iBim, momSmearing->GetParameter(ParNmb) * InputDist->GetBinError(iBim));
   }
   delete momSmearing;
   delete fToUnfold;
