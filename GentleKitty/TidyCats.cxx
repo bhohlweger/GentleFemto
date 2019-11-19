@@ -30,9 +30,7 @@ TidyCats::TidyCats()
       fmassLamRes(1462.93),
       fppCleverMcLevy(nullptr),
       fpLCleverMcLevy(nullptr),
-      fpXimCleverLevy(nullptr),
       fpXimCleverMcLevy(nullptr),
-      fpXim1530CleverLevy(nullptr),
       fpSigma0CleverMcLevy(nullptr) {
   fHomeDir = gSystem->GetHomeDirectory().c_str();
 }
@@ -44,14 +42,8 @@ TidyCats::~TidyCats() {
   if (fpLCleverMcLevy) {
     delete fpLCleverMcLevy;
   }
-  if (fpXimCleverLevy) {
-    delete fpXimCleverLevy;
-  }
   if (fpXimCleverMcLevy) {
     delete fpXimCleverMcLevy;
-  }
-  if (fpXim1530CleverLevy) {
-    delete fpXim1530CleverLevy;
   }
   if (fpSigma0CleverMcLevy) {
     delete fpSigma0CleverMcLevy;
@@ -424,54 +416,75 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
       * 1000;
   double massPion = TDatabasePDG::Instance()->GetParticle(211)->Mass() * 1000;
   CATSparameters* cPars = nullptr;
-  switch (source) {
-    case TidyCats::sGaussian:
-      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
-      cPars->SetParameter(0, 1.2);
-      AB_pXim->SetAnaSource(GaussSource, *cPars);
-      break;
-    case TidyCats::sResonance:
-      fpXimCleverMcLevy = new DLM_CleverMcLevyReso();
-      fpXimCleverMcLevy->InitNumMcIter(1000000);
-      fpXimCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fpXimCleverMcLevy->InitScale(100, 0.1, 2.6);
-      fpXimCleverMcLevy->InitRad(512, 0, 64);
-      fpXimCleverMcLevy->InitType(2);
-      fpXimCleverMcLevy->InitReso(0, 1);    //number of p resonances
-//      fpXimCleverMcLevy->InitReso(1,1);//number of Xi resonances
-      fpXimCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, Mass_p,
-                                   massPion);
-//      fpXimCleverMcLevy->SetUpReso(1,0,0,1361.52,1.65,Mass_p,massPion);
-      AB_pXim->SetAnaSource(CatsSourceForwarder, fpXimCleverMcLevy, 2);
-      AB_pXim->SetAnaSource(0, 1.2);
-      AB_pXim->SetAnaSource(1, 2.0);
-      break;
-    case TidyCats::sLevy:
-      fpXimCleverMcLevy = new DLM_CleverMcLevyReso();
-      fpXimCleverMcLevy->InitNumMcIter(1000000);
-      fpXimCleverMcLevy->InitStability(20, 1, 2);
-      fpXimCleverMcLevy->InitScale(100, 0.1, 2.6);
-      fpXimCleverMcLevy->InitRad(512, 0, 64);
-      fpXimCleverMcLevy->InitType(2);
-      fpXimCleverMcLevy->InitReso(0, 1);    //number of p resonances
-//      fpXimCleverMcLevy->InitReso(1,1);//number of Xi resonances
-      fpXimCleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65, Mass_p,
-                                   massPion);
-//      fpXimCleverMcLevy->SetUpReso(1,0,0,1361.52,1.65,Mass_p,massPion);
-      AB_pXim->SetAnaSource(CatsSourceForwarder, fpXimCleverMcLevy, 2);
-      AB_pXim->SetAnaSource(0, 1.2);
-      AB_pXim->SetAnaSource(1, 2.0);
-      break;
-    default:
-      std::cout << "Source not implemented \n";
-      break;
+  if (source == TidyCats::sGaussian) {
+    cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+    cPars->SetParameter(0, 1.2);
+    AB_pXim->SetAnaSource(GaussSource, *cPars);
+  } else if (source == TidyCats::sResonance) {
+    fpXimCleverMcLevy = new DLM_CleverMcLevyResoTM();
+    fpXimCleverMcLevy->InitNumMcIter(1000000);
+    fpXimCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+    fpXimCleverMcLevy->InitScale(38, 0.15, 2.0);
+    fpXimCleverMcLevy->InitRad(257, 0, 64);
+    fpXimCleverMcLevy->InitType(2);
+    fpXimCleverMcLevy->SetUpReso(0, 0.6422);
+    DLM_Random RanGen(11);
+    double RanVal1;
+    double RanVal2;
+
+    Float_t k_D;
+    Float_t fP1;
+    Float_t fP2;
+    Float_t fM1;
+    Float_t fM2;
+    Float_t Tau1;
+    Float_t Tau2;
+    Float_t AngleRcP1;
+    Float_t AngleRcP2;
+    Float_t AngleP1P2;
+
+    TFile* F_EposDisto_pReso_Xi = new TFile(
+        TString::Format(
+            "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Xim.root",
+            fHomeDir.Data()).Data());
+    TNtuple* T_EposDisto_pReso_Xi = (TNtuple*) F_EposDisto_pReso_Xi->Get(
+        "InfoTuple_ClosePairs");
+    unsigned N_EposDisto_pReso_Xim = T_EposDisto_pReso_Xi->GetEntries();
+    T_EposDisto_pReso_Xi->SetBranchAddress("k_D", &k_D);
+    T_EposDisto_pReso_Xi->SetBranchAddress("P1", &fP1);
+    T_EposDisto_pReso_Xi->SetBranchAddress("P2", &fP2);
+    T_EposDisto_pReso_Xi->SetBranchAddress("M1", &fM1);
+    T_EposDisto_pReso_Xi->SetBranchAddress("M2", &fM2);
+    T_EposDisto_pReso_Xi->SetBranchAddress("Tau1", &Tau1);
+    T_EposDisto_pReso_Xi->SetBranchAddress("Tau2", &Tau2);
+    T_EposDisto_pReso_Xi->SetBranchAddress("AngleRcP1", &AngleRcP1);
+    T_EposDisto_pReso_Xi->SetBranchAddress("AngleRcP2", &AngleRcP2);
+    T_EposDisto_pReso_Xi->SetBranchAddress("AngleP1P2", &AngleP1P2);
+    for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_Xim; uEntry++) {
+      T_EposDisto_pReso_Xi->GetEntry(uEntry);
+      fM1 = fmassProRes;
+      fM2 = 0;
+      Tau1 = ftauProRes;
+      Tau2 = 0;
+      if (k_D > fkStarCutOff)
+        continue;
+      RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+      fpXimCleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP1));
+    }
+    delete F_EposDisto_pReso_Xi;
+    fpXimCleverMcLevy->InitNumMcIter(262144);
+    AB_pXim->SetAnaSource(CatsSourceForwarder, fpXimCleverMcLevy, 2);
+    AB_pXim->SetAnaSource(0, 1.2);
+    AB_pXim->SetAnaSource(1, 2.0);
+  } else {
+    std::cout << "Source not implemented \n";
   }
   AB_pXim->SetUseAnalyticSource(true);
   AB_pXim->SetThetaDependentSource(false);
+  AB_pXim->SetMomentumDependentSource(false);
 
   AB_pXim->SetExcludeFailedBins(false);
   AB_pXim->SetMomBins(momBins, kMin, kMax);
-
   AB_pXim->SetNumChannels(4);
   AB_pXim->SetNumPW(0, 1);
   AB_pXim->SetNumPW(1, 1);
@@ -690,17 +703,6 @@ void TidyCats::GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins,
       cPars = new CATSparameters(CATSparameters::tSource, 1, true);
       cPars->SetParameter(0, 1.2);
       AB_pXim1530->SetAnaSource(GaussSource, *cPars);
-      break;
-    case TidyCats::sLevy:
-      fpXim1530CleverLevy = new DLM_CleverLevy();
-      fpXim1530CleverLevy->InitStability(20, 1, 2);
-      fpXim1530CleverLevy->InitScale(35, 0.25, 2.0);
-      fpXim1530CleverLevy->InitRad(256, 0, 64);
-      fpXim1530CleverLevy->InitType(2);
-      //Nolan Parameterization.
-      AB_pXim1530->SetAnaSource(CatsSourceForwarder, fpXim1530CleverLevy, 2);
-      AB_pXim1530->SetAnaSource(0, 1.2);  //r0
-      AB_pXim1530->SetAnaSource(1, 1.6);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
       break;
     default:
       std::cout << "Source not implemented \n";

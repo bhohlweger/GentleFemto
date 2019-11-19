@@ -91,9 +91,7 @@ class TidyCats {
   double fmassLamRes;
   DLM_CleverMcLevyResoTM* fppCleverMcLevy;
   DLM_CleverMcLevyResoTM* fpLCleverMcLevy;
-  DLM_CleverLevy* fpXimCleverLevy;
-  DLM_CleverMcLevyReso* fpXimCleverMcLevy;
-  DLM_CleverLevy* fpXim1530CleverLevy;
+  DLM_CleverMcLevyResoTM* fpXimCleverMcLevy;
   DLM_CleverMcLevyReso* fpSigma0CleverMcLevy;
 };
 
