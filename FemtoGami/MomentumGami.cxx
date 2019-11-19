@@ -51,16 +51,15 @@ void MomentumGami::Unfold(TH1F* InputDist) {
   TF1 * momSmearing = new TF1("momSmearing", this, &MomentumGami::Eval, 0,
                               fMaxkStar, fToUnfold->FindBin(fMaxkStar) - 5,
                               "momSmearing", "momSmearing");  // create TF1 class.
-  momSmearing->SetParameter(0, 1.5);
-  momSmearing->SetParLimits(0, 0.5, 1.9);
-  momSmearing->SetParameter(1, 1.1);
-  momSmearing->SetParLimits(1, 0.5, 1.9);
-  for (int iPar = 2; iPar < fToUnfold->FindBin(fMaxkStar) - 5; ++iPar) {
-    momSmearing->SetParameter(iPar, 1);
-    momSmearing->SetParLimits(iPar, 0.9, 1.1);
+//  momSmearing->SetParameter(0, 1.1);
+//  momSmearing->SetParLimits(0, 0.5, 1.9);
+//  momSmearing->SetParameter(1, 1.1);
+//  momSmearing->SetParLimits(1, 0.5, 1.9);
+  for (int iPar = 0; iPar < fToUnfold->FindBin(fMaxkStar) - 5; ++iPar) {
+    momSmearing->SetParameter(iPar, gRandom->Uniform(0.95,1.05));
+    momSmearing->SetParLimits(iPar, 0.5, 1.5);
   }
-  fToUnfold->Fit("momSmearing", "QR");
-
+  fToUnfold->Fit("momSmearing", "R");
   for (int iBim = 1; iBim < InputDist->FindBin(fMaxkStar) - 4; ++iBim) {
     int ParNmb = iBim - 1;
     InputDist->SetBinContent(
@@ -85,22 +84,23 @@ double MomentumGami::Eval(double *x, double *p) {
   }
   //corrected "imaginary histo"
   const int nbinsProj = fToUnfold->FindBin(fMaxkStar);
-  std::vector<float> zz;
+  std::vector<float> newGuess;
   for (int i = 0; i < nbinsProj - 3; i++) {
-    zz.push_back(p[i] * fToUnfold->GetBinContent(i + 1));
+    newGuess.push_back(p[i] * fToUnfold->GetBinContent(i + 1));
   }
 
 //now build uncorrected: take zz "imaginary corrected" and smear it:
-  std::vector<float> uncorr;
-
+  std::vector<float> PossibleUncorrected;
+  for (int ibin = 0; ibin < nbinsProj; ++ibin) {
+    PossibleUncorrected.push_back(0.);
+  }
   for (int iproj = 0; iproj < nbinsProj; iproj++) {
-    float binCont = 0;
-    for (int ibin = 1; ibin <= nbinsProj - 5; ibin++) {
-      binCont += fResProjection[iproj]->GetBinContent(ibin) * zz[ibin - 1];
+    for (int ibin = 0; ibin <= nbinsProj - 5; ibin++) {
+      PossibleUncorrected.at(ibin) += fResProjection[iproj]->GetBinContent(
+          ibin + 1) * newGuess[iproj];
     }
-    uncorr.push_back(binCont);
   }
 
-  return uncorr[fToUnfold->FindBin(x[0]) - 1];
+  return PossibleUncorrected[fToUnfold->FindBin(x[0]) - 1];
 }
 
