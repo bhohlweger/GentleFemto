@@ -139,7 +139,7 @@ TH1F* MomentumGami::UnfoldviaTSVD(TH1F* InputDist, TList* QA) {
   }
 
   TSVDUnfold *tsvdunf = new TSVDUnfold(oneDClone, statcov, bini, xini,
-                                       fResolution);
+                                       (TH2D*)fResolution);
   // It is possible to normalise unfolded spectrum to unit area
   tsvdunf->SetNormalize(kFALSE);  // no normalisation here
 
