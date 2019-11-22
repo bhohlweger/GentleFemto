@@ -10,6 +10,7 @@
 #include "TF1.h"
 #include "TRandom.h"
 
+#include "TSVDUnfold.h"
 MomentumGami::MomentumGami(float maxkStar)
     : fResolution(nullptr),
       fResProjection(),
@@ -51,15 +52,15 @@ void MomentumGami::Unfold(TH1F* InputDist) {
   TF1 * momSmearing = new TF1("momSmearing", this, &MomentumGami::Eval, 0,
                               fMaxkStar, fToUnfold->FindBin(fMaxkStar) - 5,
                               "momSmearing", "momSmearing");  // create TF1 class.
-//  momSmearing->SetParameter(0, 1.1);
-//  momSmearing->SetParLimits(0, 0.5, 1.9);
-//  momSmearing->SetParameter(1, 1.1);
-//  momSmearing->SetParLimits(1, 0.5, 1.9);
-  for (int iPar = 0; iPar < fToUnfold->FindBin(fMaxkStar) - 5; ++iPar) {
-    momSmearing->SetParameter(iPar, gRandom->Uniform(0.95,1.05));
+  momSmearing->SetParameter(0, gRandom->Uniform(0.98, 1.3));
+  momSmearing->SetParLimits(0, 0., 2.);
+  momSmearing->SetParameter(1, gRandom->Uniform(0.98, 1.1));
+  momSmearing->SetParLimits(1, 0.5, 1.5);
+  for (int iPar = 2; iPar < fToUnfold->FindBin(fMaxkStar) - 5; ++iPar) {
+    momSmearing->SetParameter(iPar, gRandom->Uniform(0.95, 1.05));
     momSmearing->SetParLimits(iPar, 0.5, 1.5);
   }
-  fToUnfold->Fit("momSmearing", "R");
+  std::cout << "Result: " << fToUnfold->Fit("momSmearing", "R") << std::endl;
   for (int iBim = 1; iBim < InputDist->FindBin(fMaxkStar) - 4; ++iBim) {
     int ParNmb = iBim - 1;
     InputDist->SetBinContent(
@@ -119,3 +120,75 @@ double MomentumGami::Eval(double *x, double *p) {
   return PossibleUncorrected[fToUnfold->FindBin(x[0]) - 1];
 }
 
+TH1F* MomentumGami::UnfoldviaTSVD(TH1F* InputDist, TList* QA) {
+  //Left here not to delete work. However does not seem to do the job.
+  TH1D *xini = fResolution->ProjectionX("MC truth");
+  TH1D *bini = fResolution->ProjectionY("MC reco");
+  TH1D *oneDClone = (TH1D*) InputDist->Clone(
+      TString::Format("%s_DClone", InputDist->GetName()));
+  TH2D *statcov = new TH2D("statcov", "covariance matrix",
+                           oneDClone->GetNbinsX(),
+                           oneDClone->GetXaxis()->GetXmin(),
+                           oneDClone->GetXaxis()->GetXmax(),
+                           oneDClone->GetNbinsX(),
+                           oneDClone->GetXaxis()->GetXmin(),
+                           oneDClone->GetXaxis()->GetXmax());
+  for (int i = 1; i <= oneDClone->GetNbinsX(); i++) {
+    statcov->SetBinContent(
+        i, i, oneDClone->GetBinError(i) * oneDClone->GetBinError(i));
+  }
+
+  TSVDUnfold *tsvdunf = new TSVDUnfold(oneDClone, statcov, bini, xini,
+                                       fResolution);
+  // It is possible to normalise unfolded spectrum to unit area
+  tsvdunf->SetNormalize(kFALSE);  // no normalisation here
+
+  // Perform the unfolding with regularisation parameter kreg = 13
+  // - the larger kreg, the finer grained the unfolding, but the more fluctuations occur
+  // - the smaller kreg, the stronger is the regularisation and the bias
+  TH1D* unfres = tsvdunf->Unfold(13);
+
+  // Get the distribution of the d to cross check the regularization
+  // - choose kreg to be the point where |d_i| stop being statistically significantly >>1
+  TH1D* ddist = tsvdunf->GetD();
+
+  // Get the distriutaucovbution of the singular values
+  TH1D* svdist = tsvdunf->GetSV();
+
+  // Compute the error matrix for the unfolded spectrum using toy MC
+  // using the measured covariance matrix as input to generate the toys
+  // 100 toys should usually be enough
+  // The same method can be used for different covariance matrices separately.
+  TH2D* ustatcov = tsvdunf->GetUnfoldCovMatrix(statcov, 100);
+
+  // Now compute the error matrix on the unfolded distribution originating
+  // from the finite detector matrix statistics
+  TH2D* uadetcov = tsvdunf->GetAdetCovMatrix(100);
+
+  // Sum up the two (they are uncorrelated)
+  ustatcov->Add(uadetcov);
+
+  // Get the computed regularized covariance matrix
+  // (always corresponding to total uncertainty passed in constructor)
+  // and add uncertainties from finite MC statistics.
+  TH2D* utaucov = tsvdunf->GetXtau();
+  utaucov->Add(uadetcov);
+
+  //Get the computed inverse of the covariance matrix
+  TH2D* uinvcov = tsvdunf->GetXinv();
+
+  for (int i = 1; i <= unfres->GetNbinsX(); i++) {
+    unfres->SetBinError(i, TMath::Sqrt(utaucov->GetBinContent(i, i)));
+  }
+  TH1D* QAratio = (TH1D*) unfres->Clone(
+      TString::Format("%sQARatio", InputDist->GetName()).Data());
+  QAratio->Divide(InputDist);
+
+  QA->Add(
+      ddist->Clone(TString::Format("%s_dDist", InputDist->GetName()).Data()));
+  QA->Add(
+      utaucov->Clone(
+          TString::Format("%s_utaucov", InputDist->GetName()).Data()));
+  QA->Add(QAratio);
+  return (TH1F*) unfres;
+}

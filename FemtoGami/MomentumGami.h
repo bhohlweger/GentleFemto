@@ -20,6 +20,7 @@ class MomentumGami {
   TH1F* Fold(TH1F* InputDist);
   Double_t func(int ii, Double_t *par);
   void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
+  TH1F* UnfoldviaTSVD(TH1F* InputDist, TList* QA);
  private:
   TH2F* fResolution;
   std::vector<TH1F*> fResProjection;
