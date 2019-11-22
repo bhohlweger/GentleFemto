@@ -50,10 +50,13 @@ class DreamCF {
             0;
   }
   unsigned int GetFemtoPairsBBar(float kMin, float kMax) {
-    return
-        (fPairOne) ?
-            (fPairOne->GetFemtoPairs(kMin, kMax)) :
-            0;
+    return (fPairOne) ? (fPairOne->GetFemtoPairs(kMin, kMax)) : 0;
+  }
+  DreamPair* GetPairOne() {
+    return fPairOne;
+  }
+  DreamPair* GetPairTwo() {
+    return fPairTwo;
   }
   TH1F* FindCorrelationFunction(TString name);
  private:
