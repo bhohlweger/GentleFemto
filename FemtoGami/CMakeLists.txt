@@ -20,6 +20,9 @@ include(${ROOT_USE_FILE})
 SET(CATS_INCLUDE "$ENV{CATS}/include")#where are all CATS related .h files
 SET(CATS_LIB "$ENV{CATS}/lib")#where are the CATS related .a files
 
+SET(ROOFOLD_INCLUDE "$ENV{ROOUNFOLD_ROOT}/include")#where are all CATS related .h files
+SET(ROOFOLD_LIB "$ENV{ROOUNFOLD_ROOT}/lib")#where are the CATS related .a files
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${binFolder}/FemtoGami)
 include_directories(${CMAKE_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${ROOT_INCLUDE_DIRS})
 add_definitions(${ROOT_CXX_FLAGS})
@@ -32,6 +35,8 @@ include_directories(${DREAM_PATH})
 include_directories(${FORGIVEN_PATH})
 include_directories(${SYSTEMATIC_PATH})
 include_directories(${CATS_INCLUDE})
+include_directories(${ROOFOLD_INCLUDE})
+
 include_directories(${PROJECT_SOURCE_DIR})
 
 set(SRCS
@@ -48,7 +53,7 @@ set(HEADERS
   
 add_library(femtoGami STATIC ${SRCS})
 set_target_properties(femtoGami PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-target_link_libraries(femtoGami tidyCATS DreamFunctions ForgivingFnct)
+target_link_libraries(femtoGami tidyCATS DreamFunctions ForgivingFnct -L${ROOFOLD_LIB} RooUnfold)
 
 add_executable(XiGami ${PROJECT_SOURCE_DIR}/Scripts/XiGami.C)
 target_link_libraries(XiGami femtoGami) #tidyCATS -L${DREAM_LIB_PATH} DreamFunctions
