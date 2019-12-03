@@ -112,6 +112,7 @@ void VariationmTAnalysis::SetVariation(const char* VarDir, int iModel) {
   fmTAverage->GetPoint(iPoint, dummy, mT);
 
   VariationAnalysis analysis = VariationAnalysis(fHistname);
+  analysis.LargestFitVariation(250);
   analysis.AppendAndCut(fSelector);
   TString filename = Form("%s/%s", VarDir, fFileName);
   analysis.ReadFitFile(filename.Data());
@@ -180,8 +181,8 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     }
     float legXmin = fTextXMin - 0.02;
     Data->SetLegendCoordinates(legXmin,
-                               0.625 - 0.09 * Data->GetNumberOfModels(),
-                               legXmin + 0.4, 0.66);
+                               0.685 - 0.09 * Data->GetNumberOfModels(),
+                               legXmin + 0.4, 0.72);
     Data->DrawCorrelationPlot(pad);
     pad->cd();
     TLatex BeamText;
@@ -189,11 +190,10 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     BeamText.SetNDC(kTRUE);
     BeamText.DrawLatex(fTextXMin, 0.91,
                        Form("ALICE %s #sqrt{#it{s}} = %i TeV", "pp", (int) 13));
-    BeamText.DrawLatex(fTextXMin, 0.85, "High-mult.");
     BeamText.DrawLatex(
         fTextXMin,
-        0.79,
-        "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+        0.85,
+        "High-mult. (0#kern[-0.65]{ }#minus#kern[-0.65]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
 
     TLatex text;
     text.SetNDC();
@@ -201,10 +201,10 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     text.SetTextSize(gStyle->GetTextSize() * 0.85);
     text.DrawLatex(
         fTextXMin,
-        0.73,
-        TString::Format("m_{T} #in [%.2f, %.2f) (GeV/#it{c}^{2})",
+        0.79,
+        TString::Format("m_{T} #in [%.2f, %.2f) GeV/#it{c}^{2}",
                         fmTBins[counter - 1], fmTBins[counter]));
-    text.DrawLatex(fTextXMin, 0.67, TString::Format("%s", fSourceName));
+    text.DrawLatex(fTextXMin, 0.73, TString::Format("%s", fSourceName));
     out->cd();
     c1->Write();
     c1->SaveAs(Form("mTBin_%u.pdf", counter));
@@ -306,10 +306,16 @@ void VariationmTAnalysis::StoreRadvsmT(const char* fileName, int iModel) {
   fmTRadiusSyst[iModel]->Write();
   fmTRadiusStat[iModel]->SetName("mTRadiusStat");
   fmTRadiusStat[iModel]->Write();
-  for (int counter = 0; counter < fAnalysis.size(); ++counter) {
+  for (int counter = 0; counter < fAnalysis[iModel].size(); ++counter) {
     TGraphErrors* model = fAnalysis[iModel][counter].GetModel();
     model->SetName(TString::Format("Model_%u_imT_%u", iModel, counter).Data());
     model->Write(TString::Format("Model_%u_imT_%u", iModel, counter).Data());
+    fSystematic[counter].GetDefault()->Write(
+        TString::Format("Data_%i", counter).Data());
+    fSystematic[counter].GetSystematicError()->SetName(
+        TString::Format("Systematic_%i", counter).Data());
+    fSystematic[counter].GetSystematicError()->Write(
+        TString::Format("Systematic_%i", counter).Data());
   }
   out->cd();
   fSelector.Write(fSelector.GetTitle());
