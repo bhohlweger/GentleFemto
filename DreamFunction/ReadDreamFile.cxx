@@ -60,26 +60,24 @@ ReadDreamFile::~ReadDreamFile() {
   }
 }
 
-void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFileF,
-                                    const char* PrefixF, const char* AddonF) {
-  const TString PathAnalysisFile =  PathAnalysisFileF;
-  const TString Prefix =  PrefixF;
-  const TString Addon =  AddonF;
-
-  TFile* _file0 = TFile::Open(PathAnalysisFile.Data(), "READ");
+void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
+                                    const char* Prefix, const char* Addon) {
+  std::cout << "PathAnalysisFile: " << PathAnalysisFile << '\t' << " Prefix: "
+            << Prefix << '\t' << " Addon: " << Addon << std::endl;
+  TFile * _file0 = TFile::Open(PathAnalysisFile, "READ");
   TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
-      TString::Format("%sResults%s", Prefix.Data(), Addon.Data()).Data()));
+      TString::Format("%sResults%s", Prefix, Addon).Data()));
   if (!dirResults) {
     std::cout << "no dir results "
-              << TString::Format("%sResults%s", Prefix.Data(), Addon.Data()).Data()
+              << TString::Format("%sResults%s", Prefix, Addon).Data()
               << std::endl;
   }
   TList *Results = nullptr;
-  dirResults->GetObject(TString::Format("%sResults%s", Prefix.Data(), Addon.Data()).Data(),
+  dirResults->GetObject(TString::Format("%sResults%s", Prefix, Addon).Data(),
                         Results);
   if (!Results) {
     std::cout << "No results List for "
-              << TString::Format("%sResults%s", Prefix.Data(), Addon.Data()).Data()
+              << TString::Format("%sResults%s", Prefix, Addon).Data()
               << std::endl;
     dirResults->ls();
     return;
@@ -129,7 +127,6 @@ void ReadDreamFile::ExtractResults(const TList *Results) {
   fSEMult = new TH2F**[fNPart1];
   fME = new TH1F**[fNPart1];
   fMEMult = new TH2F**[fNPart1];
-
   for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
     fSE[iPart1] = new TH1F*[fNPart2];
     fSEMult[iPart1] = new TH2F*[fNPart2];
