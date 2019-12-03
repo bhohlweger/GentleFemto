@@ -27,6 +27,7 @@ VariationAnalysis::VariationAnalysis(const char* histname)
       fRadSystUp(0),
       fRadSystDown(0),
       fRadStat(0),
+      fHowLarge(0),
       fCk(),
       fModel(nullptr),
       fRadiusDist(nullptr),
@@ -71,33 +72,34 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
     }
     resultTree->Draw("Radius>>RadDist");
     fRadiusDist = (TH1D*) gROOT->FindObject("RadDist");
-    float radMin = 0.9*fRadiusDist->GetXaxis()->GetXmin(); //0.9 * (fRadiusDist->GetMean() - fRadiusDist->GetRMS());
-    float radMax = 1.1*fRadiusDist->GetXaxis()->GetXmax(); //1.1 * (fRadiusDist->GetMean() + fRadiusDist->GetRMS());
-    int nRadBims = (radMax - radMin)/(float)(0.005);
+    float radMin = 0.9 * fRadiusDist->GetXaxis()->GetXmin();  //0.9 * (fRadiusDist->GetMean() - fRadiusDist->GetRMS());
+    float radMax = 1.1 * fRadiusDist->GetXaxis()->GetXmax();  //1.1 * (fRadiusDist->GetMean() + fRadiusDist->GetRMS());
+    int nRadBims = (radMax - radMin) / (float) (0.005);
     delete fRadiusDist;
     fRadiusDist = new TH1D("RadDist", "RadDist", nRadBims, radMin, radMax);
 
     resultTree->Draw("RadiusErr>>RadErrDist");
     fRadiusErrDist = (TH1D*) gROOT->FindObject("RadErrDist");
-    float radErrMin = fRadiusErrDist->GetXaxis()->GetXmin(); //0.9 * (fRadiusErrDist->GetMean() - fRadiusErrDist->GetRMS());
-    float radErrMax = fRadiusErrDist->GetXaxis()->GetXmax(); //1.1* (fRadiusErrDist->GetMean() + fRadiusErrDist->GetRMS());
-    int nRadErrBims = (radErrMax-radErrMin)/(float)0.01;
+    float radErrMin = fRadiusErrDist->GetXaxis()->GetXmin();  //0.9 * (fRadiusErrDist->GetMean() - fRadiusErrDist->GetRMS());
+    float radErrMax = fRadiusErrDist->GetXaxis()->GetXmax();  //1.1* (fRadiusErrDist->GetMean() + fRadiusErrDist->GetRMS());
+    int nRadErrBims = (radErrMax - radErrMin) / (float) 0.01;
     delete fRadiusErrDist;
-    fRadiusErrDist = new TH1D("RadErrDist", "RadErrDist", nRadErrBims, radErrMin, radErrMax);
+    fRadiusErrDist = new TH1D("RadErrDist", "RadErrDist", nRadErrBims,
+                              radErrMin, radErrMax);
 
     int before = resultTree->GetEntriesFast();
     resultTree->Draw(">>myList", fSelector, "entrylist");
-    std::cout << fSelector.GetName() << '\t' << fSelector.GetTitle() << std::endl;
-    TEntryList *entrList=(TEntryList*)gDirectory->Get("myList");
+    std::cout << fSelector.GetName() << '\t' << fSelector.GetTitle()
+              << std::endl;
+    TEntryList *entrList = (TEntryList*) gDirectory->Get("myList");
     if (!entrList) {
       Error("ReadFitFile", "Entry list missing \n");
       return;
     }
 
     const int nEntries = entrList->GetN();
-    std::cout << "Entries Before: " << before << " and after "
-              << nEntries << " meaning a delta of " << before - nEntries
-              << std::endl;
+    std::cout << "Entries Before: " << before << " and after " << nEntries
+              << " meaning a delta of " << before - nEntries << std::endl;
     if (nEntries == 0) {
       return;
     }
@@ -121,7 +123,7 @@ void VariationAnalysis::ReadFitFile(TString FileName) {
       resultTree->GetEntry(entrList->GetEntry(iEntr));
       fRadiusDist->Fill(radius);
       fRadiusErrDist->Fill(radiusErr);
-      if (!refGraph) {
+      if (!refGraph && FitCurve->GetXaxis()->GetXmax() > fHowLarge) {
         refGraph = new TGraph(FitCurve->GetN(), FitCurve->GetX(),
                               FitCurve->GetY());
       }
@@ -244,7 +246,7 @@ void VariationAnalysis::EvalRadius(const char* bin) {
   fRadiusDist->Draw();
   auto histRadLimits = (TH1F*) fRadiusDist->Clone("histRadLimits");
   histRadLimits->Reset();
-  for (int i = 1; i < fRadiusDist->GetNbinsX()+1; ++i) {
+  for (int i = 1; i < fRadiusDist->GetNbinsX() + 1; ++i) {
     if (fRadiusDist->GetBinCenter(i) < radMin
         || fRadiusDist->GetBinCenter(i) > radMax)
       continue;

@@ -54,6 +54,9 @@ class VariationAnalysis {
   void AppendOrCut(TCut anotherCut) {
     fSelector = fSelector || anotherCut;
   }
+  void LargestFitVariation(float val) {
+    fHowLarge = val;
+  }
  private:
   TFile* fInFile;
   TCut fSelector;
@@ -66,6 +69,7 @@ class VariationAnalysis {
   float fRadSystUp;
   float fRadSystDown;
   float fRadStat;
+  float fHowLarge;
   std::vector<TH1F*> fCk;
   TGraphErrors* fModel;
   TGraphErrors* fDeviationByBin;
