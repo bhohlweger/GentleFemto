@@ -375,21 +375,12 @@ void DreamPair::UnfoldMomentum(DreamDist* pair, MomentumGami *mom) {
     std::cout << "No pair set\n";
     return;
   }
-  DreamDist* Unfolded = new DreamDist(pair, "_Unfolded");
-  TH1F* SEUnfolded = Unfolded->GetSEDist();
-  TH1F* MEUnfolded = Unfolded->GetMEDist();
-  mom->Unfold(Unfolded->GetSEDist());
-  mom->Unfold(Unfolded->GetMEDist());
-  //clear mult. dists since these are meaningless!
-  Unfolded->GetSEMultDist()->Reset();
-  Unfolded->GetMEMultDist()->Reset();
+  DreamDist* Unfolded = new DreamDist();
+  Unfolded->SetSEDist(mom->UnfoldviaRooResp(pair->GetSEDist()),"");
+  Unfolded->SetMEDist(mom->UnfoldviaRooResp(pair->GetMEDist()),"");
   Unfolded->Calculate_CF(fNormLeft, fNormRight);
   fPairUnfolded.push_back(Unfolded);
-  DreamDist* Refolded = new DreamDist();
-  Refolded->SetSEDist( mom->Fold(Unfolded->GetSEDist()), "");
-  Refolded->SetMEDist( mom->Fold(Unfolded->GetMEDist()), "");
-  Refolded->Calculate_CF(fNormLeft, fNormRight);
-  fPairUnfolded.push_back(Refolded);
+
   return;
 }
 
