@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 //  analyser->SetHistName("hCk_FixShiftedppVar");
   analyser->SetFileName("OutFileVarpp.root");
   analyser->SetmTAverage(avgmT);
-  analyser->SetLegData("p-p #oplus #bar{p}-#bar{p}", "fpe");
+  analyser->SetLegData("p#minus#kern[0.2]{p} #oplus #bar{p}#minus#kern[0.2]{#bar{p}}", "fpe");
   analyser->SetLegModel("Coulomb + Argonne #nu_{18} (fit)", "l", 2, -1);
   if (SourceOption == 0) {
     analyser->SetSourceName("Gaussian Source");
