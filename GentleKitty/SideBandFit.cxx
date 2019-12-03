@@ -38,10 +38,10 @@ void SideBandFit::SetSideBandFile(const char* path, const char* prefix,
                                   const char* suffixDown) {
 
   TString filename = Form("%s/AnalysisResults.root", path);
-  fAnalysisFileUp = new ReadDreamFile(6, 6);
+  fAnalysisFileUp = new ReadDreamFile(4, 4);
   fAnalysisFileUp->SetAnalysisFile(filename.Data(), prefix, suffixUp);
 
-  fAnalysisFileDown = new ReadDreamFile(6, 6);
+  fAnalysisFileDown = new ReadDreamFile(4, 4);
   fAnalysisFileDown->SetAnalysisFile(filename.Data(), prefix, suffixDown);
 }
 
@@ -62,11 +62,11 @@ void SideBandFit::SideBandCFs(bool doQA) {
     fSideBands.emplace_back(
         new DreamPair(sideNames[iSB], fnormleft / 1000., fnormright / 1000.));
   }
-  fSideBands[0]->SetPair(fAnalysisFileUp->GetPairDistributions(0, 4, "Up"));
-  fSideBands[1]->SetPair(fAnalysisFileUp->GetPairDistributions(1, 5, "AntiUp"));
-  fSideBands[2]->SetPair(fAnalysisFileDown->GetPairDistributions(0, 4, "Down"));
+  fSideBands[0]->SetPair(fAnalysisFileUp->GetPairDistributions(0, 2, "Up"));
+  fSideBands[1]->SetPair(fAnalysisFileUp->GetPairDistributions(1, 3, "AntiUp"));
+  fSideBands[2]->SetPair(fAnalysisFileDown->GetPairDistributions(0, 2, "Down"));
   fSideBands[3]->SetPair(
-      fAnalysisFileDown->GetPairDistributions(1, 5, "AntiDown"));
+      fAnalysisFileDown->GetPairDistributions(1, 3, "AntiDown"));
   for (auto it : fSideBands) {
     it->ShiftForEmpty(it->GetPair());
   }
