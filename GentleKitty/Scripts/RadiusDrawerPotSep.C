@@ -8,19 +8,19 @@
 #include "TDatabasePDG.h"
 
 int main(int argc, char* argv[]) {
-  if(!argv[1]) {
+  if (!argv[1]) {
     std::cout << "pp RadFile missing\n";
     return -1;
   }
-  if(!argv[2]) {
+  if (!argv[2]) {
     std::cout << "pL NLO RadFile missing\n";
     return -1;
   }
-  if(!argv[3]) {
+  if (!argv[3]) {
     std::cout << "pL LO RadFile missing\n";
     return -1;
   }
-  if(!argv[4]) {
+  if (!argv[4]) {
     std::cout << "Source Name\n";
     return -1;
   }
@@ -31,32 +31,24 @@ int main(int argc, char* argv[]) {
   DreamPlot::SetStyle();
   gStyle->SetHatchesSpacing(0.5);
 
-  TFile* ppHMFile =
-      TFile::Open(
-          ppFile,
-          "read");
+  TFile* ppHMFile = TFile::Open(ppFile, "read");
   TGraphErrors* mTppHMSys = (TGraphErrors*) ppHMFile->Get("mTRadiusSyst");
   TGraphErrors* mTppHMStat = (TGraphErrors*) ppHMFile->Get("mTRadiusStat");
 
-  TFile* pLNLOHMFile =
-      TFile::Open(
-          pLNLOFile,
-          "read");
+  TFile* pLNLOHMFile = TFile::Open(pLNLOFile, "read");
   TGraphErrors* mTpLNLOHMSys = (TGraphErrors*) pLNLOHMFile->Get("mTRadiusSyst");
-  TGraphErrors* mTpLNLOHMStat = (TGraphErrors*) pLNLOHMFile->Get("mTRadiusStat");
+  TGraphErrors* mTpLNLOHMStat = (TGraphErrors*) pLNLOHMFile->Get(
+      "mTRadiusStat");
 
-  TFile* pLLOHMFile =
-      TFile::Open(
-          pLLOFile,
-          "read");
+  TFile* pLLOHMFile = TFile::Open(pLLOFile, "read");
   TGraphErrors* mTpLLOHMSys = (TGraphErrors*) pLLOHMFile->Get("mTRadiusSyst");
   TGraphErrors* mTpLLOHMStat = (TGraphErrors*) pLLOHMFile->Get("mTRadiusStat");
 
   double yMin = 1234567;
   double yMax = 0;
-  double x,y;
+  double x, y;
   for (int iBin = 0; iBin < mTppHMSys->GetN(); iBin++) {
-    mTppHMSys->GetPoint(iBin, x,y);
+    mTppHMSys->GetPoint(iBin, x, y);
     if (y < yMin) {
       yMin = y;
     }
@@ -68,7 +60,7 @@ int main(int argc, char* argv[]) {
   }
 
   for (int iBin = 0; iBin < mTpLNLOHMSys->GetN(); iBin++) {
-    mTpLNLOHMSys->GetPoint(iBin, x,y);
+    mTpLNLOHMSys->GetPoint(iBin, x, y);
     if (y < yMin) {
       yMin = y;
     }
@@ -76,11 +68,11 @@ int main(int argc, char* argv[]) {
       yMax = y;
     }
     mTpLNLOHMSys->SetPointError(iBin, 0.4 * mTpLNLOHMSys->GetErrorX(iBin),
-                             mTpLNLOHMSys->GetErrorY(iBin));
+                                mTpLNLOHMSys->GetErrorY(iBin));
   }
 
   for (int iBin = 0; iBin < mTpLLOHMSys->GetN(); iBin++) {
-    mTpLLOHMSys->GetPoint(iBin, x,y);
+    mTpLLOHMSys->GetPoint(iBin, x, y);
     if (y < yMin) {
       yMin = y;
     }
@@ -88,13 +80,13 @@ int main(int argc, char* argv[]) {
       yMax = y;
     }
     mTpLLOHMSys->SetPointError(iBin, 0.4 * mTpLLOHMSys->GetErrorX(iBin),
-                             mTpLLOHMSys->GetErrorY(iBin));
+                               mTpLLOHMSys->GetErrorY(iBin));
   }
   TFile* out = TFile::Open(Form("%s.root", sourceName), "recreate");
   out->cd();
   auto c4 = new TCanvas("c8", "c8", 1200, 800);
   c4->cd();
-  TLegend* leg = new TLegend(0.55, 0.46, 0.826, 0.65);
+  TLegend* leg = new TLegend(0.18, 0.19, 0.53, 0.48);
   leg->SetFillStyle(0);
   leg->SetTextFont(43);
 //  leg->SetNColumns(2);
@@ -124,41 +116,41 @@ int main(int argc, char* argv[]) {
   mTpLNLOHMSys->GetYaxis()->SetLabelOffset(.02);
   mTpLNLOHMSys->GetXaxis()->SetRangeUser(0.95, 2.7);
 //  mTpLHMSys->GetYaxis()->SetRangeUser(0.8, 2.0);
-  mTpLNLOHMSys->GetYaxis()->SetRangeUser(0.8*yMin, 1.2*yMax);
+  mTpLNLOHMSys->GetYaxis()->SetRangeUser(0.9 * yMin, 1.1 * yMax);
 
-  mTpLNLOHMSys->SetFillColorAlpha(kRed - 7, 0.7);
+  mTpLNLOHMSys->SetFillColorAlpha(kRed + 1, 0.7);
   mTpLNLOHMSys->SetFillStyle(3225);
   mTpLNLOHMSys->Draw("2AP");
 
   mTpLNLOHMStat->SetMarkerColor(kRed + 1);
   mTpLNLOHMStat->SetLineColor(kRed + 1);
-  mTpLNLOHMStat->SetFillColorAlpha(kRed - 7, 0.7);
+  mTpLNLOHMStat->SetFillColorAlpha(kRed + 1, 0.7);
   mTpLNLOHMStat->SetLineWidth(1);
   mTpLNLOHMStat->SetFillStyle(3225);
   mTpLNLOHMStat->SetMarkerStyle(41);
   mTpLNLOHMStat->SetMarkerSize(2.0);
   mTpLNLOHMStat->Draw("pez same");
 
-  mTpLLOHMSys->SetFillColorAlpha(kGreen - 7, 0.7);
+  mTpLLOHMSys->SetFillColorAlpha(kGreen + 3, 0.7);
   mTpLLOHMSys->SetFillStyle(3225);
   mTpLLOHMSys->Draw("2PSAME");
 
-  mTpLLOHMStat->SetMarkerColor(kGreen + 2);
-  mTpLLOHMStat->SetLineColor(kGreen + 2);
-  mTpLLOHMStat->SetFillColorAlpha(kGreen - 7, 0.7);
+  mTpLLOHMStat->SetMarkerColor(kGreen + 3);
+  mTpLLOHMStat->SetLineColor(kGreen + 3);
+  mTpLLOHMStat->SetFillColorAlpha(kGreen + 3, 0.7);
   mTpLLOHMStat->SetLineWidth(1);
   mTpLLOHMStat->SetFillStyle(3225);
   mTpLLOHMStat->SetMarkerStyle(49);
   mTpLLOHMStat->SetMarkerSize(2.0);
   mTpLLOHMStat->Draw("pez same");
 
-  mTppHMSys->SetFillColorAlpha(kBlue - 7, 0.7);
+  mTppHMSys->SetFillColorAlpha(kBlue + 2, 0.7);
   mTppHMSys->SetFillStyle(3225);
   mTppHMSys->Draw("2PSAME");
 
   mTppHMStat->SetMarkerColor(kBlue + 2);
   mTppHMStat->SetLineColor(kBlue + 2);
-  mTppHMStat->SetFillColorAlpha(kBlue - 7, 0.7);
+  mTppHMStat->SetFillColorAlpha(kBlue + 2, 0.7);
   mTppHMStat->SetLineWidth(1);
   mTppHMStat->SetFillStyle(3225);
   mTppHMStat->SetMarkerStyle(34);
@@ -182,15 +174,18 @@ int main(int argc, char* argv[]) {
   BeamText.SetTextFont(43);
   BeamText.SetTextSize(40);
   BeamText.SetNDC(kTRUE);
-  BeamText.DrawLatex(0.55, 0.83,
+  BeamText.DrawLatex(0.48, 0.86,
                      Form("ALICE %s #sqrt{#it{s}} = %i TeV", "pp", (int) 13));
-  BeamText.DrawLatex(0.55, 0.76, "High-mult.");
   BeamText.DrawLatex(
-      0.55,
-      0.69,
-      "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+      0.48,
+      0.79,
+      "High-mult. (0#kern[-0.65]{ }#minus#kern[-0.65]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+//  BeamText.DrawLatex(
+//      0.55,
+//      0.69,
+//      "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
 //  BeamText.DrawLatex(0.55, 0.62, "Gaussian Source");
-  BeamText.DrawLatex(0.17, 0.2, TString::Format("%s",sourceName).Data());
+  BeamText.DrawLatex(0.48, 0.72, TString::Format("%s", sourceName).Data());
 
   leg->Draw("same");
   c4->SaveAs(Form("%s/mTvsRad.pdf", gSystem->pwd()));
