@@ -146,6 +146,12 @@ target_link_libraries(TestCats tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(TestCats2 ${PROJECT_SOURCE_DIR}/Scripts/TestCats2.C)
 target_link_libraries(TestCats2 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(TestCats3 ${PROJECT_SOURCE_DIR}/Scripts/TestCats3.C)
+target_link_libraries(TestCats3 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(pLPlot ${PROJECT_SOURCE_DIR}/Scripts/pLAnalysis/MakeAPlot.C)
+target_link_libraries(pLPlot tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(LambdaPars ${PROJECT_SOURCE_DIR}/Scripts/LambdaPars.C)
 target_link_libraries(LambdaPars tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
