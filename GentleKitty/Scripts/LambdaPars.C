@@ -2,8 +2,8 @@
 
 void LambdaPP() {
   double PurityProton = 0.9943;
-  double PrimProton = 0.873;
-  double SecLamProton = 0.089;  //Fraction of Lambdas
+  double PrimProton = 0.823;
+  double SecLamProton = 0.125;  //Fraction of Lambdas
   double SecSigmaProton = 1. - PrimProton - SecLamProton;
 
   const Particle p1(PurityProton, PrimProton, { SecLamProton, SecSigmaProton });
@@ -16,8 +16,8 @@ void LambdaPP() {
 
 void LambdaPL() {
   double PurityProton = 0.9943;
-  double PrimProton = 0.873;
-  double SecLamProton = 0.089;  //Fraction of Lambdas
+  double PrimProton = 0.823;
+  double SecLamProton = 0.125;  //Fraction of Lambdas
   double SecSigmaProton = 1. - PrimProton - SecLamProton;
 
   const Particle proton(PurityProton, PrimProton, { SecLamProton, SecSigmaProton });
