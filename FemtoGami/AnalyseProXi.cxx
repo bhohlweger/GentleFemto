@@ -30,7 +30,9 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
       fLamVarProton(1),
       fLamVarOmega(1),
       fLamVarXim1530(1),
-      fRadVarXim1530(1) {
+      fRadVarXim1530(1),
+      fnormalizationLeft(0.4),
+      fnormalizationRight(0.6){
   fNormMin = {1000, 500, 500, 500, 600, 600, 600, 700, 700, 800};
   fNormMax = {1000, 900, 800, 700, 1000, 900, 800, 1000, 900, 1000};
   fSidebandNormMin = {450,400,500};
@@ -40,13 +42,13 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
   fXim1530Rad = {0.95,1.00,1.05};
 
   auto CATSinput = new CATSInput();
-  TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
-  TString SigmaFileName = "Sample6_MeV_compact.root";
+  TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
+  TString SigmaFileName = "Sample3_MeV_compact.root";
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
   CATSinput->SetSigmaFileName(SigmaFileName.Data());
   CATSinput->ReadSigmaFile();
   TH2F* momReso = (TH2F*) CATSinput->GetSigmaFile(3)->Clone("MomResolution");
-  momReso->Rebin2D(2);
+//  momReso->Rebin2D(2);
   fMomGami->SetResolution(momReso, 1000);
 }
 
@@ -58,21 +60,14 @@ AnalyseProXi::~AnalyseProXi() {
 
 TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
 
-  auto CATSinput = new CATSInput();
-  CATSinput->SetNormalization(0.4, 0.6);
-  CATSinput->SetFixedkStarMinBin(true, 0.);
-  const int rebin = 5;
-
-  CATSinput->SetMomentumGami(fMomGami);
-
-  ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
+  ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
   DreamFile->SetAnalysisFile(fFilename, fPrefix, fSuffix);
 
-  DreamDist* pXi = DreamFile->GetPairDistributions(0, 4, "");
-  DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 5, "");
-  DreamCF* CFpXiDef = CATSinput->ObtainCFSyst(rebin, "pXiVar0", pXi, ApAXi);
+  DreamDist* pXi = DreamFile->GetPairDistributions(0, 2, "");
+  DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 3, "");
+  DreamCF* CFpXiDef = ObtainCorrFunction("pXiVar0", pXi, ApAXi);
   TH1F* CFMeasured = CFpXiDef->FindCorrelationFunction(
-      "hCk_UnfoldedpXiVar0MeV_0");
+      "hCk_RebinnedpXiVar0MeV_1");
   CFMeasured = (TH1F*) CFMeasured->Clone("InputCF");
   CFpXiDef->WriteOutput(
       TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data());
@@ -84,6 +79,7 @@ TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
   fXiGami->UnSetLambdaPar();
   fXiGami->StoreStatErr(CFMeasured);
   fQAOutput->cd();
+  fMomGami->GetQAList()->Write("MomGami", 1);
   CFMeasured->Write();
 
   double lamGenuine = SetupLambdaPars(fXiGami, fLamVars[fLamVarProton],
@@ -127,6 +123,52 @@ TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
   return outputHist;
 }
 
+DreamCF* AnalyseProXi::ObtainCorrFunction(const char* name,
+                                          DreamDist* partDist,
+                                          DreamDist* APartDist) {
+  bool FixBinningExternal = false;
+  float FixkMin = 0.;
+  DreamCF* outCF = new DreamCF();
+  DreamPair* pp = new DreamPair("Part", fnormalizationLeft,
+                                fnormalizationRight);
+  DreamPair* ApAp = new DreamPair("AntiPart", fnormalizationLeft,
+                                  fnormalizationRight);
+  if (fnormalizationLeft == 0 || fnormalizationRight == 0) {
+    std::cout << "Normalization is 0! Bad results incoming! \n";
+  }
+  pp->SetPair(partDist);
+  ApAp->SetPair(APartDist);
+
+  pp->ShiftForEmpty(pp->GetPair());
+  ApAp->ShiftForEmpty(ApAp->GetPair());
+
+  if (FixBinningExternal) {
+    pp->FixShift(pp->GetPair(), ApAp->GetPair(), FixkMin, true);
+    ApAp->FixShift(ApAp->GetPair(), pp->GetPair(), FixkMin, true);
+  } else {
+    pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
+                 ApAp->GetFirstBin());
+    ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
+                   pp->GetFirstBin());
+  }
+
+  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
+  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+
+  pp->Rebin(pp->GetPairReweighted(0), 2);
+  ApAp->Rebin(ApAp->GetPairReweighted(0), 2);
+
+  pp->UnfoldMomentum(pp->GetPairRebinned(0), fMomGami);
+  ApAp->UnfoldMomentum(ApAp->GetPairRebinned(0), fMomGami);
+
+  pp->Rebin(pp->GetPairUnfolded(0), 2);
+  ApAp->Rebin(ApAp->GetPairUnfolded(0), 2);
+
+  outCF->SetPairs(pp, ApAp);
+  outCF->GetCorrelations(name);
+  return outCF;
+}
+
 TH1F* AnalyseProXi::BaseLine(TH1F* dataCF) {
   TString bslName = TString::Format("%s_woBL", dataCF->GetName()).Data();
   TH1F* BaseLineFree = (TH1F*) dataCF->Clone(bslName.Data());
@@ -142,7 +184,7 @@ TH1F* AnalyseProXi::BaseLine(TH1F* dataCF) {
 TH1F* AnalyseProXi::XimSideband(LambdaGami* XiGami, TH1F* dataCF) {
 
   SideBandFit* side = new SideBandFit();
-  side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/latestSystematic", "HM",
+  side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/Systematics_5MeV", "PXi",
                         "103", "104");
   side->SetNormalizationRange(fSidebandNormMin[fSideNormVar],
                               fSidebandNormMax[fSideNormVar]);
@@ -347,7 +389,7 @@ TGraphErrors* AnalyseProXi::GetCoulomb(TH1F* unfoldedGenuine) {
 }
 
 TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
-  std::cout <<"HAL QCD \n";
+  std::cout << "HAL QCD \n";
   int nBins = 300;
   double xmin = 0.5;
   double xmax = 300.5;

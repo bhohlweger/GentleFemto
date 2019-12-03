@@ -14,6 +14,8 @@
 #include "LambdaGami.h"
 #include "MomentumGami.h"
 #include "TFile.h"
+#include "DreamDist.h"
+#include "DreamCF.h"
 
 class AnalyseProXi {
  public:
@@ -28,7 +30,10 @@ class AnalyseProXi {
   TGraphErrors* GetHalQCD(TH1F* unfoldedGenuine);
   TGraphErrors* GetESC16(TH1F* unfoldedGenuine);
   TH1F* GetVariation(int varnumber, bool getModels = false);
-  void SetAnalysisFile(const char* Path, const char* Prefix, const char* Suffix = "0") {
+  DreamCF* ObtainCorrFunction(const char* name, DreamDist* partDist,
+                              DreamDist* APartDist);
+  void SetAnalysisFile(const char* Path, const char* Prefix,
+                       const char* Suffix = "0") {
     fFilename = Path;
     fPrefix = Prefix;
     fSuffix = Suffix;
@@ -87,6 +92,8 @@ class AnalyseProXi {
   std::vector<float> fLamVars;
   int fRadVarXim1530;
   std::vector<float> fXim1530Rad;
+  float fnormalizationLeft;
+  float fnormalizationRight;
 };
 
 #endif /* FEMTOGAMI_ANALYSEPROXI_H_ */
