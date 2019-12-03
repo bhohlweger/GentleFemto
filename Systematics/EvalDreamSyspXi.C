@@ -4,10 +4,11 @@
 #include "ForgivingReader.h"
 #include "CandidateCounter.h"
 #include "TCanvas.h"
-#include <iostream>
 #include "TSystem.h"
 #include "DecayQA.h"
 #include "AnalyseProXi.h"
+#include <iostream>
+#include <string>
 
 void EvalDreamSystematics(TString InputFile, TString prefix,
                           float upperFitRange) {
@@ -15,7 +16,7 @@ void EvalDreamSystematics(TString InputFile, TString prefix,
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   std::cout << InputFile.Data() << std::endl;
   DreamPlot::SetStyle();
-  AnalyseProXi* ana = new AnalyseProXi(1000, 0.5);
+  AnalyseProXi* ana = new AnalyseProXi(1000, 0.95);
   ana->SetAnalysisFile(InputFile, prefix);
   ana->Default();
 
@@ -41,8 +42,9 @@ void EvalDreamSystematics(TString InputFile, TString prefix,
 
   for (int i = 1; i <= 44; ++i) {
     ReadDreamFile* DreamFileVar = new ReadDreamFile(6, 6);
+    std::cout << "TString::Format(, i).Data(): " << TString::Format("%i", i).Data() << std::endl;
     DreamFileVar->SetAnalysisFile(InputFile.Data(), prefix,
-                                  TString::Format("%u", i).Data());
+                                  TString::Format("%i", i).Data());
     DreamDist* pxiVar = DreamFileVar->GetPairDistributions(0, 4, "");
     DreamDist* ApAxiVar = DreamFileVar->GetPairDistributions(1, 5, "");
     int femtoPairVar = pxiVar->GetFemtoPairs(0, 0.200)
@@ -57,7 +59,9 @@ void EvalDreamSystematics(TString InputFile, TString prefix,
     if (TMath::Abs(relDiff) > 0.2) {
       continue;
     }
-    ana->SetAnalysisFile(InputFile, prefix, TString::Format("%u", i).Data());
+    std::string s = std::to_string(i);
+    char const *pchar = s.c_str();
+    ana->SetAnalysisFile(InputFile, prefix, pchar);
     protonXi.SetVarHist(ana->GetVariation(outCounter, false));
 
     TString QADirectory = TString::Format("%s/Var_%u/", currentWordDir.Data(),
