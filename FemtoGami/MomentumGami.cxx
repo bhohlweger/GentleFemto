@@ -9,15 +9,19 @@
 #include "TError.h"
 #include "TF1.h"
 #include "TRandom.h"
-
+#include "RooUnfoldBayes.h"
 #include "TSVDUnfold.h"
 MomentumGami::MomentumGami(float maxkStar)
-    : fResolution(nullptr),
+    : fQAList(new TList()),
+      fResolution(nullptr),
       fResProjection(),
       fToUnfold(nullptr),
-      fMaxkStar(maxkStar) {
+      fMaxkStar(maxkStar),
+      fUnitConversion(1000.) {
   // TODO Auto-generated constructor stub
   gRandom->SetSeed(0);
+  fQAList->SetName("MomentumGamiQA");
+  fQAList->SetOwner();
 }
 
 MomentumGami::~MomentumGami() {
@@ -41,7 +45,7 @@ void MomentumGami::SetResolution(TH2F* resoMatrix, float UnitConversion) {
   }
 }
 
-void MomentumGami::Unfold(TH1F* InputDist) {
+void MomentumGami::UnfoldGuessing(TH1F* InputDist) {
   if (InputDist->FindBin(fMaxkStar) > InputDist->GetNbinsX()) {
     Error("MomentumGami::Unfold",
           "Distribution has smaller kStar range than unfolding");
@@ -79,7 +83,7 @@ TH1F* MomentumGami::Fold(TH1F* InputDist) {
   TH1F* uncorr = (TH1F*) InputDist->Clone(
       TString::Format("%s_Refolded", InputDist->GetName()).Data());
   uncorr->Reset();
-  const int nbinsProj = fToUnfold->FindBin(fMaxkStar);
+  const int nbinsProj = InputDist->FindBin(fMaxkStar);
   for (int iTRUE = 1; iTRUE < nbinsProj; iTRUE++) {
     for (int iRECO = 1; iRECO <= nbinsProj - 5; iRECO++) {
       float binCont = uncorr->GetBinContent(iRECO);
@@ -139,7 +143,7 @@ TH1F* MomentumGami::UnfoldviaTSVD(TH1F* InputDist, TList* QA) {
   }
 
   TSVDUnfold *tsvdunf = new TSVDUnfold(oneDClone, statcov, bini, xini,
-                                       (TH2D*)fResolution);
+                                       (TH2D*) fResolution);
   // It is possible to normalise unfolded spectrum to unit area
   tsvdunf->SetNormalize(kFALSE);  // no normalisation here
 
@@ -191,4 +195,80 @@ TH1F* MomentumGami::UnfoldviaTSVD(TH1F* InputDist, TList* QA) {
           TString::Format("%s_utaucov", InputDist->GetName()).Data()));
   QA->Add(QAratio);
   return (TH1F*) unfres;
+}
+
+TH1F* MomentumGami::UnfoldviaRooResp(TH1F* InputDist) {
+  //Its up to the user to ensure the same binning, this is just a simple check
+  if (fResolution->GetXaxis()->GetBinWidth(1) / fUnitConversion
+      != InputDist->GetXaxis()->GetBinWidth(1)) {
+    std::cout
+        << "MomentumGami::UnfoldviaRooResp: Bin width of Resolution matrix "
+        << "different than bin widht of the input dist! \n"
+        << "Histname of the input in question: " << InputDist->GetName()
+        << std::endl;
+  }
+
+  RooUnfoldResponse response(
+      fResolution->GetNbinsX(),
+      fResolution->GetXaxis()->GetXmin() / fUnitConversion,
+      fResolution->GetXaxis()->GetXmax() / fUnitConversion);
+  TrainRooResponse(fResolution, &response);
+  //only unfold within the region the resolution matrix is defined.
+  TString toUnfoldName = TString::Format("%s_ToUnfold", InputDist->GetName());
+  TH1F* toUnfold = new TH1F(
+      toUnfoldName.Data(), toUnfoldName.Data(), fResolution->GetNbinsX(),
+      fResolution->GetXaxis()->GetXmin() / fUnitConversion,
+      fResolution->GetXaxis()->GetXmax() / fUnitConversion);
+  for (int iBin = 1; iBin <= toUnfold->GetNbinsX(); ++iBin) {
+    toUnfold->SetBinContent(
+        iBin,
+        InputDist->GetBinContent(
+            InputDist->FindBin(toUnfold->GetBinCenter(iBin))));
+    toUnfold->SetBinError(
+        iBin,
+        InputDist->GetBinError(
+            InputDist->FindBin(toUnfold->GetBinCenter(iBin))));
+  }
+  RooUnfoldBayes unfolderer(&response, toUnfold, 4);
+  TH1F* unfoldedHist = (TH1F*) unfolderer.Hreco();
+  TH1F* Ratio = (TH1F*) unfoldedHist->Clone(
+      TString::Format("%s_ratioUnfolded", InputDist->GetName()));
+  Ratio->Divide(toUnfold);
+  TString outName = TString::Format("%s_Unfolded", InputDist->GetName());
+
+  int nBins = fResolution->GetXaxis()->GetXmax() / fUnitConversion
+      - InputDist->GetXaxis()->GetXmin();
+  nBins /= InputDist->GetXaxis()->GetBinWidth(1);
+
+  TH1F *outDist = new TH1F(
+      outName.Data(), outName.Data(), nBins, InputDist->GetXaxis()->GetXmin(),
+      fResolution->GetXaxis()->GetXmax() / fUnitConversion);
+
+  for (int iBins = 1; iBins <= InputDist->GetNbinsX(); ++iBins) {
+    outDist->SetBinContent(
+        iBins,
+        unfoldedHist->GetBinContent(
+            unfoldedHist->FindBin(outDist->GetBinCenter(iBins))));
+    outDist->SetBinError(iBins, InputDist->GetBinError(iBins));
+  }
+//  fQAList->Add(unfoldedHist);
+  fQAList->Add(toUnfold);
+  fQAList->Add(Ratio);
+  return outDist;
+}
+
+void MomentumGami::TrainRooResponse(TH2F* momMatrix,
+                                    RooUnfoldResponse* roo_resp) {
+  for (Int_t iBinx = 1; iBinx < momMatrix->GetNbinsX() + 1; iBinx++) {
+    double ksTrue = momMatrix->GetXaxis()->GetBinCenter(iBinx)
+        / fUnitConversion;
+    for (Int_t iBiny = 1; iBiny < momMatrix->GetNbinsY() + 1; iBiny++) {
+      double ksMeas = momMatrix->GetYaxis()->GetBinCenter(iBiny)
+          / fUnitConversion;
+      int nEntries = momMatrix->GetBinContent(iBinx, iBiny);
+      for (int iFill = 0; iFill < nEntries; iFill++) {
+        roo_resp->Fill(ksTrue, ksMeas);
+      }
+    }
+  }
 }
