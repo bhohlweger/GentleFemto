@@ -393,8 +393,8 @@ void DreamPair::UnfoldMomentum(DreamDist* pair, MomentumGami *mom) {
     return;
   }
   DreamDist* Unfolded = new DreamDist();
-  Unfolded->SetSEDist(mom->UnfoldviaRooResp(pair->GetSEDist()),"");
-  Unfolded->SetMEDist(mom->UnfoldviaRooResp(pair->GetMEDist()),"");
+  Unfolded->SetSEDist(mom->UnfoldviaRooResp(pair->GetSEDist()), "");
+  Unfolded->SetMEDist(mom->UnfoldviaRooResp(pair->GetMEDist()), "");
   Unfolded->Calculate_CF(fNormLeft, fNormRight);
   fPairUnfolded.push_back(Unfolded);
 
