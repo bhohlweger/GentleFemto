@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
   const char* fileName = argv[1];
   const char* prefix = argv[2];
   AnalyseProXi* ana = new AnalyseProXi(cutOff, 0.5);
+  ana->LimitCFRange(0.999);
   DreamSystematics protonNorm(DreamSystematics::pXiNorm);
   protonNorm.SetUpperFitRange(800);
   protonNorm.SetBarlowUpperRange(400);
@@ -29,6 +30,9 @@ int main(int argc, char *argv[]) {
   ana->SetAnalysisFile(fileName, prefix);
   ana->Default();
   TH1F* DefVar = ana->GetVariation(0, true);
+  if (!DefVar) {
+    return -1;
+  }
   protonNorm.SetDefaultHist((TH1F*) DefVar->Clone("defVarNorm"));
   protonFeeddown.SetDefaultHist((TH1F*) DefVar->Clone("defVarFeedDown"));
   //create dream sys object, set default for norm/bl vars
