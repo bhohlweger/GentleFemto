@@ -152,6 +152,8 @@ void DreamPair::ShiftForEmpty(DreamDist* pair) {
 
 void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
                          const bool fixedShift) {
+  //in case of a manual fix shift, the user NEEDS to make sure
+  //that kMin is on the boundaries of one bin
   if (!fixedShift && ((fFirstBin == -99) || kMin == -99)) {
     std::cout << "Internal kStar=" << fFirstBin << " and external one kStar="
               << kMin << ". Check if you ran ShiftForEmpty!" << std::endl;
@@ -164,10 +166,11 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
       TH2F* SEMult = pair->GetSEMultDist();
       TH1F* ME = pair->GetMEDist();
       TH2F* MEMult = pair->GetMEMultDist();
-
+      //The epsilon ensures that always the lower bin is picked!
+      double epsilon = SE->GetBinWidth(1) * 1e-2;
       int nBins =
           fixedShift ?
-              SE->GetXaxis()->GetNbins() - SE->FindBin(kMin) + 1 :
+              SE->GetXaxis()->GetNbins() - SE->FindBin(kMin - epsilon) :
               otherSE->GetXaxis()->GetNbins();
       float xMin = fixedShift ? kMin : otherSE->GetXaxis()->GetXmin();
       float xMax =
@@ -182,6 +185,8 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
       TH2F* SEMultShifted;
       TH2F* MEMultShifted;
       const char* SEHistName = Form("%s_", SE->GetName());
+      std::cout << "Fix shifed nBins: " << nBins << " xMin: " << xMin
+                << " xMax: " << xMax << std::endl;
       SEShifted = new TH1F(SEHistName, SEHistName, nBins, xMin, xMax);
       SEShifted->Sumw2();
       const char* MEHistName = Form("%s_", ME->GetName());
@@ -252,7 +257,12 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherPair1,
 
 void DreamPair::Rebin(DreamDist* pair, int rebin, bool seMean) {
   DreamDist* Rebinned = new DreamDist(pair, Form("_Rebinned_%i", rebin));
+  std::cout << "Before Rebinned->GetSEDist()->GetBinWidth(1): "
+            << Rebinned->GetSEDist()->GetBinWidth(1) << std::endl;
   Rebinned->GetSEDist()->Rebin(rebin);
+  std::cout << "After rebinning by: " << rebin
+            << " Rebinned->GetSEDist()->GetBinWidth(1): "
+            << Rebinned->GetSEDist()->GetBinWidth(1) << std::endl;
   if (Rebinned->GetSEMultDist())
     Rebinned->GetSEMultDist()->Rebin2D(rebin, 1);
   Rebinned->GetMEDist()->Rebin(rebin);
