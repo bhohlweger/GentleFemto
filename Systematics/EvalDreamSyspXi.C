@@ -13,18 +13,19 @@
 void EvalDreamSystematics(TString InputFile, TString prefix,
                           float upperFitRange) {
   //to do: get # of femto pairs out of analysis pxi and fix the suffix ...
-  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
+//  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   std::cout << InputFile.Data() << std::endl;
   DreamPlot::SetStyle();
   AnalyseProXi* ana = new AnalyseProXi(1000, 0.95);
   ana->SetAnalysisFile(InputFile, prefix);
+  ana->LimitCFRange(0.999);
   ana->Default();
 
-  ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
+  ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
   DreamFile->SetAnalysisFile(InputFile.Data(), prefix, "0");
 
-  DreamDist* pxi = DreamFile->GetPairDistributions(0, 4, "");
-  DreamDist* ApAxi = DreamFile->GetPairDistributions(1, 5, "");
+  DreamDist* pxi = DreamFile->GetPairDistributions(0, 2, "");
+  DreamDist* ApAxi = DreamFile->GetPairDistributions(1, 3, "");
   const int pairCountsDefault = pxi->GetFemtoPairs(0, 0.200)
       + ApAxi->GetFemtoPairs(0, 0.200);
 
@@ -41,12 +42,12 @@ void EvalDreamSystematics(TString InputFile, TString prefix,
   int outCounter = 1;
 
   for (int i = 1; i <= 44; ++i) {
-    ReadDreamFile* DreamFileVar = new ReadDreamFile(6, 6);
+    ReadDreamFile* DreamFileVar = new ReadDreamFile(4, 4);
     std::cout << "TString::Format(, i).Data(): " << TString::Format("%i", i).Data() << std::endl;
     DreamFileVar->SetAnalysisFile(InputFile.Data(), prefix,
                                   TString::Format("%i", i).Data());
-    DreamDist* pxiVar = DreamFileVar->GetPairDistributions(0, 4, "");
-    DreamDist* ApAxiVar = DreamFileVar->GetPairDistributions(1, 5, "");
+    DreamDist* pxiVar = DreamFileVar->GetPairDistributions(0, 2, "");
+    DreamDist* ApAxiVar = DreamFileVar->GetPairDistributions(1, 3, "");
     int femtoPairVar = pxiVar->GetFemtoPairs(0, 0.200)
         + ApAxiVar->GetFemtoPairs(0, 0.200);
 
