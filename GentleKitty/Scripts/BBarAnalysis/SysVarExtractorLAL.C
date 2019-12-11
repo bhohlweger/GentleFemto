@@ -13,8 +13,10 @@ int main(int argc, char *argv[]) {
   const char* model = argv[3];
   int selector;
   TString convmodel = model;
+  if(convmodel=="Haidenbauer") selector=0;
   if(convmodel=="Lednicky") selector=1;
-  else selector=0;
+  if(convmodel=="Coulomb") selector=2;
+
   TFile* systFile = TFile::Open(SystFile, "read");
   if (!systFile) {
     std::cout << "no syst file " << std::endl;
@@ -34,8 +36,10 @@ int main(int argc, char *argv[]) {
   LambdaAntiLambda->SetUnitConversionCATS(1);
   LambdaAntiLambda->SetCorrelationFunction(analysis->GetCorrelationFunction(0));
   LambdaAntiLambda->SetSystematics(systematic, 8);
-  LambdaAntiLambda->FemtoModelFitBands(analysis->GetModel(), 2, 1, 3, -3000, true);
-  LambdaAntiLambda->FemtoModelDeviations(analysis->GetDeviationByBin(), 2);
+  if(selector==0) LambdaAntiLambda->FemtoModelFitBands(analysis->GetModel(), 1, 1, 3., 0.45, true);
+  if(selector==1) LambdaAntiLambda->FemtoModelFitBands(analysis->GetModel(), 2, 1, 3., 0.45, true);
+  if(selector==2) LambdaAntiLambda->FemtoModelFitBands(analysis->GetModel(), 3, 1, 3., 0.45, true);
+  LambdaAntiLambda->FemtoModelDeviations(analysis->GetDeviationByBin(), 8);
 
   TCanvas* c_LAL = new TCanvas("CFLAL", "CFLAL", 0, 0, 650, 650);
   DreamPlot::SetStyle();

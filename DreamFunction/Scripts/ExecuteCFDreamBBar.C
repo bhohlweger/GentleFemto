@@ -1,6 +1,7 @@
 #include "GetCorrelationsNano.C"
 #include "GetCorrelationsNanoBBar.C"
 #include "GetCorrelationsBbarB.C"
+#include "GetCorrelationsNanoBB.C"
 #include "METoSEReweighting.C"
 #include "TSystem.h"
 int main(int argc, char* argv[]) {

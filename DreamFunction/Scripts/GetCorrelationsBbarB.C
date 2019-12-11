@@ -14,7 +14,7 @@ void GetCorrelationsBbarB(const char* filename, const char* prefix,
   TString add1="1";
   TString add2="2";
   TString add3="3";
-  TString add4="4";
+  TString add4="8";
   TString add5="5";
 
   Double_t norm1=0.2;
@@ -122,7 +122,7 @@ void GetCorrelationsBbarB(const char* filename, const char* prefix,
 
 if(!isMC)
 {
-  TString foldername = "/Users/Valentina/cernbox/Analysis/BBbar/GentleFemto_Output/data/";
+  TString foldername = gSystem->pwd();
 
   std::cout << "$PWD " << foldername << std::endl;
   std::cout << "pp CF \n";
@@ -133,20 +133,20 @@ if(!isMC)
   std::cout << "Write Output \n";
   if(strcmp(addon, add1)==0){
   std::cout << "Sphericity [0.,0.3] \n";
-  CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_st1.root", foldername.Data()));
+  CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_st1.root", gSystem->pwd()));
 }else if(strcmp(addon, add2)==0){
   std::cout << "Sphericity [0.3,0.7] \n";
-  CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_st2.root", foldername.Data()));
+  CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_st2.root", gSystem->pwd()));
 }else if(strcmp(addon, add3)==0){
   std::cout << "Sphericity [0.7,1.] \n";
-  CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_st3.root", foldername.Data()));
+  CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_st3.root", gSystem->pwd()));
 }else if(strcmp(addon, add4)==0){
   std::cout << "No Sphericity Cuts \n";
-  CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_full.root", foldername.Data()));
+  CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_full.root", gSystem->pwd()));
   }
   else if(strcmp(addon, add5)==0){
     std::cout << "Sphericity Cuts [0.9-1]\n";
-    CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_st5.root", foldername.Data()));
+    CF_pAp_App->WriteOutput(Form("%sCFOutput_pAp_App_st5.root", gSystem->pwd()));
     }
 ;
   std::cout << "pL CF \n";
@@ -154,19 +154,19 @@ if(!isMC)
   CF_pAL_ApL->GetCorrelations();
   if(strcmp(addon, add1)==0){
   std::cout << "Sphericity [0.,0.3] \n";
-  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_st1.root", foldername.Data()));
+  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_st1.root", gSystem->pwd()));
 }else if(strcmp(addon, add2)==0){
   std::cout << "Sphericity [0.3,0.7] \n";
-  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_st2.root", foldername.Data()));
+  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_st2.root", gSystem->pwd()));
 }else if(strcmp(addon, add3)==0){
   std::cout << "Sphericity [0.7,1.] \n";
-  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_st3.root", foldername.Data()));
+  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_st3.root", gSystem->pwd()));
 }else if(strcmp(addon, add4)==0){
   std::cout << "No Sphericity Cuts \n";
-  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_full.root", foldername.Data()));
+  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_full.root", gSystem->pwd()));
 }else if(strcmp(addon, add5)==0){
   std::cout << "Sphericity Cuts [0.9-1]\n";
-  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_st5.root", foldername.Data()));
+  CF_pAL_ApL->WriteOutput(Form("%sCFOutput_pAL_ApL_st5.root", gSystem->pwd()));
 }
 ;
 
@@ -175,19 +175,19 @@ if(!isMC)
   CF_ALL_LAL->GetCorrelations();
   if(strcmp(addon, add1)==0){
   std::cout << "Sphericity [0.,0.3] \n";
-  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_st1.root", foldername.Data()));
+  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_st1.root", gSystem->pwd()));
 }else if(strcmp(addon, add2)==0){
   std::cout << "Sphericity [0.3,0.7] \n";
-  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_st2.root", foldername.Data()));
+  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_st2.root", gSystem->pwd()));
 }else if(strcmp(addon, add3)==0){
   std::cout << "Sphericity [0.7,1.] \n";
-  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_st3.root", foldername.Data()));
+  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_st3.root", gSystem->pwd()));
 }else if(strcmp(addon, add4)==0){
   std::cout << "No Sphericity Cuts \n";
-  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_full.root", foldername.Data()));
+  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_full.root", gSystem->pwd()));
 }else if(strcmp(addon, add5)==0){
   std::cout << "Sphericity Cuts [0.9-1]\n";
-  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_st5.root", foldername.Data()));
+  CF_ALL_LAL->WriteOutput(Form("%sCFOutput_LAL_ALL_st5.root", gSystem->pwd()));
 }
 ;
 } else if (isMC)

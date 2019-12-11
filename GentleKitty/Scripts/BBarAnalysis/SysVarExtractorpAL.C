@@ -13,8 +13,10 @@ int main(int argc, char *argv[]) {
   const char* model = argv[3];
   int selector;
   TString convmodel = model;
+  if(convmodel=="Haidenbauer") selector=0;
   if(convmodel=="Lednicky") selector=1;
-  else selector=0;
+  if(convmodel=="Coulomb") selector=2;
+
   TFile* systFile = TFile::Open(SystFile, "read");
   if (!systFile) {
     std::cout << "no syst file " << std::endl;
@@ -35,8 +37,10 @@ int main(int argc, char *argv[]) {
   ProtonAntiLambda->SetUnitConversionCATS(1);
   ProtonAntiLambda->SetCorrelationFunction(analysis->GetCorrelationFunction(0));
   ProtonAntiLambda->SetSystematics(systematic, 8);
-  ProtonAntiLambda->FemtoModelFitBands(analysis->GetModel(), 2, 1, 3, -3000, true);
-  ProtonAntiLambda->FemtoModelDeviations(analysis->GetDeviationByBin(), 2);
+  if(selector==0) ProtonAntiLambda->FemtoModelFitBands(analysis->GetModel(), 1, 1, 3., 0.45, true);
+  if(selector==1) ProtonAntiLambda->FemtoModelFitBands(analysis->GetModel(), 2, 1, 3., 0.45, true);
+  if(selector==2) ProtonAntiLambda->FemtoModelFitBands(analysis->GetModel(), 3, 1, 3., 0.45, true);
+  ProtonAntiLambda->FemtoModelDeviations(analysis->GetDeviationByBin(), 8);
 
   TCanvas* c_PAL = new TCanvas("CFpAL", "CFpAL", 0, 0, 650, 650);
   DreamPlot::SetStyle();
@@ -49,7 +53,7 @@ int main(int argc, char *argv[]) {
 
   ProtonAntiLambda->SetLegendName("p-#bar{#Lambda} #oplus #bar{p}-#Lambda", "fpe");
   ProtonAntiLambda->SetLegendName("Lednicky-Lyuboshits (fit)", "l");
-  ProtonAntiLambda->SetRangePlotting(0, 300, 0.6, 1.1);
+  ProtonAntiLambda->SetRangePlotting(0, 300, 0.5, 1.1);
   ProtonAntiLambda->SetNDivisions(505);
   ProtonAntiLambda->SetLegendCoordinates(
       0.40, 0.35 - 0.09 * ProtonAntiLambda->GetNumberOfModels(), 0.6, 0.425);
@@ -81,7 +85,7 @@ int main(int argc, char *argv[]) {
 //  p2->SetBottomMargin(0.3);
 //  p2->Draw();
 //  ProtonProton->DrawDeviationPerBin(p2);
-  TFile* out = TFile::Open(Form("tmp_pAl_%s.root",model), "recreate");
+  TFile* out = TFile::Open(Form("tmp_pAL_%s.root",model), "recreate");
   out->cd();
   c_PAL->Write();
   c_PAL->SaveAs(Form("CF_pAL_%s.pdf", model));

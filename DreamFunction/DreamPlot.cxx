@@ -16,6 +16,9 @@ DreamPlot::DreamPlot()
       fProtonXi(nullptr),
       fProtonSigma(nullptr),
       fProtonSigmaSideband(nullptr),
+      fProtonAntiProton(nullptr),
+      fProtonAntiLambda(nullptr),
+      fLambdaAntiLambda(nullptr),
       fRadius(0),
       fRadiusStat(0),
       fRadiusSysUp(0),
@@ -29,6 +32,9 @@ DreamPlot::DreamPlot()
   fProtonXi = new DreamData("ProtonXi");
   fProtonSigma = new DreamData("ProtonSigma0");
   fProtonSigmaSideband = new DreamData("ProtonSigma0Sidebands");
+  fProtonAntiProton = new DreamData("ProtonAntiProton");
+  fProtonAntiLambda = new DreamData("ProtonAntiLambda");
+  fLambdaAntiLambda = new DreamData("LambdaAntiLambda");
 }
 
 DreamPlot::~DreamPlot() {
@@ -669,6 +675,33 @@ void DreamPlot::DrawCorrelationFunctionProtonProton(const char* path) {
   DrawSystemInfo(c, false, leftX + 0.01, 0);
   c->SaveAs(Form("%s/CF_pp.pdf", path));
   c->SaveAs(Form("%s/CF_pp.root", path));
+}
+
+void DreamPlot::DrawCorrelationFunctionsBBar(int pAp_model) {
+  SetStyle();
+  const float right = 0.025;
+  const float top = 0.025;
+  TLatex ref;
+  ref.SetTextSize(gStyle->GetTextSize() * 0.4);
+  ref.SetNDC(kTRUE);
+  TLatex Numbering;
+  Numbering.SetTextSize(gStyle->GetTextSize() * 1.3);
+  Numbering.SetNDC(kTRUE);
+  TCanvas* c_PAP = new TCanvas("CFpAp", "CFpAp", 0, 0, 650, 550);
+  c_PAP->SetRightMargin(right);
+  c_PAP->SetTopMargin(top);
+  fProtonAntiProton->SetLegendName("p-#bar{p}", "fpe");
+  if(pAp_model=0)fProtonAntiProton->SetLegendName("#chiEFT + Coulomb", "l");
+  if(pAp_model=1)fProtonAntiProton->SetLegendName("Lednicky-Lyuboshits + Coulomb", "l");
+  if(pAp_model=2)fProtonAntiProton->SetLegendName("Coulomb", "l");
+  fProtonAntiProton->SetRangePlotting(0, 400, 0.8, 3.5);
+  fProtonAntiProton->SetNDivisions(505);
+  fProtonAntiProton->SetLegendCoordinates(
+      0.30, 0.71 - 0.09 * fProtonAntiProton->GetNumberOfModels(), 0.7, 0.8);
+  fProtonAntiProton->DrawCorrelationPlot(c_PAP);
+  DrawSystemInfo(c_PAP, true, 0.32);
+  c_PAP->cd();
+  c_PAP->SaveAs("CF_pAp_%s_prelim.pdf");
 }
 
 void DreamPlot::DrawSystemInfo(TPad* c, bool plotRadius, float xMin,
