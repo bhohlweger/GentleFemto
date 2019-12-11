@@ -13,11 +13,14 @@
 
 #include "TF1.h"
 #include "TSystem.h"
+#include "TFile.h"
 
 #include "DLM_CkDecomposition.h"
 
 AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
     : fcutOff(cutoff),
+      fLimitCFRange(false),
+      fCFLimit(1000),
       fFilename(""),
       fPrefix(""),
       fSuffix(""),
@@ -32,7 +35,7 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
       fLamVarXim1530(1),
       fRadVarXim1530(1),
       fnormalizationLeft(0.4),
-      fnormalizationRight(0.6){
+      fnormalizationRight(0.6) {
   fNormMin = {1000, 500, 500, 500, 600, 600, 600, 700, 700, 800};
   fNormMax = {1000, 900, 800, 700, 1000, 900, 800, 1000, 900, 1000};
   fSidebandNormMin = {450,400,500};
@@ -41,15 +44,14 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
   fLamVars = {0.8,1.0,1.2};
   fXim1530Rad = {0.95,1.00,1.05};
 
-  auto CATSinput = new CATSInput();
-  TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
-  TString SigmaFileName = "Sample3_MeV_compact.root";
-  CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
-  CATSinput->SetSigmaFileName(SigmaFileName.Data());
-  CATSinput->ReadSigmaFile();
-  TH2F* momReso = (TH2F*) CATSinput->GetSigmaFile(3)->Clone("MomResolution");
-//  momReso->Rebin2D(2);
-  fMomGami->SetResolution(momReso, 1000);
+  TString CalibBaseDir = "/home/schmollweger/cernbox/HM13TeV/AnalysisData/1436_AODXioton/ResolutionpXi.root";
+  TFile* inFile = TFile::Open(CalibBaseDir.Data(), "read");
+  if (!inFile) {
+    std::cout << "No Infile set, no Momentum resolution set, RIP \n";
+  } else {
+    TH2F* momReso = (TH2F*) inFile->Get("FiveMeV");
+    fMomGami->SetResolution(momReso, 1);
+  }
 }
 
 AnalyseProXi::~AnalyseProXi() {
@@ -59,15 +61,24 @@ AnalyseProXi::~AnalyseProXi() {
 }
 
 TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
-
+  std::cout << "Getting the CF \n";
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
   DreamFile->SetAnalysisFile(fFilename, fPrefix, fSuffix);
 
   DreamDist* pXi = DreamFile->GetPairDistributions(0, 2, "");
   DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 3, "");
+  if (fLimitCFRange) {
+    std::cout << " Limiting the range to " << fCFLimit << std::endl;
+    ResetLimits(pXi);
+    ResetLimits(ApAXi);
+  }
   DreamCF* CFpXiDef = ObtainCorrFunction("pXiVar0", pXi, ApAXi);
   TH1F* CFMeasured = CFpXiDef->FindCorrelationFunction(
-      "hCk_RebinnedpXiVar0MeV_1");
+      "hCk_RebinnedpXiVar0MeV_0");
+  if (!CFMeasured) {
+    return nullptr;
+  }
+
   CFMeasured = (TH1F*) CFMeasured->Clone("InputCF");
   CFpXiDef->WriteOutput(
       TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data());
@@ -81,19 +92,19 @@ TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
   fQAOutput->cd();
   fMomGami->GetQAList()->Write("MomGami", 1);
   CFMeasured->Write();
-
+  std::cout << "Calculating Lambda parameter \n";
   double lamGenuine = SetupLambdaPars(fXiGami, fLamVars[fLamVarProton],
                                       fLamVars[fLamVarOmega],
                                       fLamVars[fLamVarXim1530]);
   //Loop over variations, but set pointer for default to be passed on ?
 
-  //Get rid of the sidebands
+  std::cout << "Get rid of the sidebands \n";
   TH1F* unfoldedSideBand = XimSideband(fXiGami, CFMeasured);
   fQAOutput->cd();
   fXiGami->AddStatErr(unfoldedSideBand);
   unfoldedSideBand->Write();
 
-  //Get rid of the bassline or vaseline
+  std::cout << "Get rid of the bassline or vaseline \n";
   TH1F* CFBLFree = BaseLine(unfoldedSideBand);
   fQAOutput->cd();
   fXiGami->AddStatErr(CFBLFree);
@@ -101,19 +112,20 @@ TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
 
   //Setup the Lambda Parameters
 
-  //Get rid of the p-Xim1530 smeared
+  std::cout << "Get rid of the p-Xim1530 smeared \n";
   TH1F* unfoldedFeedDown = Xim1530FeedDown(fXiGami, CFBLFree);
   fQAOutput->cd();
   fXiGami->AddStatErr(unfoldedFeedDown);
   unfoldedFeedDown->Write();
 
-  //Unfold to the genuine CF
+  std::cout << "Unfold to the genuine CF \n";
   TH1F* unfoldedGenuine = fXiGami->UnfoldGenuine(unfoldedFeedDown, lamGenuine);
   fQAOutput->cd();
   fXiGami->AddStatErr(unfoldedGenuine);
   TH1F* outputHist = (TH1F*) unfoldedGenuine->Clone("outputhist");
   unfoldedGenuine->Write();
   if (getModels) {
+    std::cout << "Getting the Models \n";
     GetCoulomb(unfoldedGenuine);
     GetHalQCD(unfoldedGenuine);
     GetESC16(unfoldedGenuine);
@@ -123,11 +135,71 @@ TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
   return outputHist;
 }
 
-DreamCF* AnalyseProXi::ObtainCorrFunction(const char* name,
-                                          DreamDist* partDist,
+void AnalyseProXi::ResetLimits(DreamDist* dist) {
+  dist->SetSEDist(
+      LimitRange(dist->GetSEDist(), fCFLimit,
+                 TString::Format("%sLim", dist->GetSEDist()->GetName()).Data()),
+      "ted");
+  dist->SetSEMultDist(
+      LimitRange(
+          dist->GetSEMultDist(), fCFLimit,
+          TString::Format("%sLim", dist->GetSEMultDist()->GetName()).Data()),
+      "ted");
+  dist->SetMEDist(
+      LimitRange(dist->GetMEDist(), fCFLimit,
+                 TString::Format("%sLim", dist->GetMEDist()->GetName()).Data()),
+      "ted");
+  dist->SetMEMultDist(
+      LimitRange(
+          dist->GetMEMultDist(), fCFLimit,
+          TString::Format("%sLim", dist->GetMEMultDist()->GetName()).Data()),
+      "ted");
+}
+
+TH1F* AnalyseProXi::LimitRange(TH1F* hist, double limit, const char* name) {
+  std::cout << name << std::endl;
+  double xMin = hist->GetXaxis()->GetXmin();
+  int upperBin = hist->FindBin(limit);
+  std::cout << "hist->GetBinCenter(upperBin): "
+            << hist->GetXaxis()->GetBinCenter(upperBin)
+            << " hist->GetXaxis()->GetBinUpEdge(upperBin): "
+            << hist->GetXaxis()->GetBinUpEdge(upperBin) << std::endl;
+  int nBins = upperBin;
+  double xMax = hist->GetXaxis()->GetBinUpEdge(upperBin);
+  TH1F* outHist = new TH1F(name, name, nBins, xMin, xMax);
+  for (int iBin = 1; iBin < upperBin + 1; ++iBin) {
+    outHist->SetBinContent(iBin, hist->GetBinContent(iBin));
+    outHist->SetBinError(iBin, hist->GetBinError(iBin));
+  }
+  return outHist;
+}
+
+TH2F* AnalyseProXi::LimitRange(TH2F* hist, double limit, const char* name) {
+  std::cout << name << std::endl;
+  double xMin = hist->GetXaxis()->GetXmin();
+  int upperBin = hist->GetXaxis()->FindBin(limit);
+  std::cout << "hist->GetBinCenter(upperBin): "
+            << hist->GetXaxis()->GetBinCenter(upperBin)
+            << " hist->GetXaxis()->GetBinUpEdge(upperBin): "
+            << hist->GetXaxis()->GetBinUpEdge(upperBin) << std::endl;
+  int nBins = upperBin;
+  double xMax = hist->GetXaxis()->GetBinUpEdge(upperBin);
+  TH2F* outHist = new TH2F(name, name, nBins, xMin, xMax,
+                           hist->GetYaxis()->GetNbins(),
+                           hist->GetYaxis()->GetXmin(),
+                           hist->GetYaxis()->GetXmax());
+
+  for (int iBinX = 1; iBinX < upperBin + 1; ++iBinX) {
+    for (int iBinY = 1; iBinY < hist->GetNbinsY() + 1; ++iBinY) {
+      outHist->SetBinContent(iBinX, iBinY, hist->GetBinContent(iBinX, iBinY));
+      outHist->SetBinError(iBinX, iBinY, hist->GetBinError(iBinX, iBinY));
+    }
+  }
+  return outHist;
+}
+
+DreamCF* AnalyseProXi::ObtainCorrFunction(const char* name, DreamDist* partDist,
                                           DreamDist* APartDist) {
-  bool FixBinningExternal = false;
-  float FixkMin = 0.;
   DreamCF* outCF = new DreamCF();
   DreamPair* pp = new DreamPair("Part", fnormalizationLeft,
                                 fnormalizationRight);
@@ -136,33 +208,21 @@ DreamCF* AnalyseProXi::ObtainCorrFunction(const char* name,
   if (fnormalizationLeft == 0 || fnormalizationRight == 0) {
     std::cout << "Normalization is 0! Bad results incoming! \n";
   }
+
   pp->SetPair(partDist);
   ApAp->SetPair(APartDist);
 
-  pp->ShiftForEmpty(pp->GetPair());
-  ApAp->ShiftForEmpty(ApAp->GetPair());
+  pp->ReweightMixedEvent(pp->GetPair(), 0.2, 0.9);
+  ApAp->ReweightMixedEvent(ApAp->GetPair(), 0.2, 0.9);
 
-  if (FixBinningExternal) {
-    pp->FixShift(pp->GetPair(), ApAp->GetPair(), FixkMin, true);
-    ApAp->FixShift(ApAp->GetPair(), pp->GetPair(), FixkMin, true);
-  } else {
-    pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
-                 ApAp->GetFirstBin());
-    ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
-                   pp->GetFirstBin());
-  }
+  pp->UnfoldMomentum(pp->GetPairReweighted(0), fMomGami);
+  ApAp->UnfoldMomentum(ApAp->GetPairReweighted(0), fMomGami);
 
-  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
-  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+  pp->FixShift(pp->GetPairUnfolded(0), ApAp->GetPairUnfolded(0), 0.005, true);
+  ApAp->FixShift(ApAp->GetPairUnfolded(0), pp->GetPairUnfolded(0), 0.005, true);
 
-  pp->Rebin(pp->GetPairReweighted(0), 2);
-  ApAp->Rebin(ApAp->GetPairReweighted(0), 2);
-
-  pp->UnfoldMomentum(pp->GetPairRebinned(0), fMomGami);
-  ApAp->UnfoldMomentum(ApAp->GetPairRebinned(0), fMomGami);
-
-  pp->Rebin(pp->GetPairUnfolded(0), 2);
-  ApAp->Rebin(ApAp->GetPairUnfolded(0), 2);
+  pp->Rebin(pp->GetPairFixShifted(0), 4);
+  ApAp->Rebin(ApAp->GetPairFixShifted(0), 4);
 
   outCF->SetPairs(pp, ApAp);
   outCF->GetCorrelations(name);
@@ -184,10 +244,11 @@ TH1F* AnalyseProXi::BaseLine(TH1F* dataCF) {
 TH1F* AnalyseProXi::XimSideband(LambdaGami* XiGami, TH1F* dataCF) {
 
   SideBandFit* side = new SideBandFit();
-  side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/Systematics_5MeV", "PXi",
-                        "103", "104");
+  side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/Systematics_5MeV",
+                        "PXi", "103", "104");
   side->SetNormalizationRange(fSidebandNormMin[fSideNormVar],
                               fSidebandNormMax[fSideNormVar]);
+  side->SetRebin(4);
   side->SideBandCFs(false);
   TH1F* fitme = side->GetSideBands(5);
   double SideBandPars[4];
@@ -234,7 +295,7 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   unsigned int nkBin = 0;
   double kMin, kMax;
   kMin = dataCF->GetXaxis()->GetXmin();
-  if (fcutOff > dataCF->GetXaxis()->GetXmax()) {
+  if (fcutOff < dataCF->GetXaxis()->GetXmax()) {
     nkBin = dataCF->FindBin(fcutOff);
     std::cout << "dataCF->GetBinWidth(1): " << dataCF->GetBinWidth(1)
               << std::endl;
@@ -243,6 +304,8 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
     kMax = dataCF->GetXaxis()->GetXmax();
     nkBin = dataCF->GetNbinsX();
   }
+  std::cout << "kMin: " << kMin << " kMax: " << kMax << " nkBin: " << nkBin
+            << std::endl;
   CATS AB_pXim1530;
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, nkBin, kMin, kMax,
                                  TidyCats::sGaussian);

@@ -32,6 +32,13 @@ class AnalyseProXi {
   TH1F* GetVariation(int varnumber, bool getModels = false);
   DreamCF* ObtainCorrFunction(const char* name, DreamDist* partDist,
                               DreamDist* APartDist);
+  void LimitCFRange(double val) {
+    fLimitCFRange = true;
+    fCFLimit = val;
+  }
+  void ResetLimits(DreamDist* dist);
+  TH1F* LimitRange(TH1F* hist, double limit, const char* name);
+  TH2F* LimitRange(TH2F* hist, double limit, const char* name);
   void SetAnalysisFile(const char* Path, const char* Prefix,
                        const char* Suffix = "0") {
     fFilename = Path;
@@ -72,6 +79,8 @@ class AnalyseProXi {
   ;
  private:
   double fcutOff;  // at this value the calculation and doing of the cf stops
+  bool fLimitCFRange;
+  double fCFLimit;
   const char* fFilename;
   const char* fPrefix;
   const char* fSuffix;
