@@ -51,6 +51,9 @@ class DreamData {
                           bool useDefaultColors = true);
   void FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
                           float colorAlpha, bool addtoLegend);
+  void FemtoModelFitBands(TGraphErrors *graphMod, int color, int lineStyle,
+                          double lineWidth, double opacity, bool addtoLegend,
+                          bool useDefaultColors = true);
   void FemtoModelDeviations(TGraphErrors* grDeviation, int color, bool useDefaultColors = true);
   void FemtoModelDeviations(TGraphErrors *grDeviation, int color, int lineStyle,
                             double lineWidth, int fillStyle,

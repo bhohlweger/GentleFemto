@@ -52,6 +52,7 @@ class DreamPlot {
   static void SetStyleHistoCF(TH1 *histo, int marker = 20, int color = kBlue + 2, int labelsize = 25);
   static void SetStyleGraph(TGraph *histo, int marker = 20, int color = kBlue + 2, float alpha = 1.);
   void DrawCorrelationFunctions();
+  void DrawCorrelationFunctionsBBar(int pAp_model);
   void DrawCorrelationFunctionSigma(const char* fitPath);
   void DrawCorrelationFunctionProtonProton(const char* path);
   void DrawSystemInfo(TPad* c, bool plotRadius = true, float xMin = 0.35,
@@ -62,6 +63,9 @@ class DreamPlot {
   DreamData* fProtonXi;
   DreamData* fProtonSigma;
   DreamData* fProtonSigmaSideband;
+  DreamData* fProtonAntiProton;
+  DreamData* fProtonAntiLambda;
+  DreamData* fLambdaAntiLambda;
   float fRadius;
   float fRadiusStat;
   float fRadiusSysUp;

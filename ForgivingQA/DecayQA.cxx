@@ -77,6 +77,37 @@ void DecayQA::InvariantMassLambda(float CutMin, float CutMax, bool minBook, floa
   }
 }
 
+void DecayQA::InvariantMassPartLambda(float CutMin, float CutMax, bool minBook) {
+  const char* listName = minBook ? "MinimalBooking" : "v0Cuts";
+  auto invMassPart = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fDecayCuts, { listName }), "InvMassPt");
+  invMassPart->RebinX(10);
+  FitInvariantMass(invMassPart, CutMin, CutMax, "Lambda");
+  if (!minBook) {
+    PlotKaonRejection(
+        (TH1F*) fReader->Get1DHistInList(fReader->GetListInList(fDecayCuts, {
+                                                                    listName }),
+                                         "InvMassKaon"),
+        "Lambda");
+  }
+
+}
+
+void DecayQA::InvariantMassAntiPartLambda(float CutMin, float CutMax, bool minBook) {
+  const char* listName = minBook ? "MinimalBooking" : "v0Cuts";
+  auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(
+      fReader->GetListInList(fAntiDecayCuts, { listName }), "InvMassPt");
+  invMassAntiPart->RebinX(10);
+  FitInvariantMass(invMassAntiPart, CutMin, CutMax, "AntiLambda");
+  if (!minBook) {
+    PlotKaonRejection(
+        (TH1F*) fReader->Get1DHistInList(
+            fReader->GetListInList(fAntiDecayCuts, { listName }),
+            "InvMassKaon"),
+        "AntiLambda");
+  }
+}
+
 void DecayQA::InvariantMassSigma0(float massCuts, const char* name, bool isSum) {
   TH2F* invMassPart;
   if (!isSum) {
@@ -455,6 +486,14 @@ void DecayQA::SetRangesFitting(float signalMin, float signalMax, float bkgMin,
 
 void DecayQA::PlotQATopologyLambda() {
   PlotQATopologyLambda(fDecayCuts, "Lambda");
+  PlotQATopologyLambda(fAntiDecayCuts, "AntiLambda");
+}
+
+void DecayQA::PlotQATopologyPartLambda() {
+  PlotQATopologyLambda(fDecayCuts, "Lambda");
+}
+
+void DecayQA::PlotQATopologyAntiPartLambda() {
   PlotQATopologyLambda(fAntiDecayCuts, "AntiLambda");
 }
 

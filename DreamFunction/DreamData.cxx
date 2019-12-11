@@ -268,6 +268,7 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
   grFemtoModel->SetFillColor(useDefaultColors ? fColors[color] : color);
   grFemtoModel->SetLineWidth(lineWidth);
   grFemtoModel->SetLineStyle(lineStyle);
+  grFemtoModel->SetFillColorAlpha(useDefaultColors ? fColors[color] : color, 0.45);
   if (fillStyle > 0)
     grFemtoModel->SetFillStyle(fillStyle);
   fFemtoModdeled.push_back(grFemtoModel);
@@ -295,6 +296,27 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
     grFakeModel->SetLineColorAlpha(color, colorAlpha);
     grFakeModel->SetFillColorAlpha(color, colorAlpha);
     grFakeModel->SetLineWidth(5);
+    fFakeGraph.push_back(grFakeModel);
+  }
+}
+
+void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
+                                   int lineStyle, double lineWidth,
+                                   double opacity, bool addtoLegend,
+                                   bool useDefaultColors) {
+  grFemtoModel->SetLineColor(useDefaultColors ? fColors[color] : color);
+  grFemtoModel->SetFillColor(useDefaultColors ? fColors[color] : color);
+  grFemtoModel->SetLineWidth(lineWidth);
+  grFemtoModel->SetLineStyle(lineStyle);
+  grFemtoModel->SetFillColorAlpha(useDefaultColors ? fColors[color] : color, opacity);
+  fFemtoModdeled.push_back(grFemtoModel);
+  if (addtoLegend) {
+    TGraph *grFakeModel = new TGraph();
+    grFakeModel->SetLineColor(useDefaultColors ? fColors[color] : color);
+    grFakeModel->SetFillColor(useDefaultColors ? fColors[color] : color);
+    grFakeModel->SetLineWidth(lineWidth * 1.8);
+    grFakeModel->SetLineStyle(lineStyle);
+    grFakeModel->SetFillColorAlpha(useDefaultColors ? fColors[color] : color, opacity);
     fFakeGraph.push_back(grFakeModel);
   }
 }

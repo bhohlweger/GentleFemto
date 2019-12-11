@@ -8,13 +8,17 @@
 #include "TStyle.h"
 #include <iostream>
 int main(int argc, char *argv[]) {
-  const char* filename = argv[1];//root file where TTree is saved (should be original binning of default data)
-  const char* SystFile = argv[2];//systematic root file where err.relative fit is stored (!= from original binning)
+  const char* filename = argv[1];//root file where TTree from sysfit is saved (should be original binning of default data)
+  const char* SystFile = argv[2];//systematic root file where err.relative fit is stored from sys data (!= from original binning)
   const char* model = argv[3];
   int selector;
   TString convmodel = model;
+  if(convmodel=="Haidenbauer") selector=0;
   if(convmodel=="Lednicky") selector=1;
-  else selector=0;
+  if(convmodel=="Coulomb") selector=2;
+
+  std::cout<<"selector = "<<selector<< "----" << "Model = " << convmodel <<std::endl;
+
   TFile* systFile = TFile::Open(SystFile, "read");
   if (!systFile) {
     std::cout << "no syst file " << std::endl;
@@ -26,7 +30,9 @@ int main(int argc, char *argv[]) {
   VariationAnalysispAp* analysis = new VariationAnalysispAp("hCk_ReweightedpApVar");
 
   TCut chiSqCut = "chiSqNDF<30";
+  // TCut polOrdCut = "iPolOrd==3";
   analysis->AppendAndCut(chiSqCut);
+  // analysis->AppendAndCut(polOrdCut);
   analysis->ReadFitFile(filename);
 
   DreamData *ProtonAntiProton = new DreamData("ProtonAntiProton");
@@ -34,7 +40,10 @@ int main(int argc, char *argv[]) {
   ProtonAntiProton->SetUnitConversionCATS(1);
   ProtonAntiProton->SetCorrelationFunction(analysis->GetCorrelationFunction(0));
   ProtonAntiProton->SetSystematics(systematic, 2);
-  ProtonAntiProton->FemtoModelFitBands(analysis->GetModel(), 2, 1, 3, -3000, true);
+  if(selector==0) ProtonAntiProton->FemtoModelFitBands(analysis->GetModel(), 1, 1, 0., 0.45, true);
+  if(selector==1) ProtonAntiProton->FemtoModelFitBands(analysis->GetModel(), 2, 1, 0., 0.45, true);
+  if(selector==2) ProtonAntiProton->FemtoModelFitBands(analysis->GetModel(), 3, 1, 0., 0.45, true);
+
   ProtonAntiProton->FemtoModelDeviations(analysis->GetDeviationByBin(), 2);
 
 
@@ -48,16 +57,17 @@ int main(int argc, char *argv[]) {
   p1->Draw();
 
   ProtonAntiProton->SetLegendName("p-#bar{p}", "fpe");
-  if(selector!=1){
+  if(selector==0){
 	  ProtonAntiProton->SetLegendName("Coulomb + #chi EFT (fit)", "l");
-  }else   ProtonAntiProton->SetLegendName("Coulomb + Lednicky-Lyuboshits (fit)", "l");
+  }else if(selector==2){
+ 	  ProtonAntiProton->SetLegendName("Coulomb", "l");
+  }else if(selector==1){
+      ProtonAntiProton->SetLegendName("Coulomb + Lednicky-Lyuboshits (fit)", "l");
+  }
   ProtonAntiProton->SetRangePlotting(0, 300, 0.725, 3.);
   ProtonAntiProton->SetNDivisions(505);
   ProtonAntiProton->SetLegendCoordinates(
       0.30, 0.65 - 0.09 * ProtonAntiProton->GetNumberOfModels(), 0.7, 0.725);
-  // void DreamData::DrawCorrelationPlot(TPad* c, const int color,
-  //                                     const int systematicsColor,
-  //                                     const float legendTextScale, const float markersize)
   ProtonAntiProton->DrawCorrelationPlot(p1,0,kGray+2,0.7,0.8);
   p1->cd();
   TLatex BeamText;
@@ -91,7 +101,9 @@ int main(int argc, char *argv[]) {
   out->Close();
   systFile->Close();
 
-
+delete analysis;
+delete ProtonAntiProton;
+delete c_PAP;
 
   return 0;
 }

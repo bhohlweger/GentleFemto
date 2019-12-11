@@ -82,6 +82,9 @@ target_link_libraries(executePlotSigma DreamFunctions)
 add_executable(executePlotProton ${PROJECT_SOURCE_DIR}/Scripts/executePlotProton.C)
 target_link_libraries(executePlotProton DreamFunctions)
 
+add_executable(executePlotBBar ${PROJECT_SOURCE_DIR}/Scripts/ExecutePlotCFBBar.C)
+target_link_libraries(executePlotBBar DreamFunctions)
+
 add_executable(executeSigma ${PROJECT_SOURCE_DIR}/Scripts/ExecuteSigma.C)
 target_link_libraries(executeSigma DreamFunctions)
 

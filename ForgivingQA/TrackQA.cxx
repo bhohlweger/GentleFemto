@@ -33,6 +33,14 @@ void TrackQA::PlotKinematic() {
   PlotKinematic(fAntiTrackCuts, "AntiProton");
 }
 
+void TrackQA::PlotKinematicTracks() {
+  PlotKinematic(fTrackCuts, "Proton");
+}
+
+void TrackQA::PlotKinematicAntiTracks() {
+  PlotKinematic(fAntiTrackCuts, "AntiProton");
+}
+
 int TrackQA::GetNumberOfTracks() const {
   TH1F* counter = nullptr;
   if (fTrackCuts && fAntiTrackCuts) {
@@ -130,6 +138,15 @@ void TrackQA::PlotPID() {
   PlotPID(fTrackCuts, "Proton");
   PlotPID(fAntiTrackCuts, "AntiProton");
 }
+
+void TrackQA::PlotPIDTracks() {
+  PlotPID(fTrackCuts, "Proton");
+}
+
+void TrackQA::PlotPIDAntiTracks() {
+  PlotPID(fAntiTrackCuts, "AntiProton");
+}
+
 
 void TrackQA::PlotPID(TList* cuts, const char* outname) {
   auto* TPCdEdx = (TH2F*) fReader->Get2DHistInList(
