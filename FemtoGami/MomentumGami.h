@@ -31,6 +31,7 @@ class MomentumGami {
   TH2F* fResolution;
   std::vector<TH1F*> fResProjection;
   TH1F* fToUnfold;
+  TH2F* fTrainQA;
   float fMaxkStar;
   float fUnitConversion;
 };
