@@ -196,7 +196,4 @@ target_link_libraries(SysVarExtractorpAL tidyCATS -L${DREAM_LIB_PATH} DreamFunct
 add_executable(SysVarExtractorLAL ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractorLAL.C)
 target_link_libraries(SysVarExtractorLAL tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-#add_executable(BBar ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/BBar.C)
-#target_link_libraries(BBar tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
-
 add_subdirectory(Test)
