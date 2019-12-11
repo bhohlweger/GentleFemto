@@ -177,13 +177,16 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
           fixedShift ?
               SE->GetXaxis()->GetXmax() : otherSE->GetXaxis()->GetXmax();
 
-      int multBins = SEMult->GetYaxis()->GetNbins();
-      int multMax = SEMult->GetYaxis()->GetXmax();
-
+      int multBins = 0;
+      int multMax = 0;
+      if (SEMult && MEMult) {
+        multBins = SEMult->GetYaxis()->GetNbins();
+        multMax = SEMult->GetYaxis()->GetXmax();
+      }
       TH1F* SEShifted;
       TH1F* MEShifted;
-      TH2F* SEMultShifted;
-      TH2F* MEMultShifted;
+      TH2F* SEMultShifted = nullptr;
+      TH2F* MEMultShifted = nullptr;
       const char* SEHistName = Form("%s_", SE->GetName());
       std::cout << "Fix shifed nBins: " << nBins << " xMin: " << xMin
                 << " xMax: " << xMax << std::endl;
@@ -192,14 +195,16 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
       const char* MEHistName = Form("%s_", ME->GetName());
       MEShifted = new TH1F(MEHistName, MEHistName, nBins, xMin, xMax);
       MEShifted->Sumw2();
-      const char* SEMultHistName = Form("%s_", SEMult->GetName());
-      SEMultShifted = new TH2F(SEMultHistName, SEMultHistName, nBins, xMin,
-                               xMax, multBins, 1, multMax);
-      SEMultShifted->Sumw2();
-      const char* MEMultHistName = Form("%s_", MEMult->GetName());
-      MEMultShifted = new TH2F(MEMultHistName, MEMultHistName, nBins, xMin,
-                               xMax, multBins, 1, multMax);
-      MEMultShifted->Sumw2();
+      if (SEMult && MEMult) {
+        const char* SEMultHistName = Form("%s_", SEMult->GetName());
+        SEMultShifted = new TH2F(SEMultHistName, SEMultHistName, nBins, xMin,
+                                 xMax, multBins, 1, multMax);
+        SEMultShifted->Sumw2();
+        const char* MEMultHistName = Form("%s_", MEMult->GetName());
+        MEMultShifted = new TH2F(MEMultHistName, MEMultHistName, nBins, xMin,
+                                 xMax, multBins, 1, multMax);
+        MEMultShifted->Sumw2();
+      }
       int startBin = fixedShift ? 1 : SEShifted->FindBin(fFirstBin);
       int endBin = SEShifted->GetNbinsX();
       //for the fixedShift == true case the first bin has to be found,
@@ -212,16 +217,18 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
           SEShifted->SetBinError(iBin, SE->GetBinError(iOtherBin));
           MEShifted->SetBinContent(iBin, ME->GetBinContent(iOtherBin));
           MEShifted->SetBinError(iBin, ME->GetBinError(iOtherBin));
-          for (int iMult = 1; iMult <= multBins; ++iMult) {
-            SEMultShifted->SetBinContent(
-                iBin, iMult, SEMult->GetBinContent(iOtherBin, iMult));
-            SEMultShifted->SetBinError(iBin, iMult,
-                                       SEMult->GetBinError(iOtherBin, iMult));
+          if (SEMult && MEMult) {
+            for (int iMult = 1; iMult <= multBins; ++iMult) {
+              SEMultShifted->SetBinContent(
+                  iBin, iMult, SEMult->GetBinContent(iOtherBin, iMult));
+              SEMultShifted->SetBinError(iBin, iMult,
+                                         SEMult->GetBinError(iOtherBin, iMult));
 
-            MEMultShifted->SetBinContent(
-                iBin, iMult, MEMult->GetBinContent(iOtherBin, iMult));
-            MEMultShifted->SetBinError(iBin, iMult,
-                                       MEMult->GetBinError(iOtherBin, iMult));
+              MEMultShifted->SetBinContent(
+                  iBin, iMult, MEMult->GetBinContent(iOtherBin, iMult));
+              MEMultShifted->SetBinError(iBin, iMult,
+                                         MEMult->GetBinError(iOtherBin, iMult));
+            }
           }
           iOtherBin++;
         } else {
@@ -231,14 +238,14 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
       DreamDist* PairFixShifted = new DreamDist();
       PairFixShifted->SetSEDist(SEShifted, "FixShifted");
       PairFixShifted->SetMEDist(MEShifted, "FixShifted");
-      PairFixShifted->SetSEMultDist(SEMultShifted, "FixShifted");
-      PairFixShifted->SetMEMultDist(MEMultShifted, "FixShifted");
+      if (SEMultShifted)PairFixShifted->SetSEMultDist(SEMultShifted, "FixShifted");
+      if (MEMultShifted)PairFixShifted->SetMEMultDist(MEMultShifted, "FixShifted");
       PairFixShifted->Calculate_CF(fNormLeft, fNormRight);
       fPairFixShifted.push_back(PairFixShifted);
       delete SEShifted;
       delete MEShifted;
-      delete SEMultShifted;
-      delete MEMultShifted;
+      if (SEMultShifted)delete SEMultShifted;
+      if (MEMultShifted)delete MEMultShifted;
     } else {
       DreamDist* PairFixShifted = new DreamDist(pair, "_FixShifted");
       PairFixShifted->Calculate_CF(fNormLeft, fNormRight);
