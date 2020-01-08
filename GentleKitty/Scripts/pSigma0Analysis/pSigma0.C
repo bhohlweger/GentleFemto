@@ -46,7 +46,7 @@ double sidebandFitCATS(const double &Momentum, const double *SourcePar,
 
 /// =====================================================================================
 void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
-               TString OutputDir, const int potential) {
+               TString OutputDir, const int potential, const int source) {
   bool batchmode = false;
   bool debugPlots = true;
   double d0, REf0inv, IMf0inv, deltap0, deltap1, deltap2, etap0, etap1, etap2;
@@ -55,10 +55,10 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
   TRandom3 rangen(0);
   TidyCats* tidy = new TidyCats();  // for some reason we need this for the thing to compile
 
-  int nArguments = 24;
+  int nArguments = 25;
   TString varList =
       TString::Format(
-          "IterID:femtoFitRange:ppRadius:bl_a:bl_b:purity:primaryContrib:fakeContrib:SBfitVal:"
+          "IterID:femtoFitRange:source:ppRadius:bl_a:bl_b:purity:primaryContrib:fakeContrib:SBfitVal:"
           "sb_p0:sb_p0_err:sb_p1:sb_p1_err:sb_p2:sb_p2_err:sb_p3:sb_p3_err:"
           "chi2Local:ndf:chi2NDF:pval:nSigma250:nSigma200:nSigma150")
           .Data();
@@ -71,6 +71,13 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
   TString graphfilename = TString::Format("%s/Param_pSigma0_%i.root",
                                           OutputDir.Data(), potential);
   auto param = new TFile(graphfilename, "RECREATE");
+
+  TidyCats::Sources TheSource;
+  if (source == 0) {
+    TheSource = TidyCats::sGaussian;
+  } else if (source == 1) {
+    TheSource = TidyCats::sCauchy;
+  }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input
@@ -138,14 +145,32 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
   std::cout << "NumMomBins: " << NumMomBins_pSigma << std::endl;
 
   // pp radius systematic variations
-  const double statErr = 0.008;
-  const double systErrDown = 0.021;
-  const double systErrUp = 0.024;
-  const double ppRadius = 1.249;
-  const double radiusLower = ppRadius * 0.85 - statErr - systErrDown;  // scaled down by 15% to include the effect of resonances
-  const double radiusUpper = ppRadius + statErr + systErrUp;
-  const std::vector<double> sourceSize = { { ppRadius, radiusLower,
-      radiusUpper } };
+  std::vector<double> sourceSize;
+
+  const double statErrGaus = 0.008;
+  const double systErrGausDown = 0.021;
+  const double systErrGausUp = 0.024;
+  const double ppRadiusGaus = 1.249;
+  const double radiusLowerGaus = ppRadiusGaus * 0.85 - statErrGaus - systErrGausDown;  // scaled down by 15% to include the effect of resonances
+  const double radiusUpperGaus = ppRadiusGaus + statErrGaus + systErrGausUp;
+
+  const double statErrCauchy = 0.008;
+  const double systErrCauchyDown = 0.021;
+  const double systErrCauchyUp = 0.024;
+  const double ppRadiusCauchy = 1.249;
+  const double radiusLowerCauchy = ppRadiusCauchy * 0.85 - statErrCauchy - systErrCauchyDown;  // scaled down by 15% to include the effect of resonances
+  const double radiusUpperCauchy = ppRadiusCauchy + statErrCauchy + systErrCauchyUp;
+
+  if (TheSource == TidyCats::sGaussian) {
+    sourceSize = { {ppRadiusGaus, radiusLowerGaus,
+        radiusUpperGaus}};
+  } else if (TheSource == TidyCats::sCauchy) {
+    sourceSize = { {ppRadiusCauchy, radiusLowerCauchy,
+        radiusUpperCauchy}};
+  } else {
+    std::cout << "ERROR: Source not defined";
+    return;
+  }
 
   // femto fit region systematic variations
   const std::vector<double> femtoFitRegionUp = { { 550, 500, 600 } };
@@ -251,13 +276,11 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
       ++NumMomBins_pSigma_Haidenbauer;
     }
     tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_Haidenbauer,
-                              kMin_pSigma, kMax_pSigma_Haidenbauer,
-                              TidyCats::sGaussian,
+                              kMin_pSigma, kMax_pSigma_Haidenbauer, TheSource,
                               TidyCats::pSigma0Haidenbauer);
 
     tidy->GetCatsProtonSigma0(&AB_pSigma0_draw, NumMomBins_pSigma_draw,
-                              kMin_pSigma_draw, kMax_pSigma_draw,
-                              TidyCats::sGaussian,
+                              kMin_pSigma_draw, kMax_pSigma_draw, TheSource,
                               TidyCats::pSigma0Haidenbauer);
     AB_pSigma0.KillTheCat();
     AB_pSigma0_draw.KillTheCat();
@@ -273,12 +296,12 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
       ++NumMomBins_pSigma_ESC16;
     }
     tidy->GetCatsProtonSigma0(&AB_pSigma0, NumMomBins_pSigma_ESC16, kMin_pSigma,
-                              kMax_pSigma_ESC16, TidyCats::sGaussian,
+                              kMax_pSigma_ESC16, TheSource,
                               TidyCats::pSigma0ESC16);
 
     tidy->GetCatsProtonSigma0(&AB_pSigma0_draw, NumMomBins_pSigma_draw,
-                              kMin_pSigma_draw, kMax_pSigma_draw,
-                              TidyCats::sGaussian, TidyCats::pSigma0ESC16);
+                              kMin_pSigma_draw, kMax_pSigma_draw, TheSource,
+                              TidyCats::pSigma0ESC16);
     AB_pSigma0.KillTheCat();
     AB_pSigma0_draw.KillTheCat();
     Ck_pSigma0 = new DLM_Ck(1, 0, AB_pSigma0);
@@ -802,28 +825,29 @@ void FitSigma0(TString InputDir, TString SystInputDir, TString trigger,
               param->cd();
               ntBuffer[0] = iterID;
               ntBuffer[1] = femtoFitRegionUp[femtoFitIter];
-              ntBuffer[2] = sourceSize[sizeIter];
-              ntBuffer[3] = bl_a;
-              ntBuffer[4] = bl_b;
-              ntBuffer[5] = sigmaPurity;
-              ntBuffer[6] = primaryContr;
-              ntBuffer[7] = sidebandContr;
-              ntBuffer[8] = sidebandFitRange[sbNormIter];
-              ntBuffer[9] = sideband->GetParameter(0);
-              ntBuffer[10] = sideband->GetParError(0);
-              ntBuffer[11] = sideband->GetParameter(1);
-              ntBuffer[12] = sideband->GetParError(1);
-              ntBuffer[13] = sideband->GetParameter(2);
-              ntBuffer[14] = sideband->GetParError(2);
-              ntBuffer[15] = sideband->GetParameter(3);
-              ntBuffer[16] = sideband->GetParError(3);
-              ntBuffer[17] = Chi2_pSigma0_250;
-              ntBuffer[18] = (float) EffNumBins_pSigma0_250;
-              ntBuffer[19] = Chi2_pSigma0_250 / double(EffNumBins_pSigma0_250);
-              ntBuffer[20] = pvalpSigma0_250;
-              ntBuffer[21] = nSigmapSigma0_250;
-              ntBuffer[22] = nSigmapSigma0_200;
-              ntBuffer[23] = nSigmapSigma0_150;
+              ntBuffer[2] = source;
+              ntBuffer[3] = sourceSize[sizeIter];
+              ntBuffer[4] = bl_a;
+              ntBuffer[5] = bl_b;
+              ntBuffer[6] = sigmaPurity;
+              ntBuffer[7] = primaryContr;
+              ntBuffer[8] = sidebandContr;
+              ntBuffer[9] = sidebandFitRange[sbNormIter];
+              ntBuffer[10] = sideband->GetParameter(0);
+              ntBuffer[11] = sideband->GetParError(0);
+              ntBuffer[12] = sideband->GetParameter(1);
+              ntBuffer[13] = sideband->GetParError(1);
+              ntBuffer[14] = sideband->GetParameter(2);
+              ntBuffer[15] = sideband->GetParError(2);
+              ntBuffer[16] = sideband->GetParameter(3);
+              ntBuffer[17] = sideband->GetParError(3);
+              ntBuffer[18] = Chi2_pSigma0_250;
+              ntBuffer[19] = (float) EffNumBins_pSigma0_250;
+              ntBuffer[20] = Chi2_pSigma0_250 / double(EffNumBins_pSigma0_250);
+              ntBuffer[21] = pvalpSigma0_250;
+              ntBuffer[22] = nSigmapSigma0_250;
+              ntBuffer[23] = nSigmapSigma0_200;
+              ntBuffer[24] = nSigmapSigma0_150;
               ntResult->Fill(ntBuffer);
               ++iterID;
 
@@ -856,5 +880,6 @@ void FitSigma0(char *argv[]) {
   TString trigger = argv[3];
   TString OutputDir = argv[4];
   const int potential = atoi(argv[5]);
-  FitSigma0(InputDir, SystDir, trigger, OutputDir, potential);
+  const int source = atoi(argv[6]);
+  FitSigma0(InputDir, SystDir, trigger, OutputDir, potential, source);
 }

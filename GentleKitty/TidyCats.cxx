@@ -184,6 +184,20 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
     AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
     AB_pp->SetAnaSource(0, 1.2);
     AB_pp->SetAnaSource(1, 2.0);
+  } else if (source == TidyCats::sLevy) {
+    fppCleverMcLevy = new DLM_CleverMcLevyResoTM();
+    fppCleverMcLevy->InitStability(20, 1.f, 2.f);
+    fppCleverMcLevy->InitScale(38, 0.15, 2.0);
+    fppCleverMcLevy->InitRad(257, 0, 64);
+    fppCleverMcLevy->InitType(2);
+    fppCleverMcLevy->InitNumMcIter(262144);
+    AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
+    AB_pp->SetAnaSource(0, 1.2);
+    AB_pp->SetAnaSource(1, 2.0);
+  } else if (source == TidyCats::sCauchy) {
+    cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+    cPars->SetParameter(0, 1.2);
+    AB_pp->SetAnaSource(CauchySource, *cPars);
   } else {
     std::cout << "Source not implemented \n";
   }
@@ -231,6 +245,10 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     cPars = new CATSparameters(CATSparameters::tSource, 1, true);
     cPars->SetParameter(0, 1.2);
     AB_pL->SetAnaSource(GaussSource, *cPars);
+  } else if (source == TidyCats::sCauchy) {
+    cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+    cPars->SetParameter(0, 1.2);
+    AB_pL->SetAnaSource(CauchySource, *cPars);
   } else if (source == TidyCats::sResonance) {
     fpLCleverMcLevy = new DLM_CleverMcLevyResoTM();
 
@@ -420,6 +438,10 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     cPars = new CATSparameters(CATSparameters::tSource, 1, true);
     cPars->SetParameter(0, 1.2);
     AB_pXim->SetAnaSource(GaussSource, *cPars);
+  } else if (source == TidyCats::sCauchy) {
+    cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+    cPars->SetParameter(0, 1.2);
+    AB_pXim->SetAnaSource(CauchySource, *cPars);
   } else if (source == TidyCats::sResonance) {
     fpXimCleverMcLevy = new DLM_CleverMcLevyResoTM();
     fpXimCleverMcLevy->InitNumMcIter(1000000);
@@ -704,6 +726,11 @@ void TidyCats::GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins,
       cPars->SetParameter(0, 1.2);
       AB_pXim1530->SetAnaSource(GaussSource, *cPars);
       break;
+    case TidyCats::sCauchy:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      AB_pXim1530->SetAnaSource(CauchySource, *cPars);
+      break;
     default:
       std::cout << "Source not implemented \n";
       break;
@@ -759,6 +786,11 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       AB_pSigma0->SetAnaSource(CatsSourceForwarder, fpSigma0CleverMcLevy, 2);
       AB_pSigma0->SetAnaSource(0, 0.743);  //r0
       AB_pSigma0->SetAnaSource(1, 2.0);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
+      break;
+    case TidyCats::sCauchy:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.);
+      AB_pSigma0->SetAnaSource(CauchySource, *cPars);
       break;
     default:
       std::cout << "Source not implemented \n";

@@ -17,7 +17,8 @@ class TidyCats {
   enum Sources {
     sGaussian,
     sResonance,
-    sLevy
+    sLevy,
+    sCauchy
   };
   enum pXimPot {
     pCoulomb,
