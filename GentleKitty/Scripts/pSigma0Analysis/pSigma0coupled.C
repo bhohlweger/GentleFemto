@@ -110,8 +110,8 @@ int main(int argc, char* argv[]) {
   leg->SetTextFont(42);
   leg->SetTextSize(gStyle->GetTextSize() * 0.9);
   leg->AddEntry(grpS0chiEFT, "Genuine p#minus#kern[-0.95]{ }#Sigma^{0}", "l");
-  leg->AddEntry(grpS0nSpluschiEFT, "incl. n#minus#kern[-0.95]{ }#Sigma^{+} #leftrightarrow p#minus#kern[-0.95]{ }#Sigma^{0}", "l");
-  leg->AddEntry(grSigma0chiEFT, "incl. p#minus#kern[-0.95]{ }#Lambda #leftrightarrow p#minus#kern[-0.95]{ }#Sigma^{0}", "l");
+  leg->AddEntry(grpS0nSpluschiEFT, "incl. n#minus#kern[-0.95]{ }#Sigma^{+} #rightarrow p#minus#kern[-0.95]{ }#Sigma^{0}", "l");
+  leg->AddEntry(grSigma0chiEFT, "incl. p#minus#kern[-0.95]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }#Sigma^{0}", "l");
   leg->Draw("same");
 
 
