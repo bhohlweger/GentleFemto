@@ -26,7 +26,8 @@ class DreamSystematics {
     pAL = 5,       ///< Proton-AntiLambda correlation function
     LAL = 6,       ///< Lambda-AntiLambda correlation function
     pXiNorm = 7,
-    pXiLam = 8
+    pXiLam = 8,
+    pXiRes = 9
   };
 
   enum Estimator {
@@ -192,7 +193,7 @@ class DreamSystematics {
   const std::vector<int> vars = { { ppVariations, pSigma0Variations,
       pXiVariations, pLVariations } };
   const std::vector<TString> pairName = { { "pp", "pSigma0", "pXi", "pL", "pAp",
-      "pAL", "LAL", "pXiNorm", "pXiLam" } };
+      "pAL", "LAL", "pXiNorm", "pXiLam", "pXiRes" } };
 };
 
 inline

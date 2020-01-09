@@ -709,6 +709,9 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<T*>& histvec,
     case Pair::pXiLam:
       c->Divide(5,2);
       break;
+    case Pair::pXiRes:
+      c->Divide(2,2);
+      break;
     default:
       break;
   }
