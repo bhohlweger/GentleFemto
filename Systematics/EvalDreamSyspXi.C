@@ -32,7 +32,8 @@ void EvalDreamSystematics(TString InputFile, TString prefix,
   DreamSystematics protonXi(DreamSystematics::pXi);
   protonXi.SetUpperFitRange(800);
   protonXi.SetBarlowUpperRange(400);
-  protonXi.SetDefaultHist(ana->GetVariation(0, false));  //set the default histogram from the ana
+  TH1F* DefVar = (TH1F*)ana->GetVariation(0, false)->Clone("DefaultSystData");
+  protonXi.SetDefaultHist(DefVar);  //set the default histogram from the ana
 
   TH1F* PurityXi = new TH1F("PurityXiVar", "PurityXiVar", 45, 0.5, 44.5);
   TH1F* PurityAXi = new TH1F("PurityAXiVar", "PurityAXiVar", 45, 0.5, 44.5);
