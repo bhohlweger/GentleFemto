@@ -59,6 +59,9 @@ target_link_libraries(femtoGami tidyCATS DreamFunctions ForgivingFnct -L${ROOFOL
 add_executable(XiGami ${PROJECT_SOURCE_DIR}/Scripts/XiGami.C)
 target_link_libraries(XiGami femtoGami)
 
+add_executable(CloseMe ${PROJECT_SOURCE_DIR}/Scripts/XiClosure.C)
+target_link_libraries(CloseMe femtoGami)
+
 add_executable(XiDraw ${PROJECT_SOURCE_DIR}/Scripts/XiDrawWithError.C)
 target_link_libraries(XiDraw femtoGami)
  
