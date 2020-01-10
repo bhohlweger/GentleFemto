@@ -30,8 +30,10 @@ class DecayQA {
   void InvariantMassLambda(float CutMin, float CutMax, bool minBook = false,
                            float KaonCutMin = 0.48, float KaonCutMax = 0.515);
   void InvariantMassLambda(float CutMin, float CutMax, bool minBook = false);
-  void InvariantMassPartLambda(float CutMin, float CutMax, bool minBook = false);
-  void InvariantMassAntiPartLambda(float CutMin, float CutMax, bool minBook = false);
+  void InvariantMassPartLambda(float CutMin, float CutMax, bool minBook = false,
+                           float KaonCutMin = 0.48, float KaonCutMax = 0.515);
+  void InvariantMassAntiPartLambda(float CutMin, float CutMax, bool minBook = false,
+                           float KaonCutMin = 0.48, float KaonCutMax = 0.515);
   void InvariantMassSigma0(float massCuts, const char* name = "Sigma0",
                            bool isSum = true);
   void SetStyler(DrawStyle styler) { fStyler = styler; }

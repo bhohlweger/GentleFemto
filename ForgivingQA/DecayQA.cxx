@@ -77,7 +77,7 @@ void DecayQA::InvariantMassLambda(float CutMin, float CutMax, bool minBook, floa
   }
 }
 
-void DecayQA::InvariantMassPartLambda(float CutMin, float CutMax, bool minBook) {
+void DecayQA::InvariantMassPartLambda(float CutMin, float CutMax, bool minBook, float KaonCutMin, float KaonCutMax) {
   const char* listName = minBook ? "MinimalBooking" : "v0Cuts";
   auto invMassPart = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fDecayCuts, { listName }), "InvMassPt");
@@ -88,12 +88,12 @@ void DecayQA::InvariantMassPartLambda(float CutMin, float CutMax, bool minBook) 
         (TH1F*) fReader->Get1DHistInList(fReader->GetListInList(fDecayCuts, {
                                                                     listName }),
                                          "InvMassKaon"),
-        "Lambda");
+        "Lambda", KaonCutMin, KaonCutMax);
   }
 
 }
 
-void DecayQA::InvariantMassAntiPartLambda(float CutMin, float CutMax, bool minBook) {
+void DecayQA::InvariantMassAntiPartLambda(float CutMin, float CutMax, bool minBook, float KaonCutMin, float KaonCutMax) {
   const char* listName = minBook ? "MinimalBooking" : "v0Cuts";
   auto invMassAntiPart = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(fAntiDecayCuts, { listName }), "InvMassPt");
@@ -104,7 +104,7 @@ void DecayQA::InvariantMassAntiPartLambda(float CutMin, float CutMax, bool minBo
         (TH1F*) fReader->Get1DHistInList(
             fReader->GetListInList(fAntiDecayCuts, { listName }),
             "InvMassKaon"),
-        "AntiLambda");
+        "AntiLambda", KaonCutMin, KaonCutMax);
   }
 }
 
