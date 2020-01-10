@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
   v0QA->SetIMHistoScale(1.75,0.8,0.35);
   v0QA->SetAntiDecayCuts(reader->GetAntiv0Cuts());
   v0QA->SetRangesFitting(1.1075, 1.1235, 1.09, 1.15);
-  v0QA->InvariantMassPartLambda(1.112, 1.120);
+  v0QA->InvariantMassPartLambda(1.112, 1.120, false, 0.48, 0.515);
   v0QA->PlotQATopologyPartLambda();
 
   DecayQA* antiv0QA = new DecayQA("#bar{#Lambda}","#bar{p}#pi");
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
   antiv0QA->SetIMHistoScale(1.75,0.8,0.35);
   antiv0QA->SetAntiDecayCuts(reader->GetAntiv0Cuts());
   antiv0QA->SetRangesFitting(1.1075, 1.1235, 1.09, 1.15);
-  antiv0QA->InvariantMassAntiPartLambda(1.112, 1.120);
+  antiv0QA->InvariantMassAntiPartLambda(1.112, 1.120, false, 0.48, 0.515);
   antiv0QA->PlotQATopologyAntiPartLambda();
 
 
