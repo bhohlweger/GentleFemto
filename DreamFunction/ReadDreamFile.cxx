@@ -331,8 +331,8 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
 
   double kcutdummy = kcut/1000.;//transform in GeV
   double binwidth;
-  TLatex texttmp;
-  TFile* out = TFile::Open("tmp_mT.root", "recreate");
+  // TLatex texttmp;
+  // TFile* out = TFile::Open("tmp_mT.root", "recreate");
 
   fSEmT = new TH2F**[fNPart1];
   fMEmT = new TH2F**[fNPart1];
@@ -346,7 +346,7 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
   dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
   TList *PartList;
 
-  out->cd();
+  // out->cd();
   for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
     fSEmT[iPart1] = new TH2F*[fNPart2];
     fMEmT[iPart1] = new TH2F*[fNPart2];
@@ -380,24 +380,25 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
             std::cout << "fSEmTProj Histogramm missing from " << FolderName.Data()
                       << std::endl;
         }
-        TCanvas* ctmp = new TCanvas("ctmp");
-        ctmp->cd();
-        fSEmTProj[iPart1][iPart2]->SetTitle(TString::Format("[%.0f,%.0f] MeV/c",1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)-0.5*binwidth),
-          1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)));
-        fSEmTProj[iPart1][iPart2]->GetXaxis()->SetTitle("m_{T} (GeV/c^{2})");
-        fSEmTProj[iPart1][iPart2]->GetXaxis()->SetTitleSize(18);
-        fSEmTProj[iPart1][iPart2]->GetYaxis()->SetTitle("Entries ");
-        fSEmTProj[iPart1][iPart2]->GetYaxis()->SetTitleSize(18);
 
-        fSEmTProj[iPart1][iPart2]->Draw();
+        // TCanvas* ctmp = new TCanvas("ctmp");
+        // ctmp->cd();
+        // fSEmTProj[iPart1][iPart2]->SetTitle(TString::Format("[%.0f,%.0f] MeV/c",1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)-0.5*binwidth),
+        //   1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)));
+        // fSEmTProj[iPart1][iPart2]->GetXaxis()->SetTitle("m_{T} (GeV/c^{2})");
+        // fSEmTProj[iPart1][iPart2]->GetXaxis()->SetTitleSize(18);
+        // fSEmTProj[iPart1][iPart2]->GetYaxis()->SetTitle("Entries ");
+        // fSEmTProj[iPart1][iPart2]->GetYaxis()->SetTitleSize(18);
 
-        auto* leg1= new TLegend(0.55,0.65,0.75,0.8);
-        leg1->AddEntry("",Form("k^{*} = [%.0f,%.0f] MeV/c",1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)-0.5*binwidth),
-          1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)) , "");//"l" sets the legend as lines
-        leg1->Draw("same");
+        // fSEmTProj[iPart1][iPart2]->Draw();
 
-        fSEmTProj[iPart1][iPart2]->Write();
-        delete ctmp;
+        // auto* leg1= new TLegend(0.55,0.65,0.75,0.8);
+        // leg1->AddEntry("",Form("k^{*} = [%.0f,%.0f] MeV/c",1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)-0.5*binwidth),
+        //   1000.*(fSEmT[iPart1][iPart2]->GetXaxis()->GetBinCenter(ikstar)+0.5*binwidth)) , "");//"l" sets the legend as lines
+        // leg1->Draw("same");
+
+        // fSEmTProj[iPart1][iPart2]->Write();
+        // delete ctmp;
       }
       if (!fSEmT[iPart1][iPart2]) {
         if (!fQuiet)
@@ -407,8 +408,8 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
 
     }
   }
-  out->Close();
-  delete out;
+  // out->Close();
+  // delete out;
   return;
 }
 
@@ -435,7 +436,6 @@ void ReadDreamFile::ExtractmTaverage(const char* OutputFile, double kcut) {
 
   	  fProjmT[iPart1][iPart2] = nullptr;
   	  histo->SetName(Form("MeanmT_part%i_part%i",iPart1,iPart2));
-						<< std::endl;
         for(int ikstar = 1; ikstar < nbins+1; ikstar++)
         {
 
