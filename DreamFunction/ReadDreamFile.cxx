@@ -17,9 +17,6 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fSEMult(nullptr),
       fSEkT(nullptr),
       fSEmT(nullptr),
-	  fSEmTProj(nullptr),
-	  fProjmT(nullptr),
-	  fMeanmT(nullptr),
       fSEdEtadPhimT(nullptr),
       fSEdEtadPhi(nullptr),
       fSEdEtadPhiAtRad(nullptr),
@@ -47,12 +44,6 @@ ReadDreamFile::~ReadDreamFile() {
         delete fSEkT[iPart1][iPart2];
       if (fSEmT && fSEmT[iPart1][iPart2])
         delete fSEmT[iPart1][iPart2];
-      if (fSEmTProj && fSEmTProj[iPart1][iPart2])
-        delete fSEmTProj[iPart1][iPart2];
-      if (fProjmT && fProjmT[iPart1][iPart2])
-        delete fProjmT[iPart1][iPart2];
-      if (fMeanmT && fMeanmT[iPart1][iPart2])
-        delete fMeanmT[iPart1][iPart2];
       if (fSEdEtadPhi && fSEdEtadPhi[iPart1][iPart2])
         delete fSEdEtadPhi[iPart1][iPart2];
       if (fME && fME[iPart1][iPart2])
