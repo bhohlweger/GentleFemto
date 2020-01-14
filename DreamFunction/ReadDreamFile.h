@@ -59,7 +59,6 @@ class ReadDreamFile {
   TH2F*** fSEMult;
   TH2F*** fSEkT;
   TH2F*** fSEmT;
-  TH1F*** fSEmTProj;
   TH2F**** fSEdEtadPhimT;
   TH2F***** fSEdEtadPhiAtRad;
   TH2F***** fSEdEtadPhiAtRadSmallkStar;

@@ -129,6 +129,3 @@ target_link_libraries(executePhi DreamFunctions)
 
 add_executable(executePXi ${PROJECT_SOURCE_DIR}/Scripts/GetpXiVariations.C)
 target_link_libraries(executePXi DreamFunctions)
-
-add_executable(executeBBarmT ${PROJECT_SOURCE_DIR}/Scripts/BBar_Analysis/BBarmTdistributions.C)
-target_link_libraries(executeBBarmT DreamFunctions)
