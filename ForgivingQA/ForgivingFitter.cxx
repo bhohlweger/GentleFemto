@@ -28,7 +28,9 @@ ForgivingFitter::ForgivingFitter()
       fBackgroundCounts(0),
       fBackgroundCountsErr(0),
       fMeanMass(0),
-      fMeanWidth(0) {
+      fMeanMassErr(0),
+      fMeanWidth(0),
+      fMeanWidthErr(0) {
 
 }
 
@@ -184,12 +186,15 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int sig
   fFullFitFnct->ReleaseParameter(2);
   fFullFitFnct->ReleaseParameter(3);
   histo->Fit("fFullFitFnct", "RQ", "", fBkgRangeMin, fBkgRangeMax);
+  fFullFitFnct->ReleaseParameter(5);
   fFullFitFnct->ReleaseParameter(6);
   TFitResultPtr fullFit = histo->Fit("fFullFitFnct", "SRQ", "", fBkgRangeMin,
                                      fBkgRangeMax);
 
   fMeanMass = fFullFitFnct->GetParameter(5);
+  fMeanMassErr = fFullFitFnct->GetParError(5);
   fMeanWidth = fFullFitFnct->GetParameter(6);
+  fMeanWidthErr = fFullFitFnct->GetParError(6);
 
   const double rangeMin = fMeanMass - massCuts;
   const double rangeMax = fMeanMass + massCuts;

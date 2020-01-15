@@ -44,6 +44,12 @@ class ForgivingFitter {
   float GetMeanWidth() const {
     return fMeanWidth;
   }
+  float GetMeanMassErr() const {
+    return fMeanMassErr;
+  }
+  float GetMeanWidthErr() const {
+    return fMeanWidthErr;
+  }
   void ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin, float pTMax,
                            const char* part);
   void FitInvariantMassSigma(TH1F* histo, float massCuts, int signalColor, int backgroundColor);
@@ -82,7 +88,9 @@ class ForgivingFitter {
   int fBackgroundCounts;
   int fBackgroundCountsErr;
   double fMeanMass;
+  double fMeanMassErr;
   double fMeanWidth;
+  double fMeanWidthErr;
 };
 
 inline

@@ -456,7 +456,9 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
     Purity->SetBinContent(ipT, fFitter->GetPurity());
     Purity->SetBinError(ipT, fFitter->GetPurityErr());
     MeanMass->SetBinContent(ipT, fFitter->GetMeanMass()* 1000);
+    MeanMass->SetBinError(ipT, fFitter->GetMeanMassErr()* 1000);
     SigmaMass->SetBinContent(ipT, fFitter->GetMeanWidth()* 1000);
+    SigmaMass->SetBinError(ipT, fFitter->GetMeanWidthErr()* 1000);
     fPurity->SetPoint(counter, invMasspT->GetXaxis()->GetBinCenter(ipT), fFitter->GetPurity());
     fPurity->SetPointError(counter++, invMasspT->GetXaxis()->GetBinWidth(ipT)/2.f, fFitter->GetPurityErr());
   }
