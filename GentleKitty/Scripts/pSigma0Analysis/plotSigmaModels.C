@@ -211,9 +211,19 @@ void SourcePlay() {
   DreamPlot::SetStyleGraph(grSource, 20, kBlue + 3);
   grSource->SetLineWidth(2);
   grSource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
+  auto grPPSource = new TGraph();
+  DreamPlot::SetStyleGraph(grPPSource, 20, kGreen + 3);
+  grPPSource->SetLineWidth(2);
+  grPPSource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
+
+  CATS ppGaussian;
+  TidyCats *tidy = new TidyCats();
+  tidy->GetCatsProtonProton(&ppGaussian, 500, 0, 500, TidyCats::sResonance);
+  ppGaussian.KillTheCat();
 
   for (double i = 0; i < 150; ++i) {
     grSource->SetPoint(i, i * 0.1, cats.EvaluateTheSource(0, i * 0.1, 0));
+    grPPSource->SetPoint(i, i * 0.1, ppGaussian.EvaluateTheSource(0, i * 0.1, 0));
   }
 
   auto gaussFit =
@@ -230,6 +240,17 @@ void SourcePlay() {
   gaussFit->SetLineWidth(2);
   gaussFit->SetLineStyle(2);
 
+  auto d = new TCanvas();
+  grSource->Draw("AL");
+  grSource->GetXaxis()->SetRangeUser(0, 12);
+  grPPSource->Draw("L same");
+  auto leg2 = new TLegend(0.5, 0.7, 0.85, 0.85);
+  leg2->SetTextFont(42);
+  leg2->AddEntry(grPPSource, "p#minusp, #it{r}_{gauss} = 1.26 #pm 0.04 fm", "l");
+  leg2->AddEntry(grSource, "p#minus#Sigma^{0} , #it{r}_{gauss} = 1.15 #pm 0.05 fm", "l");
+  leg2->Draw("same");
+  d->Print("Source.pdf");
+
   auto c = new TCanvas();
   grSource->Draw("AL");
   grSource->GetXaxis()->SetRangeUser(0, 12);
@@ -245,7 +266,6 @@ void SourcePlay() {
       Form("Gauss fit #it{r}_{G, eff} = %.3f fm", gaussFit->GetParameter(0)),
       "l");
   leg->Draw("same");
-
   c->Print("ResonanceSource.pdf");
 }
 
