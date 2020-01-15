@@ -92,6 +92,9 @@ target_link_libraries(tidyCATS ForgivingFnct femtoGami -L${CATS_LIB} -lCATSbasic
 add_executable(POnly ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnly.C)
 target_link_libraries(POnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(ppSource ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/ppSourceCFmaker.C)
+target_link_libraries(ppSource tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(PLOnly ${PROJECT_SOURCE_DIR}/Scripts/pLAnalysis/PLOnly.C)
 target_link_libraries(PLOnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
