@@ -9,7 +9,6 @@ void GetCorrelationsNanoBBar(const char* filename,
                      const char* prefix, const char* addon = "", double_t norm1 = 0.18, double_t norm2 = 0.28) {
   //gStyle->SetOptStat(0);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
-    std::cout<< "debug 1" <<std::endl;
 
   DreamFile->SetAnalysisFile(filename, prefix, addon);
 

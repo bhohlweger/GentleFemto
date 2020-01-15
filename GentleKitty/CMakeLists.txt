@@ -187,9 +187,6 @@ target_link_libraries(lambdaPlotter tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(SysVarExtractorpAp ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractorpAp.C)
 target_link_libraries(SysVarExtractorpAp tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(SysVarExtractor ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractor.C)
-target_link_libraries(SysVarExtractor tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
-
 add_executable(SysVarExtractorpAL ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractorpAL.C)
 target_link_libraries(SysVarExtractorpAL tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
