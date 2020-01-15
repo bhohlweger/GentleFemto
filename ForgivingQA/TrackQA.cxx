@@ -121,12 +121,15 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   auto dcaXYDistAfter = (TH1F*) dcaXY2DDistAfter->ProjectionY(
       Form("dcaXYProjAfter_%s", outname));
 
+
   dcaXYDistAfter->GetXaxis()->SetTitle("DCA_{#it{xy}} (cm)");
+
   dcaXYDistAfter->GetXaxis()->SetRangeUser(-4., 4.);
   dcaXYDistAfter->GetYaxis()->SetRangeUser(1.e3, 1.e8);
+
   dcaXYDistAfter->GetYaxis()->SetTitle(
       Form("Entries/ %.2f cm ", dcaXYDistAfter->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(dcaXYDistAfter, fStyler.drawMarker, fStyler.drawColor - 2);
+  fHairyPlotter->FormatHistogram(dcaXYDistAfter, fStyler.drawMarker, fStyler.drawColor);
   std::vector<TH1*> dcaPlot = { dcaXYDistAfter };
   if (dcaXYDistBef) {
     dcaPlot.push_back(dcaXYDistBef);
