@@ -35,7 +35,7 @@ class DecayQA {
   void InvariantMassAntiPartLambda(float CutMin, float CutMax, bool minBook = false,
                            float KaonCutMin = 0.48, float KaonCutMax = 0.515);
   void InvariantMassSigma0(float massCuts, const char* name = "Sigma0",
-                           bool isSum = true);
+                           bool isSum = true, int rebin = 10);
   void SetStyler(DrawStyle styler) { fStyler = styler; }
   void GetPeriodQA(float CutMin, float CutMax,
                    std::vector<const char*> pathToList, const char* histname);

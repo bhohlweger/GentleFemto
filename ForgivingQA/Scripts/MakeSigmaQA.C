@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
   sigma0QA->SetStyler(styler);
   sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigma0QA->SetCanvasDivisions(3, 3);
-  sigma0QA->SetInvMasspTStartBin(3);
+  sigma0QA->SetInvMasspTStartBin(2);
   sigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   if (suffix == "0") {
     sigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
   antiSigma0QA->SetStyler(styler);
   antiSigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   antiSigma0QA->SetCanvasDivisions(3, 3);
-  antiSigma0QA->SetInvMasspTStartBin(3);
+  antiSigma0QA->SetInvMasspTStartBin(2);
   antiSigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
   if (suffix == "0") {
     antiSigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("AntiSigma0Cuts"),
@@ -108,19 +108,19 @@ int main(int argc, char* argv[]) {
   antiSigma0QA->InvariantMassSigma0(0.003, "Sigma0antiPart", false);
   delete antiSigma0QA;
 
-  DecayQA* sigmaSumQA = new DecayQA("#Sigma^{0} + #bar{#Sigma^{0}}",
+  DecayQA* sigmaSumQA = new DecayQA("#Sigma^{0} + #bar{#Sigma}^{0}",
                                     "#Lambda#gamma + #bar{#Lambda}#gamma", "Sigma0Combined");
   sigmaSumQA->SetStyler(styler);
   sigmaSumQA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigmaSumQA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   sigmaSumQA->SetCanvasDivisions(3, 3);
-  sigmaSumQA->SetInvMasspTStartBin(3);
-  sigmaSumQA->SetIMHistoScale(1.75, 0.8, 0.35);
+  sigmaSumQA->SetInvMasspTStartBin(2);
+  sigmaSumQA->SetIMHistoScale(1.75, 0.785, 0.45);
   if (suffix == "0") {
     sigmaSumQA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
                                      "SigmaSum");
   }
   sigmaSumQA->SetRangesFitting(1.19, 1.196, 1.167, 1.217);
-  sigmaSumQA->InvariantMassSigma0(0.003);
+  sigmaSumQA->InvariantMassSigma0(0.003, "Sigma0", true, 10);
   delete sigmaSumQA;
 }
