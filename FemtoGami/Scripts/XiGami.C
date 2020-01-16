@@ -17,8 +17,9 @@ int main(int argc, char *argv[]) {
   DreamPlot::SetStyle();
   const char* fileName = argv[1];
   const char* prefix = argv[2];
-  AnalyseProXi* ana = new AnalyseProXi(cutOff, 0.5);
+  AnalyseProXi* ana = new AnalyseProXi(cutOff, 0.997);
   ana->LimitCFRange(0.999);
+
   DreamSystematics protonNorm(DreamSystematics::pXiNorm);
   protonNorm.SetUpperFitRange(800);
   protonNorm.SetBarlowUpperRange(400);
@@ -27,14 +28,21 @@ int main(int argc, char *argv[]) {
   protonFeeddown.SetUpperFitRange(800);
   protonFeeddown.SetBarlowUpperRange(400);
 
+  DreamSystematics protonMomRes(DreamSystematics::pXiRes);
+  protonMomRes.SetUpperFitRange(800);
+  protonMomRes.SetBarlowUpperRange(400);
+
   ana->SetAnalysisFile(fileName, prefix);
   ana->Default();
   TH1F* DefVar = ana->GetVariation(0, true);
   if (!DefVar) {
     return -1;
   }
+
   protonNorm.SetDefaultHist((TH1F*) DefVar->Clone("defVarNorm"));
   protonFeeddown.SetDefaultHist((TH1F*) DefVar->Clone("defVarFeedDown"));
+  protonMomRes.SetDefaultHist((TH1F*) DefVar->Clone("defVarMom"));
+
   //create dream sys object, set default for norm/bl vars
   int varCounter = 1;
   for (int iNorm = 0; iNorm < 10; ++iNorm) {
@@ -101,6 +109,24 @@ int main(int argc, char *argv[]) {
   }
   protonFeeddown.EvalSystematics();
   protonFeeddown.WriteOutput("");
+
+  for (int iRes = 0; iRes < 3; iRes++) {
+    if (iRes == 1) {
+      continue;  // default case
+    }
+    ana->Default();
+    ana->SetMomentumResolutionVar(iRes);
+    TH1F* Var = ana->GetVariation(varCounter++);
+    protonMomRes.SetVarHist(Var);
+  }
+  for (int iIter = 1; iIter < 4; iIter++) {
+    ana->SetMomentumResolutionIter(iIter + 4);
+    TH1F* Var = ana->GetVariation(varCounter++);
+    protonMomRes.SetVarHist(Var);
+  }
+
+  protonMomRes.EvalSystematics();
+  protonMomRes.WriteOutput("");
 
   return 0;
 }
