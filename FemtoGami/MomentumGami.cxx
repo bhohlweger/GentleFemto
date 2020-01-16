@@ -394,9 +394,9 @@ void MomentumGami::TrainRooResponse(TH2F* momMatrix,
       double ksMeas = momMatrix->GetYaxis()->GetBinCenter(iBiny)
           / fUnitConversion;
       int nEntries = momMatrix->GetBinContent(iBinx, iBiny);
-      fTrainQA->Fill(ksTrue,ksMeas);
+      fTrainQA->Fill(ksMeas, ksTrue);
       for (int iFill = 0; iFill < nEntries; iFill++) {
-        roo_resp->Fill(ksTrue, ksMeas);
+        roo_resp->Fill(ksMeas, ksTrue);
       }
     }
   }
