@@ -44,7 +44,7 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
   fLamVars = {0.8,1.0,1.2};
   fXim1530Rad = {0.95,1.00,1.05};
 
-  TString CalibBaseDir = "/home/schmollweger/cernbox/HM13TeV/AnalysisData/1436_AODXioton/ResolutionpXi.root";
+  TString CalibBaseDir = "/home/schmollweger/cernbox/HM13TeV/AnalysisData/336_pXiMCNano/ResolutionpXi.root";
   TFile* inFile = TFile::Open(CalibBaseDir.Data(), "read");
   if (!inFile) {
     std::cout << "No Infile set, no Momentum resolution set, RIP \n";
@@ -128,7 +128,7 @@ TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
     std::cout << "Getting the Models \n";
     GetCoulomb(unfoldedGenuine);
     GetHalQCD(unfoldedGenuine);
-    GetESC16(unfoldedGenuine);
+//    GetESC16(unfoldedGenuine);
   }
   fQAOutput->Close();
 
