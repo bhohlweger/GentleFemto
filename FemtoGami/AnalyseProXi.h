@@ -53,6 +53,8 @@ class AnalyseProXi {
     fLamVarOmega = 1;
     fLamVarXim1530 = 1;
     fRadVarXim1530 = 1;
+    fMomGami->SetResponseVariation(1);
+    fMomGami->SetIterVariation(4);
   }
   ;
   void SetNormVar(int iVar) {
@@ -77,6 +79,12 @@ class AnalyseProXi {
     fRadVarXim1530 = iVar;
   }
   ;
+  void SetMomentumResolutionVar(int iVar) {
+    fMomGami->SetResponseVariation(iVar);
+  }
+  void SetMomentumResolutionIter(int iIter) {
+    fMomGami->SetIterVariation(iIter);
+  }
  private:
   double fcutOff;  // at this value the calculation and doing of the cf stops
   bool fLimitCFRange;
