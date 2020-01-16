@@ -25,7 +25,7 @@ class DreamPair {
   }
   ;
   unsigned int GetFemtoPairs(float kMin, float kMax) {
-    return fPair?fPair->GetFemtoPairs(kMin,kMax):0;
+    return fPair ? fPair->GetFemtoPairs(kMin, kMax) : 0;
   }
   DreamDist* GetPairShiftedEmpty(unsigned int iIter) {
     return iIter < fPairShifted.size() ? fPairShifted.at(iIter) : nullptr;
@@ -82,8 +82,10 @@ class DreamPair {
   void FixShift(DreamDist* pair, DreamDist* otherPair1, DreamDist* otherPair2,
                 float kMin1, float kMin2);
   void Rebin(DreamDist* pair, int rebin, bool seMean = false);
-  void ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax, DreamDist* pairNotRebinned = nullptr);
-  void UnfoldMomentum(DreamDist* pairUnfolded, MomentumGami *mom);
+  void ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax,
+                          DreamDist* pairNotRebinned = nullptr);
+  void UnfoldMomentum(DreamDist* pairUnfolded, MomentumGami *mom,
+                      double Rescaling = 1.);
   void WriteOutput(TList *Outlist);
  private:
   DreamDist* fPair;

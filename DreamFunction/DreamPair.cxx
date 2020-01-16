@@ -387,16 +387,22 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax,
   return;
 }
 
-void DreamPair::UnfoldMomentum(DreamDist* pair, MomentumGami *mom) {
+void DreamPair::UnfoldMomentum(DreamDist* pair, MomentumGami *mom, double Rescaling) {
   if (!pair) {
     std::cout << "No pair set\n";
     return;
   }
   DreamDist* Unfolded = new DreamDist();
   Unfolded->SetSEDist(mom->UnfoldviaRooResp(pair->GetSEDist()), "");
-  Unfolded->SetMEDist(mom->UnfoldviaRooResp(pair->GetMEDist()), "");
+  Unfolded->SetMEDist(mom->UnfoldviaRooResp(pair->GetMEDist(), Rescaling), "");
   Unfolded->Calculate_CF(fNormLeft, fNormRight);
   fPairUnfolded.push_back(Unfolded);
+
+  DreamDist* Refolded = new DreamDist();
+  Refolded->SetSEDist(mom->Fold(Unfolded->GetSEDist()), "Refolded");
+  Refolded->SetMEDist(mom->Fold(Unfolded->GetMEDist()), "Refolded");
+  Refolded->Calculate_CF(fNormLeft, fNormRight);
+  fPairUnfolded.push_back(Refolded);
 
   return;
 }
