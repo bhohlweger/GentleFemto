@@ -39,7 +39,5 @@ DreamFile->SetQuite();
 DreamFile->ReadAndProjectmTHistos(filename, prefix, addon, kmax);
 DreamFile->ReadAndProjectkTHistos(filename, prefix, addon, kmax);
 
-DreamFile->ExtractmTaverage("tmp_mT.root",kmax);
-
 return 0;
 }
