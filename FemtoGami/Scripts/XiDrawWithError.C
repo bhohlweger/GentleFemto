@@ -17,6 +17,8 @@ int main(int argc, char *argv[]) {
       .Data();
   TString sysLamName = TString::Format("%s/Systematics_pXiLam.root",
                                        WorkDir).Data();
+  TString sysResName = TString::Format("%s/Systematics_pXiRes.root",
+                                       WorkDir).Data();
 
   TFile* cfFile = TFile::Open(cfName, "read");
   TH1F* cf_default = (TH1F*) cfFile->FindObjectAny(
@@ -29,7 +31,7 @@ int main(int argc, char *argv[]) {
   cf_default->SetName("DefaultMeV");
   TGraphErrors* coulomb = (TGraphErrors*) cfFile->FindObjectAny("Coulomb");
   TGraphErrors* hal = (TGraphErrors*) cfFile->FindObjectAny("HalQCD");
-  TGraphErrors* esc = (TGraphErrors*) cfFile->FindObjectAny("ESC");
+//  TGraphErrors* esc = (TGraphErrors*) cfFile->FindObjectAny("ESC");
 
   TFile* sysDataFile = TFile::Open(sysDataName, "read");
   TF1* systDataErr = (TF1*) sysDataFile->FindObjectAny("SystError");
@@ -52,6 +54,13 @@ int main(int argc, char *argv[]) {
     sysLamFile->ls();
     return 0;
   }
+  TFile* sysResFile = TFile::Open(sysResName, "read");
+  TH1F* systResErr = (TH1F*) sysResFile->FindObjectAny("SystErrRel");
+  if (!systResErr) {
+    std::cout << "systResErr not found \n";
+    sysResFile->ls();
+    return 0;
+  }
 
   TH1F* SystError = (TH1F*)cf_default->Clone("Sytematics");
   SystError->Reset();
@@ -61,9 +70,10 @@ int main(int argc, char *argv[]) {
     double errSystData = systDataErr->Eval(kStar);
     double errSystNorm = systNormErr->GetBinContent(iBin);
     double errSystLam = systLamErr->Eval(kStar);
+    double errSystMom = systResErr->GetBinContent(iBin);
     double totErr = TMath::Sqrt(
         errSystData * errSystData + errSystNorm * errSystNorm
-            + errSystLam * errSystLam);
+            + errSystLam * errSystLam + errSystMom*errSystMom);
     SystError->SetBinContent(iBin, totErr);
   }
 
@@ -71,11 +81,9 @@ int main(int argc, char *argv[]) {
   std::vector<const char*> LegNames;
   LegNames.push_back("p-#Xi^{-} #bf{ALICE} data");
   LegNames.push_back("Coulomb");
-  LegNames.push_back("HAL-QCD");
-  LegNames.push_back("ESC 16");
+  LegNames.push_back("Coulomb + HAL-QCD");
   std::vector<const char*> LegOptions;
   LegOptions.push_back("fpe");
-  LegOptions.push_back("f");
   LegOptions.push_back("f");
   LegOptions.push_back("f");
   float xmin = 0.;
@@ -115,8 +123,8 @@ int main(int argc, char *argv[]) {
   Data->SetLegendName(LegNames, LegOptions);
   Data->SetDrawAxis(false);
   Data->FemtoModelFitBands(coulomb, kGreen+1, 1,  3, -4000, true, false);
-  Data->FemtoModelFitBands(hal,     kOrange+1, 10, 0, -4000, true, false);
-  Data->FemtoModelFitBands(esc,     11, 8,  0, -4000, true);
+  Data->FemtoModelFitBands(hal,     kPink +1, 10, 0, -4000, true, false);
+//  Data->FemtoModelFitBands(esc,     11, 8,  0, -4000, true);
   Data->SetRangePlotting(fXmin, fXmax, 0.6, cf_default->GetMaximum() * 1.5);  //ranges
   Data->SetNDivisions(505);
 
@@ -126,7 +134,7 @@ int main(int argc, char *argv[]) {
   pad->cd();
   out->cd();
   c1->Write();
-  c1->SaveAs(Form("WithSys.pdf"));
+  c1->SaveAs(Form("CF_pXi.pdf"));
   SystError->Write();
   out->Close();
   app.Run();
