@@ -268,7 +268,6 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
   grFemtoModel->SetFillColor(useDefaultColors ? fColors[color] : color);
   grFemtoModel->SetLineWidth(lineWidth);
   grFemtoModel->SetLineStyle(lineStyle);
-  grFemtoModel->SetFillColorAlpha(useDefaultColors ? fColors[color] : color, 0.45);
   if (fillStyle > 0)
     grFemtoModel->SetFillStyle(fillStyle);
   fFemtoModdeled.push_back(grFemtoModel);
