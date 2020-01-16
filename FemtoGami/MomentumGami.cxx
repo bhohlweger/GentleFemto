@@ -304,8 +304,8 @@ TH1F* MomentumGami::UnfoldviaTSVD(TH1F* InputDist, TList* QA) {
   return (TH1F*) unfres;
 }
 
-TH1F* MomentumGami::UnfoldviaRooResp(TH1F* InputDist) {
-  //Its up to the user to ensure the same binning, this is just a simple check
+TH1F* MomentumGami::UnfoldviaRooResp(TH1F* InputDist, double Rescaling) {
+//Its up to the user to ensure the same binning, this is just a simple check
   if (fResolution->GetXaxis()->GetBinWidth(1) / fUnitConversion
       != InputDist->GetXaxis()->GetBinWidth(1)) {
     std::cout
@@ -320,37 +320,62 @@ TH1F* MomentumGami::UnfoldviaRooResp(TH1F* InputDist) {
               << InputDist->GetXaxis()->GetBinWidth(1) << std::endl;
   }
 
-  RooUnfoldResponse response(InputDist->GetNbinsX(),
-                             InputDist->GetXaxis()->GetXmin(),
-                             InputDist->GetXaxis()->GetXmax());
-  TrainRooResponse(fResolution, &response);
-  //only unfold within the region the resolution matrix is defined.
+//only unfold within the region the resolution matrix is defined.
   TString toUnfoldName = TString::Format("%s_ToUnfold", InputDist->GetName());
+  RooUnfoldResponse* resp[3] = { fResponseLower, fResponseDefault,
+      fResponseUpper };
 
-  RooUnfoldBayes unfolderer(&response, InputDist, 4);
-  TH1F* unfoldedHist = (TH1F*) unfolderer.Hreco();
+  RooUnfoldBayes unfolderer(resp[fResp], InputDist, fIter);
+//  RooUnfoldBinByBin unfolderer(resp[fResp], InputDist);
+  TH1F* unfoldedHist = (TH1F*) unfolderer.Hreco(RooUnfold::kCovariance);  //RooUnfold::kCovToy
+  unfolderer.Print();
   TH1F* Ratio = (TH1F*) unfoldedHist->Clone(
       TString::Format("%s_ratioUnfolded", InputDist->GetName()));
   Ratio->Divide(InputDist);
-  TString outName = TString::Format("%s_Unfolded", InputDist->GetName());
 
-  int nBins = fResolution->GetXaxis()->GetXmax() / fUnitConversion
-      - InputDist->GetXaxis()->GetXmin();
-  nBins /= InputDist->GetXaxis()->GetBinWidth(1);
+  TH1F* unfoldedQA = (TH1F*) unfoldedHist->Clone(
+      TString::Format("%s_BayesUnfolded_nIter%u", InputDist->GetName(), fIter)
+          .Data());
+  TH1F* inputRelErrQA = (TH1F*) InputDist->Clone(
+      TString::Format("%s_RelErrInput_nIter%u", InputDist->GetName(), fIter)
+          .Data());
+  TH1F* unfoldedRelErrQA = (TH1F*) unfoldedHist->Clone(
+      TString::Format("%s_RelErrBayesUnfolded_nIter%u", InputDist->GetName(),
+                      fIter).Data());
+  for (int iBin = 1; iBin <= unfoldedRelErrQA->GetNbinsX(); ++iBin) {
+    // The statistical error is set to the Sqrt(Entries) - if the mixed event
+    // is already rescaled e.g. due to reweighting, it needs to be accounted
+    // for when taking the error!
+    unfoldedHist->SetBinError(
+        iBin,
+        TMath::Sqrt(unfoldedHist->GetBinContent(iBin))
+            / TMath::Sqrt(Rescaling));
 
-  TH1F *outDist = new TH1F(
-      outName.Data(), outName.Data(), nBins, InputDist->GetXaxis()->GetXmin(),
-      fResolution->GetXaxis()->GetXmax() / fUnitConversion);
-
-  for (int iBins = 1; iBins <= InputDist->GetNbinsX(); ++iBins) {
-    outDist->SetBinContent(
-        iBins,
-        unfoldedHist->GetBinContent(
-            unfoldedHist->FindBin(outDist->GetBinCenter(iBins))));
-    outDist->SetBinError(iBins, InputDist->GetBinError(iBins));
+    if (TMath::Abs(inputRelErrQA->GetBinContent(iBin)) > 1e-5) {
+      inputRelErrQA->SetBinContent(
+          iBin,
+          inputRelErrQA->GetBinError(iBin)
+              / inputRelErrQA->GetBinContent(iBin));
+    } else {
+      inputRelErrQA->SetBinContent(iBin, 0);
+    }
+    inputRelErrQA->SetBinError(iBin, 0);
+    if (TMath::Abs(unfoldedRelErrQA->GetBinContent(iBin)) > 1e-5) {
+      unfoldedRelErrQA->SetBinContent(
+          iBin,
+          unfoldedRelErrQA->GetBinError(iBin)
+              / unfoldedRelErrQA->GetBinContent(iBin));
+    } else {
+      unfoldedRelErrQA->SetBinContent(iBin, 0);
+    }
+    unfoldedRelErrQA->SetBinError(iBin, 0);
   }
+  fQAList->Add(unfoldedQA);
+  fQAList->Add(unfoldedRelErrQA);
+  fQAList->Add(inputRelErrQA);
   fQAList->Add(Ratio);
-  return outDist;
+  TString outName = TString::Format("%s_Unfolded", InputDist->GetName());
+  return (TH1F*) unfoldedHist->Clone(outName.Data());
 }
 
 void MomentumGami::TrainRooResponse(TH2F* momMatrix,
