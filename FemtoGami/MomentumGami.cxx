@@ -139,7 +139,8 @@ void MomentumGami::SetResolution(TH2F* resoMatrix, float UnitConversion) {
 }
 
 void MomentumGami::UnfoldGuessing(TH1F* InputDist) {
-  if (InputDist->FindBin(fMaxkStar) > InputDist->GetNbinsX()) {
+  std::cout << "Unfold Guessing \n";
+  if (InputDist->FindBin(0.3) > InputDist->GetNbinsX()) {
     Error("MomentumGami::Unfold",
           "Distribution has smaller kStar range than unfolding");
     return;
@@ -152,13 +153,18 @@ void MomentumGami::UnfoldGuessing(TH1F* InputDist) {
   momSmearing->SetParLimits(0, 0., 2.);
   momSmearing->SetParameter(1, gRandom->Uniform(0.98, 1.1));
   momSmearing->SetParLimits(1, 0.5, 1.5);
-  for (int iPar = 2; iPar < fToUnfold->FindBin(fMaxkStar) - 5; ++iPar) {
+  for (int iPar = 2; iPar < fToUnfold->FindBin(0.3) - 5; ++iPar) {
     momSmearing->SetParameter(iPar, gRandom->Uniform(0.95, 1.05));
     momSmearing->SetParLimits(iPar, 0.5, 1.5);
   }
-  std::cout << "Result: " << fToUnfold->Fit("momSmearing", "R") << std::endl;
-  for (int iBim = 1; iBim < InputDist->FindBin(fMaxkStar) - 4; ++iBim) {
+  std::cout << "Starting Fit \n";
+  fToUnfold->Fit("momSmearing", "R");
+  TH1F* parameters = new TH1F("QAGuessing", "QAGuessing",
+                              fToUnfold->FindBin(0.3) - 5, 0, 0.3);
+  fQAList->Add(parameters);
+  for (int iBim = 1; iBim < InputDist->FindBin(0.3) - 10; ++iBim) {
     int ParNmb = iBim - 1;
+    parameters->SetBinContent(iBim, momSmearing->GetParameter(ParNmb));
     InputDist->SetBinContent(
         iBim,
         momSmearing->GetParameter(ParNmb) * InputDist->GetBinContent(iBim));
@@ -197,17 +203,27 @@ double MomentumGami::Eval(double *x, double *p) {
 //corrected "imaginary histo"
   const int nbinsProj = fToUnfold->FindBin(0.3);
   std::vector<float> newGuess;
-  for (int i = 0; i < nbinsProj - 3; i++) {
-    newGuess.push_back(p[i] * fToUnfold->GetBinContent(i + 1));
+  if (newGuess.size() > 0) {
+    newGuess.resize(0);
+  }
+  for (int i = 0; i < nbinsProj; i++) {
+    if (i < nbinsProj - 5) {
+      newGuess.push_back(p[i] * fToUnfold->GetBinContent(i + 1));
+    } else {
+      newGuess.push_back(fToUnfold->GetBinContent(i + 1));
+    }
   }
 
 //now build uncorrected: take zz "imaginary corrected" and smear it:
   std::vector<float> PossibleUncorrected;
+  if (PossibleUncorrected.size() > 0) {
+    PossibleUncorrected.resize(0);
+  }
   for (int ibin = 0; ibin < nbinsProj; ++ibin) {
     PossibleUncorrected.push_back(0.);
   }
-  for (int iproj = 0; iproj < nbinsProj; iproj++) {
-    for (int ibin = 0; ibin <= nbinsProj - 5; ibin++) {
+  for (int ibin = 0; ibin <= nbinsProj - 5; ibin++) {
+    for (int iproj = 0; iproj < nbinsProj; iproj++) {
       PossibleUncorrected.at(ibin) += fResProjection[iproj]->GetBinContent(
           ibin + 1) * newGuess[iproj];
     }
