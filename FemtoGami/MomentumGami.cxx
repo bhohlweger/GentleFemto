@@ -55,9 +55,8 @@ void MomentumGami::UnfoldGuessing(TH1F* InputDist) {
   }
 
   fToUnfold = (TH1F*) InputDist->Clone("ToUnfold");
-  TF1 * momSmearing = new TF1("momSmearing", this, &MomentumGami::Eval, 0,
-                              fMaxkStar, fToUnfold->FindBin(fMaxkStar) - 5,
-                              "momSmearing", "momSmearing");  // create TF1 class.
+  TF1 * momSmearing = new TF1("momSmearing", this, &MomentumGami::Eval, 0, 0.3,
+                              fToUnfold->FindBin(0.3) - 5);  // create TF1 class.
   momSmearing->SetParameter(0, gRandom->Uniform(0.98, 1.3));
   momSmearing->SetParLimits(0, 0., 2.);
   momSmearing->SetParameter(1, gRandom->Uniform(0.98, 1.1));
@@ -104,8 +103,8 @@ double MomentumGami::Eval(double *x, double *p) {
           "Trying to call with x-Value out of range");
     return -999;
   }
-  //corrected "imaginary histo"
-  const int nbinsProj = fToUnfold->FindBin(fMaxkStar);
+//corrected "imaginary histo"
+  const int nbinsProj = fToUnfold->FindBin(0.3);
   std::vector<float> newGuess;
   for (int i = 0; i < nbinsProj - 3; i++) {
     newGuess.push_back(p[i] * fToUnfold->GetBinContent(i + 1));
@@ -122,12 +121,11 @@ double MomentumGami::Eval(double *x, double *p) {
           ibin + 1) * newGuess[iproj];
     }
   }
-
   return PossibleUncorrected[fToUnfold->FindBin(x[0]) - 1];
 }
 
 TH1F* MomentumGami::UnfoldviaTSVD(TH1F* InputDist, TList* QA) {
-  //Left here not to delete work. However does not seem to do the job.
+//Left here not to delete work. However does not seem to do the job.
   TH1D *xini = fResolution->ProjectionX("MC truth");
   TH1D *bini = fResolution->ProjectionY("MC reco");
   TH1D *oneDClone = (TH1D*) InputDist->Clone(
@@ -146,41 +144,41 @@ TH1F* MomentumGami::UnfoldviaTSVD(TH1F* InputDist, TList* QA) {
 
   TSVDUnfold *tsvdunf = new TSVDUnfold(oneDClone, statcov, bini, xini,
                                        (TH2D*) fResolution);
-  // It is possible to normalise unfolded spectrum to unit area
+// It is possible to normalise unfolded spectrum to unit area
   tsvdunf->SetNormalize(kFALSE);  // no normalisation here
 
-  // Perform the unfolding with regularisation parameter kreg = 13
-  // - the larger kreg, the finer grained the unfolding, but the more fluctuations occur
-  // - the smaller kreg, the stronger is the regularisation and the bias
+// Perform the unfolding with regularisation parameter kreg = 13
+// - the larger kreg, the finer grained the unfolding, but the more fluctuations occur
+// - the smaller kreg, the stronger is the regularisation and the bias
   TH1D* unfres = tsvdunf->Unfold(13);
 
-  // Get the distribution of the d to cross check the regularization
-  // - choose kreg to be the point where |d_i| stop being statistically significantly >>1
+// Get the distribution of the d to cross check the regularization
+// - choose kreg to be the point where |d_i| stop being statistically significantly >>1
   TH1D* ddist = tsvdunf->GetD();
 
-  // Get the distriutaucovbution of the singular values
+// Get the distriutaucovbution of the singular values
   TH1D* svdist = tsvdunf->GetSV();
 
-  // Compute the error matrix for the unfolded spectrum using toy MC
-  // using the measured covariance matrix as input to generate the toys
-  // 100 toys should usually be enough
-  // The same method can be used for different covariance matrices separately.
+// Compute the error matrix for the unfolded spectrum using toy MC
+// using the measured covariance matrix as input to generate the toys
+// 100 toys should usually be enough
+// The same method can be used for different covariance matrices separately.
   TH2D* ustatcov = tsvdunf->GetUnfoldCovMatrix(statcov, 100);
 
-  // Now compute the error matrix on the unfolded distribution originating
-  // from the finite detector matrix statistics
+// Now compute the error matrix on the unfolded distribution originating
+// from the finite detector matrix statistics
   TH2D* uadetcov = tsvdunf->GetAdetCovMatrix(100);
 
-  // Sum up the two (they are uncorrelated)
+// Sum up the two (they are uncorrelated)
   ustatcov->Add(uadetcov);
 
-  // Get the computed regularized covariance matrix
-  // (always corresponding to total uncertainty passed in constructor)
-  // and add uncertainties from finite MC statistics.
+// Get the computed regularized covariance matrix
+// (always corresponding to total uncertainty passed in constructor)
+// and add uncertainties from finite MC statistics.
   TH2D* utaucov = tsvdunf->GetXtau();
   utaucov->Add(uadetcov);
 
-  //Get the computed inverse of the covariance matrix
+//Get the computed inverse of the covariance matrix
   TH2D* uinvcov = tsvdunf->GetXinv();
 
   for (int i = 1; i <= unfres->GetNbinsX(); i++) {
