@@ -34,7 +34,6 @@ class ReadDreamFile {
                     const char* addon = "", double kcut = 200.);
   void ReadAndProjectkTHistos(const char* AnalysisFile, const char* prefix,
                     const char* addon = "", double kcut = 200.);
-  void ExtractmTaverage(const char* OutputFile, double kcut = 200.);
   void ReaddEtadPhiAtRadHists(const unsigned int nMaxMix,
                               const char* AnalysisFile, const char* prefix,
                               const char* Addon = "");
