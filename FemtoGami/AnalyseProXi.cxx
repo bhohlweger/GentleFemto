@@ -215,8 +215,21 @@ DreamCF* AnalyseProXi::ObtainCorrFunction(const char* name, DreamDist* partDist,
   pp->ReweightMixedEvent(pp->GetPair(), 0.2, 0.9);
   ApAp->ReweightMixedEvent(ApAp->GetPair(), 0.2, 0.9);
 
-  pp->UnfoldMomentum(pp->GetPairReweighted(0), fMomGami);
-  ApAp->UnfoldMomentum(ApAp->GetPairReweighted(0), fMomGami);
+  TH1F* meUnscaled = pp->GetPair()->GetMEDist();
+  TH1F* meScaled = pp->GetPairReweighted(0)->GetMEDist();
+  double ScalingFactor_pp = meUnscaled->Integral()
+      / (double) meScaled->Integral();
+
+  meUnscaled = ApAp->GetPair()->GetMEDist();
+  meScaled = ApAp->GetPairReweighted(0)->GetMEDist();
+  double ScalingFactor_ApAp = meUnscaled->Integral()
+      / (double) meScaled->Integral();
+
+//  double ScalingFactor_pp = 1;
+//  double ScalingFactor_ApAp = 1;
+
+  pp->UnfoldMomentum(pp->GetPairReweighted(0), fMomGami, ScalingFactor_pp);
+  ApAp->UnfoldMomentum(ApAp->GetPairReweighted(0), fMomGami, ScalingFactor_ApAp);
 
   pp->FixShift(pp->GetPairUnfolded(0), ApAp->GetPairUnfolded(0), 0.005, true);
   ApAp->FixShift(ApAp->GetPairUnfolded(0), pp->GetPairUnfolded(0), 0.005, true);
