@@ -710,7 +710,7 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<T*>& histvec,
       c->Divide(5,2);
       break;
     case Pair::pXiRes:
-      c->Divide(2,2);
+      c->Divide(3,4);
       break;
     default:
       break;
