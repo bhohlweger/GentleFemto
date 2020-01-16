@@ -129,7 +129,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
 
   dcaXYDistAfter->GetYaxis()->SetTitle(
       Form("Entries/ %.2f cm ", dcaXYDistAfter->GetBinWidth(1)));
-  fHairyPlotter->FormatHistogram(dcaXYDistAfter, fStyler.drawMarker, fStyler.drawColor);
+  fHairyPlotter->FormatHistogram(dcaXYDistAfter, fStyler.drawMarker, fStyler.drawColor - 1 );
   std::vector<TH1*> dcaPlot = { dcaXYDistAfter };
   if (dcaXYDistBef) {
     dcaPlot.push_back(dcaXYDistBef);
@@ -162,7 +162,8 @@ void TrackQA::PlotPID(TList* cuts, const char* outname) {
   TPCdEdx->GetXaxis()->SetTitle("#it{p}_{TPC} (GeV/#it{c})");
   TPCdEdx->GetYaxis()->SetTitle("#it{n}_{#sigma, TPC}");
   std::vector<TH2*> drawVecTPC = { TPCdEdx };
-  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_nSigTPC", outname), "COLZ");
+  fHairyPlotter->DrawLogZAndStore(drawVecTPC, Form("%s_LognSigTPC", outname), "colz");
+  fHairyPlotter->DrawAndStore(drawVecTPC, Form("%s_nSigTPC", outname), "COLZ");
 
   auto* TOF = (TH2F*) fReader->Get2DHistInList(
       fReader->GetListInList(cuts, { "after" }), "NSigTOF_after");
@@ -174,5 +175,7 @@ void TrackQA::PlotPID(TList* cuts, const char* outname) {
   TOF->GetXaxis()->SetTitle("#it{p}_{TPC} (GeV/#it{c})");
   TOF->GetYaxis()->SetTitle("#it{n}_{#sigma, TOF}");
   std::vector<TH2*> drawVecTOF = { TOF };
-  fHairyPlotter->DrawLogZAndStore(drawVecTOF, Form("%s_nSigTOF", outname), "COLZ");
+  fHairyPlotter->DrawLogZAndStore(drawVecTOF, Form("%s_LognSigTOF", outname), "COLZ");
+  fHairyPlotter->DrawAndStore(drawVecTOF, Form("%s_nSigTOF", outname), "COLZ");
+
 }
