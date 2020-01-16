@@ -23,8 +23,14 @@ class MomentumGami {
   Double_t func(int ii, Double_t *par);
   void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
   TH1F* UnfoldviaTSVD(TH1F* InputDist, TList* QA);
-  TH1F* UnfoldviaRooResp(TH1F* InputDist);
+  TH1F* UnfoldviaRooResp(TH1F* InputDist, double Rescaling = 1);
   void TrainRooResponse(TH2F* resp, RooUnfoldResponse* roo_resp);
+  void SetResponseVariation(int iVar) {
+    fResp = iVar;
+  }
+  void SetIterVariation(int iVar) {
+    fIter = iVar;
+  }
   TList* GetQAList() {return fQAList; }
  private:
   TList* fQAList;
@@ -32,6 +38,11 @@ class MomentumGami {
   std::vector<TH1F*> fResProjection;
   TH1F* fToUnfold;
   TH2F* fTrainQA;
+  int fResp;
+  int fIter;
+  RooUnfoldResponse *fResponseDefault;
+  RooUnfoldResponse *fResponseLower;
+  RooUnfoldResponse *fResponseUpper;
   float fMaxkStar;
   float fUnitConversion;
 };
