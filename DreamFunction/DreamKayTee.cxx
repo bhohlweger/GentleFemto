@@ -101,6 +101,8 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
       if (fAveragekT) {
         TString name = TString::Format("Average%s_%s", variable,pair);
         TGraphErrors* copy = new TGraphErrors(*fAveragekT);
+        copy->GetXaxis()->SetTitle("m_{T} Bin");
+        copy->GetYaxis()->SetTitle("<m_{T}> (GeV/c^{2})");
         copy->SetName(name.Data());
         copy->Write(name.Data());
         allCFsOut->Write();
