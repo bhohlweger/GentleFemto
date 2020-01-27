@@ -66,11 +66,8 @@ class ReadDreamFile {
   DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2, int iAPart1,
                                       int iAPart2);
   DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2);
-<<<<<<< HEAD
-=======
   DreamKayTee* GetmTMultPairDistributions(int iPart1, int iPart2, int iAPart1,
 					  int iAPart2, const int nmTBins);
->>>>>>> Cleaning white spaces:Addition of Ancestors histos and reading, evaluation of systematics for BBar analysis in each mT bin
   DreamKayTee* GetmTPairDistributionsBBar(int iPart1, int iPart2);
   DreamdEtadPhi* GetdEtadPhiDistribution(int iPart1, int iPart2, int iAPart1,
                                          int iAPart2, int imT = 0);
