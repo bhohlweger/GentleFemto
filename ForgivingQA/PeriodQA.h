@@ -11,6 +11,7 @@ class PeriodQA {
   PeriodQA();
 
   void SetDirectory(const char* dir);
+  void SetStyler(DrawStyle styler) { fStyler = styler; }
   void ProcessQA(const char* prefix, const char* addon);
   void ProcessSigmaQA(const char* prefix, const char* addon);
 
@@ -20,6 +21,7 @@ class PeriodQA {
   double GetErrorNPart(double nEvt, double nPart, double nPartErr) const;
   TString fDirectory;
   std::vector<TString> fPeriods;
+  DrawStyle fStyler;
 };
 
 inline

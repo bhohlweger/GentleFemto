@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
   sigma0QA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));
   sigma0QA->SetCanvasDivisions(3, 3);
   sigma0QA->SetInvMasspTStartBin(2);
-  sigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
+  sigma0QA->SetIMHistoScale(1.75, 0.785, 0.45);
   if (suffix == "0") {
     sigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("Sigma0Cuts"),
                                    "Sigma0part");
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
   antiSigma0QA->SetAntiDecayCuts(reader->GetOtherCuts("AntiSigma0Cuts"));
   antiSigma0QA->SetCanvasDivisions(3, 3);
   antiSigma0QA->SetInvMasspTStartBin(2);
-  antiSigma0QA->SetIMHistoScale(1.75, 0.8, 0.35);
+  antiSigma0QA->SetIMHistoScale(1.75, 0.785, 0.45);
   if (suffix == "0") {
     antiSigma0QA->PlotQATopologySigma0(reader->GetOtherCuts("AntiSigma0Cuts"),
                                        "Sigma0antiPart");

@@ -2,11 +2,13 @@
 #include "DecayQA.h"
 #include "EventQA.h"
 #include "TrackQA.h"
+#include "MakeHistosGreat.h"
 #include "TSystemDirectory.h"
 
 PeriodQA::PeriodQA()
     : fDirectory(),
-      fPeriods() {
+      fPeriods(),
+      fStyler() {
 }
 
 void PeriodQA::SetDirectory(const char *dir) {
@@ -145,14 +147,14 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
   auto histPurityAntiLambda = PeriodQAHist("histQAAntiLambda",
                                            "Purity #bar{#Lambda} (%)");
   auto histPuritySigma = PeriodQAHist(
-      "histQASigma", "Purity #Sigma^{0} #oplus #bar{#Sigma^{0}} (%)");
+      "histQASigma", "Purity #Sigma^{0} + #bar{#Sigma^{0}} (%)");
 
   auto histNProton = PeriodQAHist("histNProton", "p/Event");
   auto histNAntiProton = PeriodQAHist("histNAntiProton", "#bar{p}/Event");
   auto histNLambda = PeriodQAHist("histNLambda", "#Lambda/Event");
   auto histNAntiLambda = PeriodQAHist("histNAntiLambda", "#bar{#Lambda}/Event");
   auto histNSigma = PeriodQAHist("histNSigma",
-                                 "(#Sigma^{0} #oplus #bar{#Sigma^{0}})/Event");
+                                 "(#Sigma^{0} + #bar{#Sigma^{0}})/Event");
 
   int i = 0;
   for (auto it : fPeriods) {
@@ -233,6 +235,24 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
     delete reader;
     ++i;
   }
+
+  MakeHistosGreat::FormatHistogram(histPurityLambda, fStyler.drawMarker, fStyler.drawColor, 1.5);
+  histPurityLambda->GetXaxis()->SetLabelSize(15);
+  MakeHistosGreat::FormatHistogram(histPurityAntiLambda, fStyler.drawMarker, fStyler.drawColor, 1.5);
+  histPurityAntiLambda->GetXaxis()->SetLabelSize(15);
+  MakeHistosGreat::FormatHistogram(histPuritySigma, fStyler.drawMarker, fStyler.drawColor, 1.5);
+  histPuritySigma->GetXaxis()->SetLabelSize(15);
+  MakeHistosGreat::FormatHistogram(histNProton, fStyler.drawMarker, fStyler.drawColor, 1.5);
+  histNProton->GetXaxis()->SetLabelSize(15);
+  MakeHistosGreat::FormatHistogram(histNAntiProton, fStyler.drawMarker, fStyler.drawColor, 1.5);
+  histNAntiProton->GetXaxis()->SetLabelSize(15);
+  MakeHistosGreat::FormatHistogram(histNLambda, fStyler.drawMarker, fStyler.drawColor, 1.5);
+  histNLambda->GetXaxis()->SetLabelSize(15);
+  MakeHistosGreat::FormatHistogram(histNAntiLambda, fStyler.drawMarker, fStyler.drawColor, 1.5);
+  histNAntiLambda->GetXaxis()->SetLabelSize(15);
+  MakeHistosGreat::FormatHistogram(histNSigma, fStyler.drawMarker, fStyler.drawColor, 1.5);
+  histNSigma->GetXaxis()->SetLabelSize(15);
+
   auto c = new TCanvas();
   histPurityLambda->Draw("PE");
   histPurityLambda->Fit("pol0");
@@ -245,7 +265,10 @@ void PeriodQA::ProcessSigmaQA(const char* prefix, const char* addon) {
   histPuritySigma->SetMinimum(20);
   histPuritySigma->SetMaximum(50);
   histPuritySigma->Draw("PE");
-  histPuritySigma->Fit("pol0");
+  auto pol0 = new TF1("pol0", "pol0", 0, 1000);
+  pol0->SetLineColor(fStyler.drawLineColor);
+  pol0->SetLineStyle(2);
+  histPuritySigma->Fit(pol0);
   e->Print("PeriodQASigma.pdf");
 
   auto a1 = new TCanvas();

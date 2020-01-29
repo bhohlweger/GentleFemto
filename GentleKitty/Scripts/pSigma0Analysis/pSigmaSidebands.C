@@ -57,7 +57,7 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
   if (TFile::Open(filename)) {
     std::cout << "Using smearing matrix from existing file\n";
     auto outfile = TFile::Open(filename);
-    auto histSmear = (TH2D*) outfile->Get("histSmear");
+    auto histSmear = (TH2D*) outfile->Get("histSmearSigma");
     outfile->Close();
     return histSmear;
   } else {
@@ -135,31 +135,37 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
     auto histSmear =
         new TH2D(
             "histSmear",
-            "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
+            "; #it{k}*_{p#minus#Lambda} (GeV/#it{c}); #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c})",
+            500, 0, 1000, 500, 0, 1000);
+
+    auto histSmearPhoton =
+        new TH2D(
+            "histSmearPhoton",
+            "; #it{k}*_{p#minus#gamma} (GeV/#it{c}); #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c})",
             500, 0, 1000, 500, 0, 1000);
 
     auto histSmearSigma =
         new TH2D(
             "histSmearSigma",
-            "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
+            "; #it{k}*_{p#minus#Lambda} (GeV/#it{c}); #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c})",
             500, 0, 1000, 500, 0, 1000);
 
     auto histSmearFull100 =
         new TH2D(
             "histSmearFull100",
-            "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
+            "; #it{k}*_{p#minus#Lambda} (GeV/#it{c}); #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c})",
             500, 0, 1000, 500, 0, 1000);
 
     auto histSmearFull200 =
         new TH2D(
             "histSmearFull200",
-            "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
+            "; #it{k}*_{p#minus#Lambda} (GeV/#it{c}); #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c})",
             500, 0, 1000, 500, 0, 1000);
 
     auto histSmearFull =
         new TH2D(
             "histSmearFull",
-            "; #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c}); #it{k}*_{p#minus#Lambda} (GeV/#it{c})",
+            "; #it{k}*_{p#minus#Lambda} (GeV/#it{c}); #it{k}*_{p#minus#Sigma^{0}} (GeV/#it{c})",
             500, 0, 1000, 500, 0, 1000);
 
     auto relMom = new TNtuple("relMom", "relMom", "pSigma:pLambda:pPhoton");
@@ -167,7 +173,7 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
     float counter = 0;
     int modulo = (nParticles > 10000) ? nParticles / 10000 : 1;
     int i = 0;
-    float kstarpSigma, kstarpLambda, kstarpSigmaSigma, kstarpLambdaSigma;
+    float kstarpSigma, kstarpLambda, kstarpPhoton, kstarpSigmaSigma, kstarpLambdaSigma;
     float nCount = nParticles;
     TGenPhaseSpace eventSigma0;
     TLorentzVector lambdaSigmaDecay;
@@ -185,13 +191,14 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
 
       kstarpSigma = GetkStar(protonPart, sigmaPart);
       kstarpLambda = GetkStar(protonPart, lambdaPart);
-      histSmearFull->Fill(kstarpSigma, kstarpLambda);
+      kstarpPhoton = GetkStar(protonPart, photonPart);
+      histSmearFull->Fill(kstarpLambda, kstarpSigma);
 
       if (std::abs(sigmaPart.M() - sigmaMass) < 0.01) {
-        histSmearFull100->Fill(kstarpSigma, kstarpLambda);
+        histSmearFull100->Fill(kstarpLambda, kstarpSigma);
       }
       if (std::abs(sigmaPart.M() - sigmaMass) < 0.02) {
-        histSmearFull200->Fill(kstarpSigma, kstarpLambda);
+        histSmearFull200->Fill(kstarpLambda, kstarpSigma);
       }
 
       if (std::abs(sigmaPart.M() - sigmaMass) > 0.005) {
@@ -210,12 +217,13 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
         lambdaSigmaDecay = *(eventSigma0.GetDecay(0));
         kstarpSigmaSigma = GetkStar(protonPart, trueSigmaPart);
         kstarpLambdaSigma = GetkStar(protonPart, lambdaSigmaDecay);
-        histSmearSigma->Fill(kstarpSigmaSigma, kstarpLambdaSigma);
+        histSmearSigma->Fill(kstarpLambdaSigma, kstarpSigmaSigma);
       }
 
       if (i % 1000 == 0) relMom->Fill(kstarpSigma, kstarpLambda, GetkStar(protonPart, photonPart));
-      histSmear->Fill(kstarpSigma, kstarpLambda);
-      histSmearSigma->Fill(kstarpSigma, kstarpLambda);
+      histSmear->Fill(kstarpLambda, kstarpSigma);
+      histSmearPhoton->Fill(kstarpPhoton, kstarpSigma);
+      histSmearSigma->Fill(kstarpLambda, kstarpSigma);
       ++i;
       if ((i % 100) == 0)
         std::cout << "\r " << 100. / nCount * i << "%";
@@ -233,17 +241,18 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
     histSigma->Write();
     histSigmaSigma->Write();
     histSmear->Write();
+    histSmearPhoton->Write();
     histSmearSigma->Write();
     histSmearFull100->Write();
     histSmearFull200->Write();
     histSmearFull->Write();
     relMom->Write();
     outfile->Close();
-    return histSmear;
+    return histSmearSigma;
   }
 }
 
-TGraph *GetSmearedCF(TGraph* CF, TH2D* matrix) {
+TGraph *GetSmearedCF(TGraph* CF, TH2* matrix) {
   //Define new Histogram which have dimension according to the yaxis (new momentum axis):
   const int nbins_original = matrix->GetXaxis()->GetNbins();
   const Int_t nbins_transformed = matrix->GetYaxis()->GetNbins();
@@ -341,9 +350,9 @@ int main(int argc, char *argv[]) {
   Ck_pL->SetSourcePar(0, ppRadius);
   Ck_pL->Update();
 
-  const double protonPurity = 0.991213;
-  const double protonPrimary = 0.874808;
-  const double protonLambda = 0.0876342;
+  const double protonPurity = 0.9943;
+  const double protonPrimary = 0.823;
+  const double protonLambda = 0.125;
   const double protonSecondary = protonLambda / (1. - protonPrimary);
   const Particle proton(
       protonPurity,
@@ -352,7 +361,7 @@ int main(int argc, char *argv[]) {
           * (1 - protonSecondary) } });
 
   const double lambdaPurity = 0.946;
-  const double lambdaPrimary = 0.619493;
+  const double lambdaPrimary = 0.54;
   const Particle lambda(lambdaPurity, lambdaPrimary,
                         { { 1.f - lambdaPrimary } });
 
@@ -377,35 +386,15 @@ int main(int argc, char *argv[]) {
 
   auto grSidebandSmeared = GetSmearedCF(grSideband, histSmear);
 
-  // check with inverted axes
-  auto histSmearInv = (TH2D*) histSmear->Clone("histSmearInv");
-  for (int i = 0; i < histSmear->GetNbinsX(); ++i) {
-    for (int j = 0; j < histSmear->GetNbinsY(); ++j) {
-      histSmearInv->SetBinContent(j, i, histSmear->GetBinContent(i, j));
-    }
-  }
-  auto grSidebandSmearedInv = GetSmearedCF(grSideband, histSmearInv);
-
-//  auto c = new TCanvas();
-//  SBmerge->Draw();
-//  SBmerge->SetMaximum(1.7);
-//  SBmerge->GetXaxis()->SetRangeUser(0, 350);
-//  grSideband->Draw("L3 same");
-//  c->Print("Sideband_fit.pdf");
-//
-//  auto d = new TCanvas();
-//  histLambdaGamma->Draw("colz");
-//  histLambdaGamma->GetXaxis()->SetRangeUser(0, 0.5);
-//  histLambdaGamma->GetYaxis()->SetRangeUser(0, 0.5);
-//  d->Print("momRes.pdf");
   outfile->cd();
 
+  histSmear->Write();
   grSidebandRaw->Write("p-Lambda raw");
   grSideband->Write("p-Lambda smeared");
   grSidebandSmeared->Write("p-Lambda smeared with Photon");
-  grSidebandSmearedInv->Write("p-Lambda ing");
   SBmerge->Write();
   CATSinput->GetSigmaFile(1)->Write();
+  histSmear->Write();
 
   outfile->Close();
 }
