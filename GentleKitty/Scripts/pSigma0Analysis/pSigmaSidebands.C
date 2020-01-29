@@ -18,11 +18,12 @@
 #include "TSystem.h"
 #include "TRandom3.h"
 #include "TGenPhaseSpace.h"
+#include "TStopwatch.h"
 
 float GetkStar(const TLorentzVector &Part1Momentum,
                const TLorentzVector &Part2Momentum) {
-  float results = 0.;
-  TLorentzVector SPtrack, TPProng, trackSum, SPtrackCMS, TPProngCMS;
+  static float results = 0.;
+  static TLorentzVector SPtrack, TPProng, trackSum, SPtrackCMS, TPProngCMS;
   //Even if the Daughter tracks were switched up during PID doesn't play a role here cause we are
   //only looking at the mother mass
   SPtrack.SetXYZM(Part1Momentum.X(), Part1Momentum.Y(), Part1Momentum.Z(),
@@ -42,7 +43,7 @@ float GetkStar(const TLorentzVector &Part1Momentum,
   SPtrackCMS.Boost(-betax, -betay, -betaz);
   TPProngCMS.Boost(-betax, -betay, -betaz);
 
-  TLorentzVector trackRelK;
+  static TLorentzVector trackRelK;
 
   trackRelK = SPtrackCMS - TPProngCMS;
   results = 0.5 * trackRelK.P();
@@ -170,14 +171,15 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
 
     auto relMom = new TNtuple("relMom", "relMom", "pSigma:pLambda:pPhoton");
 
-    float counter = 0;
+    double counter = 0;
     int modulo = (nParticles > 10000) ? nParticles / 10000 : 1;
     int i = 0;
-    float kstarpSigma, kstarpLambda, kstarpPhoton, kstarpSigmaSigma, kstarpLambdaSigma;
-    float nCount = nParticles;
+    double kstarpSigma, kstarpLambda, kstarpPhoton, kstarpSigmaSigma, kstarpLambdaSigma, massCurrentSigma;
+    double nCount = nParticles;
     TGenPhaseSpace eventSigma0;
     TLorentzVector lambdaSigmaDecay;
     double sigmaDecay[2] = { lambdaMass, 0.};
+    TStopwatch watch;
     while (i < nParticles) {
       protonPart.SetPtEtaPhiM(protonpT->GetRandom(), protoneta->GetRandom(),
                               protonphi->GetRandom(), protonMass);
@@ -186,22 +188,23 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
       photonPart.SetPtEtaPhiM(photonpT->GetRandom(), photoneta->GetRandom(),
                               photonphi->GetRandom(), 0);
       sigmaPart = photonPart + lambdaPart;
-      histSigma->Fill(sigmaPart.M());
-      histSigmaSigma->Fill(sigmaPart.M());
+      massCurrentSigma = sigmaPart.M();
+      histSigma->Fill(massCurrentSigma);
+      histSigmaSigma->Fill(massCurrentSigma);
 
       kstarpSigma = GetkStar(protonPart, sigmaPart);
       kstarpLambda = GetkStar(protonPart, lambdaPart);
       kstarpPhoton = GetkStar(protonPart, photonPart);
       histSmearFull->Fill(kstarpLambda, kstarpSigma);
 
-      if (std::abs(sigmaPart.M() - sigmaMass) < 0.01) {
+      if (std::abs(massCurrentSigma - sigmaMass) < 0.01) {
         histSmearFull100->Fill(kstarpLambda, kstarpSigma);
       }
-      if (std::abs(sigmaPart.M() - sigmaMass) < 0.02) {
+      if (std::abs(massCurrentSigma - sigmaMass) < 0.02) {
         histSmearFull200->Fill(kstarpLambda, kstarpSigma);
       }
 
-      if (std::abs(sigmaPart.M() - sigmaMass) > 0.005) {
+      if (std::abs(massCurrentSigma - sigmaMass) > 0.005) {
         continue;
       }
 
@@ -225,8 +228,11 @@ TH2D* ComputeSmearingMatrix(TString &InputDir, TString &trigger,
       histSmearPhoton->Fill(kstarpPhoton, kstarpSigma);
       histSmearSigma->Fill(kstarpLambda, kstarpSigma);
       ++i;
-      if ((i % 100) == 0)
-        std::cout << "\r " << 100. / nCount * i << "%";
+      if ((i % 100) == 0) {
+        watch.Stop();
+        std::cout << "\r " << 100. / nCount * i << " % - running " << watch.RealTime()/60.<< "min - E.T.A. " << (watch.RealTime()/(100. / nCount * i) * 100 - watch.RealTime())/60 << "min";
+        watch.Continue();
+      }
     }
 
     histSigma->Scale(
@@ -394,7 +400,6 @@ int main(int argc, char *argv[]) {
   grSidebandSmeared->Write("p-Lambda smeared with Photon");
   SBmerge->Write();
   CATSinput->GetSigmaFile(1)->Write();
-  histSmear->Write();
 
   outfile->Close();
 }
