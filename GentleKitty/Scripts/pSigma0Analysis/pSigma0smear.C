@@ -374,14 +374,14 @@ int main(int argc, char* argv[]) {
   // Now the Lambda feeding to pp
   auto grPLFull = new TGraph();
   grPLFull->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  DreamPlot::SetStyleGraph(grPLFull, 20, kBlue + 3, 0.8);
+  DreamPlot::SetStyleGraph(grPLFull, 20, kBlue + 3, 0.7);
   grPLFull->SetLineWidth(lineWidth);
   auto grPLSmear = new TGraph();
-  DreamPlot::SetStyleGraph(grPLSmear, 20, kBlue + 3, 0.8);
+  DreamPlot::SetStyleGraph(grPLSmear, 20, kBlue + 3, 0.7);
   grPLSmear->SetLineWidth(lineWidth);
   grPLSmear->SetLineStyle(2);
   auto grPLLambda = new TGraph();
-  DreamPlot::SetStyleGraph(grPLLambda, 20,  kBlue + 3, 0.8);
+  DreamPlot::SetStyleGraph(grPLLambda, 20,  kBlue + 3, 0.7);
   grPLLambda->SetLineWidth(lineWidth);
   grPLLambda->SetLineStyle(3);
 
@@ -392,7 +392,7 @@ int main(int argc, char* argv[]) {
 
   const float lambdaLambdaProton = 0.203;
   CATS AB_pL;
-  tidy->GetCatsProtonLambda(&AB_pL, 150, 0, 300, TidyCats::sGaussian,
+  tidy->GetCatsProtonLambda(&AB_pL, 31, -9.99, 300, TidyCats::sGaussian,
                             TidyCats::pNLOWF);
   AB_pL.KillTheCat();
   DLM_Ck* Ck_pL = new DLM_Ck(1, 0, AB_pL);
@@ -409,6 +409,7 @@ int main(int argc, char* argv[]) {
   DLM_CkDecomposition CkDec_pL_lambdasmear("pLambda2", 1, *Ck_pL_flat, nullptr);
   CkDec_pL_lambdasmear.AddContribution(0, 0.999, DLM_CkDecomposition::cFeedDown,
                                        &CkDec_pL, CATSinput->GetResFile(0));
+
   DLM_CkDecomposition CkDec_pL_lambdasmearlambda("pLambda3", 1, *Ck_pL_flat, nullptr);
   CkDec_pL_lambdasmearlambda.AddContribution(0, lambdaLambdaProton,
                                              DLM_CkDecomposition::cFeedDown,
@@ -427,13 +428,13 @@ int main(int argc, char* argv[]) {
   gc3->SetRightMargin(right);
   gc3->SetTopMargin(top);
   dummyHist->Draw();
-  dummyHist->GetYaxis()->SetRangeUser(yminpp, ymaxpp);
+  dummyHist->GetYaxis()->SetRangeUser(0.85, 3.5);
   dummyHist->GetXaxis()->SetNdivisions(504);
   grPLFull->Draw("L3same");
   grPLSmear->Draw("L3same");
   grPLLambda->Draw("L3same");
 
-  auto gleg5 = new TLegend(0.49, 0.65, 0.49 + 0.45, 0.95);
+  auto gleg5 = new TLegend(0.45, 0.65, 0.45 + 0.45, 0.95);
   gleg5->SetBorderSize(0);
   gleg5->SetTextFont(42);
   gleg5->SetHeader("p#minus#kern[-0.95]{ }#Lambda #chiEFT (NLO)");
@@ -441,10 +442,10 @@ int main(int argc, char* argv[]) {
   gleg5->AddEntry(grPLFull, "Genuine", "l");
   gleg5->AddEntry(
       grPLSmear,
-      "p#minus#kern[-0.95]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }p", "l");
+      "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }p", "l");
   gleg5->AddEntry(
       grPLLambda,
-      "p#minus#kern[-0.95]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }p (#lambda = 0.203)",
+      "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }p (#lambda = 0.203)",
       "l");
   gleg5->Draw("same");
   gc3->Print("pL_feed.pdf");
