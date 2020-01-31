@@ -389,6 +389,18 @@ int main(int argc, char* argv[]) {
   const float PrimLambdaAndSigma = 0.785;  //fraction of primary Lambdas + Sigma 0
   const float SecLambda = 1 - PrimLambdaAndSigma;  //fraction of weak decay Lambdas
 
+  auto histSmear = CATSinput->GetResFile(0);
+  DreamPlot::SetStyleHisto(histSmear);
+  histSmear->SetTitle("; #it{k}*_{p#minus#Lambda} (MeV/#it{c}); #it{k}*_{p#minusp} (MeV/#it{c})");
+  auto casd = new TCanvas("c", "c", 650, 550);
+  histSmear->GetZaxis()->SetTitleFont(43);
+  histSmear->GetZaxis()->SetTitleSize(28);
+  histSmear->GetZaxis()->SetLabelFont(43);
+  histSmear->GetZaxis()->SetLabelSize(28);
+  histSmear->GetXaxis()->SetNdivisions(505);
+  histSmear->GetYaxis()->SetNdivisions(505);
+  histSmear->Draw("col");
+  casd->Print("ppplambdaSmearingMatrix.pdf");
 
   const float lambdaLambdaProton = 0.203;
   CATS AB_pL;
