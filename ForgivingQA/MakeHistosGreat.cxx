@@ -347,7 +347,7 @@ void MakeHistosGreat::DrawPerformance(ForgivingFitter* fit, TPad* pad,
   Label.SetTextSize(gStyle->GetTextSize() * 0.9);
   Label.DrawLatex(xPos, yPos - offset * counter++, "#bf{ALICE Performance}");
   Label.DrawLatex(xPos, yPos - offset * counter++, "pp #sqrt{s} = 13 TeV");
-  Label.DrawLatex(xPos, yPos - offset * counter++, "High Mult. (0-0.072% INEL)");
+  Label.DrawLatex(xPos, yPos - offset * counter++, "High Mult. (0-0.17% INEL > 0)");
   if (pTmin > 0 && pTmax > 0) {
     Label.DrawLatex(xPos, yPos - offset * counter++,
                     Form("%.1f < #it{p}_{T} < %.1f GeV/#it{c}", pTmin, pTmax));
@@ -377,7 +377,7 @@ void MakeHistosGreat::DrawPublication(ForgivingFitter* fit, TPad* pad,
   Label.SetNDC(kTRUE);
   Label.SetTextSize(gStyle->GetTextSize() * 0.9);
   Label.DrawLatex(xPos, yPos - offset * counter++, "ALICE pp #sqrt{#it{s}} = 13 TeV");
-  Label.DrawLatex(xPos, yPos - offset * counter++, "High-mult. (0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+  Label.DrawLatex(xPos, yPos - offset * counter++, "High-mult. (0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.17#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
   if (pTmin > 0 && pTmax > 0) {
     Label.DrawLatex(xPos, yPos - offset * counter++,
                     Form("%.1f < #it{p}_{T} < %.1f GeV/#it{c}", pTmin, pTmax));
