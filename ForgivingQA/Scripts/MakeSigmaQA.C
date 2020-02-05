@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
   antiSigma0QA->InvariantMassSigma0(0.003, "Sigma0antiPart", false);
   delete antiSigma0QA;
 
-  DecayQA* sigmaSumQA = new DecayQA("#Sigma^{0} + #bar{#Sigma}^{0}",
+  DecayQA* sigmaSumQA = new DecayQA("#Sigma^{0} + #bar{#Sigma^{0}}",
                                     "#Lambda#gamma + #bar{#Lambda}#gamma", "Sigma0Combined");
   sigmaSumQA->SetStyler(styler);
   sigmaSumQA->SetDecayCuts(reader->GetOtherCuts("Sigma0Cuts"));

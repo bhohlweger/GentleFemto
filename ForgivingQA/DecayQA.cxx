@@ -410,7 +410,7 @@ void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
 
     auto cpt = new TCanvas(Form("cInt%i%s", ipT, outname),
                            Form("cInt%i%s", ipT, outname), 0, 0, 650, 550);
-    cpt->SetTopMargin(0.05);
+    cpt->SetTopMargin(0.06);
     cpt->SetRightMargin(0.025);
     TPad *intPadpt = (TPad*) cpt->cd();
     fHairyPlotter->FormatHistogram(invMasspTBin, fStyler.drawMarker, fStyler.drawColor, 1.1);
