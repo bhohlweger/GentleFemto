@@ -62,3 +62,6 @@ target_link_libraries(systematicspAL tidyCATS DreamFunctions ForgivingFnct)
 
 add_executable(pALmTVariations ${PROJECT_SOURCE_DIR}/GetmTVariationspAL.C)
 target_link_libraries(pALmTVariations tidyCATS DreamFunctions ForgivingFnct)
+
+add_executable(LALmTVariations ${PROJECT_SOURCE_DIR}/GetmTVariationsLAL.C)
+target_link_libraries(LALmTVariations tidyCATS DreamFunctions ForgivingFnct)
