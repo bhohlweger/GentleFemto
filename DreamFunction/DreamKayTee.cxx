@@ -155,6 +155,126 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
   return;
 }
 
+void DreamKayTee::ObtainTheCorrelationFunctionBBar(const char* outFolder,
+                                               const char* prefix,
+                                               const char* pair) {
+  if (!fSEMEReweighting) {
+    std::cout << "No Reweighting set. Call SetSEMEReweightingRatio first! \n";
+  } else {
+    const char* variable = (fIskT) ? "kT" : "mT";
+    const int nBins = (int) fKayTeeBins.size();
+    if (fSEkT[0]) {
+      fKayTeeBins.push_back(fSEkT[0]->GetYaxis()->GetXmax());
+      fCFPart = new DreamPair**[1];
+      TString PartName[2] = { "Part"};
+      for (int iPart = 0; iPart < 1; ++iPart) {
+        fCFPart[iPart] = new DreamPair*[fNKayTeeBins];
+        for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
+          TString PairName = Form("%s_%s_%i", PartName[iPart].Data(), variable,
+                                  ikT);
+          fCFPart[iPart][ikT] = new DreamPair(PairName.Data(), fNormleft,
+                                              fNormright);
+          //multiplications due in order not to hit the border of the bin!
+          int kTminBin = fSEkT[iPart]->GetYaxis()->FindBin(
+              fKayTeeBins[ikT] * 1.0001);
+          int kTmaxBin = fSEkT[iPart]->GetYaxis()->FindBin(
+              fKayTeeBins[ikT + 1] * 0.9999);
+
+          DreamDist* kTDist = new DreamDist();
+          TString SEkTBinName = Form("SE%s", PairName.Data());
+          kTDist->SetSEDist(
+              (TH1F*) fSEkT[iPart]->ProjectionX(SEkTBinName.Data(), kTminBin,
+                                                kTmaxBin, "e"),
+              "");
+          TString MEkTBinName = Form("ME%s", PairName.Data());
+          kTDist->SetMEDist(
+              (TH1F*) fMEkT[iPart]->ProjectionX(MEkTBinName.Data(), kTminBin,
+                                                kTmaxBin, "e"),
+              "");
+          //little hack to make things work.
+          TH2F* fake = new TH2F("fakeMult", "fakeMult", 10, 0, 1, 10, 0, 1);
+          kTDist->SetSEMultDist(fake, "SE");
+          kTDist->SetMEMultDist(fake, "ME");
+          fCFPart[iPart][ikT]->SetPair(kTDist);
+          if (fFixShift.size() > 0 && fFixShift.at(ikT)) {
+            fCFPart[iPart][ikT]->ShiftForEmpty(fCFPart[iPart][ikT]->GetPair());
+            fCFPart[iPart][ikT]->FixShift(fCFPart[iPart][ikT]->GetPair(),
+                                          nullptr, fFixShiftValue.at(ikT),
+                                          true);
+            for (auto it : fRebin) {
+              fCFPart[iPart][ikT]->Rebin(
+                  fCFPart[iPart][ikT]->GetFixShifted().at(0), it);
+            }
+          } else {
+            for (auto it : fRebin) {
+              fCFPart[iPart][ikT]->Rebin(fCFPart[iPart][ikT]->GetPair(), it);
+            }
+          }
+        }
+      }
+      this->AveragekT(pair);
+      fSum = new DreamCF*[fNKayTeeBins];
+      TString outname = TString::Format("%s/AveragemT.root",
+                                        outFolder);
+      TFile* allCFsOut = TFile::Open(outname.Data(), "UPDATE");
+      allCFsOut->cd();
+      if (fAveragekT) {
+        TString name = TString::Format("Average%s_%s", variable,pair);
+        TGraphErrors* copy = new TGraphErrors(*fAveragekT);
+        copy->GetXaxis()->SetTitle("m_{T} Bin");
+        copy->GetYaxis()->SetTitle("<m_{T}> (GeV/c^{2})");
+        copy->SetName(name.Data());
+        copy->Write(name.Data());
+        allCFsOut->Write();
+      }
+      allCFsOut->Close();
+      for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
+        fSum[ikT] = new DreamCF();
+        fSum[ikT]->SetPairsBBar(fCFPart[0][ikT]);
+        fSum[ikT]->GetCorrelations(pair);
+        std::vector<TH1F*> CFs = fSum[ikT]->GetCorrelationFunctions();
+        TString outfileName = TString::Format("%s/CFOutput_%s_%s_%s_%u.root",
+                                              outFolder, variable, pair, prefix,
+                                              ikT);
+        for (auto &it : CFs) {
+          TString HistName = it->GetName();
+          for (int iBin = 1; iBin < it->GetNbinsX(); ++iBin) {
+            float binCont = it->GetBinContent(iBin);
+            float binErr = it->GetBinError(iBin);
+            float binCent = it->GetBinCenter(iBin);
+            float corrFactor = 0;
+            if (HistName.Contains("MeV")) {
+              corrFactor = fSEMEReweightingMeV->GetBinContent(
+                  fSEMEReweightingMeV->FindBin(binCent));
+            } else {
+              corrFactor = fSEMEReweighting->GetBinContent(
+                  fSEMEReweighting->FindBin(binCent));
+            }
+            if (corrFactor != 0) {
+              it->SetBinContent(iBin, binCont * corrFactor);
+              it->SetBinError(iBin, binErr);
+            }
+//            else {
+//              //dont worry if iBin seems to change, its due to the rebinning!
+//              std::cout << "======================================\n";
+//              std::cout << it->GetName() << std::endl;
+//              std::cout << "!for ikT = " << ikT << " and iBin = " << iBin
+//                        << "!\n";
+//              std::cout << "Correction factor 0, CFs meaningless!!! \n";
+//              std::cout << "======================================\n";
+//              std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+//            }
+          }
+        }
+        fSum[ikT]->WriteOutput(outfileName.Data());
+      }
+    } else {
+      std::cout << "No SE " << variable << " histogram with index 0 \n";
+    }
+  }
+  return;
+}
+
 void DreamKayTee::AveragekT(const char *pair) {
   DreamPlot::SetStyle();
   const char* variable = (fIskT) ? "kT" : "mT";
