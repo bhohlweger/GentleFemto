@@ -208,22 +208,22 @@ void SourcePlay() {
   cats.SetAnaSource(1, 2.0);
 
   auto grSource = new TGraph();
-  DreamPlot::SetStyleGraph(grSource, 20, kBlue + 3);
+  DreamPlot::SetStyleGraph(grSource, 20, kBlue + 3, 0.8);
   grSource->SetLineWidth(2);
-  grSource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
+  grSource->SetTitle(";#it{r} (fm); 4#pi#it{r}^{2} S(#it{r}) (fm^{-1})");
   auto grPPSource = new TGraph();
-  DreamPlot::SetStyleGraph(grPPSource, 20, kGreen + 3);
+  DreamPlot::SetStyleGraph(grPPSource, 20, kTeal + 2, 0.8);
   grPPSource->SetLineWidth(2);
-  grPPSource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
+  grPPSource->SetTitle(";#it{r} (fm); 4#pi#it{r}^{2} S(#it{r}) (fm^{-1})");
 
   CATS ppGaussian;
   TidyCats *tidy = new TidyCats();
   tidy->GetCatsProtonProton(&ppGaussian, 500, 0, 500, TidyCats::sResonance);
   ppGaussian.KillTheCat();
 
-  for (double i = 0; i < 150; ++i) {
-    grSource->SetPoint(i, i * 0.1, cats.EvaluateTheSource(0, i * 0.1, 0));
-    grPPSource->SetPoint(i, i * 0.1, ppGaussian.EvaluateTheSource(0, i * 0.1, 0));
+  for (double i = 0; i < 75; ++i) {
+    grSource->SetPoint(i, i * 0.2, cats.EvaluateTheSource(0, i * 0.2, 0));
+    grPPSource->SetPoint(i, i * 0.2, ppGaussian.EvaluateTheSource(0, i * 0.2, 0));
   }
 
   auto gaussFit =
@@ -234,20 +234,43 @@ void SourcePlay() {
             std::exp(-x[0] * x[0] / (4. * p[0] * p[0]));
           },
           0, 10, 1);
-  gaussFit->SetParameter(0, 1.3);
+  gaussFit->FixParameter(0, 1.15);
   gaussFit->SetNpx(1000);
-  gaussFit->SetLineColor(kBlue + 2);
+  gaussFit->SetLineColorAlpha(kBlue + 3, 0.8);
   gaussFit->SetLineWidth(2);
   gaussFit->SetLineStyle(2);
 
+  auto gaussFitPP = new TF1(
+      "PPgaus",
+      [&](double *x, double *p) {return
+        4. * TMath::Pi() * x[0] * x[0] / std::pow((4. * TMath::Pi() * p[0] * p[0]), 1.5) *
+        std::exp(-x[0] * x[0] / (4. * p[0] * p[0]));
+      },
+      0, 10, 1);
+  gaussFitPP->FixParameter(0, 1.25);
+  gaussFitPP->SetNpx(1000);
+  gaussFitPP->SetLineColorAlpha(kTeal + 2, 0.8);
+  gaussFitPP->SetLineWidth(2);
+  gaussFitPP->SetLineStyle(2);
+
   auto d = new TCanvas();
+  d->SetTopMargin(0.025);
+  d->SetRightMargin(0.015);
   grSource->Draw("AL");
-  grSource->GetXaxis()->SetRangeUser(0, 12);
+  grSource->GetXaxis()->SetNdivisions(505);
+  grSource->GetYaxis()->SetNdivisions(505);
+  grSource->GetXaxis()->SetRangeUser(0, 10);
+  grSource->GetYaxis()->SetRangeUser(0, 0.4);
+  grSource->Fit(gaussFit, "", "R", 0, 12);
   grPPSource->Draw("L same");
-  auto leg2 = new TLegend(0.5, 0.7, 0.85, 0.85);
-  leg2->SetTextFont(42);
-  leg2->AddEntry(grPPSource, "p#minusp, #it{r}_{gauss} = 1.26 #pm 0.04 fm", "l");
-  leg2->AddEntry(grSource, "p#minus#Sigma^{0} , #it{r}_{gauss} = 1.15 #pm 0.05 fm", "l");
+  grPPSource->Fit(gaussFitPP, "", "R", 0, 12);
+  auto leg2 = new TLegend(0.5, 0.625, 0.8, 0.925);
+  leg2->SetTextFont(43);
+  leg2->SetTextSize(22);
+  leg2->AddEntry(grPPSource, "p#minus#kern[-0.95]{ }p, #it{r}_{core} = 0.99 fm", "l");
+  leg2->AddEntry(gaussFitPP, "p#minus#kern[-0.95]{ }p, #it{r}_{0} = (1.26 #pm 0.04) fm", "l");
+  leg2->AddEntry(grSource, "p#minus#kern[-0.95]{ }#Sigma^{0}, #it{r}_{core} = 0.75 fm", "l");
+  leg2->AddEntry(gaussFit, "p#minus#kern[-0.95]{ }#Sigma^{0}, #it{r}_{0} = (1.15 #pm 0.05) fm", "l");
   leg2->Draw("same");
   d->Print("Source.pdf");
 
