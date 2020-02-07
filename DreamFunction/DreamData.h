@@ -118,6 +118,14 @@ class DreamData {
     }
   }
   ;
+  void SetNDivisions(int nDivX, int nDivY) {
+    if (fSysError) {
+      fSysError->GetXaxis()->SetNdivisions(nDivX);
+      fSysError->GetYaxis()->SetNdivisions(nDivY);
+    } else {
+      Warning("DreamData", "No sys err for %s", fName);
+    }
+  }
   void SetLegendName(const char* name, const char* option) {
     fLegendName.push_back(name);
     fLegendOption.push_back(option);

@@ -427,6 +427,7 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
       fDummyHist->SetMinimum(fYMin);
       fDummyHist->SetMaximum(fYMax);
       fDummyHist->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
+      fDummyHist->GetYaxis()->SetNdivisions(fSysError->GetYaxis()->GetNdivisions());
       fDummyHist->SetLineColor(kWhite);
       fDummyHist->Draw();
       fSysError->Draw("same");
