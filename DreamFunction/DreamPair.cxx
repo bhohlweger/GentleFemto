@@ -245,7 +245,7 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
       TH2F* SEMult = pair->GetSEMultDist();
       TH1F* ME = pair->GetMEDist();
       TH2F* MEMult = pair->GetMEMultDist();
-      //The epsilon ensures that one doesn't sit on the bin boundary 
+      //The epsilon ensures that one doesn't sit on the bin boundary
       double epsilon = SE->GetBinWidth(1) * 1e-2;
       int nBins =
           fixedShift ?

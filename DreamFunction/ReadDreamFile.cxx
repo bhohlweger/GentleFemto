@@ -21,7 +21,7 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fSEMult(nullptr),
       fSEkT(nullptr),
       fSEmT(nullptr),
-      fSEmTMult(nullptr), 
+      fSEmTMult(nullptr),
       fSEmTProj(nullptr),
       fProjmT(nullptr),
       fMeanmT(nullptr),
@@ -33,7 +33,7 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fMEMult(nullptr),
       fMEkT(nullptr),
       fMEmT(nullptr),
-      fMEmTMult(nullptr), 
+      fMEmTMult(nullptr),
       fMEdEtadPhimT(nullptr),
       fMEdEtadPhi(nullptr),
       fMEdEtadPhiAtRad(nullptr),
@@ -501,7 +501,7 @@ void ReadDreamFile::ReadmTMultHistos(const char* AnalysisFile, const char* prefi
       PartList = (TList*) Results->FindObject(FolderName.Data());
       fSEmTMult[iPart1][iPart2] = new TH2F*[nmTBins];
       fMEmTMult[iPart1][iPart2] = new TH2F*[nmTBins];
-      for (int imT = 0; imT < nmTBins; ++imT) { 
+      for (int imT = 0; imT < nmTBins; ++imT) {
 	fSEmTMult[iPart1][iPart2][imT] =
 	  (TH2F*) PartList->FindObject(Form("SEmTMult_%i_%s", imT, FolderName.Data()));
 	if (!fSEmTMult[iPart1][iPart2][imT]) {
@@ -520,7 +520,7 @@ void ReadDreamFile::ReadmTMultHistos(const char* AnalysisFile, const char* prefi
     }
   }
   return;
-} 
+}
 
 void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char* prefix,
                                  const char* addon, double kcut) {
@@ -545,7 +545,7 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
     fMEmT[iPart1] = new TH2F*[fNPart2];
     fSEmTProj[iPart1] = new TH1F*[fNPart2];
 
-    
+
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
 
       TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
@@ -1037,7 +1037,7 @@ DreamKayTee* ReadDreamFile::GetmTPairDistributionsNonCommon(int iPart1, int iPar
   pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
 
   DreamKayTee* pair = new DreamKayTee(nmTBins);
-  for (int imT = 0; imT < nmTBins; ++imT) { 
+  for (int imT = 0; imT < nmTBins; ++imT) {
     pair->SetSEmTMultDist(0, imT, fSEmTMult[iPart1][iPart2][imT]);
     pair->SetMEmTMultDist(0, imT, fMEmTMult[iPart1][iPart2][imT]);
 
