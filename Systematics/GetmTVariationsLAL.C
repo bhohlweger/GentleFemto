@@ -9,8 +9,8 @@
 
 int main(int argc, char* argv[]) {
 //  HM
- std::vector<float> mTppBins = { 1.08, 1.26, 1.32, 1.44, 1.65, 1.9, 4.5 };
-  // std::vector<float> mTppBins = { 1.08, 1.28, 1.4, 1.58, 1.88, 4.5 };
+  // std::vector<float> mTppBins = { 1.08, 1.26, 1.32, 1.44, 1.65, 1.9, 4.5 };
+ std::vector<float> mTppBins = { 1.08, 1.32, 1.65, 4.5 };
   const char* filename = argv[1];
   const char* prefix = argv[2];
   auto CATSinput = new CATSInput();
