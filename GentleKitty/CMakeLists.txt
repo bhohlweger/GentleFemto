@@ -143,8 +143,11 @@ target_link_libraries(PlotSigmaCoupled tidyCATS -L${DREAM_LIB_PATH} DreamFunctio
 add_executable(sigmaModels ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/drawSigmaModelPlot.C)
 target_link_libraries(sigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
-add_executable(SigmaSidebandInvestigator ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/pSigmaSidebands.C)
-target_link_libraries(SigmaSidebandInvestigator tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+add_executable(SigmaSmearingMatrix ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/smearingMatrixSidebands.C)
+target_link_libraries(SigmaSmearingMatrix tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(SigmaSmearingSherlock ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/smearingLambdaSidebands.C)
+target_link_libraries(SigmaSmearingSherlock tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(POnlymT ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnlymT.C)
 target_link_libraries(POnlymT tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
