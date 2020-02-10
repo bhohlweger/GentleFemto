@@ -150,6 +150,83 @@ void DreamPair::ShiftForEmpty(DreamDist* pair) {
   return;
 }
 
+void DreamPair::ShiftForEmptyAncestors(DreamDist* pair) {
+  DreamDist* PairShifted = new DreamDist();
+
+  TH1F* SE = pair->GetSEDist();
+  TH1F* ME = pair->GetMEDist();
+
+  int FirstBin = SE->FindFirstBinAbove(0);
+  //+1 since we start counting bins at 1
+  const int nBinsEffSE = SE->GetNbinsX() - FirstBin + 1;
+  fFirstBin = SE->GetXaxis()->GetBinLowEdge(FirstBin);
+  const float SEkMax = SE->GetXaxis()->GetBinUpEdge(SE->GetNbinsX());
+
+  const char* SEHistName = Form("%s_", SE->GetName());
+  TH1F* SEShifted = new TH1F(SEHistName, SEHistName, nBinsEffSE, fFirstBin,
+                             SEkMax);
+  SEShifted->Sumw2();
+  const char* MEHistName = Form("%s_", ME->GetName());
+  TH1F* MEShifted = new TH1F(MEHistName, MEHistName, nBinsEffSE, fFirstBin,
+                             SEkMax);
+  MEShifted->Sumw2();
+
+  int ckBin = 1;
+  for (int ikBin = FirstBin; ikBin <= SE->GetNbinsX(); ++ikBin) {
+    SEShifted->SetBinContent(ckBin, SE->GetBinContent(ikBin));
+    SEShifted->SetBinError(ckBin, SE->GetBinError(ikBin));
+
+    MEShifted->SetBinContent(ckBin, ME->GetBinContent(ikBin));
+    MEShifted->SetBinError(ckBin, ME->GetBinError(ikBin));
+    ckBin++;
+  }
+  PairShifted->SetSEDist(SEShifted, "Shifted");
+  PairShifted->SetMEDist(MEShifted, "Shifted");
+  PairShifted->Calculate_CF(fNormLeft, fNormRight);
+  fPairShifted.push_back(PairShifted);
+  delete SEShifted;
+  delete MEShifted;
+  //  TH1F* SEProjMult[multBins];
+  //  TH1F* SEProjMultShifted[multBins];
+  //  TH1F* MEProjMult[multBins];
+  //  TH1F* MEProjMultShifted[multBins];
+  //  const char* can1Name=Form("c1%s",SE->GetName());
+  //  TCanvas *c1 = new TCanvas(can1Name,can1Name,2000,1000);
+  //  c1->Divide(2,2);
+  //  c1->cd(1);
+  //  SEMult->Draw();
+  //  c1->cd(2);
+  //  SEMultShifted->Draw();
+  //  c1->cd(3);
+  //  MEMult->Draw();
+  //  c1->cd(4);
+  //  MEMultShifted->Draw();
+  //
+  //  const char* can2Name=Form("c2%s",SE->GetName());
+  //  TCanvas *c2 = new TCanvas(can2Name,can2Name,2000,1000);
+  //  c2->Divide(7,4);
+
+  //  for (int iMult=1;iMult<=multBins;++iMult)
+  //  {
+  //    TString projSEMultName=Form("%sProj%i",SEMult->GetName(),iMult);
+  //    SEProjMult[iMult-1]=(TH1F*)SEMult->ProjectionX(projSEMultName.Data(),iMult,iMult);
+  ////    TString projSEMultShiftedName=Form("%sProj%i",SEMultShifted->GetName(),iMult);
+  ////    SEProjMultShifted[iMult-1]=(TH1F*)SEMultShifted->ProjectionX("",iMult,iMult);
+  //    SEProjMult[iMult-1]->Divide((TH1F*)SEMultShifted->ProjectionX("",iMult,iMult));
+  //    c1->cd(iMult);
+  //    SEProjMult[iMult-1]->Draw("hist");
+  //
+  //    TString projMEMultName=Form("%sProj%i",MEMult->GetName(),iMult);
+  //    MEProjMult[iMult-1]=(TH1F*)MEMult->ProjectionX(projMEMultName.Data(),iMult,iMult);
+  ////    TString projMEMultShiftedName=Form("%sProj%i",MEMultShifted->GetName(),iMult);
+  ////    MEProjMultShifted[iMult-1]=(TH1F*)MEMultShifted->ProjectionX("",iMult,iMult);
+  //    MEProjMult[iMult-1]->Divide((TH1F*)MEMultShifted->ProjectionX("",iMult,iMult));
+  //    c2->cd(iMult);
+  //    MEProjMult[iMult-1]->Draw("hist");
+  //  }
+  return;
+}
+
 void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
                          const bool fixedShift) {
   //in case of a manual fix shift, the user NEEDS to make sure
