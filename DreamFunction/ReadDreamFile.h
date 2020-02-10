@@ -78,6 +78,10 @@ class ReadDreamFile {
   DreamdEtadPhi* GetdEtadPhiDistributionSingle(int iPart1, int iPart2, int imT = 0);
   DreamdEtadPhi* GetdEtadPhiDistributionSingleCommon(int iPart1, int iPart2, int imT = 0);
   DreamdEtadPhi* GetdEtadPhiDistributionSingleNonCommon(int iPart1, int iPart2, int imT = 0);
+<<<<<<< HEAD
+=======
+
+>>>>>>> Adding macros for Ancestors Analysis and for L-antiL mT analysis
   DreamdEtadPhi* GetdEtadPhiAtRadDistribution(int iPart1, int iPart2, int iMix1,
                                               int iAPart1, int iAPart2,
                                               int iMix2, int iRad,
@@ -88,6 +92,8 @@ class ReadDreamFile {
  private:
   bool fQuiet;
   TH1F*** fSE;
+  TH1F*** fSECommon;
+  TH1F*** fSENonCommon;
   TH2F*** fSEMult;
   TH2F*** fSEkT;
   TH2F*** fSEmT;
@@ -99,6 +105,8 @@ class ReadDreamFile {
   TH2F***** fSEdEtadPhiAtRad;
   TH2F***** fSEdEtadPhiAtRadSmallkStar;
   TH2F*** fSEdEtadPhi;
+  TH2F*** fSEdEtadPhiCommon;
+  TH2F*** fSEdEtadPhiNonCommon;
   TH1F*** fME;
   TH2F*** fMEMult;
   TH2F*** fMEkT;
