@@ -129,3 +129,9 @@ target_link_libraries(executePhi DreamFunctions)
 
 add_executable(executePXi ${PROJECT_SOURCE_DIR}/Scripts/GetpXiVariations.C)
 target_link_libraries(executePXi DreamFunctions)
+
+add_executable(executeDreamAncestors ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFDreamAncestors.C)
+target_link_libraries(executeDreamAncestors DreamFunctions)
+
+add_executable(executeDPhiDEtaAncestors ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEtaAncestors.C)
+target_link_libraries(executeDPhiDEtaAncestors DreamFunctions)

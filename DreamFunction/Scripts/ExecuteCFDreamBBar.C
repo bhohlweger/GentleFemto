@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
   const char* prefix = argv[2];
   const char* addon = (argv[3]) ? argv[3] : "";
    GetCorrelationsNanoBBar(filename, prefix, addon, 0.18, 0.28);
-  //  GetCorrelationsNanoBB(filename, prefix, addon);
+   GetCorrelationsNanoBB(filename, prefix, addon);
     // GetCorrelationsNanoSample(filename, prefix, addon, 0.24, 0.34,0.18,0.28);
 
   return 1;
