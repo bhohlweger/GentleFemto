@@ -68,10 +68,7 @@ int main(int argc, char *argv[]) {
   auto filename = TString::Format("%s/SmearSideband.root", InputDir.Data());
 
   if (TFile::Open(filename)) {
-    std::cout << "Using smearing matrix from existing file\n";
-    auto outfile = TFile::Open(filename);
-    auto histSmear = (TH2D*) outfile->Get("histSmearSideband");
-    outfile->Close();
+    std::cout << "Sure you want to overwrite?\n";
     return 0;
   } else {
     std::cout << "No smearing matrix found - recomputing \n";
@@ -210,7 +207,6 @@ int main(int argc, char *argv[]) {
       sigmaPart = photonPart + lambdaPart;
       massCurrentSigma = sigmaPart.M();
       histSigma->Fill(massCurrentSigma);
-      histSigmaSigma->Fill(massCurrentSigma);
 
       if (sigmaPart.Pt() < 1)
         continue;
@@ -234,11 +230,12 @@ int main(int argc, char *argv[]) {
         histSmearSideband->Fill(kstarpLambda, kstarpSigma);
       }
 
-      if (std::abs(massCurrentSigma - sigmaMass) > 0.005) {
+      if (std::abs(massCurrentSigma - sigmaMass) > 0.003) {
         continue;
       }
 
       // let's add a true sigma
+      histSigmaSigma->Fill(massCurrentSigma);
       if (gRandom->Uniform() < purity) {
         trueSigmaPart.SetPtEtaPhiM(sigmapT->GetRandom(), sigmaeta->GetRandom(),
                                    sigmaphi->GetRandom(),
@@ -280,10 +277,6 @@ int main(int argc, char *argv[]) {
             / histSigma->Integral(histSigma->FindBin(1.2),
                                   histSigma->FindBin(1.25)));
 
-    histSigmaSigma->Scale(
-        entries
-            / histSigmaSigma->Integral(histSigmaSigma->FindBin(1.2),
-                                       histSigmaSigma->FindBin(1.25)));
     histSigma->Write();
     histSigmaSigma->Write();
     histSigmaPt->Write();
