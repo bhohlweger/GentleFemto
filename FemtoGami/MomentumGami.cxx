@@ -10,7 +10,7 @@
 #include "TF1.h"
 #include "TRandom.h"
 #include "RooUnfoldBayes.h"
-#include "RooUnfoldSvd.h"
+#include "RooUnfoldIds.h"
 #include "RooUnfoldBinByBin.h"
 #include "TSVDUnfold.h"
 MomentumGami::MomentumGami(float maxkStar)
@@ -25,7 +25,8 @@ MomentumGami::MomentumGami(float maxkStar)
       fResponseLower(nullptr),
       fResponseUpper(nullptr),
       fMaxkStar(maxkStar),
-      fUnitConversion(1.) {
+      fUnitConversion(1.),
+      fHowToUnfold(kBayes){
   // TODO Auto-generated constructor stub
   gRandom->SetSeed(0);
   fQAList->SetName("MomentumGamiQA");
@@ -325,10 +326,26 @@ TH1F* MomentumGami::UnfoldviaRooResp(TH1F* InputDist, double Rescaling) {
   RooUnfoldResponse* resp[3] = { fResponseLower, fResponseDefault,
       fResponseUpper };
 
-  RooUnfoldBayes unfolderer(resp[fResp], InputDist, fIter);
-//  RooUnfoldBinByBin unfolderer(resp[fResp], InputDist);
-  TH1F* unfoldedHist = (TH1F*) unfolderer.Hreco(RooUnfold::kCovariance);  //RooUnfold::kCovToy
-  unfolderer.Print();
+  TH1F* unfoldedHist = nullptr;
+  if (fHowToUnfold == kBayes) {
+    std::cout <<" Unfolding using bayes \n ";
+    RooUnfoldBayes unfolderer(resp[fResp], InputDist, fIter);
+    unfoldedHist = (TH1F*) unfolderer.Hreco();  //RooUnfold::kCovToy
+    unfolderer.Print();
+  } else if (fHowToUnfold == kB2B) {
+    std::cout <<" Unfolding using B2B \n ";
+    RooUnfoldBinByBin unfolderer(resp[fResp], InputDist);
+    unfoldedHist = (TH1F*)  unfolderer.Hreco();  //RooUnfold::kCovToy
+    unfolderer.Print();
+  } else if (fHowToUnfold == kIDS) {
+    std::cout <<" Unfolding using IDS \n ";
+    RooUnfoldIds unfolderer(resp[fResp], InputDist, fIter);
+    unfoldedHist = (TH1F*) unfolderer.Hreco();  //RooUnfold::kCovToy
+    unfolderer.Print();
+  } else {
+    Error("MomentumGami::UnfoldviaRooResp","This should not happen \n");
+  }
+
   TH1F* Ratio = (TH1F*) unfoldedHist->Clone(
       TString::Format("%s_ratioUnfolded", InputDist->GetName()));
   Ratio->Divide(InputDist);
