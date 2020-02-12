@@ -20,6 +20,7 @@ class PlayWithCats {
   void ExtractUncertaintyFit(const char* inFile);
   void GenerateDefault();
   void GenerateCoulombOnly();
+  void GenerateSourceDistpxi();
   void CloseFile() {
     fOutFile->Close();
   }
