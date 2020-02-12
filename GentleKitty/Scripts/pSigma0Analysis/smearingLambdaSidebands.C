@@ -70,8 +70,6 @@ int main(int argc, char *argv[]) {
   TString trigger = argv[2];
   TString suffix = argv[3];
 
-  const float lambdaSideband = 0.731;
-
   auto filename = TString::Format("%s/SherlockSideband.root", InputDir.Data());
   auto outfile = new TFile(filename, "RECREATE");
 
@@ -118,7 +116,7 @@ int main(int argc, char *argv[]) {
   /// Set up the CATS ranges, lambda parameters, etc.
 
   // pp radius
-  const double ppRadius = 1.154;
+  const double ppRadius = 1.249;
 
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, 41, -4.9, 400, TidyCats::sGaussian,
@@ -159,6 +157,8 @@ int main(int argc, char *argv[]) {
   auto grLambdaGenuine = new TGraph();
   FillWaveGraph(AB_pL, grLambdaGenuine);
 
+
+  // Proton lambda parameters
   const double protonPurity = 0.9943;
   const double protonPrimary = 0.823;
   const double protonLambda = 0.125;
@@ -169,6 +169,7 @@ int main(int argc, char *argv[]) {
       { { (1. - protonPrimary) * protonSecondary, (1. - protonPrimary)
           * (1 - protonSecondary) } });
 
+  // Lambda lambda parameters
   // some parameters, stolen from PLOnly.C
   const double lambdaPurity = 0.946;
   const double lambdaPrimaryAndSigma0 = 0.76; // includes primary Lambda and feed-down from Sigma0
@@ -178,6 +179,7 @@ int main(int argc, char *argv[]) {
   const Particle lambda(lambdaPurity, PrimLambda, { SecSigLambda, SecXiLambda,
                             SecXiLambda });
 
+  // Xi lambda parameters
   // some parameters, stolen from PLOnly.C
   const double xiPurity = 0.915;
   const double Xi01530XimProdFraction = 1 / 2.;
@@ -199,12 +201,15 @@ int main(int argc, char *argv[]) {
   const Particle xi(xiPurity, PrimXim, { SecOmegaXim, SecXi01530Xim,
                         SecXim1530Xim });
 
+  // Sigma0 lambda parameters
+  const Particle sigma0(0.274, 1., { { 0 } });
+
 
   const CATSLambdaParam lambdaParamPL(proton, lambda);
   const CATSLambdaParam lambdaParamPXi(proton, xi);
+  const CATSLambdaParam lambdaParamPSigma0(proton, sigma0);
 
-  const double lam_pL = lambdaParamPL.GetLambdaParam(CATSLambdaParam::Primary,
-                                                   CATSLambdaParam::Primary);
+  const double lam_pL = lambdaParamPL.GetLambdaParam(CATSLambdaParam::Primary);
   const double lam_pL_fake = lambdaParamPL.GetLambdaParam(
       CATSLambdaParam::Primary, CATSLambdaParam::Fake)
       + lambdaParamPL.GetLambdaParam(CATSLambdaParam::Fake,
@@ -226,6 +231,15 @@ int main(int argc, char *argv[]) {
                                       CATSLambdaParam::Primary)
       + lambdaParamPXi.GetLambdaParam(CATSLambdaParam::Fake,
                                       CATSLambdaParam::Fake);
+
+  float lam_pS0_SB = lambdaParamPSigma0.GetLambdaParam(
+      CATSLambdaParam::Primary, CATSLambdaParam::Fake, 0, 0);
+  lam_pS0_SB += lambdaParamPSigma0.GetLambdaParam(
+      CATSLambdaParam::FeedDown, CATSLambdaParam::Fake, 0, 0);
+  lam_pS0_SB += lambdaParamPSigma0.GetLambdaParam(
+      CATSLambdaParam::FeedDown, CATSLambdaParam::Fake, 1, 0);
+  lam_pS0_SB += lambdaParamPSigma0.GetLambdaParam(
+      CATSLambdaParam::Fake, CATSLambdaParam::Fake);
 
   DLM_CkDecomposition CkDec_pL("pLambda", 4, *Ck_pL, nullptr);  // we apply the momentum smearing later on, doesn't make a difference
   DLM_CkDecomposition CkDec_pSigma0("pSigma0", 0, *Ck_pSigma0, nullptr);
@@ -257,11 +271,8 @@ int main(int argc, char *argv[]) {
     grLambdaDecomposition->SetPoint(i, mom, CkDec_pL.EvalCk(mom));
   }
 
-  const float lambdaplambda = lambdaParamPL.GetLambdaParam(
-      CATSLambdaParam::Primary);
-
-  std::cout << "considering a primary fraction for the p-L CF of "
-            << lambdaplambda << "\n";
+  std::cout << "Primary fraction for the p-L CF of " << lam_pL << "\n";
+  std::cout << "Sideband contribution to p-Sigma0 " << lam_pS0_SB << "\n";
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // apply the smearing with the photon, and the momentum smearing
@@ -284,12 +295,12 @@ int main(int argc, char *argv[]) {
   double x, y;
   for (int i = 0; i < 1000; ++i) {
     grDecompSmearedSigma->GetPoint(i, x, y);
-    grSmearedSigmaForSigma->SetPoint(i, x, 1 + (y - 1) * lambdaSideband);
+    grSmearedSigmaForSigma->SetPoint(i, x, 1 + (y - 1) * lam_pS0_SB);
   }
 
   for (int i = 0; i < 1000; ++i) {
     grDecompSmearedSideband->GetPoint(i, x, y);
-    grSmearedSidebandForSigma->SetPoint(i, x, 1 + (y - 1) * lambdaSideband);
+    grSmearedSidebandForSigma->SetPoint(i, x, 1 + (y - 1) * lam_pS0_SB);
   }
 
   auto grDeviationSigma = new TGraph();
@@ -315,6 +326,8 @@ int main(int argc, char *argv[]) {
   DreamPlot::SetStyleHisto(histSmear);
   auto c = new TCanvas("c", "c", 650, 550);
   histSmear->Draw("col");
+  histSmear->GetXaxis()->SetRangeUser(0, 500);
+  histSmear->GetYaxis()->SetRangeUser(0, 500);
   histSmear->GetXaxis()->SetNdivisions(505);
   histSmear->GetYaxis()->SetNdivisions(505);
   histSmear->SetTitle(
@@ -324,20 +337,21 @@ int main(int argc, char *argv[]) {
   DreamPlot::SetStyleHisto(histSmearSideband);
   auto d = new TCanvas("d", "d", 650, 550);
   histSmearSideband->Draw("col");
+  histSmearSideband->GetXaxis()->SetRangeUser(0, 500);
+  histSmearSideband->GetYaxis()->SetRangeUser(0, 500);
   histSmearSideband->GetXaxis()->SetNdivisions(505);
   histSmearSideband->GetYaxis()->SetNdivisions(505);
   histSmearSideband->SetTitle(
       "; #it{k}*_{p#minus#Lambda} (MeV/#it{c}); #it{k}*_{p#minus(#Lambda#gamma)} (MeV/#it{c})");
   d->Print("pLambdaSmearingMatrixSideband.pdf");
 
-  int lineWidth = 2;
-  DreamPlot::SetStyleGraph(grLambdaGenuine, 20, kGreen + 3, 0.7);
+  int lineWidth = 3;
+  DreamPlot::SetStyleGraph(grLambdaGenuine, 20, kSpring - 6, 0.7);
   grLambdaGenuine->SetLineWidth(lineWidth);
-  grLambdaGenuine->SetLineStyle(3);
-  DreamPlot::SetStyleGraph(grGenuineSmearedSigma, 20, kGreen + 3, 0.7);
+  DreamPlot::SetStyleGraph(grGenuineSmearedSigma, 20, kTeal + 3, 0.7);
   grGenuineSmearedSigma->SetLineWidth(lineWidth);
   grGenuineSmearedSigma->SetLineStyle(2);
-  DreamPlot::SetStyleGraph(grDecompSmearedSigma, 20, kGreen + 3, 0.7);
+  DreamPlot::SetStyleGraph(grDecompSmearedSigma, 20, kTeal + 3, 0.7);
   grDecompSmearedSigma->SetLineWidth(lineWidth);
   DreamPlot::SetStyleGraph(SBmerge, kOpenCircle, kBlue + 3);
 
@@ -365,7 +379,7 @@ int main(int argc, char *argv[]) {
       grDecompSmearedSigma,
       Form(
           "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }#Sigma^{0} (#lambda = %.3f)",
-          lambdaplambda),
+          lam_pL),
       "l");
   gleg5->AddEntry(
       SBmerge,
@@ -374,10 +388,10 @@ int main(int argc, char *argv[]) {
   gleg5->Draw("same");
   gc3->Print("pLambdaSmearingSigma.pdf");
 
-  DreamPlot::SetStyleGraph(grGenuineSmearedSideband, 20, kGreen + 3, 0.7);
+  DreamPlot::SetStyleGraph(grGenuineSmearedSideband, 20, kGray + 1, 0.5);
   grGenuineSmearedSideband->SetLineWidth(lineWidth);
   grGenuineSmearedSideband->SetLineStyle(2);
-  DreamPlot::SetStyleGraph(grDecompSmearedSideband, 20, kGreen + 3, 0.7);
+  DreamPlot::SetStyleGraph(grDecompSmearedSideband, 20, kGray + 1, 0.5);
   grDecompSmearedSideband->SetLineWidth(lineWidth);
 
   auto g2c3 = new TCanvas("CFpL_lambda_SB", "CFpL_lambda_SB", 0, 0, 650, 550);
@@ -402,7 +416,7 @@ int main(int argc, char *argv[]) {
       grDecompSmearedSideband,
       Form(
           "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }(#Lambda#gamma) (#lambda = %.3f)",
-          lambdaplambda),
+          lam_pL),
       "l");
   gle1g5->AddEntry(
       SBmerge,
@@ -410,6 +424,54 @@ int main(int argc, char *argv[]) {
       "pez");
   gle1g5->Draw("same");
   g2c3->Print("pLambdaSmearingSideband.pdf");
+
+
+  auto daw2 = new TCanvas("CFpL_smearComb", "CFpL_smearComb", 0, 0, 650, 550);
+  daw2->SetRightMargin(right);
+  daw2->SetTopMargin(top);
+  dummyHist->Draw();
+  dummyHist->GetYaxis()->SetRangeUser(0.85, 3.5);
+  dummyHist->GetXaxis()->SetNdivisions(504);
+  grLambdaGenuine->Draw("L3same");
+  grGenuineSmearedSigma->Draw("L3same");
+  grDecompSmearedSigma->Draw("L3same");
+  grGenuineSmearedSideband->Draw("L3same");
+  grDecompSmearedSideband->Draw("L3same");
+  SBmerge->Draw("pezsame");
+  auto legdaw = new TLegend(0.4, 0.425, 0.4 + 0.45, 0.95);
+  legdaw->SetBorderSize(0);
+  legdaw->SetTextFont(42);
+  legdaw->SetTextSize(gStyle->GetTextSize() * 0.9);
+  legdaw->SetHeader("p#minus#kern[-0.95]{ }#Lambda #chiEFT (NLO)");
+  legdaw->AddEntry(grLambdaGenuine,
+                  "Genuine", "l");
+  legdaw->AddEntry(
+      grGenuineSmearedSigma,
+      "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }#Sigma^{0}",
+      "l");
+  legdaw->AddEntry(
+      grGenuineSmearedSideband,
+      "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }(#Lambda#gamma)",
+      "l");
+  legdaw->AddEntry(
+      grDecompSmearedSigma,
+      Form(
+          "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }#Sigma^{0} (#lambda = %.3f)",
+          lam_pL),
+      "l");
+  legdaw->AddEntry(
+      grDecompSmearedSideband,
+      Form(
+          "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }(#Lambda#gamma) (#lambda = %.3f)",
+          lam_pL),
+      "l");
+  legdaw->AddEntry(
+      SBmerge,
+      "p#minus#kern[-0.65]{ }(#Lambda#gamma) #oplus #bar{p}#minus#kern[-0.4]{ }(#bar{#Lambda}#gamma)",
+      "pez");
+  legdaw->Draw("same");
+  daw2->Print("pLambdaSmearingCombined.pdf");
+
 
 
   outfile->cd();
