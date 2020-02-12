@@ -19,15 +19,14 @@ SET(KITTY_PATH "${CMAKE_SOURCE_DIR}/GentleKitty")#where are all CATS related .h 
 SET(FORGIVEN_PATH "${CMAKE_SOURCE_DIR}/ForgivingQA")#where are all CATS related .h files
 SET(GAMI_PATH "${CMAKE_SOURCE_DIR}/FemtoGami")#where are all CATS related .h files
 SET(SYSTEMATIC_PATH "${CMAKE_SOURCE_DIR}/Systematics")#where are all CATS related .h files
-SET(ROOFOLD_INCLUDE "$ENV{ROOUNFOLD_ROOT}/include")#where are all CATS related .h files
-SET(ROOFOLD_LIB "$ENV{ROOUNFOLD_ROOT}/lib")#where are the CATS related .a files
+SET(ROOFOLD "$ENV{ROOUNFOLD_ROOT}")#where are all CATS related .h files
 
 include_directories(${KITTY_PATH})
 include_directories(${FORGIVEN_PATH})
 include_directories(${GAMI_PATH})
 include_directories(${SYSTEMATIC_PATH})
 include_directories(${CATS_INCLUDE})
-include_directories("${ROOFOLD_INCLUDE}")
+include_directories("${ROOFOLD}")
 include_directories(${PROJECT_SOURCE_DIR})
 
 set(SRCS

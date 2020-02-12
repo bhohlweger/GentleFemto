@@ -21,8 +21,7 @@ SET(DREAM_PATH "${CMAKE_SOURCE_DIR}/DreamFunction")#where are all CATS related .
 SET(DREAM_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/../DreamFunction")
 SET(FORGIVEN_PATH "${CMAKE_SOURCE_DIR}/ForgivingQA")#where are all CATS related .h files
 SET(GAMI_PATH "${CMAKE_SOURCE_DIR}/FemtoGami")#where are all CATS related .h files
-SET(ROOFOLD_INCLUDE "$ENV{ROOUNFOLD_ROOT}/include")#where are all CATS related .h files
-SET(ROOFOLD_LIB "$ENV{ROOUNFOLD_ROOT}/lib")#where are the CATS related .a files
+SET(ROOFOLD "$ENV{ROOUNFOLD_ROOT}")#where are all CATS related .h files
 
 set(
     CMAKE_RUNTIME_OUTPUT_DIRECTORY
@@ -35,8 +34,8 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 set(CMAKE_MODULE_PATH $ENV{ROOTSYS}/etc/cmake)
 find_package(ROOT REQUIRED COMPONENTS MathCore RIO Hist Tree Net EG Minuit)
 include(${ROOT_USE_FILE})
-include_directories("${ROOFOLD_INCLUDE}")
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${ROOT_INCLUDE_DIRS})
+include_directories("${ROOFOLD}")
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
 add_definitions(${ROOT_CXX_FLAGS})
 
 #find_library(DREAM_LIB libDreamFunctions.so HINTS ${DREAM_LIB_PATH})
