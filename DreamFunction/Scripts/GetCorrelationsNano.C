@@ -58,9 +58,14 @@ void GetCorrelations(const char* filename,
                 ApAXi->GetFirstBin());
   ApAXi->FixShift(ApAXi->GetPairShiftedEmpty(0), pXi->GetPairShiftedEmpty(0),
                   pXi->GetFirstBin());
+
   std::cout << "=========================" << std::endl;
   std::cout << "==Rebinning & Weighting==" << std::endl;
   std::cout << "=========================" << std::endl;
+
+
+  pp->Rebin(pp->GetPairFixShifted(1), 4);
+  ApAp->Rebin(ApAp->GetPairFixShifted(1), 4);
 
   std::vector<int> rebinVec = { { 4, 5 } };
   for (size_t iReb = 0; iReb < rebinVec.size(); ++iReb) {
@@ -78,6 +83,9 @@ void GetCorrelations(const char* filename,
 
   pp->ReweightMixedEvent(pp->GetPairFixShifted(1), 0.2, 0.9);
   ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(1), 0.2, 0.9);
+
+  pp->ReweightMixedEvent(pp->GetPairRebinned(0), 0.2, 0.9);
+  ApAp->ReweightMixedEvent(ApAp->GetPairRebinned(0), 0.2, 0.9);
 
   std::cout << "=========================" << std::endl;
   std::cout << "=========CFs=============" << std::endl;
