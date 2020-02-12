@@ -480,6 +480,7 @@ void ReadDreamFile::ReaddEtadPhiAtRadHists(const unsigned int nMaxMix,
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
       TString FolderName = Form("QA_Particle%i_Particle%i", iPart1, iPart2);
       PartList = (TList*) ResultsQA->FindObject(FolderName.Data());
+      PartList = (TList*)PartList->FindObject("PhiAtRad");
       fSEdEtadPhiAtRad[iPart1][iPart2] = new TH2F**[9];
       fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2] = new TH2F**[9];
       fMEdEtadPhiAtRad[iPart1][iPart2] = new TH2F**[9];
