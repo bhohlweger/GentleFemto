@@ -103,8 +103,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     SecLamProton = 0.09603;
 
     PurityLambda = 0.937761;
-    PrimLambdaAndSigma = 0.79;  //fraction of primary Lambdas + Sigma 0
-    SecLambda = 0.30;  //fraction of weak decay Lambdas
+    PrimLambdaAndSigma = 0.6875;  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 1- PrimLambdaAndSigma;  //fraction of weak decay Lambdas
 
     PurityXi = 0.88;  //new cuts
   } else if (system == 1) {  // pp HM
@@ -116,7 +116,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
     PurityLambda = 0.965964;
     PrimLambdaAndSigma = 0.806;  //fraction of primary Lambdas + Sigma 0
-    SecLambda = 0.194;  //fraction of weak decay Lambdas
+    SecLambda = 1- PrimLambdaAndSigma;  //fraction of weak decay Lambdas
 
     PurityXi = 0.915;
   } else if (system == 2) {  // pp HM
