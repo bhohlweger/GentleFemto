@@ -288,9 +288,11 @@ TGraphAsymmErrors* DreamCF::AddCF(TH1F* histSum, std::vector<DreamPair*> pairs,
       continue;
     // In case we have a SE distribution available we use the mean in that k* bin
     centrVal = histSum->GetBinCenter(i);
+    double chepsilyon = histSum->GetBinWidth(i)*1e-4;
+
     histSE->GetXaxis()->SetRangeUser(
-        histSum->GetBinLowEdge(i),
-        histSum->GetBinLowEdge(i) + histSum->GetBinWidth(i));
+        histSum->GetBinLowEdge(i) + chepsilyon,
+        histSum->GetBinLowEdge(i) + histSum->GetBinWidth(i) - chepsilyon);
     xVal = histSE->GetMean();
     xErrLeft = xVal - centrVal + histSum->GetBinWidth(i) / 2.;
     xErrRight = centrVal - xVal + histSum->GetBinWidth(i) / 2.;
