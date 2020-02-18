@@ -145,6 +145,9 @@ target_link_libraries(sigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(SigmaSmearingMatrix ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/smearingMatrixSidebands.C)
 target_link_libraries(SigmaSmearingMatrix tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(XiSmearingMatrix ${PROJECT_SOURCE_DIR}/Scripts/pXiAnalysis/smearingMatrixSignal.C)
+target_link_libraries(XiSmearingMatrix tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(SigmaSmearingSherlock ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/smearingLambdaSidebands.C)
 target_link_libraries(SigmaSmearingSherlock tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
