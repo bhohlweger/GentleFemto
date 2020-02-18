@@ -187,6 +187,30 @@ void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
       grFakeSys->SetLineColor(fFillColors[0]);
       grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
+    } else if (fCorrelationGraph) {
+      fSysError = new TGraphAsymmErrors();
+      double x, y;
+      for (int i = 0; i < fCorrelationGraph->GetN(); ++i) {
+        fCorrelationGraph->GetPoint(i, x, y);
+        fSysError->SetPoint(i, x, y);
+        fSysError->SetPointError(
+            i,
+            errorwidth,
+            errorwidth,
+            y
+                * parameters->GetBinContent(
+                    parameters->FindBin(x) / (float) fUnitConversionData),
+            y
+                * parameters->GetBinContent(
+                    parameters->FindBin(x) / (float) fUnitConversionData));
+      }
+
+      TGraph *grFakeSys = new TGraph();
+      SetStyleGraph(grFakeSys, 2, 0);
+      grFakeSys->SetFillColor(fFillColors[0]);
+      grFakeSys->SetLineColor(fFillColors[0]);
+      grFakeSys->SetLineWidth(0);
+      fFakeGraph.push_back(grFakeSys);
     } else {
       Warning("DreamData", "For %s set the CF before adding the systematics",
               fName);
