@@ -9,28 +9,38 @@
 int main(int argc, char *argv[]) {
   DreamPlot::SetStyle();
   const char* WorkDir = argv[1];
-  TApplication app("TheApp",&argc,argv);
+  TApplication app("TheApp", &argc, argv);
   TString cfName = TString::Format("%s/debug_Var0.root", WorkDir).Data();
+  TString cfgraphName = TString::Format("%s/CFinput_Var0.root", WorkDir).Data();
   TString sysDataName =
       TString::Format("%s/Systematics_pXi.root", WorkDir).Data();
   TString sysNormName = TString::Format("%s/Systematics_pXiNorm.root", WorkDir)
       .Data();
-  TString sysLamName = TString::Format("%s/Systematics_pXiLam.root",
-                                       WorkDir).Data();
-  TString sysResName = TString::Format("%s/Systematics_pXiRes.root",
-                                       WorkDir).Data();
+  TString sysLamName = TString::Format("%s/Systematics_pXiLam.root", WorkDir)
+      .Data();
+  TString sysResName = TString::Format("%s/Systematics_pXiRes.root", WorkDir)
+      .Data();
 
   TFile* cfFile = TFile::Open(cfName, "read");
   TH1F* cf_default = (TH1F*) cfFile->FindObjectAny(
       "InputCF_ResGami_woBL_ResGami_GenuineGami");
+  TFile* cfgraphFile = TFile::Open(cfgraphName, "read");
+  TGraphAsymmErrors* cf_graph = (TGraphAsymmErrors*) cfgraphFile->FindObjectAny(
+      "Graph_from_hCk_RebinnedpXiVar0_0MeV");
   if (!cf_default) {
     std::cout << "Default  data not found \n";
     cfFile->ls();
     return 0;
   }
+  if (!cf_graph) {
+    std::cout << "Default  graph not found \n";
+    cfFile->ls();
+    return 0;
+  }
   cf_default->SetName("DefaultMeV");
   TGraphErrors* coulomb = (TGraphErrors*) cfFile->FindObjectAny("Coulomb");
-  TGraphErrors* hal = (TGraphErrors*) cfFile->FindObjectAny("HalQCD");
+  TGraphErrors* halRad = (TGraphErrors*) cfFile->FindObjectAny("HalAndRad");
+  TGraphErrors* halOnly = (TGraphErrors*) cfFile->FindObjectAny("HalOnly");
 //  TGraphErrors* esc = (TGraphErrors*) cfFile->FindObjectAny("ESC");
 
   TFile* sysDataFile = TFile::Open(sysDataName, "read");
@@ -62,18 +72,22 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  TH1F* SystError = (TH1F*)cf_default->Clone("Sytematics");
+  TH1F* SystError = (TH1F*) cf_default->Clone("Sytematics");
   SystError->Reset();
 
   for (int iBin = 1; iBin <= SystError->GetNbinsX(); ++iBin) {
     double kStar = cf_default->GetBinCenter(iBin);
+    double Ck = cf_default->GetBinContent(iBin);
+    double x, y;
+    cf_graph->GetPoint(iBin-1, x, y);
+    cf_graph->SetPoint(iBin-1, x, Ck);
     double errSystData = systDataErr->Eval(kStar);
     double errSystNorm = systNormErr->GetBinContent(iBin);
     double errSystLam = systLamErr->Eval(kStar);
     double errSystMom = systResErr->GetBinContent(iBin);
     double totErr = TMath::Sqrt(
         errSystData * errSystData + errSystNorm * errSystNorm
-            + errSystLam * errSystLam + errSystMom*errSystMom);
+            + errSystLam * errSystLam + errSystMom * errSystMom);
     SystError->SetBinContent(iBin, totErr);
   }
 
@@ -92,9 +106,9 @@ int main(int argc, char *argv[]) {
   float ymax = 10.2;
 
   c1 = new TCanvas("c2", "c2", 0, 0, 800, 600);
-  TH1 * h = c1->DrawFrame(0,0.6,300,4.5);
-  const char *  texPtY="#it{C}(#it{k}*)";
-  const char *  texPtX="#it{k}* (MeV/#it{c})";
+  TH1 * h = c1->DrawFrame(0, 0.6, 300, 4.5);
+  const char * texPtY = "#it{C}(#it{k}*)";
+  const char * texPtX = "#it{k}* (MeV/#it{c})";
   h->SetXTitle(texPtX);
   h->SetYTitle(texPtY);
   h->GetXaxis()->SetTitleOffset(1.1);
@@ -118,18 +132,20 @@ int main(int argc, char *argv[]) {
   Data->SetMultiHisto(false);
   Data->SetUnitConversionData(1);
   Data->SetUnitConversionCATS(1);
-  Data->SetCorrelationFunction(cf_default);
+//  Data->SetCorrelationFunction(cf_default);
+  Data->SetCorrelationGraph(cf_graph);
   Data->SetSystematics(SystError, 2);
   Data->SetLegendName(LegNames, LegOptions);
   Data->SetDrawAxis(false);
-  Data->FemtoModelFitBands(coulomb, kGreen+1, 1,  3, -4000, true, false);
-  Data->FemtoModelFitBands(hal,     kPink +1, 10, 0, -4000, true, false);
+  Data->FemtoModelFitBands(coulomb, kGreen + 1, 1, 3, -4000, true, false);
+  Data->FemtoModelFitBands(halOnly, kPink + 1, 10, 0, -4000, true, false);
+  Data->FemtoModelFitBands(halRad, kGray + 1, 0.5, false);
 //  Data->FemtoModelFitBands(esc,     11, 8,  0, -4000, true);
   Data->SetRangePlotting(fXmin, fXmax, 0.6, cf_default->GetMaximum() * 1.5);  //ranges
   Data->SetNDivisions(505);
 
   float legXmin = fTextXMin - 0.02;
-  Data->SetLegendCoordinates(0.45,  0.6,  0.8, ymaxL+0.03);
+  Data->SetLegendCoordinates(0.45, 0.6, 0.8, ymaxL + 0.03);
   Data->DrawCorrelationPlot(pad);
   pad->cd();
   out->cd();

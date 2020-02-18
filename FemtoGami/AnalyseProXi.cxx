@@ -234,8 +234,8 @@ DreamCF* AnalyseProXi::ObtainCorrFunction(const char* name, DreamDist* partDist,
   pp->FixShift(pp->GetPairUnfolded(0), ApAp->GetPairUnfolded(0), 0.005, true);
   ApAp->FixShift(ApAp->GetPairUnfolded(0), pp->GetPairUnfolded(0), 0.005, true);
 
-  pp->Rebin(pp->GetPairFixShifted(0), 4);
-  ApAp->Rebin(ApAp->GetPairFixShifted(0), 4);
+  pp->Rebin(pp->GetPairFixShifted(0), 4, true);
+  ApAp->Rebin(ApAp->GetPairFixShifted(0), 4, true);
 
   outCF->SetPairs(pp, ApAp);
   outCF->GetCorrelations(name);
@@ -490,18 +490,35 @@ TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
   HalLow.SetAnaSource(0, ppRadii[2]);
   HalLow.KillTheCat();
 
-  TGraphErrors* hal = new TGraphErrors();
-  hal->SetName("HalQCD");
+  TGraphErrors* halandRad = new TGraphErrors();
+  halandRad->SetName("HalAndRad");
   for (auto it = 0; it < nBins - 10; ++it) {
     double kStar = HalUp.GetMomentum(it);
     double mean = 0.5 * (HalUp.GetCorrFun(it) + HalLow.GetCorrFun(it));
     double Err = TMath::Abs(mean - HalUp.GetCorrFun(it));
-    hal->SetPoint(it, kStar, mean);
-    hal->SetPointError(it, 0, Err);
+    halandRad->SetPoint(it, kStar, mean);
+    halandRad->SetPointError(it, 0, Err);
+  }
+
+  HalUp.SetAnaSource(0, ppRadii[1]);
+  HalUp.KillTheCat();
+
+  HalLow.SetAnaSource(0, ppRadii[1]);
+  HalLow.KillTheCat();
+
+  TGraphErrors* halOnly= new TGraphErrors();
+  halOnly->SetName("HalOnly");
+  for (auto it = 0; it < nBins - 10; ++it) {
+    double kStar = HalUp.GetMomentum(it);
+    double mean = 0.5 * (HalUp.GetCorrFun(it) + HalLow.GetCorrFun(it));
+    double Err = TMath::Abs(mean - HalUp.GetCorrFun(it));
+    halOnly->SetPoint(it, kStar, mean);
+    halOnly->SetPointError(it, 0, Err);
   }
   fQAOutput->cd();
-  hal->Write();
-  return hal;
+  halandRad->Write();
+  halOnly->Write();
+  return halandRad;
 }
 
 TGraphErrors* AnalyseProXi::GetESC16(TH1F* unfoldedGenuine) {
