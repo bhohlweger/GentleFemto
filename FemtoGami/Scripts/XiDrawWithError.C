@@ -8,6 +8,7 @@
 
 int main(int argc, char *argv[]) {
   DreamPlot::SetStyle();
+  gStyle->SetEndErrorSize(5);
   const char* WorkDir = argv[1];
   TApplication app("TheApp", &argc, argv);
   TString cfName = TString::Format("%s/debug_Var0.root", WorkDir).Data();
@@ -32,12 +33,13 @@ int main(int argc, char *argv[]) {
     cfFile->ls();
     return 0;
   }
+  cf_default->SetName("DefaultMeV");
   if (!cf_graph) {
     std::cout << "Default  graph not found \n";
     cfFile->ls();
     return 0;
   }
-  cf_default->SetName("DefaultMeV");
+  TGraphAsymmErrors* cf_graphWidth = new TGraphAsymmErrors(*cf_graph);
   TGraphErrors* coulomb = (TGraphErrors*) cfFile->FindObjectAny("Coulomb");
   TGraphErrors* halRad = (TGraphErrors*) cfFile->FindObjectAny("HalAndRad");
   TGraphErrors* halOnly = (TGraphErrors*) cfFile->FindObjectAny("HalOnly");
@@ -78,9 +80,15 @@ int main(int argc, char *argv[]) {
   for (int iBin = 1; iBin <= SystError->GetNbinsX(); ++iBin) {
     double kStar = cf_default->GetBinCenter(iBin);
     double Ck = cf_default->GetBinContent(iBin);
-    double x, y;
+    double x,y;
     cf_graph->GetPoint(iBin-1, x, y);
     cf_graph->SetPoint(iBin-1, x, Ck);
+
+    double xErrLeft = (x - kStar + cf_default->GetBinWidth(iBin) / 2.)*0.95;
+    double xErrRight = (kStar - x + cf_default->GetBinWidth(iBin) / 2.)*0.95;
+    cf_graphWidth->SetPoint(iBin-1, x, Ck);
+    cf_graphWidth->SetPointError(iBin-1, xErrLeft, xErrRight, 0., 0.);
+
     double errSystData = systDataErr->Eval(kStar);
     double errSystNorm = systNormErr->GetBinContent(iBin);
     double errSystLam = systLamErr->Eval(kStar);
@@ -100,20 +108,16 @@ int main(int argc, char *argv[]) {
   LegOptions.push_back("fpe");
   LegOptions.push_back("f");
   LegOptions.push_back("f");
-  float xmin = 0.;
-  float xmax = 300.;
-  float ymin = 0.6;
-  float ymax = 10.2;
 
   c1 = new TCanvas("c2", "c2", 0, 0, 800, 600);
-  TH1 * h = c1->DrawFrame(0, 0.6, 300, 4.5);
+  TH1 * h = c1->DrawFrame(0, 0.7, 305, 3.7);
   const char * texPtY = "#it{C}(#it{k}*)";
   const char * texPtX = "#it{k}* (MeV/#it{c})";
   h->SetXTitle(texPtX);
   h->SetYTitle(texPtY);
   h->GetXaxis()->SetTitleOffset(1.1);
   h->GetYaxis()->SetTitleOffset(1.);
-  h->GetXaxis()->SetNdivisions(803);
+  h->GetXaxis()->SetNdivisions(806);
   TFile* out = TFile::Open(Form("out.root"), "recreate");
   TPad* pad;
   float LatexX = 0.;
@@ -121,11 +125,11 @@ int main(int argc, char *argv[]) {
   pad->SetRightMargin(0.1);
   pad->SetLeftMargin(0.1);
   pad->SetTopMargin(0.1);
-  pad->SetBottomMargin(0.1);
+  pad->SetBottomMargin(0.115);
   pad->Draw();
   pad->cd();
   float fXmin = 0;
-  float fXmax = 300;
+  float fXmax = 305;
   float fTextXMin = 0.35;
   float ymaxL = 0.81;
   DreamData *Data = new DreamData(Form("Data"));
@@ -147,7 +151,12 @@ int main(int argc, char *argv[]) {
   float legXmin = fTextXMin - 0.02;
   Data->SetLegendCoordinates(0.45, 0.6, 0.8, ymaxL + 0.03);
   Data->DrawCorrelationPlot(pad);
+
   pad->cd();
+  cf_graphWidth->SetLineWidth(1);
+  cf_graphWidth->SetLineColorAlpha(kBlack, 0.9);
+  cf_graphWidth->Draw("same []");
+
   out->cd();
   c1->Write();
   c1->SaveAs(Form("CF_pXi.pdf"));
