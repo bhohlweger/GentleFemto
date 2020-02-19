@@ -425,9 +425,9 @@ double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
 
 TGraphErrors* AnalyseProXi::GetCoulomb(TH1F* unfoldedGenuine) {
   std::cout << "Coulomb\n";
-  int nBins = 300;
+  int nBins = 305;
   double xmin = 0.5;
-  double xmax = 300.5;
+  double xmax = 305.5;
   TidyCats* tidy = new TidyCats();
   TidyCats::Sources TheSource = TidyCats::sResonance;
   float ppRadii[3];
@@ -466,9 +466,9 @@ TGraphErrors* AnalyseProXi::GetCoulomb(TH1F* unfoldedGenuine) {
 
 TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
   std::cout << "HAL QCD \n";
-  int nBins = 300;
+  int nBins = 305;
   double xmin = 0.5;
-  double xmax = 300.5;
+  double xmax = 305.5;
   TidyCats* tidy = new TidyCats();
   TidyCats::Sources TheSource = TidyCats::sResonance;
   float ppRadii[3];
@@ -523,9 +523,9 @@ TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
 
 TGraphErrors* AnalyseProXi::GetESC16(TH1F* unfoldedGenuine) {
   std::cout << "ESC16 \n";
-  int nBins = 300;
+  int nBins = 305;
   double xmin = 0.5;
-  double xmax = 300.5;
+  double xmax = 305.5;
   TidyCats* tidy = new TidyCats();
   TidyCats::Sources TheSource = TidyCats::sResonance;
   float ppRadii[3];
