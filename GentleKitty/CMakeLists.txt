@@ -151,6 +151,9 @@ target_link_libraries(XiSmearingMatrix tidyCATS -L${DREAM_LIB_PATH} DreamFunctio
 add_executable(SigmaSmearingSherlock ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/smearingLambdaSidebands.C)
 target_link_libraries(SigmaSmearingSherlock tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(XiSmearingSherlock ${PROJECT_SOURCE_DIR}/Scripts/pXiAnalysis/smearingLambdaSidebands.C)
+target_link_libraries(XiSmearingSherlock tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(POnlymT ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnlymT.C)
 target_link_libraries(POnlymT tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
