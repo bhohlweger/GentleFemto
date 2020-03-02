@@ -595,7 +595,7 @@ void DecayQA::FitInvariantMassPhi(TH2F* invMasspT, float massCuts,
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
 }
 
-void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname) {
+void DecayQA::PlotKaonRejection(TH1F* invMassKaon, const char* outname, float KaonCutMin, float KaonCutMax) {
   invMassKaon->SetName(Form("%s%s", outname, invMassKaon->GetName()));
   invMassKaon->GetXaxis()->SetRangeUser(0.44, 0.56);
   invMassKaon->GetYaxis()->SetRangeUser(0, 1.8 * invMassKaon->GetMaximum());
