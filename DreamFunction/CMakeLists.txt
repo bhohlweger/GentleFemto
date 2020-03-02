@@ -128,3 +128,6 @@ target_link_libraries(executePhi DreamFunctions)
 
 add_executable(executePXi ${PROJECT_SOURCE_DIR}/Scripts/GetpXiVariations.C)
 target_link_libraries(executePXi DreamFunctions)
+
+add_executable(executePlotPhi ${PROJECT_SOURCE_DIR}/Scripts/executePlotPhi.C)
+target_link_libraries(executePlotPhi DreamFunctions)

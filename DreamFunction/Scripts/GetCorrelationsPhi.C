@@ -7,7 +7,12 @@
 void GetCorrelationsPhi(const char* filename, const char* Path, const char* prefix,
                         const char* addon = "") {
   //gStyle->SetOptStat(0);
-  ReadDreamFile* DreamFile = new ReadDreamFile(3, 3);
+
+//  ReadDreamFile* DreamFile = new ReadDreamFile(3, 3);
+
+//-----------------MCTRUTH----------------------------------------------
+  ReadDreamFile* DreamFile = new ReadDreamFile(7, 7);
+//----------------------------------------------------------------------
   DreamFile->SetAnalysisFile(filename, Path, prefix, addon);
 
   DreamCF* CF_pp = new DreamCF();
@@ -15,17 +20,33 @@ void GetCorrelationsPhi(const char* filename, const char* Path, const char* pref
   DreamPair* ApAp = new DreamPair("AntiPart", 0.24, 0.34);
 
   DreamCF* CF_pPhi = new DreamCF();
-  DreamPair* pPhi = new DreamPair("Part", 0.24, 0.34);
-  DreamPair* ApPhi = new DreamPair("AntiPart", 0.24, 0.34);
+//  DreamPair* pPhi = new DreamPair("Part", 0.5, 0.8);
+//  DreamPair* ApPhi = new DreamPair("AntiPart", 0.5, 0.8);
+
+  DreamPair* pPhi = new DreamPair("Part", 0.5, 0.8);
+  DreamPair* ApPhi = new DreamPair("AntiPart", 0.5, 0.8);
 
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
   std::cout << "=========================" << std::endl;
-  pp->SetPair(DreamFile->GetPairDistributions(0, 0, ""));
-  ApAp->SetPair(DreamFile->GetPairDistributions(1, 1, ""));
+//  pp->SetPair(DreamFile->GetPairDistributions(0, 0, ""));
+//  ApAp->SetPair(DreamFile->GetPairDistributions(1, 1, ""));
 
-  pPhi->SetPair(DreamFile->GetPairDistributions(0, 2, ""));
-  ApPhi->SetPair(DreamFile->GetPairDistributions(1, 2, ""));
+
+
+//  pPhi->SetPair(DreamFile->GetPairDistributions(0, 2, ""));
+//  ApPhi->SetPair(DreamFile->GetPairDistributions(1, 2, ""));
+
+//-----------------MCTRUTH----------------------------------------------
+
+  pp->SetPair(DreamFile->GetPairDistributions(3, 3, ""));          //protontruth
+  ApAp->SetPair(DreamFile->GetPairDistributions(4, 4, ""));
+
+//  pPhi->SetPair(DreamFile->GetPairDistributions(3, 5, ""));   //proton phitruth
+//  ApPhi->SetPair(DreamFile->GetPairDistributions(4, 5, ""));
+  pPhi->SetPair(DreamFile->GetPairDistributions(3, 6, ""));     //proton phiALL
+  ApPhi->SetPair(DreamFile->GetPairDistributions(4, 6, ""));
+//----------------------------------------------------------------------
 
   std::cout << "=========================" << std::endl;
   std::cout << "======Pair Shifted=======" << std::endl;
@@ -55,16 +76,16 @@ void GetCorrelationsPhi(const char* filename, const char* Path, const char* pref
 
   std::vector<int> rebinVec = { { 4, 5, 10 } };
   for (size_t iReb = 0; iReb < rebinVec.size(); ++iReb) {
-    pPhi->Rebin(pPhi->GetPairFixShifted(0), rebinVec[iReb]);
-    pPhi->ReweightMixedEvent(pPhi->GetPairRebinned(iReb), 0.2, 0.9);
-    ApPhi->Rebin(ApPhi->GetPairFixShifted(0), rebinVec[iReb]);
-    ApPhi->ReweightMixedEvent(ApPhi->GetPairRebinned(iReb), 0.2, 0.9);
+    pPhi->Rebin(pPhi->GetPairFixShifted(0), rebinVec[iReb], true);
+    pPhi->ReweightMixedEvent(pPhi->GetPairRebinned(iReb), 0.2, 0.9, pPhi->GetPair());
+    ApPhi->Rebin(ApPhi->GetPairFixShifted(0), rebinVec[iReb], true);
+    ApPhi->ReweightMixedEvent(ApPhi->GetPairRebinned(iReb), 0.2, 0.9, ApPhi->GetPair());
   }
-  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
-  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
+  pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9, pp->GetPair());
+  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9, ApAp->GetPair());
 
-  pp->ReweightMixedEvent(pp->GetPairFixShifted(1), 0.2, 0.9);
-  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(1), 0.2, 0.9);
+  pp->ReweightMixedEvent(pp->GetPairFixShifted(1), 0.2, 0.9, pp->GetPair());
+  ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(1), 0.2, 0.9, ApAp->GetPair());
 
   std::cout << "=========================" << std::endl;
   std::cout << "=========CFs=============" << std::endl;

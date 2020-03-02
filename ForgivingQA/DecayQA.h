@@ -74,6 +74,8 @@ class DecayQA {
     fTexOffY = TexOffY;
   }
   ;
+  void FitInvariantMassPhi(TH2F* invMasspT, float massCuts,
+                                       const char* outname);
   double GetSignalCounts() const {
     return fFitter->GetSignalCounts();
   }
@@ -106,6 +108,7 @@ class DecayQA {
                         const char* outname);
   void FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,
                               const char* outname);
+
   ForgivingReader* fReader;
   MakeHistosGreat* fHairyPlotter;
   ForgivingFitter* fFitter;
