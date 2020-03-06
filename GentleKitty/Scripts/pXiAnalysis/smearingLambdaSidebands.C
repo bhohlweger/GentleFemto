@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
   SideBandFit* side = new SideBandFit();
   side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/Systematics_5MeV",
                         "PXi", "103", "104");
-  side->SetNormalizationRange(400, 600);
+  side->SetNormalizationRange(500,700);
   side->SetRebin(4);
   side->SideBandCFs(false);
   TH1F* sideBandSum = side->GetSideBands(5);
@@ -418,7 +418,7 @@ int main(int argc, char *argv[]) {
       "l");
   gle1g5->AddEntry(
       sideBandSum,
-      "p#minus#kern[-0.65]{ }(#Lambda#gamma) #oplus #bar{p}#minus#kern[-0.4]{ }(#bar{#Lambda}#pi^{-})",
+      "p#minus#kern[-0.65]{ }(#Lambda#pi^{-}) #oplus #bar{p}#minus#kern[-0.4]{ }(#bar{#Lambda}#pi^{-})",
       "pez");
   gle1g5->Draw("same");
   g2c3->Print("pLambdaSmearingSideband.pdf");
@@ -463,7 +463,7 @@ int main(int argc, char *argv[]) {
       "l");
   legdaw->AddEntry(
       sideBandSum,
-      "p#minus#kern[-0.65]{ }(#Lambda#gamma) #oplus #bar{p}#minus#kern[-0.4]{ }(#bar{#Lambda}#pi^{-})",
+      "p#minus#kern[-0.65]{ }(#Lambda#pi^{-}) #oplus #bar{p}#minus#kern[-0.4]{ }(#bar{#Lambda}#pi^{-})",
       "pez");
   legdaw->Draw("same");
   daw2->Print("pLambdaSmearingCombined.pdf");
