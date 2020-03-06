@@ -22,6 +22,7 @@ SET(DREAM_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/../DreamFunction")
 SET(FORGIVEN_PATH "${CMAKE_SOURCE_DIR}/ForgivingQA")#where are all CATS related .h files
 SET(GAMI_PATH "${CMAKE_SOURCE_DIR}/FemtoGami")#where are all CATS related .h files
 SET(ROOFOLD "$ENV{ROOUNFOLD_ROOT}")#where are all CATS related .h files
+message([STATUS] CATS_INCLUDE)
 
 set(
     CMAKE_RUNTIME_OUTPUT_DIRECTORY
@@ -208,5 +209,8 @@ target_link_libraries(SysVarExtractorpAL tidyCATS -L${DREAM_LIB_PATH} DreamFunct
 
 add_executable(SysVarExtractorLAL ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractorLAL.C)
 target_link_libraries(SysVarExtractorLAL tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(PhiSmearingMatrix ${PROJECT_SOURCE_DIR}/Scripts/smearingMatrixpPhi.C)
+target_link_libraries(PhiSmearingMatrix tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_subdirectory(Test)

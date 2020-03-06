@@ -11,7 +11,7 @@ void GetCorrelationsPhi(const char* filename, const char* Path, const char* pref
 //  ReadDreamFile* DreamFile = new ReadDreamFile(3, 3);
 
 //-----------------MCTRUTH----------------------------------------------
-  ReadDreamFile* DreamFile = new ReadDreamFile(7, 7);
+  ReadDreamFile* DreamFile = new ReadDreamFile(12, 12);
 //----------------------------------------------------------------------
   DreamFile->SetAnalysisFile(filename, Path, prefix, addon);
 
@@ -29,23 +29,39 @@ void GetCorrelationsPhi(const char* filename, const char* Path, const char* pref
   std::cout << "=========================" << std::endl;
   std::cout << "========Pair Set=========" << std::endl;
   std::cout << "=========================" << std::endl;
-//  pp->SetPair(DreamFile->GetPairDistributions(0, 0, ""));
-//  ApAp->SetPair(DreamFile->GetPairDistributions(1, 1, ""));
+  pp->SetPair(DreamFile->GetPairDistributions(0, 0, ""));
+  ApAp->SetPair(DreamFile->GetPairDistributions(1, 1, ""));
 
 
 
-//  pPhi->SetPair(DreamFile->GetPairDistributions(0, 2, ""));
-//  ApPhi->SetPair(DreamFile->GetPairDistributions(1, 2, ""));
+  pPhi->SetPair(DreamFile->GetPairDistributions(0, 2, ""));
+  ApPhi->SetPair(DreamFile->GetPairDistributions(1, 2, ""));
 
 //-----------------MCTRUTH----------------------------------------------
 
-  pp->SetPair(DreamFile->GetPairDistributions(3, 3, ""));          //protontruth
-  ApAp->SetPair(DreamFile->GetPairDistributions(4, 4, ""));
+//  pp->SetPair(DreamFile->GetPairDistributions(3, 3, ""));          //protontruth
+//  ApAp->SetPair(DreamFile->GetPairDistributions(4, 4, ""));
 
 //  pPhi->SetPair(DreamFile->GetPairDistributions(3, 5, ""));   //proton phitruth
 //  ApPhi->SetPair(DreamFile->GetPairDistributions(4, 5, ""));
-  pPhi->SetPair(DreamFile->GetPairDistributions(3, 6, ""));     //proton phiALL
-  ApPhi->SetPair(DreamFile->GetPairDistributions(4, 6, ""));
+
+//  pPhi->SetPair(DreamFile->GetPairDistributions(3, 6, ""));     //proton phiprimkaon
+//  ApPhi->SetPair(DreamFile->GetPairDistributions(4, 6, ""));
+
+
+//  pp->SetPair(DreamFile->GetPairDistributions(7, 7, ""));      //proton phicommon
+//  ApAp->SetPair(DreamFile->GetPairDistributions(8, 8, ""));
+
+//  pPhi->SetPair(DreamFile->GetPairDistributions(7, 9, ""));
+//  ApPhi->SetPair(DreamFile->GetPairDistributions(8, 9, ""));
+
+
+//  pp->SetPair(DreamFile->GetPairDistributions(10, 10, ""));      //noprim proon
+//  ApAp->SetPair(DreamFile->GetPairDistributions(11, 11, ""));
+
+//  pPhi->SetPair(DreamFile->GetPairDistributions(5, 10, ""));
+//  ApPhi->SetPair(DreamFile->GetPairDistributions(5, 11, ""));
+
 //----------------------------------------------------------------------
 
   std::cout << "=========================" << std::endl;

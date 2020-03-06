@@ -543,7 +543,7 @@ void DecayQA::FitInvariantMassPhi(TH2F* invMasspT, float massCuts,
     CurrentPad->SetRightMargin(0.03);
     auto invMasspTBin = (TH1F*) invMasspT->ProjectionY(
         Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
-    fFitter->FitInvariantMassSigma(invMasspTBin, massCuts);
+    fFitter->FitInvariantMassSigma(invMasspTBin, massCuts, 1, 1);
     double CutMinpT = fFitter->GetMeanMass() - massCuts;
     double CutMaxpT = fFitter->GetMeanMass() + massCuts;
     double peakVal = invMasspTBin->GetBinContent(invMasspTBin->GetXaxis()->FindBin(fFitter->GetMeanMass()));
