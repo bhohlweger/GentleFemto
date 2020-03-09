@@ -69,6 +69,9 @@ target_link_libraries(executeDreamBBar DreamFunctions)
 add_executable(executeEmmTee ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFmT.C)
 target_link_libraries(executeEmmTee DreamFunctions)
 
+add_executable(executeLeuteron ${PROJECT_SOURCE_DIR}/Scripts/ExecuteLeuteron.C)
+target_link_libraries(executeLeuteron DreamFunctions)
+
 add_executable(executeKayTee ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFkT.C)
 target_link_libraries(executeKayTee DreamFunctions)
 
