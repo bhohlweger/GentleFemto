@@ -770,23 +770,128 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       cPars->SetParameter(0, 1.3);
       AB_pSigma0->SetAnaSource(GaussSource, *cPars);
       break;
-    case TidyCats::sResonance:
-      fpSigma0CleverMcLevy = new DLM_CleverMcLevyReso();
-      fpSigma0CleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fpSigma0CleverMcLevy->InitScale(35, 0.25, 2.0);
-      fpSigma0CleverMcLevy->InitRad(512, 0, 64);
-      fpSigma0CleverMcLevy->InitType(2);
-      fpSigma0CleverMcLevy->InitReso(0, 1);
-      fpSigma0CleverMcLevy->InitReso(1, 1);
-      fpSigma0CleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65,
-                                      massProton, massPion);
-      fpSigma0CleverMcLevy->SetUpReso(1, 0, 1. - 0.3735, 1581.73, 4.28,
-                                      massSigma0, massPion);
-      fpSigma0CleverMcLevy->InitNumMcIter(1000000);
+    case TidyCats::sResonance: {
+      fmassLamRes = 1581.73;
+      ftauLamRes = 4.28;
+      fpSigma0CleverMcLevy = new DLM_CleverMcLevyResoTM();
+      fpSigma0CleverMcLevy->SetUpReso(0, 0.6422);
+      fpSigma0CleverMcLevy->SetUpReso(1, 0.3735);
+      DLM_Random RanGen(11);
+      double RanVal1;
+      double RanVal2;
+      Float_t k_D;
+      Float_t fP1;
+      Float_t fP2;
+      Float_t fM1;
+      Float_t fM2;
+      Float_t Tau1;
+      Float_t Tau2;
+      Float_t AngleRcP1;
+      Float_t AngleRcP2;
+      Float_t AngleP1P2;
+      // there are no EPOS productions at the moment for p-Sigma0
+      // since the masses and lifetimes are close to the ones of the Lambda this is considered
+      TFile* F_EposDisto_p_LamReso = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_p_LamReso.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_p_LamReso = (TNtuple*) F_EposDisto_p_LamReso->Get(
+          "InfoTuple_ClosePairs");
+      unsigned N_EposDisto_p_LamReso = T_EposDisto_p_LamReso->GetEntries();
+      T_EposDisto_p_LamReso->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_p_LamReso->SetBranchAddress("P1", &fP1);
+      T_EposDisto_p_LamReso->SetBranchAddress("P2", &fP2);
+      T_EposDisto_p_LamReso->SetBranchAddress("M1", &fM1);
+      T_EposDisto_p_LamReso->SetBranchAddress("M2", &fM2);
+      T_EposDisto_p_LamReso->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_p_LamReso->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_p_LamReso->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_p_LamReso->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_p_LamReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < N_EposDisto_p_LamReso; uEntry++) {
+        T_EposDisto_p_LamReso->GetEntry(uEntry);
+        fM1 = 0;
+        fM2 = fmassLamRes;
+        Tau1 = 0;
+        Tau2 = ftauLamRes;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal2 = RanGen.Exponential(fM2 / (fP2 * Tau2));
+        fpSigma0CleverMcLevy->AddBGT_PR(RanVal2, cos(AngleRcP2));
+      }
+      delete F_EposDisto_p_LamReso;
+
+      // there are no EPOS productions at the moment for p-Sigma0
+      // since the masses and lifetimes are close to the ones of the Lambda this is considered
+      TFile* F_EposDisto_pReso_Lam = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Lam.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_pReso_Lam = (TNtuple*) F_EposDisto_pReso_Lam->Get(
+          "InfoTuple_ClosePairs");
+      unsigned N_EposDisto_pReso_Lam = T_EposDisto_pReso_Lam->GetEntries();
+      T_EposDisto_pReso_Lam->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_pReso_Lam->SetBranchAddress("P1", &fP1);
+      T_EposDisto_pReso_Lam->SetBranchAddress("P2", &fP2);
+      T_EposDisto_pReso_Lam->SetBranchAddress("M1", &fM1);
+      T_EposDisto_pReso_Lam->SetBranchAddress("M2", &fM2);
+      T_EposDisto_pReso_Lam->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_pReso_Lam->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_pReso_Lam->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_pReso_Lam->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_pReso_Lam->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_Lam; uEntry++) {
+        T_EposDisto_pReso_Lam->GetEntry(uEntry);
+        fM1 = fmassProRes;
+        fM2 = 0;
+        Tau1 = ftauProRes;
+        Tau2 = 0;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+        fpSigma0CleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP1));
+      }
+      delete F_EposDisto_pReso_Lam;
+      // there are no EPOS productions at the moment for p-Sigma0
+      // since the masses and lifetimes are close to the ones of the Lambda this is considered
+      TFile* F_EposDisto_pReso_LamReso = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_LamReso.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_pReso_LamReso = (TNtuple*) F_EposDisto_pReso_LamReso
+          ->Get("InfoTuple_ClosePairs");
+      unsigned N_EposDisto_pReso_LamReso =
+          T_EposDisto_pReso_LamReso->GetEntries();
+      T_EposDisto_pReso_LamReso->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("P1", &fP1);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("P2", &fP2);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("M1", &fM1);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("M2", &fM2);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_LamReso; uEntry++) {
+        T_EposDisto_pReso_LamReso->GetEntry(uEntry);
+        fM1 = fmassProRes;
+        fM2 = fmassLamRes;
+        Tau1 = ftauProRes;
+        Tau2 = ftauLamRes;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+        RanVal2 = RanGen.Exponential(fM2 / (fP2 * Tau2));
+        fpSigma0CleverMcLevy->AddBGT_RR(RanVal1, cos(AngleRcP1), RanVal2,
+                                        cos(AngleRcP2), cos(AngleP1P2));
+      }
+      delete F_EposDisto_pReso_LamReso;
+      fpSigma0CleverMcLevy->InitNumMcIter(262144);
       AB_pSigma0->SetAnaSource(CatsSourceForwarder, fpSigma0CleverMcLevy, 2);
-      AB_pSigma0->SetAnaSource(0, 0.743);  //r0
-      AB_pSigma0->SetAnaSource(1, 2.0);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
+      AB_pSigma0->SetAnaSource(0, 1.2);
+      AB_pSigma0->SetAnaSource(1, 2.0);
       break;
+    }
     case TidyCats::sCauchy:
       cPars = new CATSparameters(CATSparameters::tSource, 1, true);
       cPars->SetParameter(0, 1.);

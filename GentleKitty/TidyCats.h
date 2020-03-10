@@ -93,7 +93,7 @@ class TidyCats {
   DLM_CleverMcLevyResoTM* fppCleverMcLevy;
   DLM_CleverMcLevyResoTM* fpLCleverMcLevy;
   DLM_CleverMcLevyResoTM* fpXimCleverMcLevy;
-  DLM_CleverMcLevyReso* fpSigma0CleverMcLevy;
+  DLM_CleverMcLevyResoTM* fpSigma0CleverMcLevy;
 };
 
 #endif /* GENTLEKITTY_TIDYCATS_H_ */
