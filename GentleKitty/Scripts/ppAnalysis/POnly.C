@@ -518,6 +518,20 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
             fitter->AddSameSource("pSigma0", "pp", 1);
             fitter->AddSameSource("pXim", "pp", 1);
             fitter->AddSameSource("pXim1530", "pp", 1);
+          } else if (TheSource == TidyCats::sResonance) {
+            fitter = new DLM_Fitter1(1);
+
+            fitter->SetSystem(0, *OliHisto_pp, 1, CkDec_pp, kMin,
+                              FemtoRegion[vFemReg], FemtoRegion[vFemReg],
+                              FemtoRegion[vFemReg]);
+            fitter->SetParameter("pp", DLM_Fitter1::p_sor0, 0.75, 0.25, 2.5);
+            fitter->AddSameSource("pLambda", "pp", 1);
+            fitter->AddSameSource("pSigma0", "pp", 1);
+            fitter->AddSameSource("pXim", "pp", 1);
+            fitter->AddSameSource("pXim1530", "pp", 1);
+          } else {
+            std::cout << "Define your source!\n";
+            return;
           }
 
           fitter->SetOutputDir(OutputDir.Data());
@@ -545,7 +559,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
           FitResult.SetName(
 			    TString::Format("Graph_Var_%u_Iter_%u", NumIter, uIter));
           fitter->GetFitGraph(0, FitResult);
-          	  
+
 	  pointerFitResult = new TGraph(FitResult.GetN(), FitResult.GetX(), FitResult.GetY());
 	  
           pointerFitResult->SetLineWidth(2);
