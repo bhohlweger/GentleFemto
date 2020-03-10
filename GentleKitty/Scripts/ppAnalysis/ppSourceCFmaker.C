@@ -1,6 +1,7 @@
 #include "TApplication.h"
 #include "TidyCats.h"
 #include "DreamPlot.h"
+#include "TLegend.h"
 #include "DLM_CkDecomposition.h"
 #include "TGraph.h"
 
@@ -23,8 +24,8 @@ int main(int argc, char *argv[]) {
   TApplication *app = new TApplication("app", 0, 0);
 
   const float radiusGaussian = 1.25;
-  const float radiusLevy = 1.3;
-  const float radiusCauchy = 1.1;
+  const float radiusLevy = radiusGaussian;
+  const float radiusCauchy = radiusGaussian;
 
   const int momBins = 500;
   const double kMin = 0;
@@ -47,16 +48,16 @@ int main(int argc, char *argv[]) {
 
   auto grGaussianSource = new TGraph();
   grGaussianSource->SetName("gaussSource");
-  grGaussianSource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
-  DreamPlot::SetStyleGraph(grGaussianSource, 20, kBlue+2);
+  grGaussianSource->SetTitle(";#it{r} (fm); 4#pi#it{r}^{2} S(#it{r}) (fm^{-1})");
+  DreamPlot::SetStyleGraph(grGaussianSource, 20, kBlue+3);
   auto grLevySource = new TGraph();
   grLevySource->SetName("levySource");
-  grLevySource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
-  DreamPlot::SetStyleGraph(grLevySource, 20, kOrange+2);
+  grLevySource->SetTitle(";#it{r} (fm); 4#pi#it{r}^{2} S(#it{r}) (fm^{-1})");
+  DreamPlot::SetStyleGraph(grLevySource, 20, kCyan+1);
   auto grCauchySource = new TGraph();
   grCauchySource->SetName("cauchySource");
-  grCauchySource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
-  DreamPlot::SetStyleGraph(grCauchySource, 20, kGreen+2);
+  grCauchySource->SetTitle(";#it{r} (fm); 4#pi#it{r}^{2} S(#it{r}) (fm^{-1})");
+  DreamPlot::SetStyleGraph(grCauchySource, 20, kGreen+3);
 
   CATS ppGaussian;
   tidy->GetCatsProtonProton(&ppGaussian, momBins, kMin, kMax, TidyCats::sGaussian);
@@ -89,14 +90,31 @@ int main(int argc, char *argv[]) {
 
 
   auto cGaussian = new TCanvas();
+  cGaussian->SetTopMargin(0.025);
+  cGaussian->SetRightMargin(0.015);
   grGaussian->Draw("AL");
   grLevy->Draw("Lsame");
   grCauchy->Draw("Lsame");
 
   auto cGaussianSource = new TCanvas();
   grGaussianSource->Draw("AL");
+  grGaussianSource->GetXaxis()->SetNdivisions(505);
+  grGaussianSource->GetYaxis()->SetNdivisions(505);
+  grGaussianSource->GetXaxis()->SetRangeUser(0, 10);
+  grGaussianSource->GetYaxis()->SetRangeUser(0, 0.4);
   grLevySource->Draw("L same");
   grCauchySource->Draw("L same");
+
+  auto leg2 = new TLegend(0.6, 0.625, 0.9, 0.925);
+  leg2->SetTextFont(43);
+  leg2->SetTextSize(22);
+  leg2->SetHeader(Form("#it{r}_{source} = %.2f fm", radiusGaussian));
+  leg2->AddEntry(grCauchySource, "#alpha = 1", "l");
+  leg2->AddEntry(grLevySource, "#alpha = 1.5", "l");
+  leg2->AddEntry(grGaussianSource, "#alpha = 2", "l");
+  leg2->Draw("same");
+
+  cGaussianSource->Print("SourceShapes.pdf");
 
   app->Run();
 
