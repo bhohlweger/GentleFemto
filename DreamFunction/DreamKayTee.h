@@ -16,7 +16,7 @@
 #include "DreamCF.h"
 class DreamKayTee {
  public:
-  DreamKayTee();
+  DreamKayTee(const int imTMult = 0);
   virtual ~DreamKayTee();
   void SetKayTeeBins(std::vector<float> x) {
     fKayTeeBins = x;
@@ -39,6 +39,8 @@ class DreamKayTee {
     fMEkT[iPart] = MEmT;
     fIskT = false;
   }
+  void SetSEmTMultDist(int iPart, int imT, TH2F* SEmTMult);
+  void SetMEmTMultDist(int iPart, int imT, TH2F* MEmTMult); 
   void SetNormalization(float left, float right) {
     fNormleft = left;
     fNormright = right;
@@ -64,15 +66,23 @@ class DreamKayTee {
     fRebin = rebin;
   }
   ;
+  void SetMultBins(std::vector<int> multBins) {
+    fMultBins = multBins;
+  };
+  std::vector<DreamCF*> GetmTMultBinned(int imT); 
  private:
   bool fIskT;
+  const int nmTBins; 
   std::vector<bool> fFixShift;
   std::vector<float> fFixShiftValue;
   std::vector<float> fKayTeeBins;
   std::vector<int> fRebin;
+  std::vector<int> fMultBins;
   int fNKayTeeBins;
   TH2F* fSEkT[2];
+  TH2F*** fSEmTMult; 
   TH2F* fMEkT[2];
+  TH2F*** fMEmTMult; 
   TGraphErrors* fAveragekT;
   DreamPair*** fCFPart;
   DreamCF** fSum;

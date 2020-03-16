@@ -10,25 +10,36 @@
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TH2F.h"
+#include "TSystem.h"
 #include <iostream>
-DreamKayTee::DreamKayTee()
-    : fIskT(true),
-      fFixShift(),
-      fFixShiftValue(),
-      fKayTeeBins(),
-      fNKayTeeBins(0),
-      fRebin(),
-      fAveragekT(0),
-      fCFPart(nullptr),
-      fSum(nullptr),
-      fNormleft(0),
-      fNormright(0),
-      fSEMEReweighting(nullptr),
-      fSEMEReweightingMeV(nullptr) {
+#include <algorithm> 
+DreamKayTee::DreamKayTee(const int imTMult)
+  : fIskT(true),
+    nmTBins(imTMult), 
+    fFixShift(),
+    fFixShiftValue(),
+    fKayTeeBins(),
+    fRebin(),
+    fNKayTeeBins(0),
+    fSEmTMult(nullptr),
+    fMEmTMult(nullptr),
+    fAveragekT(0),
+    fCFPart(nullptr),
+    fSum(nullptr),
+    fNormleft(0),
+    fNormright(0),
+    fSEMEReweighting(nullptr),
+    fSEMEReweightingMeV(nullptr) {
   fSEkT[0] = nullptr;
   fSEkT[1] = nullptr;
   fMEkT[0] = nullptr;
   fMEkT[1] = nullptr;
+  fSEmTMult = new TH2F**[imTMult]; 
+  fMEmTMult = new TH2F**[imTMult];
+  for (int imT = 0; imT < imTMult; ++imT) {
+    fSEmTMult[imT] = new TH2F*[2]; //particle and antiparticle pair
+    fMEmTMult[imT] = new TH2F*[2]; //particle and antiparticle pair
+  }
 }
 
 DreamKayTee::~DreamKayTee() {
@@ -353,10 +364,137 @@ void DreamKayTee::SetSEMEReweightingRatio(TH1F* Rebinned, TH1F* Reweighted,
                                           TH1F* RebinnedMeV,
                                           TH1F* ReweightedMeV) {
   fSEMEReweighting = (TH1F*) Reweighted->Clone(
-      TString::Format("hCk_Reweighting"));
+					       TString::Format("hCk_Reweighting"));
   fSEMEReweighting->Divide(Rebinned);
   fSEMEReweightingMeV = (TH1F*) ReweightedMeV->Clone(
-      TString::Format("hCk_ReweightingMeV"));
+						     TString::Format("hCk_ReweightingMeV"));
   fSEMEReweightingMeV->Divide(RebinnedMeV);
   return;
+}
+
+
+void DreamKayTee::SetSEmTMultDist(int iPart, int imT, TH2F* SEmTMult) {
+  fSEmTMult[imT][iPart] = SEmTMult; 
+  return; 
+}
+
+
+void DreamKayTee::SetMEmTMultDist(int iPart, int imT, TH2F* MEmTMult) {
+  fMEmTMult[imT][iPart] = MEmTMult; 
+  return; 
+}
+
+
+std::vector<DreamCF*> DreamKayTee::GetmTMultBinned(int imT) {
+  std::vector<DreamCF*> outVec;
+  if (!(imT < nmTBins)) {
+    std::cout << "imT : " << imT << " too large for nmTBins: " << nmTBins << std::endl;
+    return outVec;
+  }
+  //binning starts at 0, however since we need to do the binning steps starting at +1 this
+  //is very find to put 0 here!!1elf!!
+  std::vector<int> MultBins = {0, fSEmTMult[imT][0]->GetYaxis()->GetNbins()}; 
+  for (auto it : fMultBins) {
+    MultBins.push_back(fSEmTMult[imT][0]->GetYaxis()->FindBin(it)); 
+  }
+  std::sort(MultBins.begin(), MultBins.end());
+  for (auto it = MultBins.begin(); it < MultBins.end()-1; ++it) { 
+    auto itNextElem = it;
+    itNextElem++;
+    int binMin = *it + 1;
+    int binMax = *itNextElem; 
+    int counter = 0;
+    
+    TString ProjName = TString::Format("MultBin_%i_%i", binMin, binMax); 
+    TH1F* PartSEProj = (TH1F*)
+      fSEmTMult[imT][0]->ProjectionX(TString::Format("SEPart_%s",ProjName.Data()), binMin, binMax);
+    
+    TH1F* PartMEProj = (TH1F*)
+      fMEmTMult[imT][0]->ProjectionX(TString::Format("MEPart_%s",ProjName.Data()), binMin, binMax);
+
+    
+    TH2F* PartSEMultLimited = (TH2F*)
+      fSEmTMult[imT][0]->Clone(TString::Format("SEMultPart_%s",ProjName.Data())); 
+    
+    TH2F* PartMEMultLimited = (TH2F*)
+      fMEmTMult[imT][0]->Clone(TString::Format("MEMultPart_%s",ProjName.Data())); 
+    
+    TH1F* AntiPartSEProj = (TH1F*)
+      fSEmTMult[imT][1]->ProjectionX(TString::Format("SEAntiPart_%s",ProjName.Data()), binMin, binMax);
+    
+    TH1F* AntiPartMEProj = (TH1F*)
+      fMEmTMult[imT][1]->ProjectionX(TString::Format("MEAntiPart_%s",ProjName.Data()), binMin, binMax);
+    
+    TH2F* AntiPartSEMultLimited = (TH2F*)
+      fSEmTMult[imT][1]->Clone(TString::Format("SEMultAntiPart_%s",ProjName.Data())); 
+    
+    TH2F* AntiPartMEMultLimited = (TH2F*)
+      fMEmTMult[imT][1]->Clone(TString::Format("MEMultAntiPart_%s",ProjName.Data())); 
+    //now blind the whole thing outside of the multiplicity range!
+    
+    for (int iMult = 1; iMult < fSEmTMult[imT][0]->GetYaxis()->GetNbins(); ++iMult) {
+      std::cout << iMult << std::endl; 
+      if ( binMin <= iMult && iMult <= binMax) {
+	continue;
+      } else {
+	for (int iks = 1; iks <= fSEmTMult[imT][0]->GetXaxis()->GetNbins(); ++iks) {
+	  PartSEMultLimited->SetBinContent(iks, iMult, 0);
+	  PartSEMultLimited->SetBinError(iks, iMult, 0);
+
+	  PartMEMultLimited->SetBinContent(iks, iMult, 0);
+	  PartMEMultLimited->SetBinError(iks, iMult, 0);
+	 
+	  AntiPartSEMultLimited->SetBinContent(iks, iMult, 0);
+	  AntiPartSEMultLimited->SetBinError(iks, iMult, 0);
+	 
+	  AntiPartMEMultLimited->SetBinContent(iks, iMult, 0);
+	  AntiPartMEMultLimited->SetBinError(iks, iMult, 0); 
+	}
+      }
+    }
+    
+    DreamDist* pair = new DreamDist();
+    pair->SetSEDist(PartSEProj,"");
+    pair->SetSEMultDist(PartSEMultLimited,"");
+
+    pair->SetMEDist(PartMEProj, "");
+    pair->SetMEMultDist(PartMEMultLimited, "");
+    
+    DreamDist* Antipair = new DreamDist();
+    Antipair->SetSEDist(AntiPartSEProj,"");
+    Antipair->SetSEMultDist(AntiPartSEMultLimited,"");
+
+    Antipair->SetMEDist(AntiPartMEProj, "");
+    Antipair->SetMEMultDist(AntiPartMEMultLimited, "");
+
+    DreamCF* CF_pp = new DreamCF();
+    DreamPair* pp = new DreamPair("Part", 0.24, 0.34);
+    DreamPair* ApAp = new DreamPair("AntiPart", 0.24, 0.34);
+    pp->SetPair(pair); 
+    ApAp->SetPair(Antipair);
+
+    pp->ReweightMixedEvent(pp->GetPair(), 0.2, 0.9);
+    ApAp->ReweightMixedEvent(ApAp->GetPair(), 0.2, 0.9);
+
+    pp->ShiftForEmpty(pp->GetPairReweighted(0));
+    ApAp->ShiftForEmpty(ApAp->GetPairReweighted(0));
+
+    pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
+		 ApAp->GetFirstBin());
+    ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
+		   pp->GetFirstBin());
+    
+    pp->Rebin(pp->GetPairFixShifted(0), 16);
+    ApAp->Rebin(ApAp->GetPairFixShifted(0), 16);
+
+    pp->Rebin(pp->GetPairFixShifted(0), 20);
+    ApAp->Rebin(ApAp->GetPairFixShifted(0), 20);
+
+    CF_pp->SetPairs(pp,ApAp);
+    CF_pp->GetCorrelations();
+    CF_pp->WriteOutput(TString::Format("%s/CF_mTBin_%i_%s.root",gSystem->pwd(),imT,ProjName.Data()));
+  }
+  
+
+  return outVec; 
 }
