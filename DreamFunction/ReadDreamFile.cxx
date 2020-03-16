@@ -703,6 +703,23 @@ DreamKayTee* ReadDreamFile::GetmTPairDistributions(int iPart1, int iPart2,
   return pair;
 }
 
+DreamKayTee* ReadDreamFile::GetmTMultPairDistributions(int iPart1, int iPart2, int iAPart1,
+					int iAPart2, const int nmTBins) {
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee(nmTBins);
+  for (int imT = 0; imT < nmTBins; ++imT) { 
+    pair->SetSEmTMultDist(0, imT, fSEmTMult[iPart1][iPart2][imT]);
+    pair->SetMEmTMultDist(0, imT, fMEmTMult[iPart1][iPart2][imT]);
+
+    pair->SetSEmTMultDist(1, imT, fSEmTMult[iAPart1][iAPart2][imT]);
+    pair->SetMEmTMultDist(1, imT, fMEmTMult[iAPart1][iAPart2][imT]);
+  }
+  return pair;
+}
+
 DreamKayTee* ReadDreamFile::GetmTPairDistributionsBBar(int iPart1, int iPart2) {
 //user needs to ensure deletion
   if (iPart2 < iPart1) {
