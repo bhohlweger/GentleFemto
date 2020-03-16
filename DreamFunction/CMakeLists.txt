@@ -131,3 +131,6 @@ target_link_libraries(executePhi DreamFunctions)
 
 add_executable(executePXi ${PROJECT_SOURCE_DIR}/Scripts/GetpXiVariations.C)
 target_link_libraries(executePXi DreamFunctions)
+
+add_executable(executemTMult ${PROJECT_SOURCE_DIR}/Scripts/GetmTMult.C)
+target_link_libraries(executemTMult DreamFunctions)
