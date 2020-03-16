@@ -21,9 +21,10 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fSEMult(nullptr),
       fSEkT(nullptr),
       fSEmT(nullptr),
-	  fSEmTProj(nullptr),
-	  fProjmT(nullptr),
-	  fMeanmT(nullptr),
+      fSEmTMult(nullptr), 
+      fSEmTProj(nullptr),
+      fProjmT(nullptr),
+      fMeanmT(nullptr),
       fSEdEtadPhimT(nullptr),
       fSEdEtadPhi(nullptr),
       fSEdEtadPhiAtRad(nullptr),
@@ -32,6 +33,7 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fMEMult(nullptr),
       fMEkT(nullptr),
       fMEmT(nullptr),
+      fMEmTMult(nullptr), 
       fMEdEtadPhimT(nullptr),
       fMEdEtadPhi(nullptr),
       fMEdEtadPhiAtRad(nullptr),
@@ -326,6 +328,46 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
   return;
 }
 
+void ReadDreamFile::ReadmTMultHistos(const char* AnalysisFile, const char* prefix,
+				     const char* addon, const int nmTBins) {
+  fSEmTMult = new TH2F***[fNPart1];
+  fMEmTMult = new TH2F***[fNPart1];
+
+  TFile* _file0 = TFile::Open(AnalysisFile, "READ");
+  TDirectoryFile *dirResults =
+    (TDirectoryFile*) (_file0->FindObjectAny(Form("%sResults%s", prefix, addon)));
+  TList *Results;
+  dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
+  TList *PartList;
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+    fSEmTMult[iPart1] = new TH2F**[fNPart2];
+    fMEmTMult[iPart1] = new TH2F**[fNPart2];
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+      TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
+      PartList = (TList*) Results->FindObject(FolderName.Data());
+      fSEmTMult[iPart1][iPart2] = new TH2F*[nmTBins];
+      fMEmTMult[iPart1][iPart2] = new TH2F*[nmTBins];
+      for (int imT = 0; imT < nmTBins; ++imT) { 
+	fSEmTMult[iPart1][iPart2][imT] =
+	  (TH2F*) PartList->FindObject(Form("SEmTMult_%i_%s", imT, FolderName.Data()));
+	if (!fSEmTMult[iPart1][iPart2][imT]) {
+	  if (!fQuiet)
+	    std::cout << "SEmTMult Histogramm missing from " << FolderName.Data()
+		      << std::endl;
+	}
+	fMEmTMult[iPart1][iPart2][imT] =
+	  (TH2F*) PartList->FindObject(Form("MEmTMult_%i_%s", imT, FolderName.Data()));
+	if (!fMEmTMult[iPart1][iPart2][imT]) {
+	  if (!fQuiet)
+	    std::cout << "MEmTMult Histogramm missing from " << FolderName.Data()
+		      << std::endl;
+	}
+      }
+    }
+  }
+  return;
+} 
+
 void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char* prefix,
                                  const char* addon, double kcut) {
 
@@ -349,7 +391,7 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
     fMEmT[iPart1] = new TH2F*[fNPart2];
     fSEmTProj[iPart1] = new TH1F*[fNPart2];
 
-
+    
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
 
       TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
