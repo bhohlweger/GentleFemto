@@ -369,10 +369,10 @@ double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
   Particle Proton = Particle(PurityProton, PrimProton, { ProVar * SecLamProton,
                                  SecFracSigma });
   double PurityXi = 0.915;
-  // Xim Production xseciton: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // Xim Production xseciton: dN/dy = 7.9e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
   // Xi1530 Production xsection: dN/dy = 2.48e-3 (https://doi.org/10.1140/epjc/s10052-017-4943-1)
-  const double Xi01530XimProdFraction = 1 / 2.;  //Production ratio
-  const double Xim1530XimProdFraction = 1 / 2.;  //Same production ratio
+  const double Xi01530XimProdFraction = 1 / 3.;  //Production ratio
+  const double Xim1530XimProdFraction = 1 / 3.;  //Same production ratio
 
   // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
   const double Xi01530Xim_BR = 2 / 3.;
@@ -386,11 +386,11 @@ double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
 
   // Produce N Xi's -> Produce:
   // 1 ) N* 1/10 Omegas -> See N* 1/10 * 8.6% more Xi's
-  // 2)  N* 1/2 Xi0_1530 -> See N*1/2*2/3 = N* 1/3 more Xi's
-  // 3)  N* 1/2 Xim_1530 -> See N*1/2*1/3 = N* 1/6 more Xi's
-  // Total Sample:  N(1+0.0086+1/3+1/6) ->
-  // Primary Fraction = N / N(1+0.0086+1/3+1/6)
-  // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
+  // 2)  N* 1/2 Xi0_1530 -> See N*1/3*2/3 = N* 2/9 more Xi's
+  // 3)  N* 1/2 Xim_1530 -> See N*1/3*1/3 = N* 1/9 more Xi's
+  // Total Sample:  N(1+0.0086+2/9+1/9) ->
+  // Primary Fraction = N / N(1+0.0086+2/9+1/9)
+  // Secondary Omegas = N*0.0086  / N(1+0.0086+2/9+1/9)
   // etc.
 
   double XiNormalization = 1 + OmegaVar * OmegamXimProdFraction * OmegamXim_BR
