@@ -432,7 +432,7 @@ std::vector<DreamCF*> DreamKayTee::GetmTMultBinned(int imT) {
       fMEmTMult[imT][1]->Clone(TString::Format("MEMultAntiPart_%s",ProjName.Data())); 
     //now blind the whole thing outside of the multiplicity range!
     
-    for (int iMult = 1; iMult < fSEmTMult[imT][0]->GetYaxis()->GetNbins(); ++iMult) {
+    for (int iMult = 1; iMult < fSEmTMult[imT][0]->GetYaxis()->GetNbins()+1; ++iMult) {
       std::cout << iMult << std::endl; 
       if ( binMin <= iMult && iMult <= binMax) {
 	continue;
@@ -475,20 +475,22 @@ std::vector<DreamCF*> DreamKayTee::GetmTMultBinned(int imT) {
 
     pp->ReweightMixedEvent(pp->GetPair(), 0.2, 0.9);
     ApAp->ReweightMixedEvent(ApAp->GetPair(), 0.2, 0.9);
-
     pp->ShiftForEmpty(pp->GetPairReweighted(0));
     ApAp->ShiftForEmpty(ApAp->GetPairReweighted(0));
 
+    // pp->ShiftForEmpty(pp->GetPair());
+    //ApAp->ShiftForEmpty(ApAp->GetPair());
+    
     pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
 		 ApAp->GetFirstBin());
     ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
 		   pp->GetFirstBin());
     
-    pp->Rebin(pp->GetPairFixShifted(0), 16);
-    ApAp->Rebin(ApAp->GetPairFixShifted(0), 16);
+    pp->Rebin(pp->GetPairFixShifted(0), 8);
+    ApAp->Rebin(ApAp->GetPairFixShifted(0), 8);
 
-    pp->Rebin(pp->GetPairFixShifted(0), 20);
-    ApAp->Rebin(ApAp->GetPairFixShifted(0), 20);
+    //pp->Rebin(pp->GetPairFixShifted(0), 20);
+    //ApAp->Rebin(ApAp->GetPairFixShifted(0), 20);
 
     CF_pp->SetPairs(pp,ApAp);
     CF_pp->GetCorrelations();
