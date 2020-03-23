@@ -73,7 +73,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     TheSource = TidyCats::sResonance;
     FeeddownSource = TidyCats::sGaussian;
   } else {
-    std::cout << "Source does not exist! Exiting \n";
+    std::cout << "Source does not ex\ist! Exiting \n";
     return;
   }
 
@@ -99,8 +99,8 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
     SigmaFileName += "Sample3_MeV_compact.root";
     PurityProton = 0.984266;  //pPb 5 TeV
-    PrimProton = 0.862814;
-    SecLamProton = 0.09603;
+    PrimProton = 0.86;
+    SecLamProton = 0.086;
 
     PurityLambda = 0.937761;
     PrimLambdaAndSigma = 0.6875;  //fraction of primary Lambdas + Sigma 0
