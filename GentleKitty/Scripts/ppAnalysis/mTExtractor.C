@@ -39,9 +39,12 @@ int main(int argc, char* argv[]) {
   }
   TGraphErrors* avgmT = (TGraphErrors*) mTFile->Get("AveragemT_ppVar0");
   if (!avgmT) {
-    std::cout << "no average mT file " << std::endl;
-    mTFile->ls();
-    return -1;
+    avgmT = (TGraphErrors*) mTFile->Get("AveragemT_pp"); 
+    if (!avgmT) { 
+      std::cout << "no average mT file " << std::endl;
+      mTFile->ls();
+      return -1;
+    }
   }
   VariationmTAnalysis* analyser = new VariationmTAnalysis(1);
   TCut AnalysisCut = "chiSqNDF<30";
