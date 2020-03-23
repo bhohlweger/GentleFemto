@@ -3,6 +3,7 @@
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "TSystem.h"
+#include "DreamKayTee.h"
 #include <iostream>
 
 int main(int argc, char* argv[]) {
@@ -10,16 +11,18 @@ int main(int argc, char* argv[]) {
   const char* prefix = argv[2];
   const char* addon = (argv[3]) ? argv[3] : "";
   //gStyle->SetOptStat(0);
+
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
   DreamFile->ReadmTMultHistos(filename, prefix, addon,3);
-  /*
-  DreamCF* CF_pp = new DreamCF();
-  DreamPair* pp = new DreamPair("Part", 0.24, 0.34);
-  DreamPair* ApAp = new DreamPair("AntiPart", 0.24, 0.34);
-  pp->SetPair(DreamFile->GetPairDistributions(0, 0, ""));
-  ApAp->SetPair(DreamFile->GetPairDistributions(1, 1, ""));
-  */
+  DreamKayTee* mTBinner = DreamFile->GetmTMultPairDistributions(0, 0, 1, 1, 3); 
+  mTBinner->SetMultBins({9});
+  std::vector<DreamCF*> mTBin_0 = mTBinner->GetmTMultBinned(0);
+  std::vector<DreamCF*> mTBin_1 = mTBinner->GetmTMultBinned(1);
+  std::vector<DreamCF*> mTBin_2 = mTBinner->GetmTMultBinned(2); 
+  
+  return 0; 
 }
+
 
 
 
