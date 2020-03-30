@@ -362,7 +362,7 @@ double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
   //to protons
   double PurityProton = 0.9943;
 
-  double PrimProton = 0.822;
+  double PrimProton = 0.86;
   double SecLamProton = 0.124;  //Fraction of Lambdas
 
   double SecFracSigma = 1. - PrimProton - ProVar * SecLamProton;

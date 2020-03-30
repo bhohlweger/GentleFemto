@@ -36,7 +36,7 @@ void LambdaPL() {
 }
 void LambdaPXi() {
   double PurityProton = 0.9943;
-  double PrimProton = 0.82;
+  double PrimProton = 0.86;
   double SecLamProton = 0.124;  //Fraction of Lambdas
   double SecSigmaProton = 1. - PrimProton - SecLamProton;
 
@@ -58,8 +58,8 @@ void LambdaPXi() {
   // Xim Production: dN/dy = 7.9e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
   // -> Production Ratio ~ 1/3
 
-  const double Xi01530XimProdFraction = 1 / 2.;
-  const double Xim1530XimProdFraction = 1 / 2.;
+  const double Xi01530XimProdFraction = 1 / 3.;
+  const double Xim1530XimProdFraction = 1 / 3.;
 
   // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
   const double Xi01530Xim_BR = 2 / 3.;
@@ -68,7 +68,7 @@ void LambdaPXi() {
 
   // Omega production: dN/dy = 0.67e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
   // -> Production Ratio ~ 1/10
-  const double OmegamXimProdFraction = 1 / 10.;
+  const double OmegamXimProdFraction = 1 / 9.;
   const double OmegamXim_BR = 0.086;  // Value given by PDG, 8.6 pm 0.4 %
 
   // Produce N Xi's -> Produce:

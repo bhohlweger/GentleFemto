@@ -102,8 +102,8 @@ int main(int argc, char *argv[]) {
   TCanvas* c1;
   std::vector<const char*> LegNames;
   LegNames.push_back("p-#Xi^{-} #bf{ALICE} data");
-  LegNames.push_back("Coulomb");
   LegNames.push_back("Coulomb + HAL-QCD");
+  LegNames.push_back("Coulomb");
   std::vector<const char*> LegOptions;
   LegOptions.push_back("fpe");
   LegOptions.push_back("f");
@@ -141,9 +141,9 @@ int main(int argc, char *argv[]) {
   Data->SetSystematics(SystError, 2);
   Data->SetLegendName(LegNames, LegOptions);
   Data->SetDrawAxis(false);
-  Data->FemtoModelFitBands(coulomb, kGreen + 1, 1, 3, -4000, true, false);
   Data->FemtoModelFitBands(halOnly, kPink + 1, 10, 0, -4000, true, false);
   Data->FemtoModelFitBands(halRad, kGray + 1, 0.5, false);
+  Data->FemtoModelFitBands(coulomb, kGreen + 1, 1, 3, -4000, true, false);
 //  Data->FemtoModelFitBands(esc,     11, 8,  0, -4000, true);
   Data->SetRangePlotting(fXmin, fXmax, 0.6, cf_default->GetMaximum() * 1.5);  //ranges
   Data->SetNDivisions(505);
