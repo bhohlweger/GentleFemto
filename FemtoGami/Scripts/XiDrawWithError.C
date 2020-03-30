@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
   TCanvas* c1;
   std::vector<const char*> LegNames;
   LegNames.push_back("p-#Xi^{-} #bf{ALICE} data");
-  LegNames.push_back("Coulomb + HAL-QCD");
+  LegNames.push_back("Coulomb + HAL QCD");
   LegNames.push_back("Coulomb");
   std::vector<const char*> LegOptions;
   LegOptions.push_back("fpe");
