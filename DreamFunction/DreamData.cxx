@@ -149,11 +149,11 @@ void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
       grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
     } else {
-      Warning("DreamData", "For %s set the CF before adding the systematics",
-              fName);
+      Warning("DreamData", TString::Format("For %s set the CF before adding the systematics",
+					   fName).Data());
     }
   } else {
-    Warning("DreamData", "Parameters input missing for %s", fName);
+    Warning("DreamData", TString::Format("Parameters input missing for %s", fName).Data());
   }
   return;
 }
@@ -212,12 +212,58 @@ void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
       grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
     } else {
-
-      Warning("DreamData", "For %s set the CF before adding the systematics",
-              fName);
+      Warning("DreamData", TString::Format("For %s set the CF before adding the systematics",
+					   fName).Data());
     }
   } else {
-    Warning("DreamData", "Parameters input missing for %s", fName);
+    Warning("DreamData", TString::Format("Parameters input missing for %s", fName).Data());
+  }
+  return;
+}
+
+void DreamData::SetSystematics(TGraphAsymmErrors* parameters, float errorwidth) {
+  if (parameters) {
+    if ((fCorrelationFunction||fCorrelationGraph)) { 
+      fSysError = new TGraphAsymmErrors();
+      double x, y;
+      double xErr, yErr;
+      double yErrLow, yErrHigh; 
+      int nBins = 0;
+      if (fCorrelationFunction) {
+	nBins = fCorrelationFunction->GetXaxis()->GetXmax();
+      }
+      if (fCorrelationGraph) {
+	nBins = fCorrelationGraph->GetN();
+      }
+      for (int i = 0; i < nBins; ++i) {
+	if (fCorrelationFunction) {
+	  x = fCorrelationFunction->GetBinCenter(i+1);
+	  y = fCorrelationFunction->GetBinContent(i+1); 
+	}
+	if (fCorrelationGraph) {
+	  fCorrelationGraph->GetPoint(i, x, y);
+	}
+	parameters->GetPoint(i,xErr,yErr);
+	if (x != xErr) {
+	  Warning("DreamData", TString::Format("Different x Values in SetSystematics with Asymmetric Errors: xCorr = %.3f and xErr = %.3f", x, xErr).Data()); 
+	}
+	yErrLow = parameters->GetErrorYlow(i);
+	yErrHigh = parameters->GetErrorYhigh(i); 
+	fSysError->SetPoint(i, x, y);
+	fSysError->SetPointError(i, errorwidth, errorwidth,yErrLow, yErrHigh);
+      }
+      TGraph *grFakeSys = new TGraph();
+      SetStyleGraph(grFakeSys, 2, 0);
+      grFakeSys->SetFillColor(fFillColors[0]);
+      grFakeSys->SetLineColor(fFillColors[0]);
+      grFakeSys->SetLineWidth(0);
+      fFakeGraph.push_back(grFakeSys);
+    } else {
+      Warning("DreamData", TString::Format("For %s set the CF before adding the systematics",
+					   fName).Data());
+    }
+  } else {
+    Warning("DreamData", TString::Format("Parameters input missing for %s", fName).Data());
   }
   return;
 }
