@@ -571,16 +571,10 @@ void DreamData::DrawInlet(TPad *c) {
   inset_pad->SetFillStyle(4000);
   inset_pad->Draw();
   inset_pad->cd();
-  TGraphErrors* SysErrCopy = (TGraphErrors*) fSysError->Clone(
-      Form("%s_clone", fSysError->GetName()));
-  TH1F* CFCopy = (TH1F*) fCorrelationFunction->Clone(
-      Form("%s_Cloned", fCorrelationFunction->GetName()));
-  SetStyleHisto(CFCopy, 2, 0);
-  CFCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
-  CFCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
-  CFCopy->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
-  CFCopy->SetMarkerColor(fCorrelationFunction->GetMarkerColor());
-  CFCopy->SetLineColor(fCorrelationFunction->GetLineColor());
+
+  TGraphAsymmErrors* SysErrCopy = (TGraphAsymmErrors*) fSysError->Clone(
+      Form("%s_NEWHOTclone", fSysError->GetName()));
+
   SysErrCopy->GetYaxis()->SetNdivisions(203);
   SysErrCopy->GetXaxis()->SetNdivisions(204);
   SysErrCopy->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
@@ -597,15 +591,42 @@ void DreamData::DrawInlet(TPad *c) {
 //  SysErrCopy->SetTitle(" ; ; ");
   SysErrCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
   SysErrCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
-  for (auto &it : fFemtoModdeled) {
-    it->Draw("L3 same");
+
+  auto it = fFemtoModdeled.rbegin();
+  while (it != fFemtoModdeled.rend()) {
+    (*it)->Draw("L3 same");
+    it++;
   }
   SysErrCopy->SetFillColorAlpha(fSysError->GetFillColor(), 0.4);
   SysErrCopy->Draw("2 same");
-  CFCopy->SetMarkerSize(0.6);
-  CFCopy->DrawCopy("pe same");
+
+  if (fCorrelationFunction) { 
+    TH1F* CFCopy = (TH1F*)
+      fCorrelationFunction->Clone(Form("%s_Cloned", fCorrelationFunction->GetName()));
+    SetStyleHisto(CFCopy, 2, 0);
+    CFCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
+    CFCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
+    CFCopy->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
+    CFCopy->SetMarkerColor(fCorrelationFunction->GetMarkerColor());
+    CFCopy->SetLineColor(fCorrelationFunction->GetLineColor());
+    CFCopy->SetMarkerSize(0.6);
+    
+    CFCopy->DrawCopy("pe same");
+  } else if (fCorrelationGraph) {
+    TGraphAsymmErrors* graphCopy = (TGraphAsymmErrors*) fCorrelationGraph->Clone(TString::Format("INLETGraph")); 
+    SetStyleGraph(graphCopy, 2, 0);
+    graphCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
+    graphCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
+    graphCopy->SetMarkerSize(fCorrelationGraph->GetMarkerStyle());
+    graphCopy->SetMarkerColor(fCorrelationGraph->GetMarkerColor());
+    graphCopy->SetLineColor(fCorrelationGraph->GetLineColor()); 
+    graphCopy->SetMarkerSize(1.0);
+    graphCopy->Draw("pez same");
+  }
+  fInset = inset_pad; 
   return;
 }
+
 
 void DreamData::SetStyleGraph(TGraph *histo, int marker, int color) {
   if (fMultiHisto) {
