@@ -29,6 +29,7 @@ DreamData::DreamData(const char* particlePair)
       fYMin(0),
       fYMax(0.5),
       fInlet(false),
+      fInset(nullptr),
       fXMinZoom(0),
       fXMaxZoom(0.5),
       fYMinZoom(0),

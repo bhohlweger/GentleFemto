@@ -107,6 +107,7 @@ class DreamData {
     fXAxisOffsetInlet = xaxis;
     fYAxisOffsetInlet = yaxis;
   }
+  TPad* GetInset() { return fInset; };
   void SetTextSizeLegend(float size) {
     fTextSizeInlet = size;
   }
@@ -171,6 +172,7 @@ class DreamData {
   float fYMin;
   float fYMax;
   bool fInlet;
+  TPad* fInset; 
   float fXMinZoom;
   float fXMaxZoom;
   float fYMinZoom;
