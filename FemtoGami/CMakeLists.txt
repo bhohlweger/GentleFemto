@@ -66,5 +66,9 @@ target_link_libraries(CloseMe femtoGami)
 add_executable(XiDraw ${PROJECT_SOURCE_DIR}/Scripts/XiDrawWithError.C)
 target_link_libraries(XiDraw femtoGami)
 
-add_executable(OmegaDraw ${PROJECT_SOURCE_DIR}/Scripts/OmegaDrawWithError.C)
-target_link_libraries(OmegaDraw femtoGami)
+add_executable(XiComp ${PROJECT_SOURCE_DIR}/Scripts/XiComparison.C)
+target_link_libraries(XiComp femtoGami)
+
+
+add_executable(OmDraw ${PROJECT_SOURCE_DIR}/Scripts/OmegaDrawWithError.C)
+target_link_libraries(OmDraw femtoGami)
