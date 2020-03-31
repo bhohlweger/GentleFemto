@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
   TPad* pad;
   float LatexX = 0.;
   pad = (TPad*) c1->cd(0);
-  pad->SetRightMargin(0.1);
+  pad->SetRightMargin(0.08);
   pad->SetLeftMargin(0.1);
   pad->SetTopMargin(0.1);
   pad->SetBottomMargin(0.115);
@@ -149,14 +149,14 @@ int main(int argc, char *argv[]) {
   Data->SetNDivisions(505);
 
   float legXmin = fTextXMin - 0.02;
-  Data->SetLegendCoordinates(0.45, 0.6, 0.8, ymaxL + 0.03);
+  Data->SetLegendCoordinates(0.35, 0.66, 0.65, 0.86);
   Data->DrawCorrelationPlot(pad);
 
   pad->cd();
   cf_graphWidth->SetLineWidth(1);
   cf_graphWidth->SetLineColorAlpha(kBlack, 0.9);
   cf_graphWidth->Draw("same []");
-
+  h->Draw("AXIS SAME");
   out->cd();
   c1->Write();
   c1->SaveAs(Form("CF_pXi.pdf"));
