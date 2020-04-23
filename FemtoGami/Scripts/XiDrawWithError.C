@@ -116,8 +116,10 @@ int main(int argc, char *argv[]) {
   h->SetXTitle(texPtX);
   h->SetYTitle(texPtY);
   h->GetXaxis()->SetTitleOffset(1.1);
+  h->GetXaxis()->CenterTitle(true); 
   h->GetYaxis()->SetTitleOffset(1.);
   h->GetXaxis()->SetNdivisions(806);
+  h->GetYaxis()->CenterTitle(true); 
   TFile* out = TFile::Open(Form("out.root"), "recreate");
   TPad* pad;
   float LatexX = 0.;
@@ -149,7 +151,7 @@ int main(int argc, char *argv[]) {
   Data->SetNDivisions(505);
 
   float legXmin = fTextXMin - 0.02;
-  Data->SetLegendCoordinates(0.35, 0.66, 0.65, 0.86);
+  Data->SetLegendCoordinates(0.25, 0.635, 0.55, 0.86);
   Data->DrawCorrelationPlot(pad);
 
   pad->cd();
@@ -157,6 +159,14 @@ int main(int argc, char *argv[]) {
   cf_graphWidth->SetLineColorAlpha(kBlack, 0.9);
   cf_graphWidth->Draw("same []");
   h->Draw("AXIS SAME");
+
+  TLatex text;
+  text.SetNDC();
+  text.SetTextColor(1);
+  //  text.SetText
+  text.SetTextSize(gStyle->GetTextSize() * 1.2);
+  text.DrawLatex(0.01, 0.86, "#bf{a}");
+
   out->cd();
   c1->Write();
   c1->SaveAs(Form("CF_pXi.pdf"));

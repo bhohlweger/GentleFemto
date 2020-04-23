@@ -138,8 +138,8 @@ int main(int argc, char *argv[]) {
   TCanvas* c1;
   std::vector<const char*> LegNames;
   LegNames.push_back("p-#Omega^{-} #bf{ALICE} data");
-  LegNames.push_back("Coulomb + HAL QCD");
-  LegNames.push_back("Coulomb + HAL QCD + inelastic");
+  LegNames.push_back("Coulomb + HAL QCD elastic");
+  LegNames.push_back("Coulomb + HAL QCD elastic + inelastic");
   LegNames.push_back("Coulomb");
   std::vector<const char*> LegOptions;
   LegOptions.push_back("fpe");
@@ -156,6 +156,8 @@ int main(int argc, char *argv[]) {
   h->GetXaxis()->SetTitleOffset(1.1);
   h->GetYaxis()->SetTitleOffset(1.);
   h->GetXaxis()->SetNdivisions(806);
+  h->GetXaxis()->CenterTitle(true);
+  h->GetYaxis()->CenterTitle(true); 
   TFile* out = TFile::Open(Form("out.root"), "recreate");
   TPad* pad;
   float LatexX = 0.;
@@ -192,9 +194,9 @@ int main(int argc, char *argv[]) {
   Data->SetNDivisions(505);
 
   float legXmin = fTextXMin - 0.02;
-  Data->SetLegendCoordinates(0.35, 0.56, 0.65, 0.86);
+  Data->SetLegendCoordinates(0.25, 0.56, 0.55, 0.86);
   Data->SetInletRangePlotting(100, 280, 0.73, 1.31);
-  Data->SetInletCoordinates(0.30, 0.18, 0.85, 0.55);
+  Data->SetInletCoordinates(0.35, 0.23, 0.9, 0.6);
   Data->DrawCorrelationPlot(pad);
 
   pad->cd();
@@ -206,6 +208,14 @@ int main(int argc, char *argv[]) {
   Data->GetInset()->cd();
   cf_graphWidth->Draw("same []");
 
+  c1->cd();
+  TLatex text;
+  text.SetNDC();
+  text.SetTextColor(1);
+  //  text.SetText
+  text.SetTextSize(gStyle->GetTextSize() * 1.2);
+  text.DrawLatex(0.01, 0.86, "#bf{b}");
+  
   //h->Draw("same"); 
   out->cd();
   c1->Write();
