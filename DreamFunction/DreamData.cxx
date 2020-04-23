@@ -586,6 +586,7 @@ void DreamData::DrawInlet(TPad *c) {
   SysErrCopy->GetYaxis()->SetTitleSize(fTextSizeInlet);
   SysErrCopy->GetYaxis()->SetLabelSize(fTextSizeInlet);
   SysErrCopy->SetLineColor(kWhite);
+  SysErrCopy->GetXaxis()->CenterTitle(true);
   SysErrCopy->Draw("Ap");
   fBaseLine->Draw("same");
 //  SysErrCopy->SetTitle(" ; ; ");
