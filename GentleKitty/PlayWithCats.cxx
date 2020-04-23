@@ -665,16 +665,19 @@ void PlayWithCats::GenerateCoulombOnly() {
   return;
 }
 
-void PlayWithCats::GenerateSourceDistpxi() {
+void PlayWithCats::GenerateSourceDistpxi(TFile* out) {
   std::cout << "Coulomb\n";
   int nBins = 300;
   double xmin = 0.5;
   double xmax = 300.5;
   TidyCats* tidy = new TidyCats();
+  tidy->SetTau(1.65, 4.69);
+  tidy->SetMass(1361.52, 1462.93);
+
   TidyCats::Sources TheSource = TidyCats::sResonance;
   float ppRadii[3];
   ppRadii[0] = 0.886647;
-  ppRadii[1] = 0.932114;
+  ppRadii[1] = 1.;
   ppRadii[2] = 0.979453;
 
   CATS CoulombUp;
@@ -682,49 +685,189 @@ void PlayWithCats::GenerateSourceDistpxi() {
   tidy->GetCatsProtonXiMinus(&CoulombUp, nBins, xmin, xmax, TheSource,
                              TidyCats::pCoulomb, 0);
 
-  CoulombUp.SetAnaSource(0, ppRadii[2]);
+  CoulombUp.SetAnaSource(0, ppRadii[1]);
   CoulombUp.KillTheCat();
 
   auto grSource = new TGraph();
   DreamPlot::SetStyleGraph(grSource, 20, kBlue + 3);
   grSource->SetLineWidth(2);
   grSource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
-
+  grSource->SetName("pXiSource"); 
   for (double i = 0; i < 150; ++i) {
     grSource->SetPoint(i, i * 0.1, CoulombUp.EvaluateTheSource(0, i * 0.1, 0));
   }
 
   auto gaussFit =
       new TF1(
-          "gaus",
-          [&](double *x, double *p) {return
+           "gauspXi",
+           [&](double *x, double *p) {return
             4. * TMath::Pi() * x[0] * x[0] / std::pow((4. * TMath::Pi() * p[0] * p[0]), 1.5) *
-            std::exp(-x[0] * x[0] / (4. * p[0] * p[0]));
-          },
-          0, 10, 1);
-  gaussFit->SetParameter(0, 1.3);
-  gaussFit->SetNpx(1000);
-  gaussFit->SetLineColor(kBlue + 2);
-  gaussFit->SetLineWidth(2);
-  gaussFit->SetLineStyle(2);
+             std::exp(-x[0] * x[0] / (4. * p[0] * p[0]));
+           },
+           0, 10, 1);
+  // gaussFit->SetParameter(0, 1.3);
+  // gaussFit->SetNpx(1000);
+  // gaussFit->SetLineColor(kBlue + 2);
+  // gaussFit->SetLineWidth(2);
+  // gaussFit->SetLineStyle(2);
 
-  TCanvas* c = new TCanvas("paintonmeeee","paintonmeeee");
-  c->cd();
-  grSource->Fit(gaussFit, "", "RQ", 0, 6);
-  grSource->Draw("APL");
-  grSource->GetXaxis()->SetRangeUser(0, 12);
-  auto leg = new TLegend(0.4, 0.63, 0.85, 0.85);
-  leg->SetTextFont(42);
-  leg->AddEntry(grSource,
-                "p#minus#Xi^{-} #LT #it{m}_{T} #GT = 1.87 GeV/#it{c}^{2}",
-                "l");
-  leg->AddEntry((TObject*) nullptr, Form("#it{r}_{core} = %.3f fm", ppRadii[1]), "");
-  leg->AddEntry(
-      gaussFit,
-      Form("Gauss fit #it{r}_{G, eff} = %.3f fm", gaussFit->GetParameter(0)),
-      "l");
-  leg->Draw("same");
-  std::cout<< "gaussFit->GetParameter(0): " << gaussFit->GetParameter(0) << std::endl;
+  // TCanvas* c = new TCanvas("paintonmeeee","paintonmeeee");
+  // c->cd();
+  // grSource->Fit(gaussFit, "", "RQ", 0, 6);
+  // grSource->Draw("APL");
+  // grSource->GetXaxis()->SetRangeUser(0, 12);
+  // auto leg = new TLegend(0.4, 0.63, 0.85, 0.85);
+  // leg->SetTextFont(42);
+  // leg->AddEntry(grSource,
+  //               "p#minus#Xi^{-} #LT #it{m}_{T} #GT = 1.87 GeV/#it{c}^{2}",
+  //               "l");
+  // leg->AddEntry((TObject*) nullptr, Form("#it{r}_{core} = %.3f fm", ppRadii[1]), "");
+  // leg->AddEntry(
+  //     gaussFit,
+  //     Form("Gauss fit #it{r}_{G, eff} = %.3f fm", gaussFit->GetParameter(0)),
+  //     "l");
+  // leg->Draw("same");
+  // std::cout<< "gaussFit->GetParameter(0): " << gaussFit->GetParameter(0) << std::endl;
 //  c->SaveAs("ResonanceSource.pdf");
+  out->cd();
+  grSource->Write("pXiSource");
+  //gaussFit->Write("gauspXi"); 
+  return;
+}
+
+void PlayWithCats::GenerateSourceDistpp(TFile* out) {
+  std::cout << "Coulomb\n";
+  int nBins = 300;
+  double xmin = 0.5;
+  double xmax = 300.5;
+  TidyCats* tidy = new TidyCats();
+  tidy->SetTau(1.65, 4.69);
+  tidy->SetMass(1361.52, 1462.93);
+
+  TidyCats::Sources TheSource = TidyCats::sResonance;
+  float ppRadii[3];
+  ppRadii[0] = 0.886647;
+  ppRadii[1] = 1.;
+  ppRadii[2] = 0.979453;
+
+  CATS CoulombUp;
+  tidy->GetCatsProtonProton(&CoulombUp, nBins, xmin, xmax, TheSource); 
+
+  CoulombUp.SetAnaSource(0, ppRadii[1]);
+  CoulombUp.KillTheCat();
+
+  auto grSource = new TGraph();
+  DreamPlot::SetStyleGraph(grSource, 20, kBlue + 3);
+  grSource->SetLineWidth(2);
+  grSource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
+  grSource->SetName("gausPP"); 
+  for (double i = 0; i < 150; ++i) {
+    grSource->SetPoint(i, i * 0.1, CoulombUp.EvaluateTheSource(0, i * 0.1, 0));
+  }
+
+  // auto gaussFit =
+  //     new TF1(
+  //         "gauspp",
+  //         [&](double *x, double *p) {return
+  //           4. * TMath::Pi() * x[0] * x[0] / std::pow((4. * TMath::Pi() * p[0] * p[0]), 1.5) *
+  //           std::exp(-x[0] * x[0] / (4. * p[0] * p[0]));
+  //         },
+  //         0, 10, 1);
+  // gaussFit->SetParameter(0, 1.3);
+  // gaussFit->SetNpx(1000);
+  // gaussFit->SetLineColor(kBlue + 2);
+  // gaussFit->SetLineWidth(2);
+  // gaussFit->SetLineStyle(2);
+
+  //TCanvas* c = new TCanvas("paintonmeeeepp","paintonmeeeepp");
+  //c->cd();
+  //grSource->Fit(gaussFit, "", "RQ", 0, 6);
+  // grSource->Draw("APL");
+  //grSource->GetXaxis()->SetRangeUser(0, 12);
+  // auto leg = new TLegend(0.4, 0.63, 0.85, 0.85);
+  // leg->SetTextFont(42);
+  // leg->AddEntry(grSource,
+  //               "p#minus p r_{core} = 1.0",
+  //               "l");
+  // leg->AddEntry((TObject*) nullptr, Form("#it{r}_{core} = %.3f fm", ppRadii[1]), "");
+  // leg->AddEntry(
+  //     gaussFit,
+  //     Form("Gauss fit #it{r}_{G, eff} = %.3f fm", gaussFit->GetParameter(0)),
+  //     "l");
+  // leg->Draw("same");
+  // std::cout<< "gaussFit->GetParameter(0): " << gaussFit->GetParameter(0) << std::endl;
+//  c->SaveAs("ResonanceSource.pdf");
+  out->cd();
+  grSource->Write("ppSource");
+  //gaussFit->Write("gauspp"); 
+  return;
+}
+
+void PlayWithCats::GenerateSourceDistpL(TFile* out) {
+  std::cout << "Coulomb\n";
+  int nBins = 300;
+  double xmin = 0.5;
+  double xmax = 300.5;
+  TidyCats* tidy = new TidyCats();
+  tidy->SetTau(1.65, 4.69);
+  tidy->SetMass(1361.52, 1462.93);
+
+  TidyCats::Sources TheSource = TidyCats::sResonance;
+  float ppRadii[3];
+  ppRadii[0] = 0.886647;
+  ppRadii[1] = 1.;
+  ppRadii[2] = 0.979453;
+
+  CATS CoulombUp;
+
+  tidy->GetCatsProtonLambda(&CoulombUp, nBins, xmin, xmax, TheSource, TidyCats::pNLOWF); 
+
+  CoulombUp.SetAnaSource(0, ppRadii[1]);
+  CoulombUp.KillTheCat();
+
+  auto grSource = new TGraph();
+  DreamPlot::SetStyleGraph(grSource, 20, kBlue + 3);
+  grSource->SetLineWidth(2);
+  grSource->SetTitle(";#it{r} (fm); S(#it{r}) (fm^{-1})");
+  grSource->SetName("pLSource"); 
+  for (double i = 0; i < 150; ++i) {
+    grSource->SetPoint(i, i * 0.1, CoulombUp.EvaluateTheSource(0, i * 0.1, 0));
+  }
+
+  // auto gaussFit =
+  //     new TF1(
+  //         "gauspL",
+  //         [&](double *x, double *p) {return
+  //           4. * TMath::Pi() * x[0] * x[0] / std::pow((4. * TMath::Pi() * p[0] * p[0]), 1.5) *
+  //           std::exp(-x[0] * x[0] / (4. * p[0] * p[0]));
+  //         },
+  //         0, 10, 1);
+  // gaussFit->SetParameter(0, 1.3);
+  // gaussFit->SetNpx(1000);
+  // gaussFit->SetLineColor(kBlue + 2);
+  // gaussFit->SetLineWidth(2);
+  // gaussFit->SetLineStyle(2);
+  
+  // TCanvas* c = new TCanvas("paintonmeeeepL","paintonmeeeepL");
+  // c->cd();
+  // grSource->Fit(gaussFit, "", "RQ", 0, 6);
+  // grSource->Draw("APL");
+  // grSource->GetXaxis()->SetRangeUser(0, 12);
+  // auto leg = new TLegend(0.4, 0.63, 0.85, 0.85);
+  // leg->SetTextFont(42);
+  // leg->AddEntry(grSource,
+  //               "p#minus#p r_{core} = 1.0",
+  //               "l");
+  // leg->AddEntry((TObject*) nullptr, Form("#it{r}_{core} = %.3f fm", ppRadii[1]), "");
+  // leg->AddEntry(
+  //     gaussFit,
+  //     Form("Gauss fit #it{r}_{G, eff} = %.3f fm", gaussFit->GetParameter(0)),
+  //     "l");
+  // leg->Draw("same");
+  // std::cout<< "gaussFit->GetParameter(0): " << gaussFit->GetParameter(0) << std::endl;
+  out->cd();
+  grSource->Write("pLSource");
+  //gaussFit->Write("gauspL"); 
+  //  c->SaveAs("ResonanceSource.pdf");
   return;
 }
