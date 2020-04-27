@@ -7,7 +7,11 @@
 int main(int argc, char *argv[]) {
   TApplication theApp("App",&argc, argv);
   PlayWithCats *catsPlay = new PlayWithCats();
-  catsPlay->GenerateSourceDistpxi();
+  TFile* out = TFile::Open("OutSource.root", "RECREATE"); 
+  catsPlay->GenerateSourceDistpxi(out);
+  catsPlay->GenerateSourceDistpp(out);
+  catsPlay->GenerateSourceDistpL(out);
+  out->Close(); 
   theApp.Run();
 //  catsPlay->CloseFile();
 
