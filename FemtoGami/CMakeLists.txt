@@ -72,3 +72,6 @@ target_link_libraries(XiComp femtoGami)
 
 add_executable(OmDraw ${PROJECT_SOURCE_DIR}/Scripts/OmegaDrawWithError.C)
 target_link_libraries(OmDraw femtoGami)
+
+add_executable(XiOmDraw ${PROJECT_SOURCE_DIR}/Scripts/XiOmegaWithError.C)
+target_link_libraries(XiOmDraw femtoGami)

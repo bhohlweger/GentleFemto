@@ -137,15 +137,15 @@ int main(int argc, char *argv[]) {
   }
   TCanvas* c1;
   std::vector<const char*> LegNames;
-  LegNames.push_back("p-#Omega^{-} #bf{ALICE} data");
-  LegNames.push_back("Coulomb + HAL QCD elastic");
-  LegNames.push_back("Coulomb + HAL QCD elastic + inelastic");
-  LegNames.push_back("Coulomb");
+  LegNames.push_back("#bf{ALICE} data");
+  //LegNames.push_back("Coulomb + HAL QCD elastic");
+  //LegNames.push_back("Coulomb + HAL QCD elastic + inelastic");
+  //LegNames.push_back("Coulomb");
   std::vector<const char*> LegOptions;
   LegOptions.push_back("fpe");
-  LegOptions.push_back("f");
-  LegOptions.push_back("f");
-  LegOptions.push_back("f");
+  //LegOptions.push_back("f");
+  //LegOptions.push_back("f");
+  //LegOptions.push_back("f");
 
   c1 = new TCanvas("c2", "c2", 0, 0, 800, 600);
   TH1 * h = c1->DrawFrame(0, 0.5, 305, 7.5);
@@ -162,9 +162,9 @@ int main(int argc, char *argv[]) {
   TPad* pad;
   float LatexX = 0.;
   pad = (TPad*) c1->cd(0);
-  pad->SetRightMargin(0.08);
+  pad->SetRightMargin(0.01);
   pad->SetLeftMargin(0.1);
-  pad->SetTopMargin(0.1);
+  pad->SetTopMargin(0.01);
   pad->SetBottomMargin(0.115);
   pad->Draw();
   pad->cd();
@@ -181,22 +181,24 @@ int main(int argc, char *argv[]) {
   Data->SetSystematics(cf_graph_syst, 2);
   Data->SetLegendName(LegNames, LegOptions);
   Data->SetDrawAxis(false);
-  Data->FemtoModelFitBands(hal5S2Only, kOrange + 1, 10, 0, -4000, true, false);
+  Data->FemtoModelFitBands(hal5S2Only, kOrange + 1, 10, 0, -4000, false, false);
   Data->FemtoModelFitBands(hal5S2Rad, kGray + 1, 0.5, false);
 
-  Data->FemtoModelFitBands(hal3S15S2Only, kAzure + 1, 10, 0, -4000, true, false);
+  Data->FemtoModelFitBands(hal3S15S2Only, kAzure + 1, 10, 0, -4000, false, false);
   Data->FemtoModelFitBands(hal3S15S2Rad, kGray + 1, 0.5, false);
 
-  Data->FemtoModelFitBands(coulomb, kGreen + 1, 1, 3, -4000, true, false);
+  Data->FemtoModelFitBands(coulomb, kGreen + 1, 1, 3, -4000, false, false);
   
 
   Data->SetRangePlotting(fXmin, fXmax, 0.6, cf_graph_stat->GetYaxis()->GetXmax() * 1.5);  //ranges
   Data->SetNDivisions(505);
 
   float legXmin = fTextXMin - 0.02;
-  Data->SetLegendCoordinates(0.25, 0.56, 0.55, 0.86);
+  Data->SetLegendCoordinates(0.25, 0.6, 0.55, 0.9, false);
+  // Data->SetLegendCoordinates(0.25, 0.56, 0.55, 0.86);
   Data->SetInletRangePlotting(100, 280, 0.73, 1.31);
-  Data->SetInletCoordinates(0.35, 0.23, 0.9, 0.6);
+  Data->SetInletCoordinates(0.2, 0.39, 0.82, 0.8);
+  // Data->SetInletCoordinates(0.35, 0.23, 0.97, 0.64);
   Data->DrawCorrelationPlot(pad);
 
   pad->cd();
@@ -210,11 +212,15 @@ int main(int argc, char *argv[]) {
 
   c1->cd();
   TLatex text;
+  text.SetTextFont(43);
+  text.SetTextSizePixels(35); 
   text.SetNDC();
   text.SetTextColor(1);
   //  text.SetText
-  text.SetTextSize(gStyle->GetTextSize() * 1.2);
-  text.DrawLatex(0.01, 0.86, "#bf{b}");
+  //text.SetTextSize(gStyle->GetTextSize() * 1.2);
+  text.DrawLatex(0.01, 0.95, "#bf{b}");
+  text.DrawLatex(0.87, 0.87, "p-#Omega^{-}"); 
+  
   
   //h->Draw("same"); 
   out->cd();
