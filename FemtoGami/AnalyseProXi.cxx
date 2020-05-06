@@ -16,6 +16,7 @@
 #include "TFile.h"
 
 #include "DLM_CkDecomposition.h"
+#include "DLM_RootWrapper.h"
 
 AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
     : fcutOff(cutoff),
@@ -327,10 +328,12 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   AB_pXim1530.KillTheCat();
   DLM_Ck* ck = new DLM_Ck(AB_pXim1530.GetNumSourcePars(), 0, AB_pXim1530);
   DLM_CkDecomposition dec = DLM_CkDecomposition("dummy", 0, *ck, nullptr);
-  DLM_ResponseMatrix* resp = new DLM_ResponseMatrix(*ck, NULL,
-                                                    CATSinput->GetResFile(3),
-                                                    false);
-//  smeared = nullptr;
+
+  DLM_Histo<float>* DimiConv = Convert_TH2F_DlmHisto(CATSinput->GetResFile(3)); 
+  
+  DLM_ResponseMatrix* resp = new DLM_ResponseMatrix(AB_pXim1530, NULL, DimiConv, false);
+
+  
   DLM_Histo<double>*CkSmeared = new DLM_Histo<double>();
   CkSmeared->SetUp(1);
   CkSmeared->SetUp(0, ck->GetNbins(0), ck->GetLowEdge(0), ck->GetUpEdge(0));
@@ -347,6 +350,7 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
     pXim1530Converted->SetBinContent(iBin, 1);
   }
   delete ck;
+  delete DimiConv;
   delete resp;
   delete tidy;
   delete CATSinput;
@@ -354,6 +358,7 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   pXim1530Converted->Write();
   return XiGami->UnfoldResidual(dataCF, pXim1530Converted,
                                 XiGami->GetLamdaPar(1));
+  
 }
 
 double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
