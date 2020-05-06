@@ -520,8 +520,9 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   fLegend = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend, fYMaxLegend);
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
   fLegend->SetBorderSize(0);
-  fLegend->SetTextFont(42);
-  fLegend->SetTextSize(gStyle->GetTextSize() * legendTextScale);
+  
+  fLegend->SetTextFont(43);
+  fLegend->SetTextSize(27);
   int legendCounter = 1;
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
   fFakeGraph[0]->SetMarkerStyle(markerStyle);
