@@ -41,6 +41,7 @@ class MomentumGami {
   }
   TList* GetQAList() {return fQAList; }
  private:
+  bool fResponseMatrixSetup; 
   TList* fQAList;
   TH2F* fResolution;
   std::vector<TH1F*> fResProjection;

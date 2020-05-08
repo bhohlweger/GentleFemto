@@ -14,19 +14,20 @@
 #include "RooUnfoldBinByBin.h"
 #include "TSVDUnfold.h"
 MomentumGami::MomentumGami(float maxkStar)
-    : fQAList(new TList()),
-      fResolution(nullptr),
-      fResProjection(),
-      fToUnfold(nullptr),
-      fTrainQA(nullptr),
-      fResp(1),
-      fIter(1),
-      fResponseDefault(nullptr),
-      fResponseLower(nullptr),
-      fResponseUpper(nullptr),
-      fMaxkStar(maxkStar),
-      fUnitConversion(1.),
-      fHowToUnfold(kBayes){
+  : fResponseMatrixSetup(false),
+    fQAList(new TList()),
+    fResolution(nullptr),
+    fResProjection(),
+    fToUnfold(nullptr),
+    fTrainQA(nullptr),
+    fResp(1),
+    fIter(1),
+    fResponseDefault(nullptr),
+    fResponseLower(nullptr),
+    fResponseUpper(nullptr),
+    fMaxkStar(maxkStar),
+    fUnitConversion(1.),
+    fHowToUnfold(kBayes){
   // TODO Auto-generated constructor stub
   gRandom->SetSeed(0);
   fQAList->SetName("MomentumGamiQA");
@@ -37,106 +38,110 @@ MomentumGami::~MomentumGami() {
 }
 
 void MomentumGami::SetResolution(TH2F* resoMatrix, float UnitConversion) {
-  //User needs to make sure that the target binning is set properly!
-  TString hname;
-  TList* QAResolution = new TList();
-  QAResolution->SetName("QAResolution");
-  QAResolution->SetOwner(true);
-  fQAList->Add(QAResolution);
-  fResolution = resoMatrix;
-  int nBins = resoMatrix->GetNbinsX();
-  double xmin = resoMatrix->GetXaxis()->GetXmin();
-  double xmax = resoMatrix->GetXaxis()->GetXmax();
-  fResponseDefault = new RooUnfoldResponse(nBins, xmin, xmax);
-  fResponseLower = new RooUnfoldResponse(nBins, xmin, xmax);
-  fResponseUpper = new RooUnfoldResponse(nBins, xmin, xmax);
-  TH1F* Mean = new TH1F("MeanFit", "MeanFit", nBins, xmin, xmax);
-  fQAList->Add(Mean);
-  TH1F* MeanErr = new TH1F("MeanErrFit", "MeanErrFit", nBins, xmin, xmax);
-  fQAList->Add(MeanErr);
-  TH1F* Width = new TH1F("WidthFit", "WidthFit", nBins, xmin, xmax);
-  fQAList->Add(Width);
-  TH1F* WidthErr = new TH1F("WidthErrFit", "WidthErrFit", nBins, xmin, xmax);
-  fQAList->Add(WidthErr);
-  TF1* HalfAGauss =
+  if (!fResponseMatrixSetup) { 
+    //User needs to make sure that the target binning is set properly!
+    TString hname;
+    TList* QAResolution = new TList();
+    QAResolution->SetName("QAResolution");
+    QAResolution->SetOwner(true);
+    fQAList->Add(QAResolution);
+    fResolution = resoMatrix;
+    int nBins = resoMatrix->GetNbinsX();
+    double xmin = resoMatrix->GetXaxis()->GetXmin();
+    double xmax = resoMatrix->GetXaxis()->GetXmax();
+    fResponseDefault = new RooUnfoldResponse(nBins, xmin, xmax);
+    fResponseLower = new RooUnfoldResponse(nBins, xmin, xmax);
+    fResponseUpper = new RooUnfoldResponse(nBins, xmin, xmax);
+    TH1F* Mean = new TH1F("MeanFit", "MeanFit", nBins, xmin, xmax);
+    fQAList->Add(Mean);
+    TH1F* MeanErr = new TH1F("MeanErrFit", "MeanErrFit", nBins, xmin, xmax);
+    fQAList->Add(MeanErr);
+    TH1F* Width = new TH1F("WidthFit", "WidthFit", nBins, xmin, xmax);
+    fQAList->Add(Width);
+    TH1F* WidthErr = new TH1F("WidthErrFit", "WidthErrFit", nBins, xmin, xmax);
+    fQAList->Add(WidthErr);
+    TF1* HalfAGauss =
       new TF1(
-          "HalfAGauss",
-          "[2]*(TMath::Gaus(x,[0],[1],0)+TMath::Gaus(x,-[0],[1],0))/TMath::Sqrt(2*TMath::Pi()*[1]*[1])",
-          0, 1);
-  TF1* HalfAWideGauss =
+	      "HalfAGauss",
+	      "[2]*(TMath::Gaus(x,[0],[1],0)+TMath::Gaus(x,-[0],[1],0))/TMath::Sqrt(2*TMath::Pi()*[1]*[1])",
+	      0, 1);
+    TF1* HalfAWideGauss =
       new TF1(
-          "HalfAWideGauss",
-          "[2]*(TMath::Gaus(x,[0],[1],0)+TMath::Gaus(x,-[0],[1],0))/TMath::Sqrt(2*TMath::Pi()*[1]*[1])",
-          0, 1);
-  TF1* HalfANarrowGauss =
+	      "HalfAWideGauss",
+	      "[2]*(TMath::Gaus(x,[0],[1],0)+TMath::Gaus(x,-[0],[1],0))/TMath::Sqrt(2*TMath::Pi()*[1]*[1])",
+	      0, 1);
+    TF1* HalfANarrowGauss =
       new TF1(
-          "HalfANarrowGauss",
-          "[2]*(TMath::Gaus(x,[0],[1],0)+TMath::Gaus(x,-[0],[1],0))/TMath::Sqrt(2*TMath::Pi()*[1]*[1])",
-          0, 1);
+	      "HalfANarrowGauss",
+	      "[2]*(TMath::Gaus(x,[0],[1],0)+TMath::Gaus(x,-[0],[1],0))/TMath::Sqrt(2*TMath::Pi()*[1]*[1])",
+	      0, 1);
 
-  HalfAGauss->SetNpx(5000);
-  for (int i = 0;
-      i < resoMatrix->GetXaxis()->FindBin(fMaxkStar * UnitConversion); i++) {
-    hname = Form("hprojY%i", i);
-    fResProjection.push_back(
-        (TH1F*) resoMatrix->ProjectionY(hname, i + 1, i + 1));
-    int nEntries = fResProjection[i]->Integral(1,
-                                               fResProjection[i]->GetNbinsX());
-    hname = Form("SamplingQAY%i", i);
-    TH1F* samplingQA = new TH1F(hname, hname, 1000, 0, 1);
-    //normalize
-    fResProjection[i]->Scale(1. / (float) nEntries);
-    //Fit
-    HalfAGauss->SetParameter(0, fResProjection[i]->GetMean());
-    HalfAGauss->SetParameter(1, fResProjection[i]->GetRMS());
-    HalfAGauss->SetParameter(
-        2,
-        fResProjection[i]->GetBinContent(
-            fResProjection[i]->FindBin(fResProjection[i]->GetMean())));
-    fResProjection[i]->Fit(HalfAGauss, "R");
+    HalfAGauss->SetNpx(5000);
+    for (int i = 0;
+	 i < resoMatrix->GetXaxis()->FindBin(fMaxkStar * UnitConversion); i++) {
+      hname = Form("hprojY%i", i);
+      fResProjection.push_back(
+			       (TH1F*) resoMatrix->ProjectionY(hname, i + 1, i + 1));
+      int nEntries = fResProjection[i]->Integral(1,
+						 fResProjection[i]->GetNbinsX());
+      hname = Form("SamplingQAY%i", i);
+      TH1F* samplingQA = new TH1F(hname, hname, 1000, 0, 1);
+      //normalize
+      fResProjection[i]->Scale(1. / (float) nEntries);
+      //Fit
+      HalfAGauss->SetParameter(0, fResProjection[i]->GetMean());
+      HalfAGauss->SetParameter(1, fResProjection[i]->GetRMS());
+      HalfAGauss->SetParameter(
+			       2,
+			       fResProjection[i]->GetBinContent(
+								fResProjection[i]->FindBin(fResProjection[i]->GetMean())));
+      fResProjection[i]->Fit(HalfAGauss, "R");
 
-    HalfAWideGauss->SetParameter(0, HalfAGauss->GetParameter(0));
-    HalfAWideGauss->SetParameter(1, HalfAGauss->GetParameter(1) * 1.03);
-    HalfAWideGauss->SetParameter(2, HalfAGauss->GetParameter(2));
+      HalfAWideGauss->SetParameter(0, HalfAGauss->GetParameter(0));
+      HalfAWideGauss->SetParameter(1, HalfAGauss->GetParameter(1) * 1.03);
+      HalfAWideGauss->SetParameter(2, HalfAGauss->GetParameter(2));
 
-    HalfANarrowGauss->SetParameter(0, HalfAGauss->GetParameter(0));
-    HalfANarrowGauss->SetParameter(1, HalfAGauss->GetParameter(1) * .97);
-    HalfANarrowGauss->SetParameter(2, HalfAGauss->GetParameter(2));
+      HalfANarrowGauss->SetParameter(0, HalfAGauss->GetParameter(0));
+      HalfANarrowGauss->SetParameter(1, HalfAGauss->GetParameter(1) * .97);
+      HalfANarrowGauss->SetParameter(2, HalfAGauss->GetParameter(2));
 
-    Mean->SetBinContent(
-        i + 1, HalfAGauss->GetParameter(0) - Mean->GetBinCenter(i + 1));
-    Mean->SetBinError(i + 1, HalfAGauss->GetParError(0));
-    MeanErr->SetBinContent(
-        i + 1, HalfAGauss->GetParError(0) / HalfAGauss->GetParameter(0));
-    Width->SetBinContent(i + 1, HalfAGauss->GetParameter(1));
-    Width->SetBinError(i + 1, HalfAGauss->GetParError(1));
-    WidthErr->SetBinContent(
-        i + 1, HalfAGauss->GetParError(1) / HalfAGauss->GetParameter(1));
-    //Train Responses
-    float kTrue = resoMatrix->GetXaxis()->GetBinCenter(i + 1);
-    for (int nFills = 0; nFills < fResProjection[i]->GetEntries(); ++nFills) {
-      float kMeas = HalfAGauss->GetRandom();
-      fResponseDefault->Fill(kMeas, kTrue);
-      samplingQA->Fill(kMeas);
-      float kMeasLower = HalfANarrowGauss->GetRandom();
-      fResponseLower->Fill(kMeasLower, kTrue);
-      float kMeasUpper = HalfAWideGauss->GetRandom();
-      fResponseUpper->Fill(kMeasUpper, kTrue);
+      Mean->SetBinContent(
+			  i + 1, HalfAGauss->GetParameter(0) - Mean->GetBinCenter(i + 1));
+      Mean->SetBinError(i + 1, HalfAGauss->GetParError(0));
+      MeanErr->SetBinContent(
+			     i + 1, HalfAGauss->GetParError(0) / HalfAGauss->GetParameter(0));
+      Width->SetBinContent(i + 1, HalfAGauss->GetParameter(1));
+      Width->SetBinError(i + 1, HalfAGauss->GetParError(1));
+      WidthErr->SetBinContent(
+			      i + 1, HalfAGauss->GetParError(1) / HalfAGauss->GetParameter(1));
+      //Train Responses
+      float kTrue = resoMatrix->GetXaxis()->GetBinCenter(i + 1);
+      for (int nFills = 0; nFills < fResProjection[i]->GetEntries(); ++nFills) {
+	float kMeas = HalfAGauss->GetRandom();
+	fResponseDefault->Fill(kMeas, kTrue);
+	samplingQA->Fill(kMeas);
+	float kMeasLower = HalfANarrowGauss->GetRandom();
+	fResponseLower->Fill(kMeasLower, kTrue);
+	float kMeasUpper = HalfAWideGauss->GetRandom();
+	fResponseUpper->Fill(kMeasUpper, kTrue);
+      }
+      samplingQA->Scale(1. / samplingQA->GetEntries());
+      QAResolution->Add(fResProjection[i]);
+      QAResolution->Add(samplingQA);
     }
-    samplingQA->Scale(1. / samplingQA->GetEntries());
-    QAResolution->Add(fResProjection[i]);
-    QAResolution->Add(samplingQA);
+    TH2D* responsematrix = fResponseDefault->HresponseNoOverflow();
+    responsematrix->SetName(TString::Format("%sRespMatrix", "").Data());
+    TH2D* responsematrixUp = fResponseUpper->HresponseNoOverflow();
+    responsematrixUp->SetName(TString::Format("%sRespMatrixUp", "").Data());
+    TH2D* responsematrixLow = fResponseLower->HresponseNoOverflow();
+    responsematrixLow->SetName(TString::Format("%sRespMatrixLow", "").Data());
+    fQAList->Add(responsematrix);
+    fQAList->Add(responsematrixUp);
+    fQAList->Add(responsematrixLow);
+    fUnitConversion = UnitConversion;
+
+    fResponseMatrixSetup = true;
   }
-  TH2D* responsematrix = fResponseDefault->HresponseNoOverflow();
-  responsematrix->SetName(TString::Format("%sRespMatrix", "").Data());
-  TH2D* responsematrixUp = fResponseUpper->HresponseNoOverflow();
-  responsematrixUp->SetName(TString::Format("%sRespMatrixUp", "").Data());
-  TH2D* responsematrixLow = fResponseLower->HresponseNoOverflow();
-  responsematrixLow->SetName(TString::Format("%sRespMatrixLow", "").Data());
-  fQAList->Add(responsematrix);
-  fQAList->Add(responsematrixUp);
-  fQAList->Add(responsematrixLow);
-  fUnitConversion = UnitConversion;
 }
 
 void MomentumGami::UnfoldGuessing(TH1F* InputDist) {
