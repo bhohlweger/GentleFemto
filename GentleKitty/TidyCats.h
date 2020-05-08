@@ -10,6 +10,7 @@
 #include "DLM_ResponseMatrix.h"
 #include "TString.h"
 #include "TH1F.h"
+#include "TH2F.h"
 #ifndef GENTLEKITTY_TIDYCATS_H_
 #define GENTLEKITTY_TIDYCATS_H_
 
@@ -71,10 +72,8 @@ class TidyCats {
                                             const double kMin,
                                             const double kMax,
                                             bool convertToRad, int Rebin = 1);
-
-  void Smear(const DLM_Histo<double>* CkToSmear,
-             const DLM_ResponseMatrix* SmearMatrix,
-             DLM_Histo<double>* CkSmeared);
+  TH2F* ConvertHisto(TH2F* input, int nBins, double kMin, double kMax); 
+  void Smear(CATS& CATS, TH2F* smearing, TH1F* Smeared);
   DLM_Histo<double>* Convert2LargerOf2Evils(TH1F* CkInput);
   TH1F* Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim);
 

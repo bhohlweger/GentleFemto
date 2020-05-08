@@ -529,10 +529,18 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
   AB_pXim->SetMaxRho(32);
   DLM_Histo<complex<double>>*** ExternalWF = nullptr;
   if (pot == pHALQCD) {
-    double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
+    /*
+      double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
     double pXimPotParsI0S1[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1 };  // 9, 10, 11, 12
     double pXimPotParsI1S0[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0 };  //This is shit. Corresponds to 9-14 t
     double pXimPotParsI1S1[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1 };  // this value 1-6
+    */
+    
+    double pXimPotParsI0S0[8] = { pXim_HALQCDPaper2020, QCDTime, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
+    double pXimPotParsI0S1[8] = { pXim_HALQCDPaper2020, QCDTime, 0, -1, 1, 1, 0, 1 };  // 9, 10, 11, 12
+    double pXimPotParsI1S0[8] = { pXim_HALQCDPaper2020, QCDTime, 1,  1, 1, 0, 0, 0 };  //This is shit. Corresponds to 9-14 t
+    double pXimPotParsI1S1[8] = { pXim_HALQCDPaper2020, QCDTime, 1,  1, 1, 1, 0, 1 };  // this value 1-6
+    
     CATSparameters* cPotParsI0S0 = new CATSparameters(
         CATSparameters::tPotential, 8, true);
     cPotParsI0S0->SetParameters(pXimPotParsI0S0);
@@ -1067,30 +1075,53 @@ DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName,
   return Result;
 }
 
-void TidyCats::Smear(const DLM_Histo<double>* CkToSmear,
-                     const DLM_ResponseMatrix* SmearMatrix,
-                     DLM_Histo<double>* CkSmeared) {
-  if (!CkToSmear || !SmearMatrix || !CkSmeared) {
-    Error("TidyCats::Smear", "Missing Input Histo");
-  }
-  if (!SmearMatrix) {
-    CkSmeared[0] = CkToSmear[0];
-  } else {
-    for (unsigned uBinSmear = 0; uBinSmear < CkToSmear->GetNbins();
-        uBinSmear++) {
-      CkSmeared->SetBinContent(uBinSmear, 0);
-      for (unsigned uBinTrue = 0; uBinTrue < CkToSmear->GetNbins();
-          uBinTrue++) {
-        //as the response matrix is normalized to the size of the bin, during the integration we multiply for it
-        CkSmeared->Add(
-            uBinSmear,
-            SmearMatrix->ResponseMatrix[uBinSmear][uBinTrue]
-                * CkToSmear->GetBinContent(uBinTrue)
-                * CkToSmear->GetBinSize(uBinTrue)
-                * CkSmeared->GetBinSize(uBinSmear));
-      }
+TH2F* TidyCats::ConvertHisto(TH2F* input, int nBins, double kMin, double kMax) { 
+  //only converts the histo along the y axis
+  
+  TString Histname = TString::Format("%sFixShiftRebinned", input->GetName());
+  int nBinsX = input->GetXaxis()->GetNbins();
+  double xMin = input->GetXaxis()->GetXmin();
+  double xMax = input->GetXaxis()->GetXmax();
+  //  int nBinsY = input->GetYaxis()->FindBin(kMax) - input->GetYaxis()->FindBin(kMin); 
+  std::cout << "Convert Histo ... nBins: " << nBins << " kMin: " << kMin << " kMax: " << kMax << std::endl;
+  
+  TH2F* out = new TH2F(Histname.Data(),Histname.Data(), nBinsX, xMin, xMax, nBins, kMin, kMax);
+  
+  for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
+    for (int iBinY = 1; iBinY <= nBins; ++iBinY) {
+      int binY = input->GetYaxis()->FindBin(out->GetYaxis()->GetBinCenter(iBinY));  
+      out->SetBinContent(iBinX,iBinY,input->GetBinContent(iBinX, binY));
+      out->SetBinError(iBinX,iBinY,input->GetBinError(iBinX, binY)); 
     }
   }
+  return out; 
+} 
+
+void TidyCats::Smear(CATS& CATS, TH2F* smearing, TH1F* Smeared) {
+  int nBinsY = Smeared->GetXaxis()->GetNbins();
+  int nBinsX = smearing->GetXaxis()->GetNbins(); 
+  for (int iksOut = 1; iksOut <= nBinsY; ++iksOut) {
+    double Norm = 0;
+    double CkAdded = 0; 
+    double ksTrans = Smeared->GetBinCenter(iksOut); 
+    int ksMrx = smearing->GetYaxis()->FindBin(ksTrans); 
+    for (int iksIn = 1; iksIn <= nBinsX; ++iksIn) {
+      double ksInMtrx = smearing->GetXaxis()->GetBinCenter(iksIn);
+      double ksInCATS = CATS.GetMomentum(iksIn-1);
+      if (TMath::Abs(ksInMtrx-ksInCATS) > 1e-2) {
+	std::cout << "Warning in smearing difference in momenta between matrix and CATS object: ksCATS = " << ksInCATS << " and ksMATRIX = " << ksInMtrx << std::endl; 
+      } 
+      Norm += smearing->GetBinContent(iksIn, ksMrx);
+      CkAdded += smearing->GetBinContent(iksIn, ksMrx)*CATS.GetCorrFun(iksIn-1);
+      // if (iksOut == 1) {
+      // 	std::cout << "iksIn: " << iksIn <<  " Cats: " << CATS.GetCorrFun(iksIn-1) << " Smearer: " << smearing->GetBinContent(iksIn, ksMrx) << std::endl;
+      // }
+    }
+    // normalize
+    CkAdded/=Norm; 
+    Smeared->SetBinContent(iksOut, CkAdded); 
+  }
+  return; 
 }
 
 DLM_Histo<double>* TidyCats::Convert2LargerOf2Evils(TH1F* CkInput) {
@@ -1116,7 +1147,7 @@ DLM_Histo<double>* TidyCats::Convert2LargerOf2Evils(TH1F* CkInput) {
 TH1F* TidyCats::Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim) {
   TH1F* output = nullptr;
   int nBins;
-  if (dim) {
+  if (dim) { 
     nBins = dim->GetNbinsX();
     output = new TH1F("TidyCats::RenameMe", "TidyCats::RenameMe", nBins,
                       dim->GetXaxis()->GetXmin(), dim->GetXaxis()->GetXmax());
