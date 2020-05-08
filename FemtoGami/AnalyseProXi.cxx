@@ -16,7 +16,7 @@
 #include "TFile.h"
 
 #include "DLM_CkDecomposition.h"
-#include "DLM_RootWrapper.h"
+
 
 AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
     : fcutOff(cutoff),
@@ -44,15 +44,6 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
   fBLfunct = {"pol0","pol1"};
   fLamVars = {0.8,1.0,1.2};
   fXim1530Rad = {0.95,1.00,1.05};
-
-  TString CalibBaseDir = "/home/schmollweger/cernbox/HM13TeV/AnalysisData/336_pXiMCNano/ResolutionpXi.root";
-  TFile* inFile = TFile::Open(CalibBaseDir.Data(), "read");
-  if (!inFile) {
-    std::cout << "No Infile set, no Momentum resolution set, RIP \n";
-  } else {
-    TH2F* momReso = (TH2F*) inFile->Get("FiveMeV");
-    fMomGami->SetResolution(momReso, 1);
-  }
 }
 
 AnalyseProXi::~AnalyseProXi() {
@@ -62,36 +53,50 @@ AnalyseProXi::~AnalyseProXi() {
 }
 
 TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
-  std::cout << "Getting the CF \n";
-  ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
-  DreamFile->SetAnalysisFile(fFilename, fPrefix, fSuffix);
-
-  DreamDist* pXi = DreamFile->GetPairDistributions(0, 2, "");
-  DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 3, "");
-  if (fLimitCFRange) {
-    std::cout << " Limiting the range to " << fCFLimit << std::endl;
-    ResetLimits(pXi);
-    ResetLimits(ApAXi);
-  }
-  DreamCF* CFpXiDef = ObtainCorrFunction("pXiVar0", pXi, ApAXi);
-  TH1F* CFMeasured = CFpXiDef->FindCorrelationFunction(
-      "hCk_RebinnedpXiVar0MeV_0");
-  if (!CFMeasured) {
-    return nullptr;
-  }
-
-  CFMeasured = (TH1F*) CFMeasured->Clone("InputCF");
-  CFpXiDef->WriteOutput(
-      TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data());
-
   fQAOutput = TFile::Open(
-      TString::Format("%s/debug_Var%u.root", gSystem->pwd(), varnumber).Data(),
-      "recreate");
-//  CFMeasured->SetDirectory(0);
+			  TString::Format("%s/debug_Var%u.root", gSystem->pwd(), varnumber).Data(),
+			  "recreate");
+  TFile* doIExist = TFile::Open(TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data(), "read");
+  TH1F* CFMeasured; 
+  if (doIExist) {
+    CFMeasured = (TH1F*)doIExist->Get("hCk_RebinnedpXiVar0MeV_0"); 
+  } else { 
+    std::cout << "Getting the CF \n";
+    TString CalibBaseDir = "/home/schmollweger/cernbox/HM13TeV/AnalysisData/336_pXiMCNano/ResolutionpXi.root";
+    TFile* inFile = TFile::Open(CalibBaseDir.Data(), "read");
+    if (!inFile) {
+      std::cout << "No Infile set, no Momentum resolution set, RIP \n";
+    } else {
+      TH2F* momReso = (TH2F*) inFile->Get("FiveMeV");
+      fMomGami->SetResolution(momReso, 1);
+    }
+    ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
+    DreamFile->SetAnalysisFile(fFilename, fPrefix, fSuffix);
+
+    DreamDist* pXi = DreamFile->GetPairDistributions(0, 2, "");
+    DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 3, "");
+    if (fLimitCFRange) {
+      std::cout << " Limiting the range to " << fCFLimit << std::endl;
+      ResetLimits(pXi);
+      ResetLimits(ApAXi);
+    }
+    DreamCF* CFpXiDef = ObtainCorrFunction("pXiVar0", pXi, ApAXi);
+
+    CFMeasured = CFpXiDef->FindCorrelationFunction("hCk_RebinnedpXiVar0MeV_0");
+    if (!CFMeasured) {
+      return nullptr;
+    }
+
+    CFMeasured = (TH1F*) CFMeasured->Clone("InputCF");
+    CFpXiDef->WriteOutput(
+			  TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data());
+    fQAOutput->cd();
+    fMomGami->GetQAList()->Write("MomGami", 1);
+  }
+
+  fQAOutput->cd();
   fXiGami->UnSetLambdaPar();
   fXiGami->StoreStatErr(CFMeasured);
-  fQAOutput->cd();
-  fMomGami->GetQAList()->Write("MomGami", 1);
   CFMeasured->Write();
   std::cout << "Calculating Lambda parameter \n";
   double lamGenuine = SetupLambdaPars(fXiGami, fLamVars[fLamVarProton],
@@ -299,7 +304,7 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
 
   CATSInput *CATSinput = new CATSInput();
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
-  CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
+  CATSinput->SetMomResFileName("run2_decay_matrices_old.root", 1, 1);
   CATSinput->ReadResFile();
   CATSinput->SetSigmaFileName(SigmaFileName.Data());
   CATSinput->ReadSigmaFile();
@@ -309,6 +314,7 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   unsigned int nkBin = 0;
   double kMin, kMax;
   kMin = dataCF->GetXaxis()->GetXmin();
+
   if (fcutOff < dataCF->GetXaxis()->GetXmax()) {
     nkBin = dataCF->FindBin(fcutOff);
     std::cout << "dataCF->GetBinWidth(1): " << dataCF->GetBinWidth(1)
@@ -318,47 +324,39 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
     kMax = dataCF->GetXaxis()->GetXmax();
     nkBin = dataCF->GetNbinsX();
   }
+
+  
+  TH2F* input = CATSinput->GetResFile(3);
   std::cout << "kMin: " << kMin << " kMax: " << kMax << " nkBin: " << nkBin
             << std::endl;
+  
+  TH2F* Transformation = tidy->ConvertHisto(input, nkBin*10, kMin, kMax); 
+  Transformation->Rebin2D(20,10);
+  
+  TH1F* pXim1530Converted = new TH1F("pXim1530Converted","pXim1530Converted", nkBin, kMin, kMax);
+
   CATS AB_pXim1530;
-  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, nkBin, kMin, kMax,
+
+  double ktmin = Transformation->GetXaxis()->GetXmin();
+  double ktmax = Transformation->GetXaxis()->GetXmax();
+  double nktbins = Transformation->GetXaxis()->GetNbins();
+  std::cout << "nktbins: " << nktbins <<  " ktmin: " << ktmin << " ktmax: " << ktmax << std::endl; 
+  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, nktbins, ktmin, ktmax,
                                  TidyCats::sGaussian);
-
-  AB_pXim1530.SetAnaSource(0, fXim1530Rad.at(fRadVarXim1530));  //for now 1.2 fm .. ADJUST!
+  AB_pXim1530.SetAnaSource(0, fXim1530Rad.at(fRadVarXim1530));  
   AB_pXim1530.KillTheCat();
-  DLM_Ck* ck = new DLM_Ck(AB_pXim1530.GetNumSourcePars(), 0, AB_pXim1530);
-  DLM_CkDecomposition dec = DLM_CkDecomposition("dummy", 0, *ck, nullptr);
-
-  DLM_Histo<float>* DimiConv = Convert_TH2F_DlmHisto(CATSinput->GetResFile(3)); 
+  std::cout << "Smearing \n"; 
+  tidy->Smear( AB_pXim1530, Transformation, pXim1530Converted);
+  std::cout << "Done Smearing \n"; 
   
-  DLM_ResponseMatrix* resp = new DLM_ResponseMatrix(AB_pXim1530, NULL, DimiConv, false);
-
-  
-  DLM_Histo<double>*CkSmeared = new DLM_Histo<double>();
-  CkSmeared->SetUp(1);
-  CkSmeared->SetUp(0, ck->GetNbins(0), ck->GetLowEdge(0), ck->GetUpEdge(0));
-  CkSmeared->Initialize();
-  CkSmeared->SetBinContentAll(0);
-  CkSmeared->SetBinErrorAll(0);
-  tidy->Smear(ck, resp, CkSmeared);
-
-  TH1F* pXim1530Converted = tidy->Convert2LesserOf2Evils(CkSmeared, dataCF);
-  pXim1530Converted->SetName("pXim1530Converted");
-  pXim1530Converted->SetTitle("pXim1530Converted");
-  for (int iBin = pXim1530Converted->FindBin(500);
-      iBin < pXim1530Converted->GetNbinsX() + 1; ++iBin) {
-    pXim1530Converted->SetBinContent(iBin, 1);
-  }
-  delete ck;
-  delete DimiConv;
-  delete resp;
+  fQAOutput->cd();
+  input->Write();
+  Transformation->Write(); 
+  pXim1530Converted->Write();
   delete tidy;
   delete CATSinput;
-  fQAOutput->cd();
-  pXim1530Converted->Write();
   return XiGami->UnfoldResidual(dataCF, pXim1530Converted,
                                 XiGami->GetLamdaPar(1));
-  
 }
 
 double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
@@ -497,6 +495,7 @@ TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
 
   TGraphErrors* halandRad = new TGraphErrors();
   halandRad->SetName("HalAndRad");
+
   for (auto it = 0; it < nBins - 10; ++it) {
     double kStar = HalUp.GetMomentum(it);
     double mean = 0.5 * (HalUp.GetCorrFun(it) + HalLow.GetCorrFun(it));
