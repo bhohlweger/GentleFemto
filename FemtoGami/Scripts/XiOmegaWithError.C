@@ -253,7 +253,7 @@ void XiDraw(TPad* XiPad, const char* WorkDir) {
   TGraphAsymmErrors* cf_graph = (TGraphAsymmErrors*) cfgraphFile->FindObjectAny(
 										"Graph_from_hCk_RebinnedpXiVar0_0MeV");
   if (!cf_default) {
-    std::cout << "Default  data not found \n";
+    std::cout << "cf_default InputCF_ResGami_woBL_ResGami_GenuineGami not found \n";
     cfFile->ls();
     return;
   }
