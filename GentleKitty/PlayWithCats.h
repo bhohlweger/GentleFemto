@@ -23,6 +23,8 @@ class PlayWithCats {
   void GenerateSourceDistpxi(TFile* out);
   void GenerateSourceDistpp(TFile* out);
   void GenerateSourceDistpL(TFile* out);
+  void GenerateYukiCurves(TFile* out);
+
   
   void CloseFile() {
     fOutFile->Close();
