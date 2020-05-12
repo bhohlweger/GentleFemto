@@ -59,7 +59,7 @@ TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
   TFile* doIExist = TFile::Open(TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data(), "read");
   TH1F* CFMeasured; 
   if (doIExist) {
-    CFMeasured = (TH1F*)doIExist->Get("hCk_RebinnedpXiVar0MeV_0"); 
+    CFMeasured = (TH1F*)doIExist->Get("hCk_RebinnedpXiVar0MeV_0")->Clone("InputCF"); 
   } else { 
     std::cout << "Getting the CF \n";
     TString CalibBaseDir = "/home/schmollweger/cernbox/HM13TeV/AnalysisData/336_pXiMCNano/ResolutionpXi.root";
@@ -474,10 +474,14 @@ TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
   double xmax = 305.5;
   TidyCats* tidy = new TidyCats();
   TidyCats::Sources TheSource = TidyCats::sResonance;
+  //TidyCats::Sources TheSource = TidyCats::sGaussian;
   float ppRadii[3];
   ppRadii[0] = 0.886647;
   ppRadii[1] = 0.932114;
   ppRadii[2] = 0.979453;
+  //ppRadii[0] = 0.97;
+  //ppRadii[0] = 1.02;
+  //ppRadii[0] = 1.07; 
 
   CATS HalUp;
   CATS HalLow;
