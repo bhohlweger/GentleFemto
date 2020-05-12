@@ -7,13 +7,15 @@
 int main(int argc, char *argv[]) {
   TApplication theApp("App",&argc, argv);
   PlayWithCats *catsPlay = new PlayWithCats();
-  TFile* out = TFile::Open("OutSource.root", "RECREATE"); 
-  catsPlay->GenerateSourceDistpxi(out);
-  catsPlay->GenerateSourceDistpp(out);
-  catsPlay->GenerateSourceDistpL(out);
+  // TFile* out = TFile::Open("OutSource.root", "RECREATE"); 
+  // catsPlay->GenerateSourceDistpxi(out);
+  // catsPlay->GenerateSourceDistpp(out);
+  // catsPlay->GenerateSourceDistpL(out);
+  TFile* out = TFile::Open("Yuki.root", "recreate");
+  out->cd();
+  catsPlay->GenerateYukiCurves(out);
   out->Close(); 
-  theApp.Run();
-//  catsPlay->CloseFile();
+  //  catsPlay->CloseFile();
 
   //const char* Data = (argv[1]) ? argv[1] : "";
   //const char* Fit = (argv[2]) ? argv[2] : "";
