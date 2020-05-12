@@ -143,14 +143,15 @@ void PlotPotentials() {
                            dRad / 2., radMax + dRad / 2.);
 
     for (int iRad = 1; iRad < nRadBins; ++iRad) {
-      double pXimPotParsI0S0[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 0,
+      double pXimPotParsI0S0[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 0,
           -1, 1, 0, 0, 0};
-      double pXimPotParsI0S1[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 0,
+      double pXimPotParsI0S1[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 0,
           -1, 1, 1, 0, 1};
-      double pXimPotParsI1S0[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 1,
+      double pXimPotParsI1S0[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 1,
           1, 1, 0, 0, 0 };
-      double pXimPotParsI1S1[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 1,
+      double pXimPotParsI1S1[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 1,
           1, 1, 1, 0, 1 };
+
       I0S0[iTime]->SetBinContent(I0S0[iTime]->FindBin(iRad * dRad),
                                  fDlmPot(pXimPotParsI0S0));
 
@@ -405,11 +406,16 @@ void PlotCF(double GaussSourceSize = 1.4) {
   double QCDTime = 11;
   //4th argument is the t parameter and can be:
   // 9, 10, 11, 12
+  /* 
   double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };
   double pXimPotParsI0S1[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1};
   double pXimPotParsI1S0[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0};
   double pXimPotParsI1S1[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1};
-
+  */
+  double pXimPotParsI0S0[8] = { pXim_HALQCDPaper2020, QCDTime, 0, -1, 1, 0, 0, 0 };
+  double pXimPotParsI0S1[8] = { pXim_HALQCDPaper2020, QCDTime, 0, -1, 1, 1, 0, 1};
+  double pXimPotParsI1S0[8] = { pXim_HALQCDPaper2020, QCDTime, 1, 1, 1, 0, 0, 0};
+  double pXimPotParsI1S1[8] = { pXim_HALQCDPaper2020, QCDTime, 1, 1, 1, 1, 0, 1};
   CATSparameters cPotParsI0S0(CATSparameters::tPotential, 8, true);
   cPotParsI0S0.SetParameters(pXimPotParsI0S0);
 
@@ -649,7 +655,7 @@ void SetStyle(bool graypalette, bool title) {
 int main(int argc, char *argv[]) {
   SetStyle(false, false);
   radCutoff = 0.;
-  PlotCF();
+  PlotCF(0.95);
   PlotPotentials();
   return 0;
 }
