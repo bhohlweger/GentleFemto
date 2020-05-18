@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
   // catsPlay->GenerateSourceDistpL(out);
   TFile* out = TFile::Open("Yuki.root", "recreate");
   out->cd();
-  catsPlay->GenerateYukiCurves(out);
+  catsPlay->GenerateYukiCurves_200515(out);
   out->Close(); 
   //  catsPlay->CloseFile();
 

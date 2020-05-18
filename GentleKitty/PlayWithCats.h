@@ -24,7 +24,7 @@ class PlayWithCats {
   void GenerateSourceDistpp(TFile* out);
   void GenerateSourceDistpL(TFile* out);
   void GenerateYukiCurves(TFile* out);
-
+  void GenerateYukiCurves_200515(TFile* out); 
   
   void CloseFile() {
     fOutFile->Close();
