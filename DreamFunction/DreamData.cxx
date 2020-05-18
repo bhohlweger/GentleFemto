@@ -573,22 +573,28 @@ void DreamData::DrawInlet(TPad *c) {
   inset_pad->Draw();
   inset_pad->cd();
 
+
+  TH1 * h = inset_pad->DrawFrame(fXMinZoom, fYMinZoom, fXMaxZoom, fYMaxZoom); 
+  const char * texPtY = "#it{C}(#it{k}*)";
+  const char * texPtX = "#it{k}* (MeV/#it{c})";
+  h->GetYaxis()->SetNdivisions(203);
+  h->GetXaxis()->SetNdivisions(204);
+  h->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  h->GetXaxis()->SetTitleOffset(fXAxisOffsetInlet);
+  h->GetYaxis()->CenterTitle(true);
+  h->GetYaxis()->SetTitleOffset(fYAxisOffsetInlet);
+  h->GetXaxis()->SetTitleSize(fTextSizeInlet);
+  h->GetXaxis()->SetLabelSize(fTextSizeInlet);
+  h->GetYaxis()->SetTitleSize(fTextSizeInlet);
+  h->GetYaxis()->SetLabelSize(fTextSizeInlet);
+  h->GetXaxis()->CenterTitle(true);
+  
+  
   TGraphAsymmErrors* SysErrCopy = (TGraphAsymmErrors*) fSysError->Clone(
       Form("%s_NEWHOTclone", fSysError->GetName()));
 
-  SysErrCopy->GetYaxis()->SetNdivisions(203);
-  SysErrCopy->GetXaxis()->SetNdivisions(204);
-  SysErrCopy->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  SysErrCopy->GetXaxis()->SetTitleOffset(fXAxisOffsetInlet);
-  SysErrCopy->GetYaxis()->CenterTitle(true);
-  SysErrCopy->GetYaxis()->SetTitleOffset(fYAxisOffsetInlet);
-  SysErrCopy->GetXaxis()->SetTitleSize(fTextSizeInlet);
-  SysErrCopy->GetXaxis()->SetLabelSize(fTextSizeInlet);
-  SysErrCopy->GetYaxis()->SetTitleSize(fTextSizeInlet);
-  SysErrCopy->GetYaxis()->SetLabelSize(fTextSizeInlet);
+
   SysErrCopy->SetLineColor(kWhite);
-  SysErrCopy->GetXaxis()->CenterTitle(true);
-  SysErrCopy->Draw("Ap");
   fBaseLine->Draw("same");
 //  SysErrCopy->SetTitle(" ; ; ");
   SysErrCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
@@ -625,6 +631,7 @@ void DreamData::DrawInlet(TPad *c) {
     graphCopy->SetMarkerSize(1.0);
     graphCopy->Draw("pez same");
   }
+  inset_pad->RedrawAxis();
   fInset = inset_pad; 
   return;
 }
