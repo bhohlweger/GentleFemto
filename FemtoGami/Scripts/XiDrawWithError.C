@@ -11,25 +11,29 @@ int main(int argc, char *argv[]) {
   gStyle->SetEndErrorSize(5);
   const char* WorkDir = argv[1];
   TApplication app("TheApp", &argc, argv);
+
+    //TApplication app("TheApp", &argc, argv);
   TString cfName = TString::Format("%s/debug_Var0.root", WorkDir).Data();
+  TString modelName = TString::Format("%s/CFsXi.root", WorkDir).Data();
   TString cfgraphName = TString::Format("%s/CFinput_Var0.root", WorkDir).Data();
   TString sysDataName =
-      TString::Format("%s/Systematics_pXi.root", WorkDir).Data();
+    TString::Format("%s/Systematics_pXi.root", WorkDir).Data();
   TString sysNormName = TString::Format("%s/Systematics_pXiNorm.root", WorkDir)
-      .Data();
+    .Data();
   TString sysLamName = TString::Format("%s/Systematics_pXiLam.root", WorkDir)
-      .Data();
+    .Data();
   TString sysResName = TString::Format("%s/Systematics_pXiRes.root", WorkDir)
-      .Data();
+    .Data();
 
   TFile* cfFile = TFile::Open(cfName, "read");
+  TFile* modelFile = TFile::Open(modelName, "read");
   TH1F* cf_default = (TH1F*) cfFile->FindObjectAny(
-      "InputCF_ResGami_woBL_ResGami_GenuineGami");
+						   "InputCF_ResGami_woBL_ResGami_GenuineGami");
   TFile* cfgraphFile = TFile::Open(cfgraphName, "read");
   TGraphAsymmErrors* cf_graph = (TGraphAsymmErrors*) cfgraphFile->FindObjectAny(
-      "Graph_from_hCk_RebinnedpXiVar0_0MeV");
+										"Graph_from_hCk_RebinnedpXiVar0_0MeV");
   if (!cf_default) {
-    std::cout << "Default  data not found \n";
+    std::cout << "cf_default InputCF_ResGami_woBL_ResGami_GenuineGami not found \n";
     cfFile->ls();
     return 0;
   }
@@ -41,9 +45,20 @@ int main(int argc, char *argv[]) {
   }
   TGraphAsymmErrors* cf_graphWidth = new TGraphAsymmErrors(*cf_graph);
   TGraphErrors* coulomb = (TGraphErrors*) cfFile->FindObjectAny("Coulomb");
-  TGraphErrors* halRad = (TGraphErrors*) cfFile->FindObjectAny("HalAndRad");
-  TGraphErrors* halOnly = (TGraphErrors*) cfFile->FindObjectAny("HalOnly");
-
+  TGraphErrors* halRad = (TGraphErrors*) modelFile->FindObjectAny("gr_HALRadSymSum");
+  TGraphErrors* halOnly = (TGraphErrors*) modelFile->FindObjectAny("HAL_SymSum");
+  if (!coulomb) {
+    std::cout << "Coulomb missing \n";
+    cfFile->ls();
+  }
+  if (!halRad) {
+    std::cout << "halRad missing \n";
+    modelFile->ls();
+  }
+  if (!halOnly) {
+    std::cout << "Halonly missing\n";
+    modelFile->ls();
+  }
   TGraphErrors* pOm_coulomb = (TGraphErrors*)coulomb->Clone("pOmFakeCoulomb");
   TGraphErrors* pOm_hal5S2Only = (TGraphErrors*)coulomb->Clone("pOmFakehal1");
   TGraphErrors* pOm_hal3S15S2Only = (TGraphErrors*)coulomb->Clone("pOmFakehal2");

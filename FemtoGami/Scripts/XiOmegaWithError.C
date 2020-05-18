@@ -9,7 +9,7 @@
 void OmDraw(TPad* OmPad, const char* WorkDir) {
   
   TString cfData = TString::Format("%s/GenOutput.root", WorkDir).Data();
-  TString cfModel = TString::Format("%s/bands.root", WorkDir).Data();
+  TString cfModel = TString::Format("%s/200518_2_BandsAll_T12.root", WorkDir).Data();
  
   TFile* cfgraphFile = TFile::Open(cfData, "read");
   cfgraphFile->ls();
@@ -69,6 +69,7 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
   double xErrHigh, xErrLow, yErrHigh, yErrLow;
   double yMean, yErr; 
   TGraphAsymmErrors* coulomb_input = (TGraphAsymmErrors*) ModelFile->FindObjectAny("CoulombBand");
+  std::cout << "pomega coulomb band \n"; 
   TGraphErrors* coulomb = new TGraphErrors();
   coulomb->SetPoint(0, 0.3, 12.);
   coulomb->SetPointError(0, 0, 0.2); 
@@ -82,9 +83,9 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
     coulomb->SetPoint(iBin+1, x, yMean);
     coulomb->SetPointError(iBin+1, 0, yErr); 
   }
-  TGraphAsymmErrors* hal5S2Rad_input = (TGraphAsymmErrors*) ModelFile->FindObjectAny("LatticeBand5S2");
-  TGraphErrors* hal5S2Rad = new TGraphErrors();
-  for (int iBin = 0; iBin < hal5S2Rad_input->GetN(); ++iBin) {
+  //TGraphAsymmErrors* hal5S2Rad_input = (TGraphAsymmErrors*) ModelFile->FindObjectAny("LatticeBand5S2");
+  TGraphErrors* hal5S2Rad = (TGraphErrors*) ModelFile->FindObjectAny("LatticeBand5S2_symm");
+  /*for (int iBin = 0; iBin < hal5S2Rad_input->GetN(); ++iBin) {
     hal5S2Rad_input->GetPoint(iBin, x, y); 
     yErrHigh = y + hal5S2Rad_input->GetErrorYhigh(iBin);
     yErrLow = y - hal5S2Rad_input->GetErrorYlow(iBin);    
@@ -93,11 +94,16 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
 
     hal5S2Rad->SetPoint(iBin, x, yMean);
     hal5S2Rad->SetPointError(iBin, 0, yErr); 
-  }
-  
-  TGraphAsymmErrors* hal5S2Only_input = (TGraphAsymmErrors*) ModelFile->FindObjectAny("LatticeBandStat5S2");
-  TGraphErrors* hal5S2Only = new TGraphErrors();
-  for (int iBin = 0; iBin < hal5S2Only_input->GetN(); ++iBin) {
+    }
+  */
+  if (!hal5S2Rad) {
+    std::cout << "no hal5S2Rad\n";
+    ModelFile->ls();
+  } 
+  //TGraphAsymmErrors* hal5S2Only_input = (TGraphAsymmErrors*) ModelFile->FindObjectAny("LatticeBandStatTpar5S2");
+  TGraphErrors* hal5S2Only = (TGraphErrors*) ModelFile->FindObjectAny("LatticeBandStatTpar5S2_symm");
+  /*
+for (int iBin = 0; iBin < hal5S2Only_input->GetN(); ++iBin) {
     hal5S2Only_input->GetPoint(iBin, x, y); 
     yErrHigh = y + hal5S2Only_input->GetErrorYhigh(iBin);
     yErrLow = y - hal5S2Only_input->GetErrorYlow(iBin);    
@@ -107,9 +113,15 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
     hal5S2Only->SetPoint(iBin, x, yMean);
     hal5S2Only->SetPointError(iBin, 0, yErr); 
   }
-  TGraphAsymmErrors* hal3S15S2Rad_input = (TGraphAsymmErrors*) ModelFile->FindObjectAny("LatticeBand5S23S1");
-  TGraphErrors* hal3S15S2Rad = new TGraphErrors();
-  for (int iBin = 0; iBin < hal3S15S2Rad_input->GetN(); ++iBin) {
+  */
+  if (!hal5S2Only) {
+    std::cout << "no hal5S2Only\n"; 
+    ModelFile->ls();
+  }
+  //TGraphAsymmErrors* hal3S15S2Rad_input = (TGraphAsymmErrors*) ModelFile->FindObjectAny("LatticeBand5S23S1");
+  TGraphErrors* hal3S15S2Rad = (TGraphErrors*) ModelFile->FindObjectAny("LatticeBand5S23S1_symm");
+  /*
+for (int iBin = 0; iBin < hal3S15S2Rad_input->GetN(); ++iBin) {
     hal3S15S2Rad_input->GetPoint(iBin, x, y); 
     yErrHigh = y + hal3S15S2Rad_input->GetErrorYhigh(iBin);
     yErrLow = y - hal3S15S2Rad_input->GetErrorYlow(iBin);    
@@ -119,9 +131,15 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
     hal3S15S2Rad->SetPoint(iBin, x, yMean);
     hal3S15S2Rad->SetPointError(iBin, 0, yErr); 
   } 
-  TGraphAsymmErrors* hal3S15S2Only_input = (TGraphAsymmErrors*) ModelFile->FindObjectAny("LatticeBandStat5S23S1");
-  TGraphErrors* hal3S15S2Only = new TGraphErrors();
-  for (int iBin = 0; iBin < hal3S15S2Only_input->GetN(); ++iBin) {
+  */
+  //TGraphAsymmErrors* hal3S15S2Only_input = (TGraphAsymmErrors*) ModelFile->FindObjectAny("LatticeBandStatTpar5S23S1");
+  if(!hal3S15S2Rad) {
+    std::cout << "no hal3S15S2Rad\n";
+    ModelFile->ls();
+  } 
+  TGraphErrors* hal3S15S2Only = (TGraphErrors*) ModelFile->FindObjectAny("LatticeBandStatTpar5S23S1_symm");
+  /*
+    for (int iBin = 0; iBin < hal3S15S2Only_input->GetN(); ++iBin) {
     hal3S15S2Only_input->GetPoint(iBin, x, y); 
     yErrHigh = y + hal3S15S2Only_input->GetErrorYhigh(iBin);
     yErrLow = y - hal3S15S2Only_input->GetErrorYlow(iBin);    
@@ -130,6 +148,11 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
 
     hal3S15S2Only->SetPoint(iBin, x, yMean);
     hal3S15S2Only->SetPointError(iBin, 0, yErr); 
+  }
+  */
+  if(!hal3S15S2Only) {
+    std::cout <<"no hal3S15S2Only\n";
+    ModelFile->ls();
   }
   //TCanvas* c1;
   std::vector<const char*> LegNames;
@@ -177,13 +200,14 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
   Data->SetSystematics(cf_graph_syst, 2);
   Data->SetLegendName(LegNames, LegOptions);
   Data->SetDrawAxis(false);
+  Data->FemtoModelFitBands(coulomb, kGreen + 1, 1, 3, -4000, false, false);
   Data->FemtoModelFitBands(hal5S2Only, kOrange + 1, 10, 0, -4000, false, false);
   Data->FemtoModelFitBands(hal5S2Rad, kGray + 1, 0.5, false);
 
   Data->FemtoModelFitBands(hal3S15S2Only, kAzure + 1, 10, 0, -4000, false, false);
   Data->FemtoModelFitBands(hal3S15S2Rad, kGray + 1, 0.5, false);
 
-  Data->FemtoModelFitBands(coulomb, kGreen + 1, 1, 3, -4000, false, false);
+
   
 
   Data->SetRangePlotting(fXmin, fXmax, 0.6, cf_graph_stat->GetYaxis()->GetXmax() * 1.5);  //ranges
@@ -192,9 +216,9 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
   float legXmin = fTextXMin - 0.02;
   Data->SetLegendCoordinates(0.25, 0.6, 0.55, 0.9, false);
   // Data->SetLegendCoordinates(0.25, 0.56, 0.55, 0.86);
-  Data->SetInletRangePlotting(100, 280, 0.73, 1.31);
+  Data->SetInletRangePlotting(84, 286, 0.73, 1.31);
   Data->SetInletCoordinates(0.12, 0.25, 0.96, 0.8);
-  Data->SetAxisOffsetInlet(4.0, 3.0); 
+  Data->SetAxisOffsetInlet(4.0, 2.5); 
   // Data->SetInletCoordinates(0.35, 0.23, 0.97, 0.64);
   Data->DrawCorrelationPlot(pad);
 
@@ -236,6 +260,7 @@ void XiDraw(TPad* XiPad, const char* WorkDir) {
 
   //TApplication app("TheApp", &argc, argv);
   TString cfName = TString::Format("%s/debug_Var0.root", WorkDir).Data();
+  TString modelName = TString::Format("%s/CFsXi.root", WorkDir).Data();
   TString cfgraphName = TString::Format("%s/CFinput_Var0.root", WorkDir).Data();
   TString sysDataName =
     TString::Format("%s/Systematics_pXi.root", WorkDir).Data();
@@ -247,6 +272,7 @@ void XiDraw(TPad* XiPad, const char* WorkDir) {
     .Data();
 
   TFile* cfFile = TFile::Open(cfName, "read");
+  TFile* modelFile = TFile::Open(modelName, "read");
   TH1F* cf_default = (TH1F*) cfFile->FindObjectAny(
 						   "InputCF_ResGami_woBL_ResGami_GenuineGami");
   TFile* cfgraphFile = TFile::Open(cfgraphName, "read");
@@ -265,9 +291,20 @@ void XiDraw(TPad* XiPad, const char* WorkDir) {
   }
   TGraphAsymmErrors* cf_graphWidth = new TGraphAsymmErrors(*cf_graph);
   TGraphErrors* coulomb = (TGraphErrors*) cfFile->FindObjectAny("Coulomb");
-  TGraphErrors* halRad = (TGraphErrors*) cfFile->FindObjectAny("HalAndRad");
-  TGraphErrors* halOnly = (TGraphErrors*) cfFile->FindObjectAny("HalOnly");
-
+  TGraphErrors* halRad = (TGraphErrors*) modelFile->FindObjectAny("gr_HALRadSymSum");
+  TGraphErrors* halOnly = (TGraphErrors*) modelFile->FindObjectAny("HAL_SymSum");
+  if (!coulomb) {
+    std::cout << "Coulomb missing \n";
+    cfFile->ls();
+  }
+  if (!halRad) {
+    std::cout << "halRad missing \n";
+    modelFile->ls();
+  }
+  if (!halOnly) {
+    std::cout << "Halonly missing\n";
+    modelFile->ls();
+  }
   TGraphErrors* pOm_coulomb = (TGraphErrors*)coulomb->Clone("pOmFakeCoulomb");
   TGraphErrors* pOm_hal5S2Only = (TGraphErrors*)coulomb->Clone("pOmFakehal1");
   TGraphErrors* pOm_hal3S15S2Only = (TGraphErrors*)coulomb->Clone("pOmFakehal2");
