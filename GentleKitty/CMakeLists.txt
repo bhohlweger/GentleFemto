@@ -100,6 +100,9 @@ target_link_libraries(PLOnly tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(POnlyOnTheGrid ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/POnlyOnTheGrid.C)
 target_link_libraries(POnlyOnTheGrid tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(POnlyOnTheGridforCoalescence ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysisForCoalescence/POnlyOnTheGridCoalescence.C)
+target_link_libraries(POnlyOnTheGridforCoalescence tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(ppExtractSource ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/pp_mTSourceExtractor.C)
 target_link_libraries(ppExtractSource tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
@@ -115,6 +118,9 @@ target_link_libraries(SideBand tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(ppSystematics ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/systematics_pp.C)
 target_link_libraries(ppSystematics tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(ppSystematicsCoalescence ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysisForCoalescence/systematics_ppBhawani.C)
+target_link_libraries(ppSystematicsCoalescence tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(DrawCurves ${PROJECT_SOURCE_DIR}/Scripts/DrawCurves.C)
 target_link_libraries(DrawCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
@@ -126,9 +132,6 @@ target_link_libraries(dumpSigma0 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(pSigma0 ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/pSigma0_single.C)
 target_link_libraries(pSigma0 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
-
-add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/plotSigmaModels.C)
-target_link_libraries(PlotSigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(SigmaSource ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/FemtoSource.C)
 target_link_libraries(SigmaSource tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
@@ -193,16 +196,24 @@ target_link_libraries(POnlyExtractor tidyCATS -L${DREAM_LIB_PATH} DreamFunctions
 add_executable(mTAnalysis ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/mTExtractor.C)
 target_link_libraries(mTAnalysis tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(mTAnalysisCoalescence ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysisForCoalescence/mTExtractorCoalescence.C)
+target_link_libraries(mTAnalysisCoalescence tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(mTPLAnalysis ${PROJECT_SOURCE_DIR}/Scripts/pLAnalysis/mTExtractorAddPot.C)
 target_link_libraries(mTPLAnalysis tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
-
-add_executable(runPhi ${PROJECT_SOURCE_DIR}/Scripts/pPhi.C)
-target_link_libraries(runPhi tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(radPlotter ${PROJECT_SOURCE_DIR}/Scripts/RadiusDrawer.C)
 target_link_libraries(radPlotter tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(radPlotterV2 ${PROJECT_SOURCE_DIR}/Scripts/RadiusDrawerPotSep.C)
 target_link_libraries(radPlotterV2 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(b2Plots ${PROJECT_SOURCE_DIR}/Scripts/PlotsB2Coalescence.C)
+target_link_libraries(b2Plots tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(radPlotterForCoalescence ${PROJECT_SOURCE_DIR}/Scripts/RadiusDrawerForCoalescence.C)
+target_link_libraries(radPlotterForCoalescence tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+add_executable(plotCFforCoalescence ${PROJECT_SOURCE_DIR}/Scripts/PlotCFsForCoalescence.C)
+target_link_libraries(plotCFforCoalescence tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(lambdaPlotter ${PROJECT_SOURCE_DIR}/Scripts/ppAnalysis/LambdaExtractor.C)
 target_link_libraries(lambdaPlotter tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
