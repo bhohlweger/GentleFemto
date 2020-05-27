@@ -400,12 +400,9 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
   } else if (pot == TidyCats::pNLOWF) {
     TString HomeDir = gSystem->GetHomeDirectory().c_str();
     ExternalWF = Init_pL_Haidenbauer(
-      //TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pLambdaNLO/",
-                     // HomeDir.Data()),
-      //AB_pL, 10, 600);//For Bernie
-        TString::Format("%s/Desktop/RadiiFit/WaveFunctions/Haidenbauer/pLambdaNLO/",
+        TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pLambdaNLO/",
                         HomeDir.Data()),
-         AB_pL, 10, 600); //For Bhawani
+        AB_pL, 10, 600);
     for (unsigned uCh = 0; uCh < AB_pL->GetNumChannels(); uCh++) {
       AB_pL->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                      ExternalWF[1][uCh][0]);
@@ -414,12 +411,9 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
   } else if (pot == TidyCats::pLOWF) {
     TString HomeDir = gSystem->GetHomeDirectory().c_str();
     ExternalWF = Init_pL_Haidenbauer(
-      //TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pLambdaLO_600/",
-                      //  HomeDir.Data()),
-      //AB_pL, 0, 600); For Bernie
-        TString::Format("%s/Desktop/RadiiFit/WaveFunctions/Haidenbauer/pLambdaLO_600/",
-                    HomeDir.Data()),
-        AB_pL, 0, 600); //For Bhawani
+        TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pLambdaLO_600/",
+                        HomeDir.Data()),
+        AB_pL, 0, 600);
     for (unsigned uCh = 0; uCh < AB_pL->GetNumChannels(); uCh++) {
       AB_pL->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
                                      ExternalWF[1][uCh][0]);
