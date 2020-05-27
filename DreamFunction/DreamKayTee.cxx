@@ -385,7 +385,7 @@ void DreamKayTee::SetMEmTMultDist(int iPart, int imT, TH2F* MEmTMult) {
 }
 
 
-std::vector<DreamCF*> DreamKayTee::GetmTMultBinned(int imT) {
+std::vector<DreamCF*> DreamKayTee::GetmTMultBinned(int imT, int Varcount) {
   std::vector<DreamCF*> outVec;
   if (!(imT < nmTBins)) {
     std::cout << "imT : " << imT << " too large for nmTBins: " << nmTBins << std::endl;
@@ -475,16 +475,23 @@ std::vector<DreamCF*> DreamKayTee::GetmTMultBinned(int imT) {
 
     pp->ReweightMixedEvent(pp->GetPair(), 0.2, 0.9);
     ApAp->ReweightMixedEvent(ApAp->GetPair(), 0.2, 0.9);
-    pp->ShiftForEmpty(pp->GetPairReweighted(0));
-    ApAp->ShiftForEmpty(ApAp->GetPairReweighted(0));
-
-    // pp->ShiftForEmpty(pp->GetPair());
-    //ApAp->ShiftForEmpty(ApAp->GetPair());
     
+  //There was a bug due to "our dear lovely ROOT" in this part which led to different results in Radius... Don't use it without discussing with Bernie
+
+  /*pp->ShiftForEmpty(pp->GetPairReweighted(0));
+    ApAp->ShiftForEmpty(ApAp->GetPairReweighted(0));
+    pp->ShiftForEmpty(pp->GetPair());
+    ApAp->ShiftForEmpty(ApAp->GetPair());
     pp->FixShift(pp->GetPairShiftedEmpty(0), ApAp->GetPairShiftedEmpty(0),
-		 ApAp->GetFirstBin());
+		ApAp->GetFirstBin());
     ApAp->FixShift(ApAp->GetPairShiftedEmpty(0), pp->GetPairShiftedEmpty(0),
-		   pp->GetFirstBin());
+		pp->GetFirstBin());
+	*/
+
+    pp->FixShift(pp->GetPairReweighted(0), ApAp->GetPairReweighted(0),
+                 fFixShiftValue[imT], fFixShift[imT]);
+     ApAp->FixShift(ApAp->GetPairReweighted(0), pp->GetPairReweighted(0),
+                    fFixShiftValue[imT], fFixShift[imT]);
     
     pp->Rebin(pp->GetPairFixShifted(0), 8);
     ApAp->Rebin(ApAp->GetPairFixShifted(0), 8);
@@ -494,7 +501,8 @@ std::vector<DreamCF*> DreamKayTee::GetmTMultBinned(int imT) {
 
     CF_pp->SetPairs(pp,ApAp);
     CF_pp->GetCorrelations();
-    CF_pp->WriteOutput(TString::Format("%s/CF_mTBin_%i_%s.root",gSystem->pwd(),imT,ProjName.Data()));
+    CF_pp->WriteOutput(TString::Format("%s/CF_ppVar%u_mTBin_%i_%s.root",gSystem->pwd(),Varcount,
+                                       imT,ProjName.Data()));
   }
   
 

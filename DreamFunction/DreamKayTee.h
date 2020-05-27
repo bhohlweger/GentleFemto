@@ -69,7 +69,7 @@ class DreamKayTee {
   void SetMultBins(std::vector<int> multBins) {
     fMultBins = multBins;
   };
-  std::vector<DreamCF*> GetmTMultBinned(int imT); 
+  std::vector<DreamCF*> GetmTMultBinned(int imT, int Varcount);
  private:
   bool fIskT;
   const int nmTBins; 
