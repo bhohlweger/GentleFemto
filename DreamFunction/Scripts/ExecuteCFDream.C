@@ -9,6 +9,5 @@ int main(int argc, char* argv[]) {
   //GetCorrelations(atof(argv[4]),filename, prefix, addon);
   GetCorrelations(filename, prefix, addon);
 //  METoSEReweighting(gSystem->pwd());
-
   return 1;
 }

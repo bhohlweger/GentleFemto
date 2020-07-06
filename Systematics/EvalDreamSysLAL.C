@@ -14,9 +14,11 @@ void EvalDreamSystematics(TString InputDir, TString prefix,
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
-  CATSinput->SetNormalization(0.2, 0.4);
+  double norm1 = 0.18;
+  double norm2 = 0.28;
+  CATSinput->SetNormalization(norm1, norm2);
   CATSinput->SetFixedkStarMinBin(true, 0.);//
-  const int rebin = 5;//default = 4 has binning of 16 MeV
+  const int rebin = 5;//default = 5 has binning of 20 MeV
   auto counter = new CandidateCounter();
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);//$ particles covered in the BBar analysis
   DreamFile->SetAnalysisFile(filename.Data(), prefix, "0");
