@@ -60,6 +60,12 @@ class ReadDreamFile {
                                       int iAPart2);
   DreamKayTee* GetmTMultPairDistributions(int iPart1, int iPart2, int iAPart1,
 					  int iAPart2, const int nmTBins);
+  DreamKayTee* GetmTPairDistributionsCommon(int iPart1, int iPart2, int iAPart1,
+                                      int iAPart2);
+  DreamKayTee* GetmTPairDistributionsCommon(int iPart1, int iPart2);
+  DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2, int iAPart1,
+                                      int iAPart2);
+  DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2);
   DreamKayTee* GetmTPairDistributionsBBar(int iPart1, int iPart2);
   DreamdEtadPhi* GetdEtadPhiDistribution(int iPart1, int iPart2, int iAPart1,
                                          int iAPart2, int imT = 0);
@@ -80,8 +86,6 @@ class ReadDreamFile {
  private:
   bool fQuiet;
   TH1F*** fSE;
-  TH1F*** fSECommon;
-  TH1F*** fSENonCommon;
   TH2F*** fSEMult;
   TH2F*** fSEkT;
   TH2F*** fSEmT;
@@ -93,8 +97,6 @@ class ReadDreamFile {
   TH2F***** fSEdEtadPhiAtRad;
   TH2F***** fSEdEtadPhiAtRadSmallkStar;
   TH2F*** fSEdEtadPhi;
-  TH2F*** fSEdEtadPhiCommon;
-  TH2F*** fSEdEtadPhiNonCommon;
   TH1F*** fME;
   TH2F*** fMEMult;
   TH2F*** fMEkT;
