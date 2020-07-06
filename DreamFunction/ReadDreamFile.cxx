@@ -21,9 +21,9 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fSEMult(nullptr),
       fSEkT(nullptr),
       fSEmT(nullptr),
-	  fSEmTProj(nullptr),
-	  fProjmT(nullptr),
-	  fMeanmT(nullptr),
+      fSEmTProj(nullptr),
+      fProjmT(nullptr),
+      fMeanmT(nullptr),
       fSEdEtadPhimT(nullptr),
       fSEdEtadPhi(nullptr),
       fSEdEtadPhiAtRad(nullptr),
@@ -35,7 +35,15 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fMEdEtadPhimT(nullptr),
       fMEdEtadPhi(nullptr),
       fMEdEtadPhiAtRad(nullptr),
-      fMEdEtadPhiAtRadSmallkStar(nullptr) {
+      fMEdEtadPhiAtRadSmallkStar(nullptr),
+      fSECommon(nullptr),
+      fSENonCommon(nullptr),
+      fSEMultCommon(nullptr),
+      fSEMultNonCommon(nullptr),
+      fSEmTCommon(nullptr),
+      fSEmTNonCommon(nullptr),
+      fSEdEtadPhiCommon(nullptr),
+      fSEdEtadPhiNonCommon(nullptr) {
   TH1::AddDirectory(kFALSE);
   TH2::AddDirectory(kFALSE);
 }
@@ -69,6 +77,18 @@ ReadDreamFile::~ReadDreamFile() {
         delete fMEmT[iPart1][iPart2];
       if (fMEdEtadPhi && fMEdEtadPhi[iPart1][iPart2])
         delete fMEdEtadPhi[iPart1][iPart2];
+      if (fSECommon && fSECommon[iPart1][iPart2])
+        delete fSECommon[iPart1][iPart2];
+      if (fSENonCommon && fSENonCommon[iPart1][iPart2])
+        delete fSENonCommon[iPart1][iPart2];
+      if (fSEMultCommon && fSEMultCommon[iPart1][iPart2])
+        delete fSEMultCommon[iPart1][iPart2];
+      if (fSEMultNonCommon && fSEMultNonCommon[iPart1][iPart2])
+        delete fSEMultNonCommon[iPart1][iPart2];
+      if (fSEdEtadPhiCommon && fSEdEtadPhiCommon[iPart1][iPart2])
+        delete fSEdEtadPhiCommon[iPart1][iPart2];
+      if (fSEdEtadPhiNonCommon && fSEdEtadPhiNonCommon[iPart1][iPart2])
+        delete fSEdEtadPhiNonCommon[iPart1][iPart2];
     }
   }
 }
@@ -287,12 +307,23 @@ void ReadDreamFile::ExtractResultsAncestors(const TList *Results) {
   TList *PartList;
 
   fSECommon = new TH1F**[fNPart1];
+  fSEMultCommon = new TH2F**[fNPart1];
+
   fSENonCommon = new TH1F**[fNPart1];
+  fSEMultNonCommon = new TH2F**[fNPart1];
+
   fME = new TH1F**[fNPart1];
+  fMEMult = new TH2F**[fNPart1];
+
   for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
     fSECommon[iPart1] = new TH1F*[fNPart2];
+    fSEMultCommon[iPart1] = new TH2F*[fNPart2];
+
     fSENonCommon[iPart1] = new TH1F*[fNPart2];
+    fSEMultNonCommon[iPart1] = new TH2F*[fNPart2];
+
     fME[iPart1] = new TH1F*[fNPart2];
+    fMEMult[iPart1] = new TH2F*[fNPart2];
 
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
       TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
@@ -315,6 +346,25 @@ void ReadDreamFile::ExtractResultsAncestors(const TList *Results) {
             Form("%s_clone", hist1DNonCommon->GetName()));
         fSENonCommon[iPart1][iPart2]->Sumw2();
       }
+      fSEMultCommon[iPart1][iPart2] = nullptr;
+      fSEMultNonCommon[iPart1][iPart2] = nullptr;
+
+      auto hist2DCommon = (TH2F*) PartList->FindObject(
+          Form("SEMultDistCommon_%s", FolderName.Data()));
+      auto hist2DNonCommon = (TH2F*) PartList->FindObject(
+          Form("SEMultDistNonCommon_%s", FolderName.Data()));
+      if (!hist2DCommon | !hist2DNonCommon) {
+        if (!fQuiet)
+          std::cout << "SEMult Histogramm missing from " << FolderName.Data()
+                    << std::endl;
+      } else {
+        fSEMultCommon[iPart1][iPart2] = (TH2F*) hist2DCommon->Clone(
+            Form("%s_clone", hist2DCommon->GetName()));
+        fSEMultCommon[iPart1][iPart2]->Sumw2();
+        fSEMultNonCommon[iPart1][iPart2] = (TH2F*) hist2DNonCommon->Clone(
+            Form("%s_clone", hist2DNonCommon->GetName()));
+        fSEMultNonCommon[iPart1][iPart2]->Sumw2();
+      }
       //instead start the fixed shifted binning at 8!
 //      if (iPart1 == 1 && iPart2 == 5) {
 //        fSE[iPart1][iPart2]->SetBinContent(1, 0);
@@ -332,11 +382,23 @@ void ReadDreamFile::ExtractResultsAncestors(const TList *Results) {
       } else {
         fME[iPart1][iPart2] = (TH1F*) hist1D->Clone(
             Form("%s_clone", hist1D->GetName()));
-
         fME[iPart1][iPart2]->Sumw2();
       }
+
+      fMEMult[iPart1][iPart2] = nullptr;
+      auto hist2D = (TH2F*) PartList->FindObject(
+          Form("MEMultDist_%s", FolderName.Data()));
+      if (!hist2D) {
+        if (!fQuiet)
+          std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
+                    << std::endl;
+      } else {
+        fMEMult[iPart1][iPart2] = (TH2F*) hist2D->Clone(
+            Form("%s_clone", hist2D->GetName()));
+        fMEMult[iPart1][iPart2]->Sumw2();
     }
-  }
+   }
+ }
 }
 
 void ReadDreamFile::ReadkTHistos(const char* AnalysisFile, const char* prefix,
@@ -476,6 +538,54 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
                     << std::endl;
       }
 
+    }
+  }
+  return;
+}
+
+void ReadDreamFile::ReadmTHistosAncestors(const char* AnalysisFile, const char* prefix,
+                                 const char* addon) {
+  fSEmTCommon = new TH2F**[fNPart1];
+  fSEmTNonCommon = new TH2F**[fNPart1];
+
+  fMEmT = new TH2F**[fNPart1];
+
+  TFile* _file0 = TFile::Open(AnalysisFile, "READ");
+  TDirectoryFile *dirResults = (TDirectoryFile*) (_file0->FindObjectAny(
+      Form("%sResults%s", prefix, addon)));
+  TList *Results;
+  dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
+  TList *PartList;
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+    fSEmTCommon[iPart1] = new TH2F*[fNPart2];
+    fSEmTNonCommon[iPart1] = new TH2F*[fNPart2];
+
+    fMEmT[iPart1] = new TH2F*[fNPart2];
+
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+      TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
+      PartList = (TList*) Results->FindObject(FolderName.Data());
+
+      fSEmTCommon[iPart1][iPart2] = nullptr;
+      fSEmTNonCommon[iPart1][iPart2] = nullptr;
+
+      fSEmTCommon[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+          Form("SEmTDistCommon_%s", FolderName.Data()));
+      fSEmTNonCommon[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+          Form("SEmTDistNonCommon_%s", FolderName.Data()));
+      if (!fSEmTCommon[iPart1][iPart2] | !fSEmTNonCommon[iPart1][iPart2]) {
+        if (!fQuiet)
+          std::cout << "SEmT Histogramm missing from " << FolderName.Data()
+                    << std::endl;
+      }
+      fMEmT[iPart1][iPart2] = nullptr;
+      fMEmT[iPart1][iPart2] = (TH2F*) PartList->FindObject(
+          Form("MEmTDist_%s", FolderName.Data()));
+      if (!fMEmT[iPart1][iPart2]) {
+        if (!fQuiet)
+          std::cout << "MEmT Histogramm missing from " << FolderName.Data()
+                    << std::endl;
+      }
     }
   }
   return;
@@ -768,7 +878,10 @@ DreamDist* ReadDreamFile::GetPairDistributionsCommon(int iPart1, int iPart2,
   }
   DreamDist* pair = new DreamDist();
   pair->SetSEDist(fSECommon[iPart1][iPart2], name);
+  pair->SetSEMultDist(fSEMultCommon[iPart1][iPart2], name);
   pair->SetMEDist(fME[iPart1][iPart2], name);
+  pair->SetMEMultDist(fMEMult[iPart1][iPart2], name);
+
   return pair;
 }
 
@@ -781,7 +894,9 @@ DreamDist* ReadDreamFile::GetPairDistributionsNonCommon(int iPart1, int iPart2,
   }
   DreamDist* pair = new DreamDist();
   pair->SetSEDist(fSENonCommon[iPart1][iPart2], name);
+  pair->SetSEMultDist(fSEMultNonCommon[iPart1][iPart2], name);
   pair->SetMEDist(fME[iPart1][iPart2], name);
+  pair->SetMEMultDist(fMEMult[iPart1][iPart2], name);
   return pair;
 }
 
@@ -815,6 +930,66 @@ DreamKayTee* ReadDreamFile::GetmTPairDistributions(int iPart1, int iPart2,
 
   pair->SetSEmTDist(1, fSEmT[iAPart1][iAPart2]);
   pair->SetMEmTDist(1, fMEmT[iAPart1][iAPart2]);
+
+  return pair;
+}
+
+DreamKayTee* ReadDreamFile::GetmTPairDistributionsCommon(int iPart1, int iPart2,
+                                                   int iAPart1, int iAPart2) {
+//user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEmTDist(0, fSEmTCommon[iPart1][iPart2]);
+  pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
+
+  pair->SetSEmTDist(1, fSEmTCommon[iAPart1][iAPart2]);
+  pair->SetMEmTDist(1, fMEmT[iAPart1][iAPart2]);
+
+  return pair;
+}
+
+DreamKayTee* ReadDreamFile::GetmTPairDistributionsNonCommon(int iPart1, int iPart2,
+                                                   int iAPart1, int iAPart2) {
+//user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEmTDist(0, fSEmTNonCommon[iPart1][iPart2]);
+  pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
+
+  pair->SetSEmTDist(1, fSEmTNonCommon[iAPart1][iAPart2]);
+  pair->SetMEmTDist(1, fMEmT[iAPart1][iAPart2]);
+
+  return pair;
+}
+
+DreamKayTee* ReadDreamFile::GetmTPairDistributionsCommon(int iPart1, int iPart2) {
+//user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEmTDist(0, fSEmTCommon[iPart1][iPart2]);
+  pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
+
+  return pair;
+}
+
+DreamKayTee* ReadDreamFile::GetmTPairDistributionsNonCommon(int iPart1, int iPart2) {
+//user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEmTDist(0, fSEmTNonCommon[iPart1][iPart2]);
+  pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
 
   return pair;
 }

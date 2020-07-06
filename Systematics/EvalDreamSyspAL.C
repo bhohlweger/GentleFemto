@@ -12,9 +12,11 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
   TString filename = Form("%s/AnalysisResults.root", InputDir.Data());
   DreamPlot::SetStyle(false, true);
   auto CATSinput = new CATSInput();
-  CATSinput->SetNormalization(0.2, 0.4);
+  double norm1 = 0.18;
+  double norm2 = 0.28;
+  CATSinput->SetNormalization(norm1, norm2);
   CATSinput->SetFixedkStarMinBin(true, 0.);
-  const int rebin = 5;//default = 4 has binning of 16 MeV
+  const int rebin = 4;//default = 4 has binning of 16 MeV
   auto counter = new CandidateCounter();
 
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
@@ -42,11 +44,11 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
 	  protonAL.SetDefaultHist(CFpALDef, "hCk_ReweightedpALDefMeV_0");
   }
   protonAL.SetUpperFitRange(upperFitRange);
-  int iPLCounter = 0;
+  int iPLCounter = 1;
   for (int i = 1; i <= 44; ++i) {
     ReadDreamFile* DreamVarFile = new ReadDreamFile(4, 4);
     DreamVarFile->SetAnalysisFile(filename.Data(), prefix, Form("%u", i));
-    TString VarName = TString::Format("pALVar%u", i);
+    TString VarName = TString::Format("pALVar%u", iPLCounter);
     DreamCF* CFpALVar = CATSinput->ObtainCFSyst(
         rebin, VarName.Data(), DreamVarFile->GetPairDistributions(0, 3, ""),
         DreamVarFile->GetPairDistributions(1, 2, ""));
@@ -76,7 +78,6 @@ void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange)
     protonAL.SetPair(pairCountsDefault, CFpALVar->GetFemtoPairs(0, 0.2));
     protonAL.SetParticles(nTracks, nAntiv0, counter->GetNumberOfTracks(),
                          counter->GetNumberOfAntiV0s());
-
     CFpALOut->WriteOutput(
         TString::Format("%s/CF_pAL_Var%u.root", gSystem->pwd(), iPLCounter++)
             .Data());

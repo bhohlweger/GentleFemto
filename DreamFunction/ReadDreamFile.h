@@ -34,7 +34,11 @@ class ReadDreamFile {
                     const char* addon = "");
   void ReadmTHistos(const char* AnalysisFile, const char* prefix,
                     const char* addon = "");
+  void ReadmTHistosAncestors(const char* AnalysisFile, const char* prefix,
+                    const char* addon = "");
   void ReadAndProjectmTHistos(const char* AnalysisFile, const char* prefix,
+                    const char* addon = "", double kcut = 200.);
+  void ReadAndProjectmTHistosAncestors(const char* AnalysisFile, const char* prefix,
                     const char* addon = "", double kcut = 200.);
   void ReadAndProjectkTHistos(const char* AnalysisFile, const char* prefix,
                     const char* addon = "", double kcut = 200.);
@@ -53,6 +57,12 @@ class ReadDreamFile {
                                       int iAPart2);
   DreamKayTee* GetmTPairDistributions(int iPart1, int iPart2, int iAPart1,
                                       int iAPart2);
+  DreamKayTee* GetmTPairDistributionsCommon(int iPart1, int iPart2, int iAPart1,
+                                      int iAPart2);
+  DreamKayTee* GetmTPairDistributionsCommon(int iPart1, int iPart2);
+  DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2, int iAPart1,
+                                      int iAPart2);
+  DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2);
   DreamKayTee* GetmTPairDistributionsBBar(int iPart1, int iPart2);
   DreamdEtadPhi* GetdEtadPhiDistribution(int iPart1, int iPart2, int iAPart1,
                                          int iAPart2, int imT = 0);
@@ -74,8 +84,6 @@ class ReadDreamFile {
  private:
   bool fQuiet;
   TH1F*** fSE;
-  TH1F*** fSECommon;
-  TH1F*** fSENonCommon;
   TH2F*** fSEMult;
   TH2F*** fSEkT;
   TH2F*** fSEmT;
@@ -86,8 +94,6 @@ class ReadDreamFile {
   TH2F***** fSEdEtadPhiAtRad;
   TH2F***** fSEdEtadPhiAtRadSmallkStar;
   TH2F*** fSEdEtadPhi;
-  TH2F*** fSEdEtadPhiCommon;
-  TH2F*** fSEdEtadPhiNonCommon;
   TH1F*** fME;
   TH2F*** fMEMult;
   TH2F*** fMEkT;
@@ -96,6 +102,14 @@ class ReadDreamFile {
   TH2F*** fMEdEtadPhi;
   TH2F***** fMEdEtadPhiAtRad;
   TH2F***** fMEdEtadPhiAtRadSmallkStar;
+  TH1F*** fSECommon;
+  TH1F*** fSENonCommon;
+  TH2F*** fSEMultCommon;
+  TH2F*** fSEMultNonCommon;
+  TH2F*** fSEmTCommon;
+  TH2F*** fSEmTNonCommon;
+  TH2F*** fSEdEtadPhiCommon;
+  TH2F*** fSEdEtadPhiNonCommon;
 };
 
 #endif /* DREAMFUNCTION_READDREAMFILE_H_ */
