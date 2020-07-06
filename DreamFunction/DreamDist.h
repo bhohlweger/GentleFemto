@@ -19,7 +19,6 @@ class DreamDist {
   void SetSEDist(TH1F* SE, const char* name) {
     if (SE) fSE = (TH1F*) SE->Clone(Form("%s%s", SE->GetName(), name));
   }
-
   TH1F* GetSEDist() {
     return fSE;
   }

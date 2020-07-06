@@ -104,7 +104,6 @@ void GetCorrelationsNanoBBAncestors(const char* filename,
   std::cout << "=========================" << std::endl;
 
   std::cout << "==pp==" << std::endl;
-<<<<<<< HEAD
   ppCommon->ShiftForEmpty(ppCommon->GetPair());
   ApApCommon->ShiftForEmpty(ApApCommon->GetPair());
 
@@ -136,38 +135,41 @@ void GetCorrelationsNanoBBAncestors(const char* filename,
   LALCommon->ShiftForEmpty(LALCommon->GetPair());
   LALNonCommon->ShiftForEmpty(LALNonCommon->GetPair());
 
-=======
+
   ppCommon->ShiftForEmptyAncestors(ppCommon->GetPair());
   ApApCommon->ShiftForEmptyAncestors(ApApCommon->GetPair());
 
-  ppNonCommon->ShiftForEmptyAncestors(ppNonCommon->GetPair());
-  ApApNonCommon->ShiftForEmptyAncestors(ApApNonCommon->GetPair());
+  ppCommon->ShiftForEmpty(ppCommon->GetPair());
+  ApApCommon->ShiftForEmpty(ApApCommon->GetPair());
+
+  ppNonCommon->ShiftForEmpty(ppNonCommon->GetPair());
+  ApApNonCommon->ShiftForEmpty(ApApNonCommon->GetPair());
 
   std::cout << "==pL==" << std::endl;
-  pLCommon->ShiftForEmptyAncestors(pLCommon->GetPair());
-  ApALCommon->ShiftForEmptyAncestors(ApALCommon->GetPair());
+  pLCommon->ShiftForEmpty(pLCommon->GetPair());
+  ApALCommon->ShiftForEmpty(ApALCommon->GetPair());
 
-  pLNonCommon->ShiftForEmptyAncestors(pLNonCommon->GetPair());
-  ApALNonCommon->ShiftForEmptyAncestors(ApALNonCommon->GetPair());
+  pLNonCommon->ShiftForEmpty(pLNonCommon->GetPair());
+  ApALNonCommon->ShiftForEmpty(ApALNonCommon->GetPair());
 
   std::cout << "==LL==" << std::endl;
-  LLCommon->ShiftForEmptyAncestors(LLCommon->GetPair());
-  ALALCommon->ShiftForEmptyAncestors(ALALCommon->GetPair());
+  LLCommon->ShiftForEmpty(LLCommon->GetPair());
+  ALALCommon->ShiftForEmpty(ALALCommon->GetPair());
 
-  LLNonCommon->ShiftForEmptyAncestors(LLNonCommon->GetPair());
-  ALALNonCommon->ShiftForEmptyAncestors(ALALNonCommon->GetPair());
+  LLNonCommon->ShiftForEmpty(LLNonCommon->GetPair());
+  ALALNonCommon->ShiftForEmpty(ALALNonCommon->GetPair());
 
-  pApCommon->ShiftForEmptyAncestors(pApCommon->GetPair());
-  pApNonCommon->ShiftForEmptyAncestors(pApNonCommon->GetPair());
+  pApCommon->ShiftForEmpty(pApCommon->GetPair());
+  pApNonCommon->ShiftForEmpty(pApNonCommon->GetPair());
 
-  pALCommon->ShiftForEmptyAncestors(pALCommon->GetPair());
-  ApLCommon->ShiftForEmptyAncestors(ApLCommon->GetPair());
-  pALNonCommon->ShiftForEmptyAncestors(pALNonCommon->GetPair());
-  ApLNonCommon->ShiftForEmptyAncestors(ApLNonCommon->GetPair());
+  pALCommon->ShiftForEmpty(pALCommon->GetPair());
+  ApLCommon->ShiftForEmpty(ApLCommon->GetPair());
+  pALNonCommon->ShiftForEmpty(pALNonCommon->GetPair());
+  ApLNonCommon->ShiftForEmpty(ApLNonCommon->GetPair());
 
-  LALCommon->ShiftForEmptyAncestors(LALCommon->GetPair());
-  LALNonCommon->ShiftForEmptyAncestors(LALNonCommon->GetPair());
->>>>>>> Adding macros for Ancestors Analysis and for L-antiL mT analysis
+  LALCommon->ShiftForEmpty(LALCommon->GetPair());
+  LALNonCommon->ShiftForEmpty(LALNonCommon->GetPair());
+
 
   std::cout << "=========================" << std::endl;
   std::cout << "====Pair Fix Shifted=====" << std::endl;
@@ -227,7 +229,6 @@ void GetCorrelationsNanoBBAncestors(const char* filename,
   std::vector<int> rebinVec = { { 4, 5 } };
   for (size_t iReb = 0; iReb < rebinVec.size(); ++iReb) {
     pLCommon->Rebin(pLCommon->GetPairFixShifted(0), rebinVec[iReb]);
-<<<<<<< HEAD
   std::cout << "===========Reweigthing pL common==============" << std::endl;
     pLCommon->ReweightMixedEvent(pLCommon->GetPairRebinned(iReb), 0.2, 0.9);
 
@@ -278,30 +279,6 @@ void GetCorrelationsNanoBBAncestors(const char* filename,
   ppNonCommon->ReweightMixedEvent(ppNonCommon->GetPairFixShifted(0), 0.2, 0.9);
   ApApNonCommon->ReweightMixedEvent(ApApNonCommon->GetPairFixShifted(0), 0.2, 0.9);
   pApNonCommon->ReweightMixedEvent(pApNonCommon->GetPairFixShifted(0), 0.2, 0.9);
-=======
-    pLNonCommon->Rebin(pLNonCommon->GetPairFixShifted(0), rebinVec[iReb]);
-    ApALCommon->Rebin(ApALCommon->GetPairFixShifted(0), rebinVec[iReb]);
-    ApALNonCommon->Rebin(ApALNonCommon->GetPairFixShifted(0), rebinVec[iReb]);
-
-    LLCommon->Rebin(LLCommon->GetPairFixShifted(0), rebinVec[iReb]);
-    LLNonCommon->Rebin(LLNonCommon->GetPairFixShifted(0), rebinVec[iReb]);
-    ALALCommon->Rebin(ALALCommon->GetPairFixShifted(0), rebinVec[iReb]);
-    ALALNonCommon->Rebin(ALALNonCommon->GetPairFixShifted(0), rebinVec[iReb]);
-
-    pALCommon->Rebin(pALCommon->GetPairFixShifted(0), rebinVec[iReb]);
-    ApLCommon->Rebin(ApLCommon->GetPairFixShifted(0), rebinVec[iReb]);
-
-    pALNonCommon->Rebin(pALNonCommon->GetPairFixShifted(0), rebinVec[iReb]);
-    ApLNonCommon->Rebin(ApLNonCommon->GetPairFixShifted(0), rebinVec[iReb]);
-
-    LALCommon->Rebin(LALCommon->GetPairFixShifted(0), rebinVec[iReb]);
-    LALNonCommon->Rebin(LALNonCommon->GetPairFixShifted(0), rebinVec[iReb]);
-
-  }
-
-  // pp->ReweightMixedEvent(pp->GetPairFixShifted(0), 0.2, 0.9);
-  // ApAp->ReweightMixedEvent(ApAp->GetPairFixShifted(0), 0.2, 0.9);
->>>>>>> Adding macros for Ancestors Analysis and for L-antiL mT analysis
 
   // pLCommon->Rebin(pLCommon->GetPair(), 4);
   // pLCommon->Rebin(pLCommon->GetPair(), 5);

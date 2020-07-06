@@ -29,7 +29,6 @@ class ReadDreamFile {
                        const char* Addon = "");
   void ExtractResults(const TList *Results);
   void ExtractResultsAncestors(const TList *Results);
-
   void ReadkTHistos(const char* AnalysisFile, const char* prefix,
                     const char* addon = "");
   void ReadmTHistos(const char* AnalysisFile, const char* prefix,
@@ -49,8 +48,6 @@ class ReadDreamFile {
                          const char* prefix, const char* Addon = "");
   void ReadmTMultHistos(const char* AnalysisFile, const char* prefix,
 			const char* addon, const int nmTBins);
-  void ReaddEtadPhiHistsAncestors(const unsigned int NBinsmT, const char* AnalysisFile,
-                         const char* prefix, const char* Addon = "");
   DreamDist* GetPairDistributions(int iPart1, int iPart2, const char* name);
   DreamDist* GetPairDistributionsCommon(int iPart1, int iPart2, const char* name);
   DreamDist* GetPairDistributionsNonCommon(int iPart1, int iPart2, const char* name);
@@ -71,7 +68,6 @@ class ReadDreamFile {
   DreamdEtadPhi* GetdEtadPhiDistributionSingle(int iPart1, int iPart2, int imT = 0);
   DreamdEtadPhi* GetdEtadPhiDistributionSingleCommon(int iPart1, int iPart2, int imT = 0);
   DreamdEtadPhi* GetdEtadPhiDistributionSingleNonCommon(int iPart1, int iPart2, int imT = 0);
-
   DreamdEtadPhi* GetdEtadPhiAtRadDistribution(int iPart1, int iPart2, int iMix1,
                                               int iAPart1, int iAPart2,
                                               int iMix2, int iRad,
@@ -82,8 +78,6 @@ class ReadDreamFile {
  private:
   bool fQuiet;
   TH1F*** fSE;
-  TH1F*** fSECommon;
-  TH1F*** fSENonCommon;
   TH2F*** fSEMult;
   TH2F*** fSEkT;
   TH2F*** fSEmT;
@@ -95,8 +89,6 @@ class ReadDreamFile {
   TH2F***** fSEdEtadPhiAtRad;
   TH2F***** fSEdEtadPhiAtRadSmallkStar;
   TH2F*** fSEdEtadPhi;
-  TH2F*** fSEdEtadPhiCommon;
-  TH2F*** fSEdEtadPhiNonCommon;
   TH1F*** fME;
   TH2F*** fMEMult;
   TH2F*** fMEkT;
