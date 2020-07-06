@@ -78,7 +78,6 @@ class DreamPair {
   int GetNDists();
   void ShiftForEmpty(DreamDist* pair);
   void ShiftForEmptyAncestors(DreamDist* pair);
-
   void FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
                 const bool fixedShift = false);
   void FixShift(DreamDist* pair, DreamDist* otherPair1, DreamDist* otherPair2,

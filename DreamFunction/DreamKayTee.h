@@ -40,7 +40,7 @@ class DreamKayTee {
     fIskT = false;
   }
   void SetSEmTMultDist(int iPart, int imT, TH2F* SEmTMult);
-  void SetMEmTMultDist(int iPart, int imT, TH2F* MEmTMult); 
+  void SetMEmTMultDist(int iPart, int imT, TH2F* MEmTMult);
   void SetNormalization(float left, float right) {
     fNormleft = left;
     fNormright = right;
@@ -55,7 +55,6 @@ class DreamKayTee {
   void ObtainTheCorrelationFunctionAncestorsSingle(const char* outFolder, const char* prefix =
                                         "MB",
                                     const char* pair = "pp", const char* isAlabama = "Common");
-
   void ObtainTheCorrelationFunctionBBar(const char* outFolder, const char* prefix =
                                         "MB",
                                     const char* pair = "pp");
@@ -79,7 +78,7 @@ class DreamKayTee {
   std::vector<DreamCF*> GetmTMultBinned(int imT, int Varcount);
  private:
   bool fIskT;
-  const int nmTBins; 
+  const int nmTBins;
   std::vector<bool> fFixShift;
   std::vector<float> fFixShiftValue;
   std::vector<float> fKayTeeBins;
@@ -87,9 +86,9 @@ class DreamKayTee {
   std::vector<int> fMultBins;
   int fNKayTeeBins;
   TH2F* fSEkT[2];
-  TH2F*** fSEmTMult; 
+  TH2F*** fSEmTMult;
   TH2F* fMEkT[2];
-  TH2F*** fMEmTMult; 
+  TH2F*** fMEmTMult;
   TGraphErrors* fAveragekT;
   DreamPair*** fCFPart;
   DreamCF** fSum;
