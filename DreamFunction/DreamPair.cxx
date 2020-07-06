@@ -156,6 +156,8 @@ void DreamPair::ShiftForEmptyAncestors(DreamDist* pair) {
   TH1F* SE = pair->GetSEDist();
   TH1F* ME = pair->GetMEDist();
 
+  TH2F* SEMult = pair->GetSEMultDist();
+  TH2F* MEMult = pair->GetMEMultDist();
   int FirstBin = SE->FindFirstBinAbove(0);
   //+1 since we start counting bins at 1
   const int nBinsEffSE = SE->GetNbinsX() - FirstBin + 1;

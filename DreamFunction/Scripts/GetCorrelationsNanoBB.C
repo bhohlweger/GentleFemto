@@ -6,13 +6,13 @@
 #include <iostream>
 
 void GetCorrelationsNanoBB(const char* filename,
-                     const char* prefix, const char* addon = "") {
+                     const char* prefix, const char* addon = "", double norm1 = 0.24, double norm2 = 0.34) {
   //gStyle->SetOptStat(0);
   ReadDreamFile* DreamFile = new ReadDreamFile(6, 6);
   DreamFile->SetAnalysisFile(filename, prefix, addon);
 
-  Double_t norm1=0.24;//default 0.2-0.4, 0.18-0.28 where CFs look flatter
-  Double_t norm2=0.34;// 0.24-0.34 from BB analysis
+  // Double_t norm1=0.24;//default 0.2-0.4, 0.18-0.28 where CFs look flatter
+  // Double_t norm2=0.34;// 0.24-0.34 from BB analysis
 
   DreamCF* CF_pp = new DreamCF();
   DreamPair* pp = new DreamPair("Part", norm1, norm2);
