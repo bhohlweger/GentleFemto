@@ -106,42 +106,6 @@ void GetCorrelationsNanoBBAncestors(const char* filename,
   std::cout << "==pp==" << std::endl;
   ppCommon->ShiftForEmpty(ppCommon->GetPair());
   ApApCommon->ShiftForEmpty(ApApCommon->GetPair());
-
-  ppNonCommon->ShiftForEmpty(ppNonCommon->GetPair());
-  ApApNonCommon->ShiftForEmpty(ApApNonCommon->GetPair());
-
-  std::cout << "==pL==" << std::endl;
-  pLCommon->ShiftForEmpty(pLCommon->GetPair());
-  ApALCommon->ShiftForEmpty(ApALCommon->GetPair());
-
-  pLNonCommon->ShiftForEmpty(pLNonCommon->GetPair());
-  ApALNonCommon->ShiftForEmpty(ApALNonCommon->GetPair());
-
-  std::cout << "==LL==" << std::endl;
-  LLCommon->ShiftForEmpty(LLCommon->GetPair());
-  ALALCommon->ShiftForEmpty(ALALCommon->GetPair());
-
-  LLNonCommon->ShiftForEmpty(LLNonCommon->GetPair());
-  ALALNonCommon->ShiftForEmpty(ALALNonCommon->GetPair());
-
-  pApCommon->ShiftForEmpty(pApCommon->GetPair());
-  pApNonCommon->ShiftForEmpty(pApNonCommon->GetPair());
-
-  pALCommon->ShiftForEmpty(pALCommon->GetPair());
-  ApLCommon->ShiftForEmpty(ApLCommon->GetPair());
-  pALNonCommon->ShiftForEmpty(pALNonCommon->GetPair());
-  ApLNonCommon->ShiftForEmpty(ApLNonCommon->GetPair());
-
-  LALCommon->ShiftForEmpty(LALCommon->GetPair());
-  LALNonCommon->ShiftForEmpty(LALNonCommon->GetPair());
-
-
-  ppCommon->ShiftForEmptyAncestors(ppCommon->GetPair());
-  ApApCommon->ShiftForEmptyAncestors(ApApCommon->GetPair());
-
-  ppCommon->ShiftForEmpty(ppCommon->GetPair());
-  ApApCommon->ShiftForEmpty(ApApCommon->GetPair());
-
   ppNonCommon->ShiftForEmpty(ppNonCommon->GetPair());
   ApApNonCommon->ShiftForEmpty(ApApNonCommon->GetPair());
 

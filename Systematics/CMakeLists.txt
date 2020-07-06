@@ -77,3 +77,15 @@ target_link_libraries(LALmTSystematics_Update tidyCATS DreamFunctions ForgivingF
 
 add_executable(LALmTVariations ${PROJECT_SOURCE_DIR}/GetmTVariationsLAL.C)
 target_link_libraries(LALmTVariations tidyCATS DreamFunctions ForgivingFnct)
+
+add_executable(LALmTSystematics ${PROJECT_SOURCE_DIR}/GetmTSystematicsLAL.C)
+target_link_libraries(LALmTSystematics tidyCATS DreamFunctions ForgivingFnct)
+
+add_executable(pALmTAncestors ${PROJECT_SOURCE_DIR}/GetmTVariationspALAncestors.C)
+target_link_libraries(pALmTAncestors tidyCATS DreamFunctions ForgivingFnct)
+
+add_executable(LALmTAncestors ${PROJECT_SOURCE_DIR}/GetmTVariationsLALAncestors.C)
+target_link_libraries(LALmTAncestors tidyCATS DreamFunctions ForgivingFnct)
+
+add_executable(pApmTAncestors ${PROJECT_SOURCE_DIR}/GetmTVariationspApAncestors.C)
+target_link_libraries(pApmTAncestors tidyCATS DreamFunctions ForgivingFnct)
