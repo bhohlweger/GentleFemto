@@ -609,7 +609,6 @@ void DreamKayTee::SetSEMEReweightingRatio(TH1F* Rebinned, TH1F* Reweighted,
   fSEMEReweightingMeV = (TH1F*) ReweightedMeV->Clone(
 						     TString::Format("hCk_ReweightingMeV"));
   fSEMEReweightingMeV->Divide(RebinnedMeV);
-
   return;
 }
 
