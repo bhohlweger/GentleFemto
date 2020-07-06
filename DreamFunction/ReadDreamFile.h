@@ -46,10 +46,10 @@ class ReadDreamFile {
                               const char* Addon = "");
   void ReaddEtadPhiHists(const unsigned int NBinsmT, const char* AnalysisFile,
                          const char* prefix, const char* Addon = "");
-  void ReadmTMultHistos(const char* AnalysisFile, const char* prefix,
-			const char* addon, const int nmTBins);
   void ReaddEtadPhiHistsAncestors(const unsigned int NBinsmT, const char* AnalysisFile,
                          const char* prefix, const char* Addon = "");
+  void ReadmTMultHistos(const char* AnalysisFile, const char* prefix,
+			const char* addon, const int nmTBins);
   DreamDist* GetPairDistributions(int iPart1, int iPart2, const char* name);
   DreamDist* GetPairDistributionsCommon(int iPart1, int iPart2, const char* name);
   DreamDist* GetPairDistributionsNonCommon(int iPart1, int iPart2, const char* name);
@@ -66,6 +66,11 @@ class ReadDreamFile {
   DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2, int iAPart1,
                                       int iAPart2);
   DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2);
+<<<<<<< HEAD
+=======
+  DreamKayTee* GetmTMultPairDistributions(int iPart1, int iPart2, int iAPart1,
+					  int iAPart2, const int nmTBins);
+>>>>>>> Cleaning white spaces:Addition of Ancestors histos and reading, evaluation of systematics for BBar analysis in each mT bin
   DreamKayTee* GetmTPairDistributionsBBar(int iPart1, int iPart2);
   DreamdEtadPhi* GetdEtadPhiDistribution(int iPart1, int iPart2, int iAPart1,
                                          int iAPart2, int imT = 0);
@@ -86,8 +91,6 @@ class ReadDreamFile {
  private:
   bool fQuiet;
   TH1F*** fSE;
-  TH1F*** fSECommon;
-  TH1F*** fSENonCommon;
   TH2F*** fSEMult;
   TH2F*** fSEkT;
   TH2F*** fSEmT;
@@ -99,8 +102,6 @@ class ReadDreamFile {
   TH2F***** fSEdEtadPhiAtRad;
   TH2F***** fSEdEtadPhiAtRadSmallkStar;
   TH2F*** fSEdEtadPhi;
-  TH2F*** fSEdEtadPhiCommon;
-  TH2F*** fSEdEtadPhiNonCommon;
   TH1F*** fME;
   TH2F*** fMEMult;
   TH2F*** fMEkT;
