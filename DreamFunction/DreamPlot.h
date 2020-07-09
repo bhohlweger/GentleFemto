@@ -15,6 +15,7 @@ class DreamPlot {
   void ReadData(const char* PathToDataFolder, const char* PathToSysFolder,
                 int binWidth, int UnitConvData);
   void ReadDataSigma(const char* PathToDataFolder, const char* PathToSysFolder);
+  void ReadDataPhi(const char* PathToDataFolder, const char* PathToSysFolder);
   void ReadSidebandSigma(const char* PathToFitFolder, const char* PathToSysFolder);
   void ReadSimulation(const char* PathToSimFolder, int binWidth);
   void ReadFit(const char* fitPath, int UnitConvCATS);
@@ -54,6 +55,7 @@ class DreamPlot {
   void DrawCorrelationFunctions();
   void DrawCorrelationFunctionsBBar(int pAp_model);
   void DrawCorrelationFunctionSigma(const char* fitPath);
+  void DrawCorrelationFunctionPhi(const char* fitPath);
   void DrawCorrelationFunctionProtonProton(const char* path);
   void DrawSystemInfo(TPad* c, bool plotRadius = true, float xMin = 0.35,
                       int isPreliminary = 0);
@@ -63,6 +65,7 @@ class DreamPlot {
   DreamData* fProtonXi;
   DreamData* fProtonSigma;
   DreamData* fProtonSigmaSideband;
+  DreamData* fProtonPhi;
   DreamData* fProtonAntiProton;
   DreamData* fProtonAntiLambda;
   DreamData* fLambdaAntiLambda;

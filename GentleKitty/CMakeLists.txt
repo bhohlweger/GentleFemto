@@ -67,6 +67,7 @@ set(SRCS
   ${PROJECT_SOURCE_DIR}/VariationAnalysispAp.cxx
   ${PROJECT_SOURCE_DIR}/VariationAnalysispAL.cxx
   ${PROJECT_SOURCE_DIR}/VariationAnalysisLAL.cxx
+  ${PROJECT_SOURCE_DIR}/CATSInputPhi.cxx
   )
 
 set(HEADERS
@@ -82,6 +83,7 @@ set(HEADERS
   ${PROJECT_SOURCE_DIR}/VariationAnalysispAp.h
   ${PROJECT_SOURCE_DIR}/VariationAnalysispAL.h
   ${PROJECT_SOURCE_DIR}/VariationAnalysisLAL.h
+  ${PROJECT_SOURCE_DIR}/CATSInputPhi.h
   )
 
 add_library(tidyCATS STATIC ${SRCS})
@@ -226,5 +228,27 @@ target_link_libraries(SysVarExtractorpAL tidyCATS -L${DREAM_LIB_PATH} DreamFunct
 
 add_executable(SysVarExtractorLAL ${PROJECT_SOURCE_DIR}/Scripts/BBarAnalysis/SysVarExtractorLAL.C)
 target_link_libraries(SysVarExtractorLAL tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(runPhi ${PROJECT_SOURCE_DIR}/Scripts/pPhi.C)
+target_link_libraries(runPhi tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(PhiSmearingMatrix ${PROJECT_SOURCE_DIR}/Scripts/smearingMatrixpPhi.C)
+target_link_libraries(PhiSmearingMatrix tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(PhiSmearing ${PROJECT_SOURCE_DIR}/Scripts/smearingPHI.C)
+target_link_libraries(PhiSmearing tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(PhiCFSmearing ${PROJECT_SOURCE_DIR}/Scripts/smearedCFPhi.C)
+target_link_libraries(PhiCFSmearing tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(multiPhi ${PROJECT_SOURCE_DIR}/Scripts/PhiCFmulti.C)
+target_link_libraries(multiPhi tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(openingPhi ${PROJECT_SOURCE_DIR}/Scripts/openingangle.C)
+target_link_libraries(openingPhi tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(parallelPhi ${PROJECT_SOURCE_DIR}/Scripts/parallelPhi.C)
+target_link_libraries(parallelPhi tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 
 add_subdirectory(Test)

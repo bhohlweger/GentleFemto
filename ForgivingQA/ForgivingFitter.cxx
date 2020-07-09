@@ -228,12 +228,139 @@ void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int sig
       / double(histo->GetBinWidth(1));
 }
 
+void ForgivingFitter::FitInvariantMassPhi(TH1F* histo, float massCuts, int lineColor) {
+  // Fit Background with third order polynomial
+//  if (fBackGround) {
+//    delete fBackGround;
+//  }
+//  fBackGround = new TF1("fBackGround", [&](double *x, double *p) {
+
+//    if (x[0] > fSigRangeMin && x[0] < fSigRangeMax) {
+//      TF1::RejectPoint();
+//      return (double)0;
+//    }
+//    return p[0] + p[1] * x[0] + p[2] * x[0] * x[0]
+//  },
+//                        fBkgRangeMin * 0.5, fBkgRangeMax * 2, 3);
+//  histo->Fit(fBackGround, "SRQ", "", fBkgRangeMin * 0.995, fBkgRangeMax);
+
+  // parse then to proper TF1
+  if (fContinousBackGround) {
+    delete fContinousBackGround;
+  }
+  fContinousBackGround = new TF1("fBackground2", [&](double *x, double *p) {
+
+      return p[0]+p[1]*x[0]+p[2]*TMath::Power(x[0],2);
+
+     }, fBkgRangeMin * 0.5, fBkgRangeMax * 2, 3);
+
+//  fContinousBackGround->SetParameter(0, fBackGround->GetParameter(0));
+//  fContinousBackGround->SetParameter(1, fBackGround->GetParameter(1));
+//  fContinousBackGround->SetParameter(2, fBackGround->GetParameter(2));
+  fContinousBackGround->SetLineStyle(2);
+  fContinousBackGround->SetLineColor(kGreen + 2);
+
+
+  TH1F *signalOnly = getSignalHisto(fContinousBackGround, histo,
+                                    fBkgRangeMin * 0.8, fBkgRangeMax * 1.2,
+                                    Form("%s_signal_only", histo->GetName()));
+
+  histo->Fit(fContinousBackGround, "SRQ", "", fBkgRangeMin * 0.995, fBkgRangeMax);
+
+
+  if (fVoigt) {
+    delete fVoigt;
+  }
+  fVoigt = new TF1("fSignalVoigt", [&](double *x, double *p) {
+
+      return p[0]*TMath::Voigt(x[0]-p[1],p[2],p[3]);
+
+      }, fBkgRangeMin, fBkgRangeMax, 4);
+
+  fVoigt->SetParameter(0,histo->GetBinContent(histo->GetMaximumBin())*1.2);
+  fVoigt->SetParameter(1,1.02);//peak phi
+  fVoigt->SetParameter(2,0.003);//sigma gauss
+  fVoigt->FixParameter(3,0.00425);//gamma decay width
+  fVoigt->SetParLimits(1,1.0,1.04);
+  fVoigt->SetParLimits(2,0.0005,0.002);
+
+  signalOnly->Fit(fVoigt, "RQN", "", fBkgRangeMin, fBkgRangeMax);
+  fVoigt->ReleaseParameter(1);
+  signalOnly->Fit(fVoigt, "RQN", "", fBkgRangeMin, fBkgRangeMax);
+  delete signalOnly;
+
+  if (fFullFitFnct) {
+    delete fFullFitFnct;
+  }
+  fFullFitFnct = new TF1("fFullFitFnct", "fBackground2 + fSignalVoigt",
+                         fBkgRangeMin * 0.5, fBkgRangeMax * 2);
+  fFullFitFnct->SetLineColor(lineColor);
+  fFullFitFnct->SetNpx(1000);
+  fFullFitFnct->FixParameter(0, fContinousBackGround->GetParameter(0));
+  fFullFitFnct->FixParameter(1, fContinousBackGround->GetParameter(1));
+  fFullFitFnct->FixParameter(2, fContinousBackGround->GetParameter(2));
+  histo->Fit("fFullFitFnct", "RQ", "", fBkgRangeMin, fBkgRangeMax);
+  fFullFitFnct->ReleaseParameter(0);
+  fFullFitFnct->ReleaseParameter(1);
+  fFullFitFnct->ReleaseParameter(2);
+  histo->Fit("fFullFitFnct", "RQ", "", fBkgRangeMin, fBkgRangeMax);
+  fFullFitFnct->ReleaseParameter(5);
+  TFitResultPtr fullFit = histo->Fit("fFullFitFnct", "SRQ", "", fBkgRangeMin,
+                                     fBkgRangeMax);
+
+  fMeanMass = fFullFitFnct->GetParameter(4);
+  fMeanWidth = fFullFitFnct->GetParameter(5);
+
+  const double rangeMin = fMeanMass - massCuts;
+  const double rangeMax = fMeanMass + massCuts;
+
+  // Get refitted Background function
+  fContinousBackGround->SetParameter(0, fFullFitFnct->GetParameter(0));
+  fContinousBackGround->SetParameter(1, fFullFitFnct->GetParameter(1));
+  fContinousBackGround->SetParameter(2, fFullFitFnct->GetParameter(2));
+
+  auto signal = new TF1("fSignal",  [&](double *x, double *p) {
+
+      return p[0]*TMath::Voigt(x[0]-p[1],p[2],p[3]);
+
+      }, fBkgRangeMin * 0.5 , fBkgRangeMax * 2, 4);
+  signal->SetParameter(0, fFullFitFnct->GetParameter(3));
+  signal->SetParameter(1, fFullFitFnct->GetParameter(4));
+  signal->SetParameter(2, fFullFitFnct->GetParameter(5));
+  signal->SetParameter(3, fFullFitFnct->GetParameter(6));
+
+  fSignalCounts = signal->Integral(rangeMin, rangeMax)
+      / double(histo->GetBinWidth(1));
+
+  fBackgroundCounts = fContinousBackGround->Integral(rangeMin, rangeMax)
+      / double(histo->GetBinWidth(1));
+
+  fSignalCountsErr = signal->IntegralError(
+      rangeMin, rangeMax, fullFit->GetParams(),
+      fullFit->GetCovarianceMatrix().GetMatrixArray())
+      / double(histo->GetBinWidth(1));
+
+  fBackgroundCountsErr = fContinousBackGround->IntegralError(
+      rangeMin, rangeMax, fullFit->GetParams(),
+      fullFit->GetCovarianceMatrix().GetMatrixArray())
+      / double(histo->GetBinWidth(1));
+}
+
 void ForgivingFitter::SetRangesSigma(float SigMin, float SigMax,
                                      float BkgRangeMin, float BkgRangeMax) {
   fBkgRangeMin = BkgRangeMin;
   fBkgRangeMax = BkgRangeMax;
   fSigRangeMin = SigMin;
   fSigRangeMax = SigMax;
+  fRangesSet = true;
+}
+
+void ForgivingFitter::SetRangesPhi(float PhiMin, float PhiMax,
+                                     float BkgRangeMin, float BkgRangeMax) {
+  fBkgRangeMin = BkgRangeMin;
+  fBkgRangeMax = BkgRangeMax;
+  fPhiRangeMin = PhiMin;
+  fPhiRangeMax = PhiMax;
   fRangesSet = true;
 }
 

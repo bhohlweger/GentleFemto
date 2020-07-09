@@ -74,6 +74,8 @@ class DecayQA {
     fTexOffY = TexOffY;
   }
   ;
+  void FitInvariantMassPhi(TH2F* invMasspT, float massCuts,
+                                       const char* outname);
   double GetSignalCounts() const {
     return fFitter->GetSignalCounts();
   }

@@ -16,6 +16,7 @@ DreamPlot::DreamPlot()
       fProtonXi(nullptr),
       fProtonSigma(nullptr),
       fProtonSigmaSideband(nullptr),
+      fProtonPhi(nullptr),
       fProtonAntiProton(nullptr),
       fProtonAntiLambda(nullptr),
       fLambdaAntiLambda(nullptr),
@@ -32,6 +33,7 @@ DreamPlot::DreamPlot()
   fProtonXi = new DreamData("ProtonXi");
   fProtonSigma = new DreamData("ProtonSigma0");
   fProtonSigmaSideband = new DreamData("ProtonSigma0Sidebands");
+  fProtonPhi = new DreamData("ProtonPhi");
   fProtonAntiProton = new DreamData("ProtonAntiProton");
   fProtonAntiLambda = new DreamData("ProtonAntiLambda");
   fLambdaAntiLambda = new DreamData("LambdaAntiLambda");
@@ -127,6 +129,17 @@ void DreamPlot::ReadDataSigma(const char* PathToDataFolder,
   auto CFFile_Sys = TFile::Open(
       Form("%s/Systematics_pSigma0.root", PathToSysFolder));
   fProtonSigma->SetSystematics(
+      (TF1*) CFFile_Sys->Get("SystError"), 6.5);
+}
+
+void DreamPlot::ReadDataPhi(const char* PathToDataFolder,
+                              const char* PathToSysFolder) {
+  auto CFFile = TFile::Open(Form("%s/CFOutput_pPhi_HMPhi_0.root", PathToDataFolder));
+  fProtonPhi->SetCorrelationGraph(
+      (TGraphAsymmErrors*) CFFile->Get("hCk_ReweightedMeV_2"));
+  auto CFFile_Sys = TFile::Open(
+      Form("%s/Systematics_pPhi.root", PathToSysFolder));
+  fProtonPhi->SetSystematics(
       (TF1*) CFFile_Sys->Get("SystError"), 6.5);
 }
 
@@ -628,6 +641,35 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   DrawSystemInfo(e, false, leftX + 0.01, 0);
   e->SaveAs(Form("%s/CF_pSigma.pdf", fitPath));
   e->SaveAs(Form("%s/CF_pSigma.root", fitPath));
+}
+
+void DreamPlot::DrawCorrelationFunctionPhi(const char* fitPath) {
+  SetStyle();
+  gStyle->SetHatchesSpacing(0.75);
+  const float right = 0.025;
+  const float top = 0.025;
+  auto c = new TCanvas("CFpSigma", "CFpSigma", 0, 0, 650, 550);
+  c->SetRightMargin(right);
+  c->SetTopMargin(top);
+//  fProtonPhi->SetLegendName(
+//      "p#minus#kern[-0.65]{ }#Sigma^{0} #oplus #bar{p}#minus#kern[-0.65]{ }#bar{#Sigma^{0}}", "fpe");
+//  fProtonPhi->SetLegendName("fss2 (Lednick#acute{y})", "fl");
+//  fProtonPhi->SetLegendName("#chiEFT (NLO)", "fl");
+//  fProtonPhi->SetLegendName("ESC16", "fl");
+//  fProtonPhi->SetLegendName("NSC97f", "fl");
+//  fProtonPhi->SetLegendName("p#minus#kern[-0.65]{ }(#Lambda#gamma) background", "l");
+  fProtonPhi->SetRangePlotting(0, 500, 0.9, 1.2);
+  fProtonPhi->SetNDivisions(505);
+  const float leftX = 0.485;
+//  const float upperY = 0.815;
+//  fProtonPhi->SetLegendCoordinates(
+//      leftX, upperY - 0.075 * (fProtonPhi->GetNumberOfModels() + 1), 0.7, upperY);
+  // Necessary fix to get the right unit on the axes
+  fProtonPhi->SetUnitConversionData(2);
+  fProtonPhi->DrawCorrelationPlot(c, 13, kBlue + 3, 0.9);
+  DrawSystemInfo(c, false, leftX + 0.01, 0);
+  c->cd();
+  c->SaveAs(Form("%s/CF_pSigma.pdf", fitPath));
 }
 
 
