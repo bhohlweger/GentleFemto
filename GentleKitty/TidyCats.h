@@ -85,6 +85,9 @@ class TidyCats {
     fmassProRes = massProRes;
     fmassLamRes = massLamRes;
   };
+  void SetkStarCutOff(double ks) {
+    fkStarCutOff = ks;
+  };
  private:
   TString fHomeDir;
   double fkStarCutOff;
