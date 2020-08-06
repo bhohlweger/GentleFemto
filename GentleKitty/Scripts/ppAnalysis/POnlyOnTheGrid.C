@@ -73,7 +73,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     TheSource = TidyCats::sResonance;
     FeeddownSource = TidyCats::sGaussian;
   } else {
-    std::cout << "Source does not ex\ist! Exiting \n";
+    std::cout << "Source does not exist! Exiting \n";
     return;
   }
 
@@ -187,10 +187,11 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   std::vector<Particle> Xi;  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
 
   std::vector<double> Variation = { 0.98, 1.0, 1.02 };
+  std::vector<double> VariationFraction = { 0.8, 1.0, 1.2 };
   for (auto itFrac : Variation) {
     const double varPrimProton = itFrac * PrimProton;
     const double varSecProton = (1 - (double) varPrimProton);
-    for (auto itComp : Variation) {
+    for (auto itComp : VariationFraction) {
       double Composition = 0.7 * itComp;
       double varSecFracLamb = Composition * varSecProton;
       double varSecFracSigma = 1. - varPrimProton - varSecFracLamb;
@@ -200,7 +201,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     }
   }
   Variation.clear();
-  Variation = {0.95, 1.0, 1.05};
+  Variation = {0.8, 1.0, 1.2};
   for (auto itSLRatio : Variation) {
     double LamSigProdFraction = 3 * itSLRatio / 4. < 1 ? 3 * itSLRatio / 4. : 1;
     double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma;
