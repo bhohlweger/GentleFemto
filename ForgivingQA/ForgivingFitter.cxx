@@ -101,8 +101,8 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
   signalOnly->Fit(fDoubleGaussian, "R Q N", "", fSigRangeMin * 1.01,
                   fSigRangeMax * 0.99);
   delete signalOnly;
-  fSignalCounts = fDoubleGaussian->Integral(massCutMin, massCutMax)
-      / double(histo->GetBinWidth(1));
+  // fSignalCounts = fDoubleGaussian->Integral(massCutMin, massCutMax)
+  //     / double(histo->GetBinWidth(1));
   //Add weights
   fSingleGaussian->SetParameters(fDoubleGaussian->GetParameter(0),
                                  fDoubleGaussian->GetParameter(1),
@@ -116,14 +116,34 @@ void ForgivingFitter::FitInvariantMass(TH1F* histo, float massCutMin,
       / double(histo->GetBinWidth(1));
   CreateFullFitFunction(histo);
   fFullFitFnct->SetLineColor(signalColor);
-  histo->Fit(fFullFitFnct, "R Q 0", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
+
+  TFitResultPtr fullFit = histo->Fit("fLambda", "SRQ", "", fBkgRangeMin * 1.01, fBkgRangeMax * 0.99);
   histo->GetListOfFunctions()->Add(
       fFullFitFnct->Clone(Form("fnc%s", histo->GetName())));
-  CalculateBackgorund(histo, massCutMin, massCutMax, backgroundColor);
+
+  TF1* DoubleGaussian = new TF1("SignalAfterFit", "gaus(0) + gaus(3)",fBkgRangeMin * 0.5,
+			   fBkgRangeMax * 2);
+  
+  DoubleGaussian->SetParameter(0, fFullFitFnct->GetParameter(3));
+  DoubleGaussian->SetParameter(1, fFullFitFnct->GetParameter(4));
+  DoubleGaussian->SetParameter(2, fFullFitFnct->GetParameter(5));
+  DoubleGaussian->SetParameter(3, fFullFitFnct->GetParameter(6));
+  DoubleGaussian->SetParameter(4, fFullFitFnct->GetParameter(7));
+  DoubleGaussian->SetParameter(5, fFullFitFnct->GetParameter(8));
+  fSignalCounts = DoubleGaussian->Integral(massCutMin, massCutMax)
+       / double(histo->GetBinWidth(1));
+  fSignalCountsErr = TMath::Sqrt(fSignalCounts); 
+  //   DoubleGaussian->IntegralError(
+  // 				   massCutMin, massCutMax, fullFit->GetParams(),
+  // 				   fullFit->GetCovarianceMatrix().GetMatrixArray())
+  //  / double(histo->GetBinWidth(1));
+  std::cout << "Background Error: \n" ;
+  CalculateBackgorund(histo, massCutMin, massCutMax, backgroundColor, fullFit);
   fMeanMass = weightedMean(fWeightA, fFullFitFnct->GetParameter(4), fWeightB,
                            fFullFitFnct->GetParameter(7));
   fMeanWidth = weightedMean(fWeightA, fFullFitFnct->GetParameter(5), fWeightB,
                             fFullFitFnct->GetParameter(8));
+  delete DoubleGaussian; 
 }
 
 void ForgivingFitter::FitInvariantMassSigma(TH1F* histo, float massCuts, int signalColor, int backgroundColor) {
@@ -342,9 +362,9 @@ void ForgivingFitter::CreateFullFitFunction(TH1F* targetHisto) {
                             "WidthGausTwo");
 }
 void ForgivingFitter::CalculateBackgorund(TH1F* targetHisto, float massCutMin,
-                                          float massCutMax, int backgroundColor) {
+                                          float massCutMax, int backgroundColor, TFitResultPtr ptr) {
   TF1 *fLambda_background = new TF1("fLambda_background", "pol2(0)",
-                                    fBkgRangeMin, fBkgRangeMax);
+                                    0.5*fBkgRangeMin, 2*fBkgRangeMax);
   fLambda_background->SetParameter(0, fFullFitFnct->GetParameter(0));
   fLambda_background->SetParameter(1, fFullFitFnct->GetParameter(1));
   fLambda_background->SetParameter(2, fFullFitFnct->GetParameter(2));
@@ -353,6 +373,14 @@ void ForgivingFitter::CalculateBackgorund(TH1F* targetHisto, float massCutMin,
 
   fBackgroundCounts = fLambda_background->Integral(massCutMin, massCutMax)
       / double(targetHisto->GetBinWidth(1));
+
+  fBackgroundCountsErr = TMath::Sqrt(fBackgroundCounts);
+
+    // fLambda_background->IntegralError(
+    //   massCutMin, massCutMax, ptr->GetParams(),
+    //   ptr->GetCovarianceMatrix().GetMatrixArray())
+    //   / double(targetHisto->GetBinWidth(1));
+
   targetHisto->GetListOfFunctions()->Add(fLambda_background);
 }
 

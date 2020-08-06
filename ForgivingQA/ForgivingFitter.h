@@ -70,7 +70,7 @@ class ForgivingFitter {
   TH1F *getSignalHisto(TF1 *function, TH1F *histo, float rangeLow,
                        float rangeHigh, const char *name);
   void CalculateBackgorund(TH1F* targetHisto, float massCutMin,
-                           float massCutMax, int backgroundColor);
+                           float massCutMax, int backgroundColor, TFitResultPtr ptr);
   TF1* fBackGround;
   TF1* fContinousBackGround;
   TF1* fSingleGaussian;
@@ -112,6 +112,7 @@ double ForgivingFitter::GetPurityErr() const {
   const double bckErr = static_cast<double>(fBackgroundCountsErr);
   const double signalBck = signal + bck;
   const double signalBckForth = signalBck * signalBck * signalBck * signalBck;
+  std::cout << "signalErr: " << signalErr << " bckErr: " << bckErr << std::endl;
   if (bck < 1E-6) {
     return 0;
   } else {

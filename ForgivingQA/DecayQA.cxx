@@ -314,7 +314,7 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
     fHairyPlotter->DrawLine(CurrentPad, CutMax, CutMax, 0,
                             peakVal * 0.85, fStyler.drawLineColor);
     Purity->SetBinContent(ipT, fFitter->GetPurity());
-//    Purity->SetBinError(ipT, 0.03 * signal / (signal + background));
+    Purity->SetBinError(ipT, fFitter->GetPurityErr()); 
   }
   Purity->GetYaxis()->SetRangeUser(0.7, 1.1);
   cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
