@@ -118,6 +118,18 @@ int main(int argc, char *argv[]) {
             + errSystLam * errSystLam + errSystMom * errSystMom);
     SystError->SetBinContent(iBin, totErr);
   }
+
+  TGraphAsymmErrors* cf_stat_tostore = new TGraphAsymmErrors(*cf_graph);
+  TGraphAsymmErrors* cf_syst_tostore = new TGraphAsymmErrors(*cf_graph);
+  
+  for (int iBin = 0; iBin < cf_syst_tostore->GetN(); iBin++) {
+    double kstar, ck; 
+    double relErr = SystError->GetBinContent(iBin+1);
+    cf_syst_tostore->GetPoint(iBin, kstar, ck);
+    cf_syst_tostore->SetPointEYhigh(iBin, ck*relErr);
+    cf_syst_tostore->SetPointEYlow(iBin, ck*relErr); 
+  }
+  
   //calculate nSigma Values
   double chiSqCoulomb;
   double chiSqHAL;
@@ -273,7 +285,10 @@ int main(int argc, char *argv[]) {
   out->cd();
   c1->Write();
   c1->SaveAs(Form("CF_pXi.pdf"));
-  SystError->Write();
+  
+  cf_stat_tostore->Write("cf_stat_tostore"); 
+  cf_syst_tostore->Write("cf_syst_tostore"); 
+    
   out->Close();
   app.Run();
 }

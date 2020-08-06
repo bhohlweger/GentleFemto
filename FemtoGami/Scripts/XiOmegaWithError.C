@@ -8,7 +8,7 @@
 
 void OmDraw(TPad* OmPad, const char* WorkDir) {
   
-  TString cfData = TString::Format("%s/GenOutput.root", WorkDir).Data();
+  TString cfData = TString::Format("%s/200522_GenOutput.root", WorkDir).Data();
   TString cfModel = TString::Format("%s/200518_2_BandsAll_T12.root", WorkDir).Data();
  
   TFile* cfgraphFile = TFile::Open(cfData, "read");
@@ -16,18 +16,20 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
   TGraphErrors* cf_graph_stat_input
     = (TGraphErrors*)cfgraphFile->Get("gGen");
   TGraphAsymmErrors* cf_graph_stat = new TGraphAsymmErrors();
+
   double x,dx,y;
 
   for (int iBin = 0; iBin < cf_graph_stat_input->GetN(); ++iBin) {
     cf_graph_stat_input->GetPoint(iBin, x, y);
-    double ErrY = cf_graph_stat_input->GetErrorY(iBin); 
+    double ErrY = cf_graph_stat_input->GetErrorY(iBin);
+    double ErrX = cf_graph_stat_input->GetErrorX(iBin); 
     cf_graph_stat->SetPoint(iBin, x, y);
-    dx = 5.; 
-    if(iBin==0) dx = 4.3;
-    if(iBin==1) dx = 5.8;
-    if(iBin==2) dx = 5.3;
+    //dx = 5.; 
+    // if(iBin==0) dx = 4.3;
+    // if(iBin==1) dx = 5.8;
+    // if(iBin==2) dx = 5.3;
     
-    cf_graph_stat->SetPointError(iBin, dx, dx, ErrY, ErrY); 
+    cf_graph_stat->SetPointError(iBin, ErrX, ErrX, ErrY, ErrY); 
   }
   
   std::cout << cf_graph_stat << std::endl; 
@@ -35,16 +37,17 @@ void OmDraw(TPad* OmPad, const char* WorkDir) {
     = (TGraphAsymmErrors*) cfgraphFile->Get("gGensyst");
   std::cout << cf_graph_syst << std::endl;
 
-  double xx,yy;
+  //double xx,yy;
   //move the first points to the <SE> k* distr mean (see slide 12 of omegamanIV)
-  cf_graph_stat->GetPoint(0,xx,yy);
-  cf_graph_stat->SetPoint(0,17.2,yy);
-  cf_graph_syst->SetPoint(0,17.2,yy);
+  // cf_graph_stat->GetPoint(0,xx,yy);
+  // cf_graph_stat->SetPoint(0,17.2,yy);
+  // cf_graph_syst->SetPoint(0,17.2,yy);
 
-  cf_graph_stat->GetPoint(1,xx,yy);
-  cf_graph_stat->SetPoint(1,36.2,yy);
-  cf_graph_syst->SetPoint(1,36.2,yy);
+  // cf_graph_stat->GetPoint(1,xx,yy);
+  // cf_graph_stat->SetPoint(1,36.2,yy);
+  //cf_graph_syst->SetPoint(1,36.2,yy);
   
+
   
   TGraphAsymmErrors* cf_graphWidth = new TGraphAsymmErrors(*cf_graph_stat);
   std::cout << cf_graphWidth << std::endl;
@@ -240,8 +243,7 @@ for (int iBin = 0; iBin < hal3S15S2Rad_input->GetN(); ++iBin) {
   //  text.SetText
   //text.SetTextSize(gStyle->GetTextSize() * 1.2);
   text.DrawLatex(0.01, 0.95, "#bf{b}");
-  text.DrawLatex(0.87, 0.87, "p-#Omega^{-}"); 
-  
+  text.DrawLatex(0.87, 0.87, "p#minus#kern[-0.75]{ }#Omega^{#minus}"); 
   
   //h->Draw("same"); 
   //out->cd();
@@ -369,9 +371,9 @@ void XiDraw(TPad* XiPad, const char* WorkDir) {
   std::vector<const char*> LegNames;
   LegNames.push_back("#bf{ALICE} data");
   LegNames.push_back("Coulomb ");
-  LegNames.push_back("Coulomb + p-#Xi^{-} HAL QCD");
-  LegNames.push_back("Coulomb + p-#Omega^{-} HAL QCD elastic");
-  LegNames.push_back("Coulomb + p-#Omega^{-} HAL QCD elastic + inelastic");
+  LegNames.push_back("Coulomb + p#minus#kern[-0.75]{ }#Xi^{#minus} HAL QCD");
+  LegNames.push_back("Coulomb + p#minus#kern[-0.75]{ }#Omega^{#minus} HAL QCD elastic");
+  LegNames.push_back("Coulomb + p#minus#kern[-0.75]{ }#Omega^{#minus} HAL QCD elastic + inelastic");
 
   std::vector<const char*> LegOptions;
   LegOptions.push_back("fpe");
@@ -445,7 +447,7 @@ void XiDraw(TPad* XiPad, const char* WorkDir) {
   //  text.SetText
   //text.SetTextSize(gStyle->GetTextSize() * 1.2);
   text.DrawLatex(0.01, 0.83, "#bf{a}");
-  text.DrawLatex(0.87, 0.75, "p-#Xi^{-}"); 
+  text.DrawLatex(0.87, 0.75, "p#minus#kern[-0.75]{ }#Xi^{#minus}"); 
   
   // out->cd();
   // c1->Write();
