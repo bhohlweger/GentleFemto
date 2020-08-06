@@ -31,7 +31,8 @@ MakeHistosGreat::MakeHistosGreat(const char* outname)
 }
 
 MakeHistosGreat::~MakeHistosGreat() {
-  delete fOutfile;
+  fOutfile->Close(); 
+  
   // TODO Auto-generated destructor stub
 }
 
