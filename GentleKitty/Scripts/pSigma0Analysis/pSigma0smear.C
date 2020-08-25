@@ -248,11 +248,12 @@ int main(int argc, char* argv[]) {
   grSigma0NSC97f_smear->Draw("L3same");
   grSigma0fss2_smear->Draw("L3same");
 
-  auto leg = new TLegend(0.49, 0.725, 0.49+0.45, 0.725+0.225);
+  auto leg = new TLegend(0.49, 0.65, 0.49+0.45, 0.65+0.3);
   leg->SetBorderSize(0);
   leg->SetTextFont(42);
   leg->SetNColumns(2);
   leg->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg->SetHeader("p#minus#kern[-0.95]{ }#Sigma^{0}");
   leg->AddEntry(grSigma0fss2, "fss2", "l");
   leg->AddEntry(grSigma0chiEFT, "#chiEFT (NLO)", "l");
   leg->AddEntry(grSigma0ESC16, "ESC16", "l");
@@ -279,11 +280,12 @@ int main(int argc, char* argv[]) {
   grSigma0NSC97f_lambda->Draw("L3same");
   grSigma0fss2_lambda->Draw("L3same");
 
-  auto leg2 = new TLegend(0.49, 0.725, 0.49+0.45, 0.725+0.225);
+  auto leg2 = new TLegend(0.49, 0.65, 0.49+0.45, 0.65+0.3);
   leg2->SetBorderSize(0);
   leg2->SetTextFont(42);
   leg2->SetNColumns(2);
   leg2->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg2->SetHeader("p#minus#kern[-0.95]{ }#Sigma^{0}");
   leg2->AddEntry(grSigma0fss2, "fss2", "l");
   leg2->AddEntry(grSigma0chiEFT, "#chiEFT (NLO)", "l");
   leg2->AddEntry(grSigma0ESC16, "ESC16", "l");

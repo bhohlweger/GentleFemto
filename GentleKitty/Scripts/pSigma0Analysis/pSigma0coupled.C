@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
   leg->SetBorderSize(0);
   leg->SetTextFont(42);
   leg->SetTextSize(gStyle->GetTextSize() * 0.9);
-  leg->SetHeader("#chiEFT (NLO)");
+  leg->SetHeader("p#minus#kern[-0.95]{ }#Sigma^{0} #chiEFT (NLO)");
   leg->AddEntry(grpS0chiEFT, "Genuine N#minus#kern[-0.95]{ }#Sigma (#it{I} = 1/2, 3/2)", "l");
   leg->AddEntry(grpS0nSpluschiEFT, "incl. n#minus#kern[-0.95]{ }#Sigma^{+} #rightarrow p#minus#kern[-0.95]{ }#Sigma^{0}", "l");
   leg->AddEntry(grSigma0chiEFT, "incl. p#minus#kern[-0.95]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }#Sigma^{0}", "l");
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
   leg2->SetBorderSize(0);
   leg2->SetTextFont(42);
   leg2->SetTextSize(gStyle->GetTextSize() * 0.9);
-  leg2->SetHeader("NSC97f");
+  leg2->SetHeader("p#minus#kern[-0.95]{ }#Sigma^{0} NSC97f");
   leg2->AddEntry(grpS0NSC97f, "Genuine N#minus#kern[-0.95]{ }#Sigma (#it{I} = 1/2, 3/2)", "l");
   leg2->AddEntry(grpS0nSplusNSC97f, "incl. n#minus#kern[-0.95]{ }#Sigma^{+} #rightarrow p#minus#kern[-0.95]{ }#Sigma^{0}", "l");
   leg2->AddEntry(grSigma0NSC97f, "incl. p#minus#kern[-0.95]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }#Sigma^{0}", "l");

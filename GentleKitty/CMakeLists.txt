@@ -130,8 +130,20 @@ target_link_libraries(EvalpXiCurves tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(dumpSigma0 ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/DumpCF.C)
 target_link_libraries(dumpSigma0 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(PlayCats ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/PlayCats.C)
+target_link_libraries(PlayCats tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(pSigma0 ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/pSigma0_single.C)
 target_link_libraries(pSigma0 tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(coupledChannel ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/coupledChannel.C)
+target_link_libraries(coupledChannel tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(someLednicky ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/drawLednicky.C)
+target_link_libraries(someLednicky tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(PlotSigmaModels ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/plotSigmaModels.C)
+target_link_libraries(PlotSigmaModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(SigmaSource ${PROJECT_SOURCE_DIR}/Scripts/pSigma0Analysis/FemtoSource.C)
 target_link_libraries(SigmaSource tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
@@ -201,6 +213,9 @@ target_link_libraries(mTAnalysisCoalescence tidyCATS -L${DREAM_LIB_PATH} DreamFu
 
 add_executable(mTPLAnalysis ${PROJECT_SOURCE_DIR}/Scripts/pLAnalysis/mTExtractorAddPot.C)
 target_link_libraries(mTPLAnalysis tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(runPhi ${PROJECT_SOURCE_DIR}/Scripts/pPhi.C)
+target_link_libraries(runPhi tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(radPlotter ${PROJECT_SOURCE_DIR}/Scripts/RadiusDrawer.C)
 target_link_libraries(radPlotter tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
