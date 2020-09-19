@@ -10,6 +10,7 @@
 #include "TFile.h"
 #include "TNtuple.h"
 #include "TGraph.h"
+#include "TGraphAsymmErrors.h"
 #include "TF1.h"
 #include "TPaveText.h"
 #include "TLegend.h"
@@ -26,7 +27,11 @@
 #include <vector>
 #include "TColor.h"
 #include "TStyle.h"
-
+#include "TApplication.h"
+#include "stdlib.h"
+#include <chrono>
+#include <ctime>
+#include <numeric>
 static double radCutoff = 0;
 
 static std::vector<int> fFillColors = { kGray + 1, kRed - 10, kBlue - 9, kGreen
@@ -40,7 +45,7 @@ kCyan + 2,         //6
 kYellow + 2,         //7
 kWhite,         //8
     kGreen - 5,         //9
-    };
+};
 static std::vector<int> fMarkers = { kFullCircle, kFullSquare, kOpenCircle,
     kOpenSquare, kOpenDiamond, kOpenCross, kFullCross, kFullDiamond, kFullStar,
     kOpenStar };
@@ -123,8 +128,9 @@ void PlotPotentials() {
   int nRadBins = 600;
   double dRad = 0.005;
   double radMax = dRad * nRadBins;
+  double times[3] = {0, 23, 46}; 
   for (int iTime = 0; iTime < 3; ++iTime) {
-    double QCDTime = 11 + iTime;
+    double QCDTime = times[iTime]; 
 
     TString I0S0Name = Form("I0S0_Time%u", iTime);
     I0S0[iTime] = new TH1F(I0S0Name.Data(), I0S0Name.Data(), nRadBins,
@@ -143,14 +149,15 @@ void PlotPotentials() {
                            dRad / 2., radMax + dRad / 2.);
 
     for (int iRad = 1; iRad < nRadBins; ++iRad) {
-      double pXimPotParsI0S0[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 0,
+      double pXimPotParsI0S0[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 0,
           -1, 1, 0, 0, 0};
-      double pXimPotParsI0S1[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 0,
+      double pXimPotParsI0S1[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 0,
           -1, 1, 1, 0, 1};
-      double pXimPotParsI1S0[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 1,
+      double pXimPotParsI1S0[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 1,
           1, 1, 0, 0, 0 };
-      double pXimPotParsI1S1[10] = { iRad * dRad, 0, pXim_HALQCD1, QCDTime, 1,
+      double pXimPotParsI1S1[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 1,
           1, 1, 1, 0, 1 };
+
       I0S0[iTime]->SetBinContent(I0S0[iTime]->FindBin(iRad * dRad),
                                  fDlmPot(pXimPotParsI0S0));
 
@@ -400,16 +407,560 @@ void PlotPotentials() {
   OutFile->Close();
 }
 
+void JackknifePotentials() {
+  TFile *OutFile = TFile::Open("PotentialXi.root", "RECREATE");
+  OutFile->cd();
+
+  TList *ListI0S0 = new TList();
+  ListI0S0->SetOwner();
+  ListI0S0->SetName("I0S0");
+
+  TH1F* I0S1[3];
+  TList *ListI0S1 = new TList();
+  ListI0S1->SetOwner();
+  ListI0S1->SetName("I0S1");
+
+  TH1F* I1S0[3];
+  TList *ListI1S0 = new TList();
+  ListI1S0->SetOwner();
+  ListI1S0->SetName("I1S0");
+
+  TH1F* I1S1[3];
+  TList *ListI1S1 = new TList();
+  ListI1S1->SetOwner();
+  ListI1S1->SetName("I1S1");
+
+  int nRadBins = 1200;
+  double dRad = 0.005;
+  double radMax = dRad * nRadBins;
+
+  std::vector<std::vector<float>> vecRad_I0S0_t11;
+  std::vector<std::vector<float>> vecRad_I0S0_t12;
+  std::vector<std::vector<float>> vecRad_I0S0_t13;
+
+  std::vector<std::vector<float>> vecRad_I0S1_t11;
+  std::vector<std::vector<float>> vecRad_I0S1_t12;
+  std::vector<std::vector<float>> vecRad_I0S1_t13;
+	
+  std::vector<std::vector<float>> vecRad_I1S0_t11;
+  std::vector<std::vector<float>> vecRad_I1S0_t12;
+  std::vector<std::vector<float>> vecRad_I1S0_t13;
+
+  std::vector<std::vector<float>> vecRad_I1S1_t11;
+  std::vector<std::vector<float>> vecRad_I1S1_t12;
+  std::vector<std::vector<float>> vecRad_I1S1_t13;   
+
+
+  for (int iRad = 1; iRad < nRadBins; ++iRad) {
+    std::vector<float> vec_I0S0_t11;
+    std::vector<float> vec_I0S0_t12;
+    std::vector<float> vec_I0S0_t13;
+    
+    std::vector<float> vec_I0S1_t11;
+    std::vector<float> vec_I0S1_t12;
+    std::vector<float> vec_I0S1_t13;
+    
+    std::vector<float> vec_I1S0_t11;
+    std::vector<float> vec_I1S0_t12;
+    std::vector<float> vec_I1S0_t13;
+    
+    std::vector<float> vec_I1S1_t11;
+    std::vector<float> vec_I1S1_t12;
+    std::vector<float> vec_I1S1_t13;
+    
+    for (int iTime = 0; iTime < 71; ++iTime) {
+      if (iTime == 0 || iTime == 24 || iTime == 48) {
+	//Default obtained by average 
+	continue; 
+      } 
+      double QCDTime = iTime; 
+      double pXimPotParsI0S0[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 0,
+				     -1, 1, 0, 0, 0};
+      double pXimPotParsI0S1[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 0,
+				     -1, 1, 1, 0, 1};
+      double pXimPotParsI1S0[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 1,
+				     1, 1, 0, 0, 0 };
+      double pXimPotParsI1S1[10] = { iRad * dRad, 0, pXim_HALQCDPaper2020, QCDTime, 1,
+				     1, 1, 1, 0, 1 };
+      if (iTime < 24) { 
+	vec_I0S0_t11.push_back(fDlmPot(pXimPotParsI0S0));
+	vec_I0S1_t11.push_back(fDlmPot(pXimPotParsI0S1));
+	vec_I1S0_t11.push_back(fDlmPot(pXimPotParsI1S0));
+	vec_I1S1_t11.push_back(fDlmPot(pXimPotParsI1S1)); 
+      } else if (iTime < 48) {
+	vec_I0S0_t12.push_back(fDlmPot(pXimPotParsI0S0));
+	vec_I0S1_t12.push_back(fDlmPot(pXimPotParsI0S1));
+	vec_I1S0_t12.push_back(fDlmPot(pXimPotParsI1S0));
+	vec_I1S1_t12.push_back(fDlmPot(pXimPotParsI1S1)); 
+      } else {
+	vec_I0S0_t13.push_back(fDlmPot(pXimPotParsI0S0));
+	vec_I0S1_t13.push_back(fDlmPot(pXimPotParsI0S1));
+	vec_I1S0_t13.push_back(fDlmPot(pXimPotParsI1S0));
+	vec_I1S1_t13.push_back(fDlmPot(pXimPotParsI1S1)); 
+      }
+    }
+
+    std::sort(vec_I0S0_t11.begin(),vec_I0S0_t11.end(), std::greater<float>()); 
+    std::sort(vec_I0S0_t12.begin(),vec_I0S0_t12.end(), std::greater<float>()); 
+    std::sort(vec_I0S0_t13.begin(),vec_I0S0_t13.end(), std::greater<float>()); 
+    
+    std::sort(vec_I0S1_t11.begin(),vec_I0S1_t11.end(), std::greater<float>()); 
+    std::sort(vec_I0S1_t12.begin(),vec_I0S1_t12.end(), std::greater<float>()); 
+    std::sort(vec_I0S1_t13.begin(),vec_I0S1_t13.end(), std::greater<float>()); 
+
+    std::sort(vec_I1S0_t11.begin(),vec_I1S0_t11.end(), std::greater<float>()); 
+    std::sort(vec_I1S0_t12.begin(),vec_I1S0_t12.end(), std::greater<float>()); 
+    std::sort(vec_I1S0_t13.begin(),vec_I1S0_t13.end(), std::greater<float>()); 
+
+    std::sort(vec_I1S1_t11.begin(),vec_I1S1_t11.end(), std::greater<float>()); 
+    std::sort(vec_I1S1_t12.begin(),vec_I1S1_t12.end(), std::greater<float>()); 
+    std::sort(vec_I1S1_t13.begin(),vec_I1S1_t13.end(), std::greater<float>()); 
+
+    vecRad_I0S0_t11.push_back(vec_I0S0_t11);
+    vecRad_I0S0_t12.push_back(vec_I0S0_t12);
+    vecRad_I0S0_t13.push_back(vec_I0S0_t13);
+                   	                  
+    vecRad_I0S1_t11.push_back(vec_I0S1_t11);
+    vecRad_I0S1_t12.push_back(vec_I0S1_t12);
+    vecRad_I0S1_t13.push_back(vec_I0S1_t13);
+                   	                  
+    vecRad_I1S0_t11.push_back(vec_I1S0_t11);
+    vecRad_I1S0_t12.push_back(vec_I1S0_t12);
+    vecRad_I1S0_t13.push_back(vec_I1S0_t13);
+                   	                  
+    vecRad_I1S1_t11.push_back(vec_I1S1_t11);
+    vecRad_I1S1_t12.push_back(vec_I1S1_t12);
+    vecRad_I1S1_t13.push_back(vec_I1S1_t13);
+    
+  }
+  OutFile->cd(); 
+  //I0S0
+  TGraphErrors* grI0S0_t11 = new TGraphErrors();
+  grI0S0_t11->SetName("I0S0_t11");
+  int counter = 1; 
+  for (auto it :  vecRad_I0S0_t11 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI0S0_t11->SetPoint(counter-1, dRad*counter, mean);
+    grI0S0_t11->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI0S0_t11->Write("I0S0_t11");
+
+  TGraphErrors* grI0S0_t12 = new TGraphErrors();
+  grI0S0_t12->SetName("I0S0_t12");
+  counter = 1; 
+  for (auto it :  vecRad_I0S0_t12 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI0S0_t12->SetPoint(counter-1, dRad*counter, mean);
+    grI0S0_t12->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI0S0_t12->Write("I0S0_t12");
+
+  TGraphErrors* grI0S0_t13 = new TGraphErrors();
+  grI0S0_t13->SetName("I0S0_t13");
+  counter = 1; 
+  for (auto it :  vecRad_I0S0_t13 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI0S0_t13->SetPoint(counter-1, dRad*counter, mean);
+    grI0S0_t13->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI0S0_t13->Write("I0S0_t13");
+
+  //I0S1
+  TGraphErrors* grI0S1_t11 = new TGraphErrors();
+  grI0S1_t11->SetName("I0S1_t11");
+  counter = 1; 
+  for (auto it :  vecRad_I0S1_t11 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI0S1_t11->SetPoint(counter-1, dRad*counter, mean);
+    grI0S1_t11->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI0S1_t11->Write("I0S1_t11");
+
+  TGraphErrors* grI0S1_t12 = new TGraphErrors();
+  grI0S1_t12->SetName("I0S1_t12");
+  counter = 1; 
+  for (auto it :  vecRad_I0S1_t12 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI0S1_t12->SetPoint(counter-1, dRad*counter, mean);
+    grI0S1_t12->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI0S1_t12->Write("I0S1_t12");
+
+  TGraphErrors* grI0S1_t13 = new TGraphErrors();
+  grI0S1_t13->SetName("I0S1_t13");
+  counter = 1; 
+  for (auto it :  vecRad_I0S1_t13 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI0S1_t13->SetPoint(counter-1, dRad*counter, mean);
+    grI0S1_t13->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI0S1_t13->Write("I0S1_t13");
+
+  //I1S0
+  TGraphErrors* grI1S0_t11 = new TGraphErrors();
+  grI1S0_t11->SetName("I1S0_t11");
+  counter = 1; 
+  for (auto it :  vecRad_I1S0_t11 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI1S0_t11->SetPoint(counter-1, dRad*counter, mean);
+    grI1S0_t11->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI1S0_t11->Write("I1S0_t11");
+
+  TGraphErrors* grI1S0_t12 = new TGraphErrors();
+  grI1S0_t12->SetName("I1S0_t12");
+  counter = 1; 
+  for (auto it :  vecRad_I1S0_t12 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI1S0_t12->SetPoint(counter-1, dRad*counter, mean);
+    grI1S0_t12->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI1S0_t12->Write("I1S0_t12");
+
+  TGraphErrors* grI1S0_t13 = new TGraphErrors();
+  grI1S0_t13->SetName("I1S0_t13");
+  counter = 1; 
+  for (auto it :  vecRad_I1S0_t13 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI1S0_t13->SetPoint(counter-1, dRad*counter, mean);
+    grI1S0_t13->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI1S0_t13->Write("I1S0_t13");
+
+  //I1S1
+  TGraphErrors* grI1S1_t11 = new TGraphErrors();
+  grI1S1_t11->SetName("I1S1_t11");
+  counter = 1; 
+  for (auto it :  vecRad_I1S1_t11 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI1S1_t11->SetPoint(counter-1, dRad*counter, mean);
+    grI1S1_t11->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI1S1_t11->Write("I1S1_t11");
+
+  TGraphErrors* grI1S1_t12 = new TGraphErrors();
+  grI1S1_t12->SetName("I1S1_t12");
+  counter = 1; 
+  for (auto it :  vecRad_I1S1_t12 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI1S1_t12->SetPoint(counter-1, dRad*counter, mean);
+    grI1S1_t12->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI1S1_t12->Write("I1S1_t12");
+
+  TGraphErrors* grI1S1_t13 = new TGraphErrors();
+  grI1S1_t13->SetName("I1S1_t13");
+  counter = 1; 
+  for (auto it :  vecRad_I1S1_t13 ) {
+    double mean = (it.front() + it.back())/2.;
+    double err = it.front() - mean; 
+    grI1S1_t13->SetPoint(counter-1, dRad*counter, mean);
+    grI1S1_t13->SetPointError(counter-1, 0, err);
+    counter++; 
+  } 
+  grI1S1_t13->Write("I1S1_t13");
+
+
+  OutFile->Close();
+  return; 
+} 
+
+void JackknifeCFs() {
+  TFile *OutFile = TFile::Open("CFsXi.root", "RECREATE");
+  OutFile->cd();
+  
+  const int nBins = 305;
+  double xmin = 0.5;
+  double xmax = 305.5;
+
+  std::vector<std::vector<float>> veckStar_tVar(nBins-1);
+  
+  std::vector<std::vector<float>> veckStar_t11(nBins-1);
+  std::vector<std::vector<float>> veckStar_t11_RadVar(nBins-1);
+  
+  std::vector<std::vector<float>> veckStar_t12(nBins-1);
+  std::vector<std::vector<float>> veckStar_t12_RadVar(nBins-1);
+
+  std::vector<std::vector<float>> veckStar_t13(nBins-1);
+  std::vector<std::vector<float>> veckStar_t13_RadVar(nBins-1);
+  
+  TidyCats* tidy = new TidyCats();
+  std::vector<float> kStar;
+  int total = 71;
+  auto start = std::chrono::system_clock::now();
+  for (int iTime = 0; iTime < total; ++iTime) {
+    auto end = std::chrono::system_clock::now();
+    if ( (iTime > 0 && iTime < 24) || (iTime > 48) ) {
+      continue; 
+    }
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::cout << "\r Processing progress: "
+	      << TString::Format("%.1f %%", (double)iTime / total * 100.f).Data()
+	      << " elapsed time: " << elapsed_seconds.count() / 60. << std::endl 
+	      << std::flush;
+
+    double QCDTime = iTime; 
+    TidyCats::Sources TheSource = TidyCats::sGaussian;
+    float ppRadii[3];
+    ppRadii[0] = 0.97;
+    ppRadii[1] = 1.02;
+    ppRadii[2] = 1.07; 
+
+    CATS HALLO;
+    CATS HALLO_RadUp;
+    CATS HALLO_RadDown; 
+    //full calculation 
+    tidy->GetCatsProtonXiMinus(&HALLO, nBins, xmin, xmax, TheSource,
+			       TidyCats::pHALQCD, iTime);
+    HALLO.SetAnaSource(0, ppRadii[1]);
+    HALLO.KillTheCat();
+    if ( iTime == 24 ) {
+      tidy->GetCatsProtonXiMinus(&HALLO_RadDown, nBins, xmin, xmax, TheSource,
+				 TidyCats::pHALQCD, iTime);
+      HALLO_RadDown.SetAnaSource(0, ppRadii[0]);
+      HALLO_RadDown.KillTheCat();
+      
+      tidy->GetCatsProtonXiMinus(&HALLO_RadUp, nBins, xmin, xmax, TheSource,
+				 TidyCats::pHALQCD, iTime);
+      HALLO_RadUp.SetAnaSource(0, ppRadii[2]);
+      HALLO_RadUp.KillTheCat();
+    } 
+    for (auto it = 0; it < nBins-1; ++it) {
+      if (iTime == 0) {
+	kStar.push_back(HALLO.GetMomentum(it)); 
+      } 
+      if (iTime == 0 || iTime == 24 || iTime == 48) {
+	//Default obtained by average 	
+	veckStar_tVar[it].push_back(HALLO.GetCorrFun(it));
+	/*
+	  if (iTime == 0) {
+	  veckStar_t11_RadVar[it].push_back(HALLO.GetCorrFun(it));
+	  veckStar_t11_RadVar[it].push_back(HALLO_RadUp.GetCorrFun(it));
+	  veckStar_t11_RadVar[it].push_back(HALLO_RadDown.GetCorrFun(it));
+	  } else
+	*/
+	if (iTime == 24) {
+	  veckStar_t12_RadVar[it].push_back(HALLO_RadDown.GetCorrFun(it));
+	  veckStar_t12_RadVar[it].push_back(HALLO.GetCorrFun(it));
+	  veckStar_t12_RadVar[it].push_back(HALLO_RadUp.GetCorrFun(it));	  
+	}
+	/*else {
+	  veckStar_t13_RadVar[it].push_back(HALLO.GetCorrFun(it));
+	  veckStar_t13_RadVar[it].push_back(HALLO_RadUp.GetCorrFun(it));
+	  veckStar_t13_RadVar[it].push_back(HALLO_RadDown.GetCorrFun(it));
+	  }
+	*/
+      } else { 
+	if (iTime < 24) { 
+	  veckStar_t11[it].push_back(HALLO.GetCorrFun(it));
+	} else if (iTime < 48) {
+	  veckStar_t12[it].push_back(HALLO.GetCorrFun(it));
+	} else {
+	  veckStar_t13[it].push_back(HALLO.GetCorrFun(it)); 
+	}
+      }
+    }
+  }
+  
+  OutFile->cd(); 
+
+  // std::cout << "Doing t = 11\n"; 
+  // TGraphErrors* gr_t11 = new TGraphErrors();
+  // gr_t11->SetName("HAL_t11");
+  
+  // int counter = 0; 
+  // for (auto it : veckStar_t11) {  
+  //   double sum = std::accumulate(it.begin(), it.end(), 0.0);
+  //   double sumsq = std::inner_product(it.begin(), it.end(),it.begin(), 0.0); 
+  //   int nVar = (int)it.size(); 
+  //   double err = std::sqrt(sumsq - (std::pow(sum,2)/double(nVar))); 
+  //   double mean = sum/double(nVar);
+  //   gr_t11->SetPoint(counter, kStar[counter], mean);
+  //   gr_t11->SetPointError(counter, 0, err);
+  //   counter++; 
+  // } 
+  // gr_t11->Write("HAL_t11"); 
+
+  std::cout << "Doing t = 12\n"; 
+  TGraphErrors* gr_t12 = new TGraphErrors();
+  gr_t12->SetName("HAL_t12");
+  
+  int counter = 0; 
+  for (auto it : veckStar_t12) {
+    double sum = std::accumulate(it.begin(), it.end(), 0.0);
+    double sumsq = std::inner_product(it.begin(), it.end(),it.begin(), 0.0); 
+    int nVar = (int)it.size();
+    double err = std::sqrt(sumsq - (std::pow(sum,2)/double(nVar))); 
+    double mean = sum/double(nVar);
+    gr_t12->SetPoint(counter, kStar[counter], mean);
+    gr_t12->SetPointError(counter, 0, err);
+    counter++; 
+  } 
+  gr_t12->Write("HAL_t12"); 
+
+  // std::cout << "Doing t = 13\n"; 
+  // TGraphErrors* gr_t13 = new TGraphErrors();
+  // gr_t13->SetName("HAL_t13");
+  // counter = 0; 
+  // for (auto it : veckStar_t13) {
+  //   double sum = std::accumulate(it.begin(), it.end(), 0.0);
+  //   double sumsq = std::inner_product(it.begin(), it.end(),it.begin(), 0.0); 
+  //   int nVar = (int)it.size(); 
+  //   double err = std::sqrt(sumsq - (std::pow(sum,2)/double(nVar))); 
+  //   double mean = sum/double(nVar);
+  //   gr_t13->SetPoint(counter, kStar[counter], mean);
+  //   gr_t13->SetPointError(counter, 0, err);
+  //   counter++; 
+  // } 
+  // gr_t13->Write("HAL_t13"); 
+
+  std::cout << "Doing t Vars\n"; 
+  TGraphAsymmErrors* gr_tVar = new TGraphAsymmErrors();
+  gr_tVar->SetName("HAL_tVar");
+  counter = 0; 
+  for (auto it : veckStar_tVar) {
+    double errhigh = it[0] - it[1];
+    double errlow = it[1] - it[2]; 
+    double mean = it[1]; 
+    gr_tVar->SetPoint(counter, kStar[counter], mean);
+    gr_tVar->SetPointError(counter, 0, 0, errlow, errhigh);
+    counter++; 
+  } 
+  gr_tVar->Write("HAL_tVar"); 
+  
+  std::cout << "Doing HAL Combined \n"; 
+  TGraphAsymmErrors* gr_HALSum = new TGraphAsymmErrors();
+  gr_HALSum->SetName("HAL_Sum");
+  TGraphErrors* gr_HALSymSum = new TGraphErrors();
+  gr_HALSymSum->SetName("HAL_SymSum");
+  double mean_tVar, kstar_tVar;
+  double mean_t12, kstar_t12; 
+  for (int iPoint = 0; iPoint < gr_tVar->GetN(); ++iPoint) {
+    gr_tVar->GetPoint(iPoint, kstar_tVar, mean_tVar);
+    gr_t12->GetPoint(iPoint, kstar_t12, mean_t12); 
+    if (std::fabs(mean_tVar - mean_t12)/mean_tVar > 1e-2 ) {
+      std::cout << "mean_tVar = " << mean_tVar << " mean_t12: " << mean_t12 << std::endl; 
+    } 
+    //double err = std::sqrt( std::pow(gr_tVar->GetErrorY(iPoint),2) + std::pow(gr_t12->GetErrorY(iPoint),2) );
+    double errlow = std::sqrt( std::pow(gr_tVar->GetErrorYlow(iPoint),2) + std::pow(gr_t12->GetErrorY(iPoint),2) );
+    double errhigh = std::sqrt( std::pow(gr_tVar->GetErrorYhigh(iPoint),2) + std::pow(gr_t12->GetErrorY(iPoint),2) );
+    gr_HALSum->SetPoint(iPoint, kstar_tVar, mean_tVar);
+    gr_HALSum->SetPointError(iPoint, 0, 0, errlow, errhigh);
+
+    double errlowSym = mean_tVar - errlow;
+    double errhighSym = mean_tVar + errhigh;
+    double meanSym = (errlowSym + errhighSym)/2.;
+    double errsym_1 = meanSym - errlowSym;
+    double errsym_2 = errhighSym - meanSym;
+
+    if ( std::fabs(errsym_1 - errsym_2) > 1e-3 ) {
+      std::cout <<" Error is fishy ... errsym_1 =  " << errsym_1 << " errsym_2 = " << errsym_2 << std::endl; 
+    }
+    gr_HALSymSum->SetPoint(iPoint, kstar_tVar, meanSym);
+    gr_HALSymSum->SetPointError(iPoint, 0, errsym_1); 
+    
+  } 
+  gr_HALSum->Write("HAL_Sum");
+  gr_HALSymSum->Write("HAL_SymSum"); 
+  
+  
+  std::cout << "Doing Rad Vars\n"; 
+  TGraphAsymmErrors* gr_RadVar = new TGraphAsymmErrors();
+  gr_RadVar->SetName("HAL_RadVar");
+  counter = 0; 
+  for (auto it : veckStar_t12_RadVar) {
+    double errlow = it[0] - it[1]; 
+    double errhigh = it[1] - it[2]; 
+    double mean = it[1];
+    gr_RadVar->SetPoint(counter, kStar[counter], mean);
+    gr_RadVar->SetPointError(counter, 0, 0, errlow, errhigh);
+    counter++; 
+  } 
+  gr_RadVar->Write("HAL_RadVar"); 
+
+  std::cout << "Doing HAL + Rad Combined \n"; 
+  TGraphAsymmErrors* gr_HALRadSum = new TGraphAsymmErrors();
+  gr_HALRadSum->SetName("HALRad_Sum");
+  double mean_HAL, kstar_HAL; 
+  double mean_Rad, kstar_Rad;
+  
+  for (int iPoint = 0; iPoint < gr_HALSum->GetN(); ++iPoint) {
+    gr_HALSum->GetPoint(iPoint, kstar_HAL, mean_HAL); 
+    gr_RadVar->GetPoint(iPoint, kstar_Rad, mean_Rad); 
+    if (std::fabs(mean_HAL - mean_Rad)/mean_HAL > 1e-2 ) {
+      std::cout << "mean_HAL = " << mean_HAL << " mean_Rad: " << mean_Rad << std::endl; 
+    } 
+    double errlow = std::sqrt( std::pow(gr_HALSum->GetErrorYlow(iPoint),2) +
+			       std::pow(gr_RadVar->GetErrorYlow(iPoint),2));
+    double errhigh = std::sqrt( std::pow(gr_HALSum->GetErrorYhigh(iPoint),2) +
+			       std::pow(gr_RadVar->GetErrorYhigh(iPoint),2));
+    gr_HALRadSum->SetPoint(iPoint, kstar_HAL, mean_HAL);
+    gr_HALRadSum->SetPointError(iPoint, 0, 0, errlow, errhigh);
+  } 
+  gr_HALRadSum->Write("HALRad_Sum"); 
+
+  std::cout << "Doing Symmetric HAL + Rad Combined \n";
+  TGraphErrors* gr_HALRadSymSum = new TGraphErrors();
+  gr_HALRadSymSum->SetName("gr_HALRadSymSum");
+  double mean, kstar; 
+  for (int iPoint = 0; iPoint < gr_HALRadSum->GetN(); ++iPoint) {
+    gr_HALRadSum->GetPoint(iPoint, kstar, mean); 
+    double errlow = mean - gr_HALRadSum->GetErrorYlow(iPoint);
+    double errhigh = mean + gr_HALRadSum->GetErrorYhigh(iPoint);
+    double meanSym = (errlow + errhigh)/2.;
+    double errsym_1 = meanSym - errlow;
+    double errsym_2 = errhigh - meanSym;
+
+    if ( std::fabs(errsym_1 - errsym_2) > 1e-3 ) {
+      std::cout <<" Error is fishy ... errsym_1 =  " << errsym_1 << " errsym_2 = " << errsym_2 << std::endl; 
+    }
+    gr_HALRadSymSum->SetPoint(iPoint, kstar, meanSym);
+    gr_HALRadSymSum->SetPointError(iPoint, 0, errsym_1); 
+  }
+  gr_HALRadSymSum->Write("gr_HALRadSymSum"); 
+  
+  OutFile->Close();
+  return; 
+} 
+
+
 void PlotCF(double GaussSourceSize = 1.4) {
 
-  double QCDTime = 11;
+  double QCDTime = 24;
   //4th argument is the t parameter and can be:
   // 9, 10, 11, 12
+  /* 
   double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };
   double pXimPotParsI0S1[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1};
   double pXimPotParsI1S0[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0};
   double pXimPotParsI1S1[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1};
-
+  */
+  double pXimPotParsI0S0[8] = { pXim_HALQCDPaper2020, QCDTime, 0, -1, 1, 0, 0, 0 };
+  double pXimPotParsI0S1[8] = { pXim_HALQCDPaper2020, QCDTime, 0, -1, 1, 1, 0, 1};
+  double pXimPotParsI1S0[8] = { pXim_HALQCDPaper2020, QCDTime, 1, 1, 1, 0, 0, 0};
+  double pXimPotParsI1S1[8] = { pXim_HALQCDPaper2020, QCDTime, 1, 1, 1, 1, 0, 1};
   CATSparameters cPotParsI0S0(CATSparameters::tPotential, 8, true);
   cPotParsI0S0.SetParameters(pXimPotParsI0S0);
 
@@ -647,10 +1198,54 @@ void SetStyle(bool graypalette, bool title) {
 }
 
 int main(int argc, char *argv[]) {
+  //TApplication app("TheApp", &argc, argv);
   SetStyle(false, false);
+
   radCutoff = 0.;
-  PlotCF();
-  PlotPotentials();
+
+  int nBins = 305;
+  double xmin = 0.5;
+  double xmax = 305.5;
+  TidyCats* tidy = new TidyCats();
+  TidyCats::Sources TheSource = TidyCats::sGaussian;
+  float ppRadii[3];
+  ppRadii[0] = 0.97;
+  ppRadii[1] = 1.02;
+  ppRadii[2] = 1.07; 
+
+  CATS Hal;
+  
+  tidy->GetCatsProtonXiMinus(&Hal, nBins, xmin, xmax, TheSource,
+                             TidyCats::pHALQCD, 24);
+
+  Hal.SetAnaSource(0, ppRadii[1]);
+  Hal.KillTheCat();
+
+  TGraphErrors* halandRad = new TGraphErrors();
+  halandRad->SetName("HalAndRad");
+
+  for (auto it = 0; it < nBins - 10; ++it) {
+    double kStar = Hal.GetMomentum(it);
+    double mean = Hal.GetCorrFun(it);
+    halandRad->SetPoint(it, kStar, mean);
+  }
+  TFile* out = TFile::Open("newpXiSasaki.root", "recreate");
+  //TFile* out = TFile::Open("oldpXiHatsuda.root", "recreate"); 
+  out->cd();
+  halandRad->Write("halandrad");
+  out->Close(); 
+  
+  JackknifePotentials();
+  JackknifeCFs();
+
+  
+
+
+
+  
+  //PlotCF(0.95);
+  //PlotPotentials();
+  //app.Run(); 
   return 0;
 }
 

@@ -54,7 +54,8 @@ class AnalyseProXi {
     fLamVarXim1530 = 1;
     fRadVarXim1530 = 1;
     fMomGami->SetResponseVariation(1);
-    fMomGami->SetIterVariation(4);
+    fMomGami->SetIterVariation(5);
+    fMomGami->SetUnfoldingMethod(MomentumGami::kBayes);
   }
   ;
   void SetNormVar(int iVar) {
@@ -84,6 +85,9 @@ class AnalyseProXi {
   }
   void SetMomentumResolutionIter(int iIter) {
     fMomGami->SetIterVariation(iIter);
+  }
+  void SetMomentumUnfoldMethod(MomentumGami::Unfolding meth) {
+    fMomGami->SetUnfoldingMethod(meth);
   }
  private:
   double fcutOff;  // at this value the calculation and doing of the cf stops

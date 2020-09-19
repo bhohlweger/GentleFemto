@@ -584,7 +584,7 @@ void DreamPlot::DrawCorrelationFunctionSigma(const char* fitPath) {
   fProtonSigma->SetLegendName("NSC97f", "l");
   fProtonSigma->SetLegendName("p#minus#kern[-1.]{ }(#Lambda#gamma) baseline", "l");
   fProtonSigma->SetRangePlotting(0, 365, 0.85, 1.7);
-  fProtonSigma->SetNDivisions(504);
+  fProtonSigma->SetNDivisions(504, 505);
   fProtonSigma->SetForceAxisRanges(true);
   const float leftX = 0.475;
   const float upperY = 0.82;
@@ -741,12 +741,12 @@ void DreamPlot::DrawSystemInfo(TPad* c, bool plotRadius, float xMin,
           Form("%s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));
       BeamText.DrawLatex(
           xMin,
-          0.78, "High Mult. (0-0.072% INEL)");
+          0.78, "High Mult. (0-0.17% INEL > 0)");
     } else if (isPreliminary ==0 && !plotRadius) {
       BeamText.SetTextSize(gStyle->GetTextSize() * .9);
             BeamText.DrawLatex(xMin, 0.9, Form("ALICE %s #sqrt{#it{s}} = %i TeV", fCollisionSystem, (int) fEnergy));      BeamText.DrawLatex(
                 xMin,
-                0.84, "High-mult. (0#kern[-0.65]{ }#minus#kern[-0.65]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+                0.84, "High-mult. (0#kern[-0.65]{ }#minus#kern[-0.65]{ }0.17#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
     } else {
       BeamText.DrawLatex(
           xMin,

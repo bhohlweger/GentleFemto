@@ -29,6 +29,7 @@ DreamData::DreamData(const char* particlePair)
       fYMin(0),
       fYMax(0.5),
       fInlet(false),
+      fInset(nullptr),
       fXMinZoom(0),
       fXMaxZoom(0.5),
       fYMinZoom(0),
@@ -149,11 +150,11 @@ void DreamData::SetSystematics(TF1* parameters, float errorwidth) {
       grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
     } else {
-      Warning("DreamData", "For %s set the CF before adding the systematics",
-              fName);
+      Warning("DreamData", TString::Format("For %s set the CF before adding the systematics",
+					   fName).Data());
     }
   } else {
-    Warning("DreamData", "Parameters input missing for %s", fName);
+    Warning("DreamData", TString::Format("Parameters input missing for %s", fName).Data());
   }
   return;
 }
@@ -187,25 +188,98 @@ void DreamData::SetSystematics(TH1* parameters, float errorwidth) {
       grFakeSys->SetLineColor(fFillColors[0]);
       grFakeSys->SetLineWidth(0);
       fFakeGraph.push_back(grFakeSys);
+    } else if (fCorrelationGraph) {
+      fSysError = new TGraphAsymmErrors();
+      double x, y;
+      for (int i = 0; i < fCorrelationGraph->GetN(); ++i) {
+        fCorrelationGraph->GetPoint(i, x, y);
+        fSysError->SetPoint(i, x, y);
+        fSysError->SetPointError(
+            i,
+            errorwidth,
+            errorwidth,
+            y
+                * parameters->GetBinContent(
+                    parameters->FindBin(x) / (float) fUnitConversionData),
+            y
+                * parameters->GetBinContent(
+                    parameters->FindBin(x) / (float) fUnitConversionData));
+      }
+
+      TGraph *grFakeSys = new TGraph();
+      SetStyleGraph(grFakeSys, 2, 0);
+      grFakeSys->SetFillColor(fFillColors[0]);
+      grFakeSys->SetLineColor(fFillColors[0]);
+      grFakeSys->SetLineWidth(0);
+      fFakeGraph.push_back(grFakeSys);
     } else {
-      Warning("DreamData", "For %s set the CF before adding the systematics",
-              fName);
+      Warning("DreamData", TString::Format("For %s set the CF before adding the systematics",
+					   fName).Data());
     }
   } else {
-    Warning("DreamData", "Parameters input missing for %s", fName);
+    Warning("DreamData", TString::Format("Parameters input missing for %s", fName).Data());
   }
   return;
 }
 
-void DreamData::SetCorrelatedError(TGraphErrors *grError, int color, float colorAlpha,
-                          bool useDefaultColors) {
-  fCorrelatedError = grError;
-  fCorrelatedError->SetLineColorAlpha((useDefaultColors ? fColors[color] : color), 0);
-  fCorrelatedError->SetFillColorAlpha((useDefaultColors ? fColors[color] : color), colorAlpha);
+void DreamData::SetSystematics(TGraphAsymmErrors* parameters, float errorwidth) {
+  if (parameters) {
+    if ((fCorrelationFunction||fCorrelationGraph)) { 
+      fSysError = new TGraphAsymmErrors();
+      double x, y;
+      double xErr, yErr;
+      double yErrLow, yErrHigh; 
+      int nBins = 0;
+      if (fCorrelationFunction) {
+	nBins = fCorrelationFunction->GetXaxis()->GetXmax();
+      }
+      if (fCorrelationGraph) {
+	nBins = fCorrelationGraph->GetN();
+      }
+      for (int i = 0; i < nBins; ++i) {
+	if (fCorrelationFunction) {
+	  x = fCorrelationFunction->GetBinCenter(i+1);
+	  y = fCorrelationFunction->GetBinContent(i+1); 
+	}
+	if (fCorrelationGraph) {
+	  fCorrelationGraph->GetPoint(i, x, y);
+	}
+	parameters->GetPoint(i,xErr,yErr);
+	if (x != xErr) {
+	  Warning("DreamData", TString::Format("Different x Values in SetSystematics with Asymmetric Errors: xCorr = %.3f and xErr = %.3f", x, xErr).Data()); 
+	}
+	yErrLow = parameters->GetErrorYlow(i);
+	yErrHigh = parameters->GetErrorYhigh(i); 
+	fSysError->SetPoint(i, x, y);
+	fSysError->SetPointError(i, errorwidth, errorwidth,yErrLow, yErrHigh);
+      }
+      TGraph *grFakeSys = new TGraph();
+      SetStyleGraph(grFakeSys, 2, 0);
+      grFakeSys->SetFillColor(fFillColors[0]);
+      grFakeSys->SetLineColor(fFillColors[0]);
+      grFakeSys->SetLineWidth(0);
+      fFakeGraph.push_back(grFakeSys);
+    } else {
+      Warning("DreamData", TString::Format("For %s set the CF before adding the systematics",
+					   fName).Data());
+    }
+  } else {
+    Warning("DreamData", TString::Format("Parameters input missing for %s", fName).Data());
+  }
+  return;
 }
 
-void DreamData::SetCorrelatedError(TGraphErrors *grError, int color, int fillstyle,
-                          bool useDefaultColors) {
+void DreamData::SetCorrelatedError(TGraphErrors *grError, int color,
+                                   float colorAlpha, bool useDefaultColors) {
+  fCorrelatedError = grError;
+  fCorrelatedError->SetLineColorAlpha(
+      (useDefaultColors ? fColors[color] : color), 0);
+  fCorrelatedError->SetFillColorAlpha(
+      (useDefaultColors ? fColors[color] : color), colorAlpha);
+}
+
+void DreamData::SetCorrelatedError(TGraphErrors *grError, int color,
+                                   int fillstyle, bool useDefaultColors) {
   fCorrelatedError = grError;
   fCorrelatedError->SetLineWidth(1);
   fCorrelatedError->SetLineColor(useDefaultColors ? fColors[color] : 0);
@@ -307,7 +381,8 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
   grFemtoModel->SetFillColor(useDefaultColors ? fColors[color] : color);
   grFemtoModel->SetLineWidth(lineWidth);
   grFemtoModel->SetLineStyle(lineStyle);
-  grFemtoModel->SetFillColorAlpha(useDefaultColors ? fColors[color] : color, opacity);
+  grFemtoModel->SetFillColorAlpha(useDefaultColors ? fColors[color] : color,
+                                  opacity);
   fFemtoModdeled.push_back(grFemtoModel);
   if (addtoLegend) {
     TGraph *grFakeModel = new TGraph();
@@ -315,12 +390,14 @@ void DreamData::FemtoModelFitBands(TGraphErrors *grFemtoModel, int color,
     grFakeModel->SetFillColor(useDefaultColors ? fColors[color] : color);
     grFakeModel->SetLineWidth(lineWidth * 1.8);
     grFakeModel->SetLineStyle(lineStyle);
-    grFakeModel->SetFillColorAlpha(useDefaultColors ? fColors[color] : color, opacity);
+    grFakeModel->SetFillColorAlpha(useDefaultColors ? fColors[color] : color,
+                                   opacity);
     fFakeGraph.push_back(grFakeModel);
   }
 }
 
-void DreamData::FemtoModelDeviations(TGraphErrors* grDeviation, int color, bool useDefaultColors) {
+void DreamData::FemtoModelDeviations(TGraphErrors* grDeviation, int color,
+                                     bool useDefaultColors) {
 //  SetStyleGraph(grDeviation, 2, color);
   grDeviation->SetMarkerStyle(fMarkers[0]);
   grDeviation->SetMarkerColor(useDefaultColors ? fColors[color] : color);
@@ -340,7 +417,6 @@ void DreamData::FemtoModelDeviations(TGraphErrors *grDeviation, int color,
     grDeviation->SetFillStyle(fillStyle);
   fFemtoDeviation.push_back(grDeviation);
 }
-
 
 void DreamData::SetStyleHisto(TH1 *histo, int marker, int color) {
   if (fMultiHisto) {
@@ -385,7 +461,8 @@ void DreamData::SetStyleMultiHisto(TH1 *histo, int marker, int color) {
 
 void DreamData::DrawCorrelationPlot(TPad* c, const int color,
                                     const int systematicsColor,
-                                    const float legendTextScale, const float markersize) {
+                                    const float legendTextScale,
+                                    const float markersize) {
   c->cd();
   TString CFName;
   Color_t markerColor;
@@ -423,10 +500,14 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
 
   if (fDrawAxis) {
     if (fForceAxis) {
-      fDummyHist = new TH1F(Form("dummyHist_%.3f", gRandom->Uniform()), fSysError->GetTitle(), 100, fXMin, fXMax);
+      fDummyHist = new TH1F(Form("dummyHist_%.3f", gRandom->Uniform()),
+                            fSysError->GetTitle(), 100, fXMin, fXMax);
       fDummyHist->SetMinimum(fYMin);
       fDummyHist->SetMaximum(fYMax);
-      fDummyHist->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
+      fDummyHist->GetXaxis()->SetNdivisions(
+          fSysError->GetXaxis()->GetNdivisions());
+      fDummyHist->GetYaxis()->SetNdivisions(
+          fSysError->GetYaxis()->GetNdivisions());
       fDummyHist->SetLineColor(kWhite);
       fDummyHist->Draw();
       fSysError->Draw("same");
@@ -439,8 +520,9 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   fLegend = new TLegend(fXMinLegend, fYMinLegend, fXMaxLegend, fYMaxLegend);
 //  TLegend *leg = new TLegend(0.5, 0.55, 0.62, 0.875);
   fLegend->SetBorderSize(0);
-  fLegend->SetTextFont(42);
-  fLegend->SetTextSize(gStyle->GetTextSize() * legendTextScale);
+  
+  fLegend->SetTextFont(43);
+  fLegend->SetTextSize(27);
   int legendCounter = 1;
 //  leg->AddEntry(fCorrelationFunction, fLegendName[0], "pe");
   fFakeGraph[0]->SetMarkerStyle(markerStyle);
@@ -464,12 +546,12 @@ void DreamData::DrawCorrelationPlot(TPad* c, const int color,
   }
   fSysError->SetFillColorAlpha(systematicsColor, 0.4);
   fSysError->Draw("2 same");
-  if(fCorrelationFunction) {
+  if (fCorrelationFunction) {
     fCorrelationFunction->DrawCopy("pe same");
   } else if (fCorrelationGraph) {
     fCorrelationGraph->Draw("pez same");
   }
-  if(fCorrelatedError) {
+  if (fCorrelatedError) {
     fCorrelatedError->Draw("L3same");
   }
   if (fDrawLegend)
@@ -490,41 +572,70 @@ void DreamData::DrawInlet(TPad *c) {
   inset_pad->SetFillStyle(4000);
   inset_pad->Draw();
   inset_pad->cd();
-  TGraphErrors* SysErrCopy = (TGraphErrors*) fSysError->Clone(
-      Form("%s_clone", fSysError->GetName()));
-  TH1F* CFCopy = (TH1F*) fCorrelationFunction->Clone(
-      Form("%s_Cloned", fCorrelationFunction->GetName()));
-  SetStyleHisto(CFCopy, 2, 0);
-  CFCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
-  CFCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
-  CFCopy->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
-  CFCopy->SetMarkerColor(fCorrelationFunction->GetMarkerColor());
-  CFCopy->SetLineColor(fCorrelationFunction->GetLineColor());
-  SysErrCopy->GetYaxis()->SetNdivisions(203);
-  SysErrCopy->GetXaxis()->SetNdivisions(204);
-  SysErrCopy->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  SysErrCopy->GetXaxis()->SetTitleOffset(fXAxisOffsetInlet);
-  SysErrCopy->GetYaxis()->CenterTitle(true);
-  SysErrCopy->GetYaxis()->SetTitleOffset(fYAxisOffsetInlet);
-  SysErrCopy->GetXaxis()->SetTitleSize(fTextSizeInlet);
-  SysErrCopy->GetXaxis()->SetLabelSize(fTextSizeInlet);
-  SysErrCopy->GetYaxis()->SetTitleSize(fTextSizeInlet);
-  SysErrCopy->GetYaxis()->SetLabelSize(fTextSizeInlet);
+
+
+  TH1 * h = inset_pad->DrawFrame(fXMinZoom, fYMinZoom, fXMaxZoom, fYMaxZoom); 
+  const char * texPtY = "#it{C}(#it{k}*)";
+  const char * texPtX = "#it{k}* (MeV/#it{c})";
+  h->GetYaxis()->SetNdivisions(203);
+  h->GetXaxis()->SetNdivisions(204);
+  h->SetTitle("; #it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  h->GetXaxis()->SetTitleOffset(fXAxisOffsetInlet);
+  h->GetYaxis()->CenterTitle(true);
+  h->GetYaxis()->SetTitleOffset(fYAxisOffsetInlet);
+  h->GetXaxis()->SetTitleSize(fTextSizeInlet);
+  h->GetXaxis()->SetLabelSize(fTextSizeInlet);
+  h->GetYaxis()->SetTitleSize(fTextSizeInlet);
+  h->GetYaxis()->SetLabelSize(fTextSizeInlet);
+  h->GetXaxis()->CenterTitle(true);
+  
+  
+  TGraphAsymmErrors* SysErrCopy = (TGraphAsymmErrors*) fSysError->Clone(
+      Form("%s_NEWHOTclone", fSysError->GetName()));
+
+
   SysErrCopy->SetLineColor(kWhite);
-  SysErrCopy->Draw("Ap");
   fBaseLine->Draw("same");
 //  SysErrCopy->SetTitle(" ; ; ");
   SysErrCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
   SysErrCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
-  for (auto &it : fFemtoModdeled) {
-    it->Draw("L3 same");
+
+  auto it = fFemtoModdeled.rbegin();
+  while (it != fFemtoModdeled.rend()) {
+    (*it)->Draw("L3 same");
+    it++;
   }
   SysErrCopy->SetFillColorAlpha(fSysError->GetFillColor(), 0.4);
   SysErrCopy->Draw("2 same");
-  CFCopy->SetMarkerSize(0.6);
-  CFCopy->DrawCopy("pe same");
+
+  if (fCorrelationFunction) { 
+    TH1F* CFCopy = (TH1F*)
+      fCorrelationFunction->Clone(Form("%s_Cloned", fCorrelationFunction->GetName()));
+    SetStyleHisto(CFCopy, 2, 0);
+    CFCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
+    CFCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
+    CFCopy->SetMarkerStyle(fCorrelationFunction->GetMarkerStyle());
+    CFCopy->SetMarkerColor(fCorrelationFunction->GetMarkerColor());
+    CFCopy->SetLineColor(fCorrelationFunction->GetLineColor());
+    CFCopy->SetMarkerSize(0.6);
+    
+    CFCopy->DrawCopy("pe same");
+  } else if (fCorrelationGraph) {
+    TGraphAsymmErrors* graphCopy = (TGraphAsymmErrors*) fCorrelationGraph->Clone(TString::Format("INLETGraph")); 
+    SetStyleGraph(graphCopy, 2, 0);
+    graphCopy->GetXaxis()->SetRangeUser(fXMinZoom, fXMaxZoom);
+    graphCopy->GetYaxis()->SetRangeUser(fYMinZoom, fYMaxZoom);
+    graphCopy->SetMarkerSize(fCorrelationGraph->GetMarkerStyle());
+    graphCopy->SetMarkerColor(fCorrelationGraph->GetMarkerColor());
+    graphCopy->SetLineColor(fCorrelationGraph->GetLineColor()); 
+    graphCopy->SetMarkerSize(1.0);
+    graphCopy->Draw("pez same");
+  }
+  inset_pad->RedrawAxis();
+  fInset = inset_pad; 
   return;
 }
+
 
 void DreamData::SetStyleGraph(TGraph *histo, int marker, int color) {
   if (fMultiHisto) {
@@ -569,9 +680,9 @@ void DreamData::SetStyleGraphMulti(TGraph *histo, int marker, int color) {
 void DreamData::DrawDeviationPerBin(TPad* c) {
   c->cd();
   TString CFName;
-  if(fCorrelationFunction) {
+  if (fCorrelationFunction) {
     CFName = fCorrelationFunction->GetName();
-  } else if ( fCorrelationGraph) {
+  } else if (fCorrelationGraph) {
     CFName = fCorrelationGraph->GetName();
   }
   TGraphErrors* GraphAxis = (TGraphErrors*) fSysError->Clone("Dummy");
@@ -593,7 +704,8 @@ void DreamData::DrawDeviationPerBin(TPad* c) {
   }
 }
 
-void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSigmaMax) {
+void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup,
+                                    float nSigmaMax) {
   const float ylowDraw = ylow;
   const float yupDraw = yup;
   TH1F* histDummy;
@@ -601,7 +713,8 @@ void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSi
   if (fForceAxis) {
     histDummy = (TH1F*) fDummyHist->Clone("Dummy2");
     histDummy->Reset();
-    histDummy->GetXaxis()->SetNdivisions(fSysError->GetXaxis()->GetNdivisions());
+    histDummy->GetXaxis()->SetNdivisions(
+        fSysError->GetXaxis()->GetNdivisions());
     histDummy->GetYaxis()->SetTitle("");
     histDummy->GetYaxis()->CenterTitle(true);
     histDummy->GetYaxis()->SetTickLength(0);
@@ -630,16 +743,16 @@ void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSi
   float ymin = 100;
   float ymax = -100.;
   for (auto it : fFemtoDeviation) {
-    if(ymin > it->GetYaxis()->GetXmin()) {
+    if (ymin > it->GetYaxis()->GetXmin()) {
       ymin = it->GetYaxis()->GetXmin();
     }
-    if(ymax < it->GetYaxis()->GetXmax()) {
+    if (ymax < it->GetYaxis()->GetXmax()) {
       ymax = it->GetYaxis()->GetXmax();
     }
   }
   ymin = std::round(ymin);
   ymax = std::round(ymax);
-  if(ymax > std::abs(ymin)) {
+  if (ymax > std::abs(ymin)) {
     ymin = -1 * ymax;
   } else {
     ymax = std::abs(ymin);
@@ -657,26 +770,33 @@ void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSi
   lineOne.SetLineColor(kBlack);
   lineOne.SetLineStyle(2);
 
-  TGaxis *axis1 = new TGaxis( fXMin, -1. * nSigmaMax, fXMin, nSigmaMax, -1. * nSigmaMax, nSigmaMax, 202,"", ticklengthY); // redraw the axis to have control over the labels
+  TGaxis *axis1 = new TGaxis(fXMin, -1. * nSigmaMax, fXMin, nSigmaMax,
+                             -1. * nSigmaMax, nSigmaMax, 202, "", ticklengthY);  // redraw the axis to have control over the labels
   axis1->SetName("weloveroot");
-  axis1->SetLabelFont((fForceAxis) ?
-      histDummy->GetXaxis()->GetLabelFont() :
-      grDummy->GetXaxis()->GetLabelFont());
-  axis1->SetLabelSize((fForceAxis) ?
-      histDummy->GetXaxis()->GetLabelSize() :
-      grDummy->GetXaxis()->GetLabelSize());
-  axis1->SetLabelOffset((fForceAxis) ?
-      histDummy->GetXaxis()->GetLabelOffset() :
-      grDummy->GetXaxis()->GetLabelOffset());
+  axis1->SetLabelFont(
+      (fForceAxis) ?
+          histDummy->GetXaxis()->GetLabelFont() :
+          grDummy->GetXaxis()->GetLabelFont());
+  axis1->SetLabelSize(
+      (fForceAxis) ?
+          histDummy->GetXaxis()->GetLabelSize() :
+          grDummy->GetXaxis()->GetLabelSize());
+  axis1->SetLabelOffset(
+      (fForceAxis) ?
+          histDummy->GetXaxis()->GetLabelOffset() :
+          grDummy->GetXaxis()->GetLabelOffset());
 
-  TGaxis *axis2 = new TGaxis( fXMax, -1. * nSigmaMax, fXMax, nSigmaMax, -1. * nSigmaMax, nSigmaMax, 202,"+L", ticklengthY); // redraw the axis to have control over the labels
+  TGaxis *axis2 = new TGaxis(fXMax, -1. * nSigmaMax, fXMax, nSigmaMax,
+                             -1. * nSigmaMax, nSigmaMax, 202, "+L",
+                             ticklengthY);  // redraw the axis to have control over the labels
   axis2->SetName("rootisthebest");
   axis2->SetLabelSize(0);
 
   const float otherPadHeight = 1. - yup;
 
-  const float bottomMargin = 0.4 * 0.5/(yup - ylow);
-  const float scalePadHeight = float(fFemtoDeviation.size() - 1. - bottomMargin) / float(fFemtoDeviation.size() - 1);
+  const float bottomMargin = 0.4 * 0.5 / (yup - ylow);
+  const float scalePadHeight = float(fFemtoDeviation.size() - 1. - bottomMargin)
+      / float(fFemtoDeviation.size() - 1);
   const float padHeight = (yup - ylow) / (fFemtoDeviation.size());
   const int nPads = fFemtoDeviation.size();
   TPad* pad[nPads];
@@ -691,11 +811,12 @@ void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSi
       ylow = yup - currentPadHeight;
       ylow = (ylow < 0) ? 0. : ylow;
     }
-    pad[counter] = new TPad(Form("pad_%i", counter), Form("pad_%i", counter), 0., ylow, 1., yup);
+    pad[counter] = new TPad(Form("pad_%i", counter), Form("pad_%i", counter),
+                            0., ylow, 1., yup);
     pad[counter]->cd();
     pad[counter]->SetRightMargin(c->GetRightMargin());
     pad[counter]->SetTopMargin(0.);
-    if(counter != fFemtoDeviation.size() - 1) {
+    if (counter != fFemtoDeviation.size() - 1) {
       pad[counter]->SetBottomMargin(0.);
     } else {
       pad[counter]->SetBottomMargin(bottomMargin);
@@ -724,12 +845,14 @@ void DreamData::DrawDeviationPerBin(TCanvas* c, float ylow, float yup, float nSi
   c->cd();
   TLatex label;
   label.SetNDC(kTRUE);
-  label.SetTextFont((fForceAxis) ?
-      histDummy->GetYaxis()->GetTitleFont() :
-      grDummy->GetYaxis()->GetTitleFont());
-  label.SetTextSize((fForceAxis) ?
-      histDummy->GetYaxis()->GetTitleSize() :
-      grDummy->GetYaxis()->GetTitleSize());
+  label.SetTextFont(
+      (fForceAxis) ?
+          histDummy->GetYaxis()->GetTitleFont() :
+          grDummy->GetYaxis()->GetTitleFont());
+  label.SetTextSize(
+      (fForceAxis) ?
+          histDummy->GetYaxis()->GetTitleSize() :
+          grDummy->GetYaxis()->GetTitleSize());
   label.SetTextAngle(90);
   label.DrawLatex(0.04, (yupDraw - ylowDraw) / 2., "#it{n}_{#sigma, local}");
 }

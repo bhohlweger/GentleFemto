@@ -18,14 +18,14 @@ SET(KITTY_PATH "${CMAKE_SOURCE_DIR}/GentleKitty")#where are all CATS related .h 
 SET(DREAM_PATH "${CMAKE_SOURCE_DIR}/DreamFunction")#where are all CATS related .h files
 SET(FORGIVEN_PATH "${CMAKE_SOURCE_DIR}/ForgivingQA")#where are all CATS related .h files
 SET(GAMI_PATH "${CMAKE_SOURCE_DIR}/FemtoGami")#where are all CATS related .h files
-SET(ROOFOLD_INCLUDE "$ENV{ROOUNFOLD_ROOT}/include")#where are all CATS related .h files
-SET(ROOFOLD_LIB "$ENV{ROOUNFOLD_ROOT}/lib")#where are the CATS related .a files
+SET(ROOFOLD "$ENV{ROOUNFOLD_ROOT}")#where are all CATS related .h files
+
 
 include_directories(${KITTY_PATH})
 include_directories(${DREAM_PATH})
 include_directories(${FORGIVEN_PATH})
 include_directories(${GAMI_PATH})
-include_directories("${ROOFOLD_INCLUDE}")
+include_directories("${ROOFOLD}")
 
 add_executable(systematicsSigma ${PROJECT_SOURCE_DIR}/EvalSigmaSystematics.C)
 target_link_libraries(systematicsSigma tidyCATS DreamFunctions ForgivingFnct)
@@ -50,6 +50,9 @@ target_link_libraries(ppmTVariations tidyCATS DreamFunctions ForgivingFnct)
 
 add_executable(pLmTVariations ${PROJECT_SOURCE_DIR}/GetmTVariationspL.C)
 target_link_libraries(pLmTVariations tidyCATS DreamFunctions ForgivingFnct)
+
+add_executable(ppmTVariationsForCoalescence ${PROJECT_SOURCE_DIR}/GetmTVariationsCoalescence.C)
+target_link_libraries(ppmTVariationsForCoalescence tidyCATS DreamFunctions ForgivingFnct)
 
 add_executable(systematicspAp ${PROJECT_SOURCE_DIR}/EvalDreamSyspAp.C)
 target_link_libraries(systematicspAp tidyCATS DreamFunctions ForgivingFnct)
@@ -86,3 +89,6 @@ target_link_libraries(LALmTAncestors tidyCATS DreamFunctions ForgivingFnct)
 
 add_executable(pApmTAncestors ${PROJECT_SOURCE_DIR}/GetmTVariationspApAncestors.C)
 target_link_libraries(pApmTAncestors tidyCATS DreamFunctions ForgivingFnct)
+
+add_executable(LALmTVariations ${PROJECT_SOURCE_DIR}/GetmTVariationsLAL.C)
+target_link_libraries(LALmTVariations tidyCATS DreamFunctions ForgivingFnct)

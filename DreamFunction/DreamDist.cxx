@@ -91,9 +91,10 @@ void DreamDist::Calculate_CF(float normleft, float normright,
         // In case we have a SE distribution available we use the mean in that k* bin
         if (hSEnorebin) {
           centrVal = fCF->GetBinCenter(i);
+          double chepsilyon = fCF->GetBinWidth(i)*1e-4;
           hSEnorebin->GetXaxis()->SetRangeUser(
-              fCF->GetBinLowEdge(i),
-              fCF->GetBinLowEdge(i) + fCF->GetBinWidth(i));
+              fCF->GetBinLowEdge(i) + chepsilyon,
+              fCF->GetBinLowEdge(i) + fCF->GetBinWidth(i) - chepsilyon);
           xVal = hSEnorebin->GetMean();
           xErrLeft = xVal - centrVal + fCF->GetBinWidth(i) / 2.;
           xErrRight = centrVal - xVal + fCF->GetBinWidth(i) / 2.;

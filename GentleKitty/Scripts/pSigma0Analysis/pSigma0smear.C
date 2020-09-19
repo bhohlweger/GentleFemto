@@ -294,4 +294,171 @@ int main(int argc, char* argv[]) {
   leg2->Draw("same");
   d->Print("Sigma0_lambda.pdf");
 
+
+  // Repeat the exercise for pp
+  auto grPPFull = new TGraph();
+  grPPFull->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  DreamPlot::SetStyleGraph(grPPFull, 20, kTeal + 2, 0.8);
+  grPPFull->SetLineWidth(lineWidth);
+  auto grPPSmear = new TGraph();
+  DreamPlot::SetStyleGraph(grPPSmear, 20, kTeal + 2, 0.8);
+  grPPSmear->SetLineWidth(lineWidth);
+  grPPSmear->SetLineStyle(2);
+  auto grPPLambda = new TGraph();
+  DreamPlot::SetStyleGraph(grPPLambda, 20,  kTeal + 2, 0.8);
+  grPPLambda->SetLineWidth(lineWidth);
+  grPPLambda->SetLineStyle(2);
+
+  CATS ppKitty;
+  tidy->GetCatsProtonProton(&ppKitty, 150, 0, 300, TidyCats::sGaussian);
+  ppKitty.KillTheCat();
+  auto ppCk = new DLM_Ck(1, 0, ppKitty);
+  ppCk->SetSourcePar(0, radius[0]);
+  ppCk->Update();
+  FillWaveGraph(ppKitty, grPPFull);
+
+  const float lambdaProtonPrim = 0.67;
+  DLM_CkDecomposition CkDec_pp_smear("CkDec_pp_smear", 1, *ppCk,
+                                     CATSinput->GetSigmaFile(0));
+  DLM_CkDecomposition CkDec_pp_lambda("CkDec_pp_lambda", 1, *ppCk, nullptr);
+  CkDec_pp_lambda.AddContribution(0, 1.f - lambdaProtonPrim, DLM_CkDecomposition::cFake);
+  CkDec_pp_lambda.Update();
+
+  for (unsigned int i = 0; i < ppCk->GetNbins(); ++i) {
+    const float mom = ppCk->GetBinCenter(0, i);
+    grPPSmear->SetPoint(i, mom, CkDec_pp_smear.EvalCk(mom));
+    grPPLambda->SetPoint(i, mom, CkDec_pp_lambda.EvalCk(mom));
+  }
+
+  float yminpp = 0.;
+  const float ymaxpp = 5;
+
+  auto c2 = new TCanvas("CFpp_smear", "CFpp_smear", 0, 0, 650, 550);
+  c2->SetRightMargin(right);
+  c2->SetTopMargin(top);
+  dummyHist->Draw();
+  dummyHist->GetYaxis()->SetRangeUser(yminpp, ymaxpp);
+  dummyHist->GetXaxis()->SetNdivisions(504);
+  grPPFull->Draw("L3same");
+  grPPSmear->Draw("L3same");
+
+  auto leg4 = new TLegend(0.49, 0.725, 0.49+0.45, 0.725+0.225);
+  leg4->SetBorderSize(0);
+  leg4->SetTextFont(42);
+  leg4->SetHeader("p#minus#kern[-0.95]{ }p Coulomb + Argonne #nu_{18}");
+  leg4->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg4->AddEntry(grPPFull, "Genuine", "l");
+  leg4->AddEntry(grPPSmear, "Smeared", "l");
+  leg4->Draw("same");
+  c2->Print("pp_smeared.pdf");
+
+  auto c3 = new TCanvas("CFpp_lambda", "CFpp_lambda", 0, 0, 650, 550);
+  c3->SetRightMargin(right);
+  c3->SetTopMargin(top);
+  dummyHist->Draw();
+  dummyHist->GetYaxis()->SetRangeUser(yminpp, ymaxpp);
+  dummyHist->GetXaxis()->SetNdivisions(504);
+  grPPFull->Draw("L3same");
+  grPPLambda->Draw("L3same");
+
+  auto leg5 = new TLegend(0.49, 0.725, 0.49+0.45, 0.725+0.225);
+  leg5->SetBorderSize(0);
+  leg5->SetTextFont(42);
+  leg5->SetHeader("p#minus#kern[-0.95]{ }p Coulomb + Argonne #nu_{18}");
+  leg5->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg5->AddEntry(grPPFull, "Genuine", "l");
+  leg5->AddEntry(grPPLambda, "#lambda = 0.67", "l");
+  leg5->Draw("same");
+  c3->Print("pp_lambda.pdf");
+
+  // Now the Lambda feeding to pp
+  auto grPLFull = new TGraph();
+  grPLFull->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  DreamPlot::SetStyleGraph(grPLFull, 20, kBlue + 3, 0.7);
+  grPLFull->SetLineWidth(lineWidth);
+  auto grPLSmear = new TGraph();
+  DreamPlot::SetStyleGraph(grPLSmear, 20, kBlue + 3, 0.7);
+  grPLSmear->SetLineWidth(lineWidth);
+  grPLSmear->SetLineStyle(2);
+  auto grPLLambda = new TGraph();
+  DreamPlot::SetStyleGraph(grPLLambda, 20,  kBlue + 3, 0.7);
+  grPLLambda->SetLineWidth(lineWidth);
+  grPLLambda->SetLineStyle(3);
+
+  const float PurityLambda = 0.961;
+  const float PrimLambdaAndSigma = 0.785;  //fraction of primary Lambdas + Sigma 0
+  const float SecLambda = 1 - PrimLambdaAndSigma;  //fraction of weak decay Lambdas
+
+  auto histSmear = CATSinput->GetResFile(0);
+  DreamPlot::SetStyleHisto(histSmear);
+  histSmear->SetTitle("; #it{k}*_{p#minus#Lambda} (MeV/#it{c}); #it{k}*_{p#minusp} (MeV/#it{c})");
+  auto casd = new TCanvas("c", "c", 650, 550);
+  histSmear->GetZaxis()->SetTitleFont(43);
+  histSmear->GetZaxis()->SetTitleSize(28);
+  histSmear->GetZaxis()->SetLabelFont(43);
+  histSmear->GetZaxis()->SetLabelSize(28);
+  histSmear->GetXaxis()->SetNdivisions(505);
+  histSmear->GetYaxis()->SetNdivisions(505);
+  histSmear->Draw("col");
+  casd->Print("ppplambdaSmearingMatrix.pdf");
+
+  const float lambdaLambdaProton = 0.203;
+  CATS AB_pL;
+  tidy->GetCatsProtonLambda(&AB_pL, 31, -9.99, 300, TidyCats::sGaussian,
+                            TidyCats::pNLOWF);
+  AB_pL.KillTheCat();
+  DLM_Ck* Ck_pL = new DLM_Ck(1, 0, AB_pL);
+  Ck_pL->SetSourcePar(0, radius[0]);
+  Ck_pL->Update();
+  FillWaveGraph(AB_pL, grPLFull);
+
+  DLM_CkDecomposition CkDec_pL("pLambda", 0, *Ck_pL,
+                               CATSinput->GetSigmaFile(1));
+
+  DLM_Ck* Ck_pL_flat = new DLM_Ck(1, 0, 150, 0, 300, Flat_Residual);
+  Ck_pL_flat->SetSourcePar(0, radius[0]);
+  Ck_pL_flat->Update();
+  DLM_CkDecomposition CkDec_pL_lambdasmear("pLambda2", 1, *Ck_pL_flat, nullptr);
+  CkDec_pL_lambdasmear.AddContribution(0, 0.999, DLM_CkDecomposition::cFeedDown,
+                                       &CkDec_pL, CATSinput->GetResFile(0));
+
+  DLM_CkDecomposition CkDec_pL_lambdasmearlambda("pLambda3", 1, *Ck_pL_flat, nullptr);
+  CkDec_pL_lambdasmearlambda.AddContribution(0, lambdaLambdaProton,
+                                             DLM_CkDecomposition::cFeedDown,
+                                             &CkDec_pL,
+                                             CATSinput->GetResFile(0));
+  CkDec_pL_lambdasmear.Update();
+  CkDec_pL_lambdasmearlambda.Update();
+
+  for (unsigned int i = 0; i < Ck_pL->GetNbins(); ++i) {
+    const float mom = Ck_pL->GetBinCenter(0, i);
+    grPLSmear->SetPoint(i, mom, CkDec_pL_lambdasmear.EvalCk(mom));
+    grPLLambda->SetPoint(i, mom, CkDec_pL_lambdasmearlambda.EvalCk(mom));
+  }
+
+  auto gc3 = new TCanvas("CFpL_lambda", "CFpL_lambda", 0, 0, 650, 550);
+  gc3->SetRightMargin(right);
+  gc3->SetTopMargin(top);
+  dummyHist->Draw();
+  dummyHist->GetYaxis()->SetRangeUser(0.85, 3.5);
+  dummyHist->GetXaxis()->SetNdivisions(504);
+  grPLFull->Draw("L3same");
+  grPLSmear->Draw("L3same");
+  grPLLambda->Draw("L3same");
+
+  auto gleg5 = new TLegend(0.45, 0.65, 0.45 + 0.45, 0.95);
+  gleg5->SetBorderSize(0);
+  gleg5->SetTextFont(42);
+  gleg5->SetHeader("p#minus#kern[-0.95]{ }#Lambda #chiEFT (NLO)");
+  gleg5->SetTextSize(gStyle->GetTextSize() * 0.9);
+  gleg5->AddEntry(grPLFull, "Genuine", "l");
+  gleg5->AddEntry(
+      grPLSmear,
+      "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }p", "l");
+  gleg5->AddEntry(
+      grPLLambda,
+      "p#minus#kern[-0.8]{ }#Lambda #rightarrow p#minus#kern[-0.95]{ }p (#lambda = 0.203)",
+      "l");
+  gleg5->Draw("same");
+  gc3->Print("pL_feed.pdf");
 }

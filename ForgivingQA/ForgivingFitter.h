@@ -44,6 +44,12 @@ class ForgivingFitter {
   float GetMeanWidth() const {
     return fMeanWidth;
   }
+  float GetMeanMassErr() const {
+    return fMeanMassErr;
+  }
+  float GetMeanWidthErr() const {
+    return fMeanWidthErr;
+  }
   void ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin, float pTMax,
                            const char* part);
   void FitInvariantMassSigma(TH1F* histo, float massCuts, int signalColor, int backgroundColor);
@@ -64,7 +70,7 @@ class ForgivingFitter {
   TH1F *getSignalHisto(TF1 *function, TH1F *histo, float rangeLow,
                        float rangeHigh, const char *name);
   void CalculateBackgorund(TH1F* targetHisto, float massCutMin,
-                           float massCutMax, int backgroundColor);
+                           float massCutMax, int backgroundColor, TFitResultPtr ptr);
   TF1* fBackGround;
   TF1* fContinousBackGround;
   TF1* fSingleGaussian;
@@ -82,7 +88,9 @@ class ForgivingFitter {
   int fBackgroundCounts;
   int fBackgroundCountsErr;
   double fMeanMass;
+  double fMeanMassErr;
   double fMeanWidth;
+  double fMeanWidthErr;
 };
 
 inline
@@ -104,6 +112,7 @@ double ForgivingFitter::GetPurityErr() const {
   const double bckErr = static_cast<double>(fBackgroundCountsErr);
   const double signalBck = signal + bck;
   const double signalBckForth = signalBck * signalBck * signalBck * signalBck;
+  std::cout << "signalErr: " << signalErr << " bckErr: " << bckErr << std::endl;
   if (bck < 1E-6) {
     return 0;
   } else {

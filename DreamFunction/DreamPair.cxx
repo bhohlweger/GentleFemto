@@ -245,11 +245,11 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
       TH2F* SEMult = pair->GetSEMultDist();
       TH1F* ME = pair->GetMEDist();
       TH2F* MEMult = pair->GetMEMultDist();
-      //The epsilon ensures that always the lower bin is picked!
+      //The epsilon ensures that one doesn't sit on the bin boundary 
       double epsilon = SE->GetBinWidth(1) * 1e-2;
       int nBins =
           fixedShift ?
-              SE->GetXaxis()->GetNbins() - SE->FindBin(kMin - epsilon) :
+	SE->GetXaxis()->GetNbins() - SE->FindBin(kMin + epsilon) + 1: //since bin counting starts at 1
               otherSE->GetXaxis()->GetNbins();
       float xMin = fixedShift ? kMin : otherSE->GetXaxis()->GetXmin();
       float xMax =
@@ -288,7 +288,7 @@ void DreamPair::FixShift(DreamDist* pair, DreamDist* otherDist, float kMin,
       int endBin = SEShifted->GetNbinsX();
       //for the fixedShift == true case the first bin has to be found,
       //while if the other histogram is already shifted it is just the first bin.
-      int iOtherBin = fixedShift ? SE->FindBin(kMin) : 1;
+      int iOtherBin = fixedShift ? SE->FindBin(kMin+epsilon) : 1;
       int endOtherBin = SE->GetXaxis()->GetNbins();
       for (int iBin = startBin; iBin <= endBin; ++iBin) {
         if (iOtherBin < endOtherBin) {

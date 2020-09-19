@@ -19,15 +19,14 @@ SET(KITTY_PATH "${CMAKE_SOURCE_DIR}/GentleKitty")#where are all CATS related .h 
 SET(FORGIVEN_PATH "${CMAKE_SOURCE_DIR}/ForgivingQA")#where are all CATS related .h files
 SET(GAMI_PATH "${CMAKE_SOURCE_DIR}/FemtoGami")#where are all CATS related .h files
 SET(SYSTEMATIC_PATH "${CMAKE_SOURCE_DIR}/Systematics")#where are all CATS related .h files
-SET(ROOFOLD_INCLUDE "$ENV{ROOUNFOLD_ROOT}/include")#where are all CATS related .h files
-SET(ROOFOLD_LIB "$ENV{ROOUNFOLD_ROOT}/lib")#where are the CATS related .a files
+SET(ROOFOLD "$ENV{ROOUNFOLD_ROOT}")#where are all CATS related .h files
 
 include_directories(${KITTY_PATH})
 include_directories(${FORGIVEN_PATH})
 include_directories(${GAMI_PATH})
 include_directories(${SYSTEMATIC_PATH})
 include_directories(${CATS_INCLUDE})
-include_directories("${ROOFOLD_INCLUDE}")
+include_directories("${ROOFOLD}")
 include_directories(${PROJECT_SOURCE_DIR})
 
 set(SRCS
@@ -69,6 +68,9 @@ target_link_libraries(executeDreamBBar DreamFunctions)
 
 add_executable(executeEmmTee ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFmT.C)
 target_link_libraries(executeEmmTee DreamFunctions)
+
+add_executable(executeLeuteron ${PROJECT_SOURCE_DIR}/Scripts/ExecuteLeuteron.C)
+target_link_libraries(executeLeuteron DreamFunctions)
 
 add_executable(executeKayTee ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFkT.C)
 target_link_libraries(executeKayTee DreamFunctions)
@@ -135,3 +137,6 @@ target_link_libraries(executeDreamAncestors DreamFunctions)
 
 add_executable(executeDPhiDEtaAncestors ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEtaAncestors.C)
 target_link_libraries(executeDPhiDEtaAncestors DreamFunctions)
+
+add_executable(executemTMult ${PROJECT_SOURCE_DIR}/Scripts/GetmTMult.C)
+target_link_libraries(executemTMult DreamFunctions)

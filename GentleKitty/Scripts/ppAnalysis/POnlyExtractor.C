@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
   BeamText.DrawLatex(0.32, 0.91, Form("#bf{ALICE}"));
   BeamText.DrawLatex(0.32, 0.85,
                      Form("%s #sqrt{#it{s}} = %i TeV", "pp", (int) 13));
-  BeamText.DrawLatex(0.32, 0.79, "High Mult. (0-0.072% INEL)");
+  BeamText.DrawLatex(0.32, 0.79, "High Mult. (0-0.17% INEL > 0)");
   text.SetNDC();
   text.SetTextColor(1);
   text.SetTextSize(gStyle->GetTextSize() * 0.85);

@@ -99,12 +99,12 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
     SigmaFileName += "Sample3_MeV_compact.root";
     PurityProton = 0.984266;  //pPb 5 TeV
-    PrimProton = 0.862814;
-    SecLamProton = 0.09603;
+    PrimProton = 0.86;
+    SecLamProton = 0.086;
 
     PurityLambda = 0.937761;
-    PrimLambdaAndSigma = 0.79;  //fraction of primary Lambdas + Sigma 0
-    SecLambda = 0.30;  //fraction of weak decay Lambdas
+    PrimLambdaAndSigma = 0.6875;  //fraction of primary Lambdas + Sigma 0
+    SecLambda = 1- PrimLambdaAndSigma;  //fraction of weak decay Lambdas
 
     PurityXi = 0.88;  //new cuts
   } else if (system == 1) {  // pp HM
@@ -116,7 +116,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
     PurityLambda = 0.965964;
     PrimLambdaAndSigma = 0.806;  //fraction of primary Lambdas + Sigma 0
-    SecLambda = 0.194;  //fraction of weak decay Lambdas
+    SecLambda = 1- PrimLambdaAndSigma;  //fraction of weak decay Lambdas
 
     PurityXi = 0.915;
   } else if (system == 2) {  // pp HM
@@ -187,10 +187,11 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   std::vector<Particle> Xi;  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
 
   std::vector<double> Variation = { 0.98, 1.0, 1.02 };
+  std::vector<double> VariationFraction = { 0.8, 1.0, 1.2 };
   for (auto itFrac : Variation) {
     const double varPrimProton = itFrac * PrimProton;
     const double varSecProton = (1 - (double) varPrimProton);
-    for (auto itComp : Variation) {
+    for (auto itComp : VariationFraction) {
       double Composition = 0.7 * itComp;
       double varSecFracLamb = Composition * varSecProton;
       double varSecFracSigma = 1. - varPrimProton - varSecFracLamb;
@@ -200,7 +201,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
     }
   }
   Variation.clear();
-  Variation = {0.95, 1.0, 1.05};
+  Variation = {0.8, 1.0, 1.2};
   for (auto itSLRatio : Variation) {
     double LamSigProdFraction = 3 * itSLRatio / 4. < 1 ? 3 * itSLRatio / 4. : 1;
     double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma;

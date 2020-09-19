@@ -20,6 +20,7 @@ class DreamData {
   DreamData(const char* particlePair);
   void SetSystematics(TF1* parameters, float errorwidth);
   void SetSystematics(TH1* parameters, float errorwidth);
+  void SetSystematics(TGraphAsymmErrors* parameters, float errorwidth);
   void SetCorrelationFunction(TH1F* CF) {
     fCorrelationFunction = CF;
   }
@@ -106,6 +107,7 @@ class DreamData {
     fXAxisOffsetInlet = xaxis;
     fYAxisOffsetInlet = yaxis;
   }
+  TPad* GetInset() { return fInset; };
   void SetTextSizeLegend(float size) {
     fTextSizeInlet = size;
   }
@@ -118,6 +120,14 @@ class DreamData {
     }
   }
   ;
+  void SetNDivisions(int nDivX, int nDivY) {
+    if (fSysError) {
+      fSysError->GetXaxis()->SetNdivisions(nDivX);
+      fSysError->GetYaxis()->SetNdivisions(nDivY);
+    } else {
+      Warning("DreamData", "No sys err for %s", fName);
+    }
+  }
   void SetLegendName(const char* name, const char* option) {
     fLegendName.push_back(name);
     fLegendOption.push_back(option);
@@ -162,6 +172,7 @@ class DreamData {
   float fYMin;
   float fYMax;
   bool fInlet;
+  TPad* fInset; 
   float fXMinZoom;
   float fXMaxZoom;
   float fYMinZoom;

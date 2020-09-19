@@ -32,6 +32,14 @@ int main(int argc, char *argv[]) {
   protonMomRes.SetUpperFitRange(800);
   protonMomRes.SetBarlowUpperRange(400);
 
+//  DreamSystematics protonMomResB2B(DreamSystematics::pXiRes);
+//  protonMomResB2B.SetUpperFitRange(800);
+//  protonMomResB2B.SetBarlowUpperRange(400);
+//
+//  DreamSystematics protonMomResIDS(DreamSystematics::pXiRes);
+//  protonMomResIDS.SetUpperFitRange(800);
+//  protonMomResIDS.SetBarlowUpperRange(400);
+
   ana->SetAnalysisFile(fileName, prefix);
   ana->Default();
   TH1F* DefVar = ana->GetVariation(0, true);
@@ -41,7 +49,7 @@ int main(int argc, char *argv[]) {
 
   protonNorm.SetDefaultHist((TH1F*) DefVar->Clone("defVarNorm"));
   protonFeeddown.SetDefaultHist((TH1F*) DefVar->Clone("defVarFeedDown"));
-  protonMomRes.SetDefaultHist((TH1F*) DefVar->Clone("defVarMom"));
+  protonMomRes.SetDefaultHist((TH1F*) DefVar->Clone("defVarMomBayes"));
 
   //create dream sys object, set default for norm/bl vars
   int varCounter = 1;
@@ -110,17 +118,48 @@ int main(int argc, char *argv[]) {
   protonFeeddown.EvalSystematics();
   protonFeeddown.WriteOutput("");
 
+  //Bayes
   for (int iRes = 0; iRes < 3; iRes++) {
     if (iRes == 1) {
       continue;  // default case
     }
     ana->Default();
+    ana->SetMomentumUnfoldMethod(MomentumGami::kBayes);
     ana->SetMomentumResolutionVar(iRes);
     TH1F* Var = ana->GetVariation(varCounter++);
     protonMomRes.SetVarHist(Var);
   }
-  for (int iIter = 1; iIter < 4; iIter++) {
+  for (int iIter = 0; iIter < 4; iIter++) {
+    if (iIter == 1) {
+      continue;
+    }
     ana->SetMomentumResolutionIter(iIter + 4);
+    TH1F* Var = ana->GetVariation(varCounter++);
+    protonMomRes.SetVarHist(Var);
+  }
+
+  //B2B
+  for (int iRes = 0; iRes < 3; iRes++) {
+    ana->Default();
+    ana->SetMomentumUnfoldMethod(MomentumGami::kB2B);
+    ana->SetMomentumResolutionVar(iRes);
+    TH1F* Var = ana->GetVariation(varCounter++);
+    protonMomRes.SetVarHist(Var);
+  }
+
+  //IDS
+  for (int iRes = 0; iRes < 3; iRes++) {
+    ana->Default();
+    ana->SetMomentumUnfoldMethod(MomentumGami::kIDS);
+    ana->SetMomentumResolutionIter(0);
+    ana->SetMomentumResolutionVar(iRes);
+    TH1F* Var = ana->GetVariation(varCounter++);
+    protonMomRes.SetVarHist(Var);
+  }
+  for (int iIter = 0; iIter < 4; iIter++) {
+    ana->Default();
+    ana->SetMomentumUnfoldMethod(MomentumGami::kIDS);
+    ana->SetMomentumResolutionIter(iIter);
     TH1F* Var = ana->GetVariation(varCounter++);
     protonMomRes.SetVarHist(Var);
   }

@@ -21,6 +21,7 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fSEMult(nullptr),
       fSEkT(nullptr),
       fSEmT(nullptr),
+      fSEmTMult(nullptr), 
       fSEmTProj(nullptr),
       fProjmT(nullptr),
       fMeanmT(nullptr),
@@ -32,6 +33,7 @@ ReadDreamFile::ReadDreamFile(int nPart1, int nPart2)
       fMEMult(nullptr),
       fMEkT(nullptr),
       fMEmT(nullptr),
+      fMEmTMult(nullptr), 
       fMEdEtadPhimT(nullptr),
       fMEdEtadPhi(nullptr),
       fMEdEtadPhiAtRad(nullptr),
@@ -480,6 +482,46 @@ void ReadDreamFile::ReadmTHistos(const char* AnalysisFile, const char* prefix,
   return;
 }
 
+void ReadDreamFile::ReadmTMultHistos(const char* AnalysisFile, const char* prefix,
+				     const char* addon, const int nmTBins) {
+  fSEmTMult = new TH2F***[fNPart1];
+  fMEmTMult = new TH2F***[fNPart1];
+
+  TFile* _file0 = TFile::Open(AnalysisFile, "READ");
+  TDirectoryFile *dirResults =
+    (TDirectoryFile*) (_file0->FindObjectAny(Form("%sResults%s", prefix, addon)));
+  TList *Results;
+  dirResults->GetObject(Form("%sResults%s", prefix, addon), Results);
+  TList *PartList;
+  for (int iPart1 = 0; iPart1 < fNPart1; ++iPart1) {
+    fSEmTMult[iPart1] = new TH2F**[fNPart2];
+    fMEmTMult[iPart1] = new TH2F**[fNPart2];
+    for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
+      TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
+      PartList = (TList*) Results->FindObject(FolderName.Data());
+      fSEmTMult[iPart1][iPart2] = new TH2F*[nmTBins];
+      fMEmTMult[iPart1][iPart2] = new TH2F*[nmTBins];
+      for (int imT = 0; imT < nmTBins; ++imT) { 
+	fSEmTMult[iPart1][iPart2][imT] =
+	  (TH2F*) PartList->FindObject(Form("SEmTMult_%i_%s", imT, FolderName.Data()));
+	if (!fSEmTMult[iPart1][iPart2][imT]) {
+	  if (!fQuiet)
+	    std::cout << "SEmTMult Histogramm missing from " << FolderName.Data()
+		      << std::endl;
+	}
+	fMEmTMult[iPart1][iPart2][imT] =
+	  (TH2F*) PartList->FindObject(Form("MEmTMult_%i_%s", imT, FolderName.Data()));
+	if (!fMEmTMult[iPart1][iPart2][imT]) {
+	  if (!fQuiet)
+	    std::cout << "MEmTMult Histogramm missing from " << FolderName.Data()
+		      << std::endl;
+	}
+      }
+    }
+  }
+  return;
+} 
+
 void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char* prefix,
                                  const char* addon, double kcut) {
 
@@ -503,7 +545,7 @@ void ReadDreamFile::ReadAndProjectmTHistos(const char* AnalysisFile, const char*
     fMEmT[iPart1] = new TH2F*[fNPart2];
     fSEmTProj[iPart1] = new TH1F*[fNPart2];
 
-
+    
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
 
       TString FolderName = Form("Particle%i_Particle%i", iPart1, iPart2);
@@ -682,6 +724,7 @@ void ReadDreamFile::ReaddEtadPhiAtRadHists(const unsigned int nMaxMix,
     for (int iPart2 = iPart1; iPart2 < fNPart2; ++iPart2) {
       TString FolderName = Form("QA_Particle%i_Particle%i", iPart1, iPart2);
       PartList = (TList*) ResultsQA->FindObject(FolderName.Data());
+      PartList = (TList*)PartList->FindObject("PhiAtRad");
       fSEdEtadPhiAtRad[iPart1][iPart2] = new TH2F**[9];
       fSEdEtadPhiAtRadSmallkStar[iPart1][iPart2] = new TH2F**[9];
       fMEdEtadPhiAtRad[iPart1][iPart2] = new TH2F**[9];
@@ -937,6 +980,8 @@ DreamKayTee* ReadDreamFile::GetmTPairDistributions(int iPart1, int iPart2,
 DreamKayTee* ReadDreamFile::GetmTPairDistributionsCommon(int iPart1, int iPart2,
                                                    int iAPart1, int iAPart2) {
 //user needs to ensure deletion
+DreamKayTee* ReadDreamFile::GetmTMultPairDistributions(int iPart1, int iPart2, int iAPart1,
+					int iAPart2, const int nmTBins) {
   if (iPart2 < iPart1) {
     std::cout << "Particle Combination does not exist \n";
     return nullptr;
@@ -991,6 +1036,14 @@ DreamKayTee* ReadDreamFile::GetmTPairDistributionsNonCommon(int iPart1, int iPar
   pair->SetSEmTDist(0, fSEmTNonCommon[iPart1][iPart2]);
   pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
 
+  DreamKayTee* pair = new DreamKayTee(nmTBins);
+  for (int imT = 0; imT < nmTBins; ++imT) { 
+    pair->SetSEmTMultDist(0, imT, fSEmTMult[iPart1][iPart2][imT]);
+    pair->SetMEmTMultDist(0, imT, fMEmTMult[iPart1][iPart2][imT]);
+
+    pair->SetSEmTMultDist(1, imT, fSEmTMult[iAPart1][iAPart2][imT]);
+    pair->SetMEmTMultDist(1, imT, fMEmTMult[iAPart1][iAPart2][imT]);
+  }
   return pair;
 }
 

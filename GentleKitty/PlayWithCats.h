@@ -20,6 +20,12 @@ class PlayWithCats {
   void ExtractUncertaintyFit(const char* inFile);
   void GenerateDefault();
   void GenerateCoulombOnly();
+  void GenerateSourceDistpxi(TFile* out);
+  void GenerateSourceDistpp(TFile* out, double ks);
+  void GenerateSourceDistpL(TFile* out);
+  void GenerateYukiCurves(TFile* out);
+  void GenerateYukiCurves_200515(TFile* out); 
+  
   void CloseFile() {
     fOutFile->Close();
   }

@@ -15,8 +15,17 @@ int main(int argc, char* argv[]) {
   const char* addon = (argv[3]) ? argv[3] : "";
   MakeHistosGreat::SetStyle(false);
 
+  DrawStyle styler;
+  styler.drawMarker = 2;
+  styler.drawColor = 8;
+  styler.drawSize = 1.1;
+  styler.drawLineColor = kTeal + 3;
+  styler.drawSignalFitColor = kBlue + 4;
+  styler.drawBackgroundFitColor = kGreen + 2;
+
   PeriodQA *qa = new PeriodQA();
   qa->SetDirectory(argv[1]);
+  qa->SetStyler(styler);
   qa->ProcessSigmaQA(prefix, addon);
 }
 

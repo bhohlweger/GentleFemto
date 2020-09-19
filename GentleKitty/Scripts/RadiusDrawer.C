@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
   BeamText.DrawLatex(
       0.55,
       0.69,
-      "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+      "(0#kern[-0.95]{ }#minus#kern[-0.05]{ }0.17#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
 //  BeamText.DrawLatex(0.55, 0.62, "Gaussian Source");
   BeamText.DrawLatex(0.17, 0.2, TString::Format("%s",sourceName).Data());
 

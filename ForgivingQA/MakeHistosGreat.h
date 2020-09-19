@@ -28,13 +28,13 @@ class MakeHistosGreat {
   MakeHistosGreat();
   MakeHistosGreat(const char* outfile);
   virtual ~MakeHistosGreat();
-  void FormatHistogram(TH1* hist, DrawStyle styler);
-  void FormatHistogram(TH1* hist, unsigned int marker, unsigned int color,
+  static void FormatHistogram(TH1* hist, DrawStyle styler);
+  static void FormatHistogram(TH1* hist, unsigned int marker, unsigned int color,
                        float size = 1);
-  void FormatSmallHistogram(TH1* hist, DrawStyle styler);
-  void FormatSmallHistogram(TH1* hist, unsigned int marker, unsigned int color,
+  static void FormatSmallHistogram(TH1* hist, DrawStyle styler);
+  static void FormatSmallHistogram(TH1* hist, unsigned int marker, unsigned int color,
                             float size = 1);
-  void FormatHistogram(TH2 *histo);
+  static void FormatHistogram(TH2 *histo);
   void DrawAndStore(std::vector<TH1*> hist, const char* outname,
                     const char* drawOption = "");
   void DrawOnPad(std::vector<TH1*> hist, TPad* TPain, const char* drawOption =

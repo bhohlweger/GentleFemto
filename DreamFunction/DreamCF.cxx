@@ -282,20 +282,23 @@ TGraphAsymmErrors* DreamCF::AddCF(TH1F* histSum, std::vector<DreamPair*> pairs,
   // Shift the center of the bin in x according to the same event distribution
   // In case of very large bins, this can have a sizeable effect!
   int counter = 0;
-  float xVal, xErrRight, xErrLeft, centrVal;
+  float xVal, xRMS, xErrRight, xErrLeft, centrVal;
   for (int i = 1; i <= histSum->GetNbinsX(); ++i) {
     if (histSum->GetBinContent(i) == 0)
       continue;
     // In case we have a SE distribution available we use the mean in that k* bin
     centrVal = histSum->GetBinCenter(i);
+    double chepsilyon = histSum->GetBinWidth(i)*1e-4;
+
     histSE->GetXaxis()->SetRangeUser(
-        histSum->GetBinLowEdge(i),
-        histSum->GetBinLowEdge(i) + histSum->GetBinWidth(i));
+        histSum->GetBinLowEdge(i) + chepsilyon,
+        histSum->GetBinLowEdge(i) + histSum->GetBinWidth(i) - chepsilyon);
     xVal = histSE->GetMean();
-    xErrLeft = xVal - centrVal + histSum->GetBinWidth(i) / 2.;
-    xErrRight = centrVal - xVal + histSum->GetBinWidth(i) / 2.;
+    xRMS = histSE->GetRMS();
+//    xErrLeft = xVal - centrVal + histSum->GetBinWidth(i) / 2.;
+//    xErrRight = centrVal - xVal + histSum->GetBinWidth(i) / 2.;
     hist_CF_sum->SetPoint(counter, xVal, histSum->GetBinContent(i));
-    hist_CF_sum->SetPointError(counter++, xErrLeft, xErrRight,
+    hist_CF_sum->SetPointError(counter++, xRMS, xRMS,
                                histSum->GetBinError(i),
                                histSum->GetBinError(i));
   }

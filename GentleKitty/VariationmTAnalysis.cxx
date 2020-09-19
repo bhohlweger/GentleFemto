@@ -193,7 +193,7 @@ void VariationmTAnalysis::MakeCFPlotsSingleBand() {
     BeamText.DrawLatex(
         fTextXMin,
         0.85,
-        "High-mult. (0#kern[-0.65]{ }#minus#kern[-0.65]{ }0.072#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
+        "High-mult. (0#kern[-0.65]{ }#minus#kern[-0.65]{ }0.17#kern[-0.9]{ }% INEL#kern[-0.5]{ }>#kern[-0.5]{ }0)");
 
     TLatex text;
     text.SetNDC();

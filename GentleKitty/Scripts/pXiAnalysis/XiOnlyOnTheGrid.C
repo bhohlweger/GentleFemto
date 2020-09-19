@@ -255,7 +255,7 @@ void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
   SideBandFit* side = new SideBandFit();
   side->SetRebin(rebin);
   if (system == 0) {
-    side->SetSideBandFile("~/cernbox/pPb/Sidebands", "MB", "42", "43");
+    side->SetSideBandFile("~/cernbox/pPb/Sidebands_redo", "MB", "42", "43");
   } else if (system == 2) {
     side->SetSideBandFile("~/cernbox/HM13TeV/AnalysisData/latestSystematic",
                           "HM", "103", "104");

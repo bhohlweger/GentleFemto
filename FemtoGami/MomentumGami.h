@@ -14,6 +14,11 @@
 
 class MomentumGami {
  public:
+  enum Unfolding {
+    kBayes = 0,
+    kB2B = 1,
+    kIDS = 2
+  };
   MomentumGami(float maxkStar);
   double Eval(double *x, double *p);
   virtual ~MomentumGami();
@@ -31,8 +36,12 @@ class MomentumGami {
   void SetIterVariation(int iVar) {
     fIter = iVar;
   }
+  void SetUnfoldingMethod(Unfolding meth) {
+    fHowToUnfold = meth;
+  }
   TList* GetQAList() {return fQAList; }
  private:
+  bool fResponseMatrixSetup; 
   TList* fQAList;
   TH2F* fResolution;
   std::vector<TH1F*> fResProjection;
@@ -45,6 +54,7 @@ class MomentumGami {
   RooUnfoldResponse *fResponseUpper;
   float fMaxkStar;
   float fUnitConversion;
+  Unfolding fHowToUnfold;
 };
 
 #endif /* FEMTOGAMI_MOMENTUMGAMI_H_ */

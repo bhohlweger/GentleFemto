@@ -17,6 +17,7 @@
 
 #include "DLM_CkDecomposition.h"
 
+
 AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
     : fcutOff(cutoff),
       fLimitCFRange(false),
@@ -43,15 +44,6 @@ AnalyseProXi::AnalyseProXi(double cutoff, double smearing)
   fBLfunct = {"pol0","pol1"};
   fLamVars = {0.8,1.0,1.2};
   fXim1530Rad = {0.95,1.00,1.05};
-
-  TString CalibBaseDir = "/home/schmollweger/cernbox/HM13TeV/AnalysisData/336_pXiMCNano/ResolutionpXi.root";
-  TFile* inFile = TFile::Open(CalibBaseDir.Data(), "read");
-  if (!inFile) {
-    std::cout << "No Infile set, no Momentum resolution set, RIP \n";
-  } else {
-    TH2F* momReso = (TH2F*) inFile->Get("FiveMeV");
-    fMomGami->SetResolution(momReso, 1);
-  }
 }
 
 AnalyseProXi::~AnalyseProXi() {
@@ -61,36 +53,50 @@ AnalyseProXi::~AnalyseProXi() {
 }
 
 TH1F* AnalyseProXi::GetVariation(int varnumber, bool getModels) {
-  std::cout << "Getting the CF \n";
-  ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
-  DreamFile->SetAnalysisFile(fFilename, fPrefix, fSuffix);
-
-  DreamDist* pXi = DreamFile->GetPairDistributions(0, 2, "");
-  DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 3, "");
-  if (fLimitCFRange) {
-    std::cout << " Limiting the range to " << fCFLimit << std::endl;
-    ResetLimits(pXi);
-    ResetLimits(ApAXi);
-  }
-  DreamCF* CFpXiDef = ObtainCorrFunction("pXiVar0", pXi, ApAXi);
-  TH1F* CFMeasured = CFpXiDef->FindCorrelationFunction(
-      "hCk_RebinnedpXiVar0MeV_0");
-  if (!CFMeasured) {
-    return nullptr;
-  }
-
-  CFMeasured = (TH1F*) CFMeasured->Clone("InputCF");
-  CFpXiDef->WriteOutput(
-      TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data());
-
   fQAOutput = TFile::Open(
-      TString::Format("%s/debug_Var%u.root", gSystem->pwd(), varnumber).Data(),
-      "recreate");
-//  CFMeasured->SetDirectory(0);
+			  TString::Format("%s/debug_Var%u.root", gSystem->pwd(), varnumber).Data(),
+			  "recreate");
+  TFile* doIExist = TFile::Open(TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data(), "read");
+  TH1F* CFMeasured; 
+  if (doIExist) {
+    CFMeasured = (TH1F*)doIExist->Get("hCk_RebinnedpXiVar0MeV_0")->Clone("InputCF"); 
+  } else { 
+    std::cout << "Getting the CF \n";
+    TString CalibBaseDir = "/home/schmollweger/cernbox/HM13TeV/AnalysisData/336_pXiMCNano/ResolutionpXi.root";
+    TFile* inFile = TFile::Open(CalibBaseDir.Data(), "read");
+    if (!inFile) {
+      std::cout << "No Infile set, no Momentum resolution set, RIP \n";
+    } else {
+      TH2F* momReso = (TH2F*) inFile->Get("FiveMeV");
+      fMomGami->SetResolution(momReso, 1);
+    }
+    ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
+    DreamFile->SetAnalysisFile(fFilename, fPrefix, fSuffix);
+
+    DreamDist* pXi = DreamFile->GetPairDistributions(0, 2, "");
+    DreamDist* ApAXi = DreamFile->GetPairDistributions(1, 3, "");
+    if (fLimitCFRange) {
+      std::cout << " Limiting the range to " << fCFLimit << std::endl;
+      ResetLimits(pXi);
+      ResetLimits(ApAXi);
+    }
+    DreamCF* CFpXiDef = ObtainCorrFunction("pXiVar0", pXi, ApAXi);
+
+    CFMeasured = CFpXiDef->FindCorrelationFunction("hCk_RebinnedpXiVar0MeV_0");
+    if (!CFMeasured) {
+      return nullptr;
+    }
+
+    CFMeasured = (TH1F*) CFMeasured->Clone("InputCF");
+    CFpXiDef->WriteOutput(
+			  TString::Format("%s/CFinput_Var%u.root", gSystem->pwd(), varnumber).Data());
+    fQAOutput->cd();
+    fMomGami->GetQAList()->Write("MomGami", 1);
+  }
+
+  fQAOutput->cd();
   fXiGami->UnSetLambdaPar();
   fXiGami->StoreStatErr(CFMeasured);
-  fQAOutput->cd();
-  fMomGami->GetQAList()->Write("MomGami", 1);
   CFMeasured->Write();
   std::cout << "Calculating Lambda parameter \n";
   double lamGenuine = SetupLambdaPars(fXiGami, fLamVars[fLamVarProton],
@@ -234,8 +240,8 @@ DreamCF* AnalyseProXi::ObtainCorrFunction(const char* name, DreamDist* partDist,
   pp->FixShift(pp->GetPairUnfolded(0), ApAp->GetPairUnfolded(0), 0.005, true);
   ApAp->FixShift(ApAp->GetPairUnfolded(0), pp->GetPairUnfolded(0), 0.005, true);
 
-  pp->Rebin(pp->GetPairFixShifted(0), 4);
-  ApAp->Rebin(ApAp->GetPairFixShifted(0), 4);
+  pp->Rebin(pp->GetPairFixShifted(0), 4, true);
+  ApAp->Rebin(ApAp->GetPairFixShifted(0), 4, true);
 
   outCF->SetPairs(pp, ApAp);
   outCF->GetCorrelations(name);
@@ -298,7 +304,7 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
 
   CATSInput *CATSinput = new CATSInput();
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
-  CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
+  CATSinput->SetMomResFileName("run2_decay_matrices_old.root", 1, 1);
   CATSinput->ReadResFile();
   CATSinput->SetSigmaFileName(SigmaFileName.Data());
   CATSinput->ReadSigmaFile();
@@ -308,6 +314,7 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
   unsigned int nkBin = 0;
   double kMin, kMax;
   kMin = dataCF->GetXaxis()->GetXmin();
+
   if (fcutOff < dataCF->GetXaxis()->GetXmax()) {
     nkBin = dataCF->FindBin(fcutOff);
     std::cout << "dataCF->GetBinWidth(1): " << dataCF->GetBinWidth(1)
@@ -317,41 +324,37 @@ TH1F* AnalyseProXi::Xim1530FeedDown(LambdaGami* XiGami, TH1F* dataCF) {
     kMax = dataCF->GetXaxis()->GetXmax();
     nkBin = dataCF->GetNbinsX();
   }
+
+  
+  TH2F* input = CATSinput->GetResFile(3);
   std::cout << "kMin: " << kMin << " kMax: " << kMax << " nkBin: " << nkBin
             << std::endl;
+  
+  TH2F* Transformation = tidy->ConvertHisto(input, nkBin*10, kMin, kMax); 
+  Transformation->Rebin2D(20,10);
+  
+  TH1F* pXim1530Converted = new TH1F("pXim1530Converted","pXim1530Converted", nkBin, kMin, kMax);
+
   CATS AB_pXim1530;
-  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, nkBin, kMin, kMax,
+
+  double ktmin = Transformation->GetXaxis()->GetXmin();
+  double ktmax = Transformation->GetXaxis()->GetXmax();
+  double nktbins = Transformation->GetXaxis()->GetNbins();
+  std::cout << "nktbins: " << nktbins <<  " ktmin: " << ktmin << " ktmax: " << ktmax << std::endl; 
+  tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, nktbins, ktmin, ktmax,
                                  TidyCats::sGaussian);
-
-  AB_pXim1530.SetAnaSource(0, fXim1530Rad.at(fRadVarXim1530));  //for now 1.2 fm .. ADJUST!
+  AB_pXim1530.SetAnaSource(0, fXim1530Rad.at(fRadVarXim1530));  
   AB_pXim1530.KillTheCat();
-  DLM_Ck* ck = new DLM_Ck(AB_pXim1530.GetNumSourcePars(), 0, AB_pXim1530);
-  DLM_CkDecomposition dec = DLM_CkDecomposition("dummy", 0, *ck, nullptr);
-  DLM_ResponseMatrix* resp = new DLM_ResponseMatrix(*ck, NULL,
-                                                    CATSinput->GetResFile(3),
-                                                    false);
-//  smeared = nullptr;
-  DLM_Histo<double>*CkSmeared = new DLM_Histo<double>();
-  CkSmeared->SetUp(1);
-  CkSmeared->SetUp(0, ck->GetNbins(0), ck->GetLowEdge(0), ck->GetUpEdge(0));
-  CkSmeared->Initialize();
-  CkSmeared->SetBinContentAll(0);
-  CkSmeared->SetBinErrorAll(0);
-  tidy->Smear(ck, resp, CkSmeared);
-
-  TH1F* pXim1530Converted = tidy->Convert2LesserOf2Evils(CkSmeared, dataCF);
-  pXim1530Converted->SetName("pXim1530Converted");
-  pXim1530Converted->SetTitle("pXim1530Converted");
-  for (int iBin = pXim1530Converted->FindBin(500);
-      iBin < pXim1530Converted->GetNbinsX() + 1; ++iBin) {
-    pXim1530Converted->SetBinContent(iBin, 1);
-  }
-  delete ck;
-  delete resp;
+  std::cout << "Smearing \n"; 
+  tidy->Smear( AB_pXim1530, Transformation, pXim1530Converted);
+  std::cout << "Done Smearing \n"; 
+  
+  fQAOutput->cd();
+  input->Write();
+  Transformation->Write(); 
+  pXim1530Converted->Write();
   delete tidy;
   delete CATSinput;
-  fQAOutput->cd();
-  pXim1530Converted->Write();
   return XiGami->UnfoldResidual(dataCF, pXim1530Converted,
                                 XiGami->GetLamdaPar(1));
 }
@@ -362,17 +365,17 @@ double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
   //to protons
   double PurityProton = 0.9943;
 
-  double PrimProton = 0.822;
+  double PrimProton = 0.86;
   double SecLamProton = 0.124;  //Fraction of Lambdas
 
   double SecFracSigma = 1. - PrimProton - ProVar * SecLamProton;
   Particle Proton = Particle(PurityProton, PrimProton, { ProVar * SecLamProton,
                                  SecFracSigma });
   double PurityXi = 0.915;
-  // Xim Production xseciton: dN/dy = 5.3e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
+  // Xim Production xseciton: dN/dy = 7.9e-3 (https://www.sciencedirect.com/science/article/pii/S037026931200528X)
   // Xi1530 Production xsection: dN/dy = 2.48e-3 (https://doi.org/10.1140/epjc/s10052-017-4943-1)
-  const double Xi01530XimProdFraction = 1 / 2.;  //Production ratio
-  const double Xim1530XimProdFraction = 1 / 2.;  //Same production ratio
+  const double Xi01530XimProdFraction = 1 / 3.;  //Production ratio
+  const double Xim1530XimProdFraction = 1 / 3.;  //Same production ratio
 
   // 2/3 of Xi0(1530) decays via Xi- + pi+ (Isospin considerations)
   const double Xi01530Xim_BR = 2 / 3.;
@@ -386,11 +389,11 @@ double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
 
   // Produce N Xi's -> Produce:
   // 1 ) N* 1/10 Omegas -> See N* 1/10 * 8.6% more Xi's
-  // 2)  N* 1/2 Xi0_1530 -> See N*1/2*2/3 = N* 1/3 more Xi's
-  // 3)  N* 1/2 Xim_1530 -> See N*1/2*1/3 = N* 1/6 more Xi's
-  // Total Sample:  N(1+0.0086+1/3+1/6) ->
-  // Primary Fraction = N / N(1+0.0086+1/3+1/6)
-  // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
+  // 2)  N* 1/2 Xi0_1530 -> See N*1/3*2/3 = N* 2/9 more Xi's
+  // 3)  N* 1/2 Xim_1530 -> See N*1/3*1/3 = N* 1/9 more Xi's
+  // Total Sample:  N(1+0.0086+2/9+1/9) ->
+  // Primary Fraction = N / N(1+0.0086+2/9+1/9)
+  // Secondary Omegas = N*0.0086  / N(1+0.0086+2/9+1/9)
   // etc.
 
   double XiNormalization = 1 + OmegaVar * OmegamXimProdFraction * OmegamXim_BR
@@ -425,9 +428,9 @@ double AnalyseProXi::SetupLambdaPars(LambdaGami* XiGami, double ProVar,
 
 TGraphErrors* AnalyseProXi::GetCoulomb(TH1F* unfoldedGenuine) {
   std::cout << "Coulomb\n";
-  int nBins = 300;
+  int nBins = 305;
   double xmin = 0.5;
-  double xmax = 300.5;
+  double xmax = 305.5;
   TidyCats* tidy = new TidyCats();
   TidyCats::Sources TheSource = TidyCats::sResonance;
   float ppRadii[3];
@@ -466,15 +469,19 @@ TGraphErrors* AnalyseProXi::GetCoulomb(TH1F* unfoldedGenuine) {
 
 TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
   std::cout << "HAL QCD \n";
-  int nBins = 300;
+  int nBins = 305;
   double xmin = 0.5;
-  double xmax = 300.5;
+  double xmax = 305.5;
   TidyCats* tidy = new TidyCats();
   TidyCats::Sources TheSource = TidyCats::sResonance;
+  //TidyCats::Sources TheSource = TidyCats::sGaussian;
   float ppRadii[3];
   ppRadii[0] = 0.886647;
   ppRadii[1] = 0.932114;
   ppRadii[2] = 0.979453;
+  //ppRadii[0] = 0.97;
+  //ppRadii[0] = 1.02;
+  //ppRadii[0] = 1.07; 
 
   CATS HalUp;
   CATS HalLow;
@@ -490,25 +497,43 @@ TGraphErrors* AnalyseProXi::GetHalQCD(TH1F* unfoldedGenuine) {
   HalLow.SetAnaSource(0, ppRadii[2]);
   HalLow.KillTheCat();
 
-  TGraphErrors* hal = new TGraphErrors();
-  hal->SetName("HalQCD");
+  TGraphErrors* halandRad = new TGraphErrors();
+  halandRad->SetName("HalAndRad");
+
   for (auto it = 0; it < nBins - 10; ++it) {
     double kStar = HalUp.GetMomentum(it);
     double mean = 0.5 * (HalUp.GetCorrFun(it) + HalLow.GetCorrFun(it));
     double Err = TMath::Abs(mean - HalUp.GetCorrFun(it));
-    hal->SetPoint(it, kStar, mean);
-    hal->SetPointError(it, 0, Err);
+    halandRad->SetPoint(it, kStar, mean);
+    halandRad->SetPointError(it, 0, Err);
+  }
+
+  HalUp.SetAnaSource(0, ppRadii[1]);
+  HalUp.KillTheCat();
+
+  HalLow.SetAnaSource(0, ppRadii[1]);
+  HalLow.KillTheCat();
+
+  TGraphErrors* halOnly= new TGraphErrors();
+  halOnly->SetName("HalOnly");
+  for (auto it = 0; it < nBins - 10; ++it) {
+    double kStar = HalUp.GetMomentum(it);
+    double mean = 0.5 * (HalUp.GetCorrFun(it) + HalLow.GetCorrFun(it));
+    double Err = TMath::Abs(mean - HalUp.GetCorrFun(it));
+    halOnly->SetPoint(it, kStar, mean);
+    halOnly->SetPointError(it, 0, Err);
   }
   fQAOutput->cd();
-  hal->Write();
-  return hal;
+  halandRad->Write();
+  halOnly->Write();
+  return halandRad;
 }
 
 TGraphErrors* AnalyseProXi::GetESC16(TH1F* unfoldedGenuine) {
   std::cout << "ESC16 \n";
-  int nBins = 300;
+  int nBins = 305;
   double xmin = 0.5;
-  double xmax = 300.5;
+  double xmax = 305.5;
   TidyCats* tidy = new TidyCats();
   TidyCats::Sources TheSource = TidyCats::sResonance;
   float ppRadii[3];

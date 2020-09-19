@@ -184,6 +184,20 @@ void TidyCats::GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin,
     AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
     AB_pp->SetAnaSource(0, 1.2);
     AB_pp->SetAnaSource(1, 2.0);
+  } else if (source == TidyCats::sLevy) {
+    fppCleverMcLevy = new DLM_CleverMcLevyResoTM();
+    fppCleverMcLevy->InitStability(20, 1.f, 2.f);
+    fppCleverMcLevy->InitScale(38, 0.15, 2.0);
+    fppCleverMcLevy->InitRad(257, 0, 64);
+    fppCleverMcLevy->InitType(2);
+    fppCleverMcLevy->InitNumMcIter(262144);
+    AB_pp->SetAnaSource(CatsSourceForwarder, fppCleverMcLevy, 2);
+    AB_pp->SetAnaSource(0, 1.2);
+    AB_pp->SetAnaSource(1, 2.0);
+  } else if (source == TidyCats::sCauchy) {
+    cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+    cPars->SetParameter(0, 1.2);
+    AB_pp->SetAnaSource(CauchySource, *cPars);
   } else {
     std::cout << "Source not implemented \n";
   }
@@ -231,6 +245,10 @@ void TidyCats::GetCatsProtonLambda(CATS* AB_pL, int momBins, double kMin,
     cPars = new CATSparameters(CATSparameters::tSource, 1, true);
     cPars->SetParameter(0, 1.2);
     AB_pL->SetAnaSource(GaussSource, *cPars);
+  } else if (source == TidyCats::sCauchy) {
+    cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+    cPars->SetParameter(0, 1.2);
+    AB_pL->SetAnaSource(CauchySource, *cPars);
   } else if (source == TidyCats::sResonance) {
     fpLCleverMcLevy = new DLM_CleverMcLevyResoTM();
 
@@ -420,6 +438,10 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
     cPars = new CATSparameters(CATSparameters::tSource, 1, true);
     cPars->SetParameter(0, 1.2);
     AB_pXim->SetAnaSource(GaussSource, *cPars);
+  } else if (source == TidyCats::sCauchy) {
+    cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+    cPars->SetParameter(0, 1.2);
+    AB_pXim->SetAnaSource(CauchySource, *cPars);
   } else if (source == TidyCats::sResonance) {
     fpXimCleverMcLevy = new DLM_CleverMcLevyResoTM();
     fpXimCleverMcLevy->InitNumMcIter(1000000);
@@ -507,10 +529,18 @@ void TidyCats::GetCatsProtonXiMinus(CATS* AB_pXim, int momBins, double kMin,
   AB_pXim->SetMaxRho(32);
   DLM_Histo<complex<double>>*** ExternalWF = nullptr;
   if (pot == pHALQCD) {
-    double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
+    /*
+      double pXimPotParsI0S0[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
     double pXimPotParsI0S1[8] = { pXim_HALQCD1, QCDTime, 0, -1, 1, 1, 0, 1 };  // 9, 10, 11, 12
     double pXimPotParsI1S0[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 0, 0, 0 };  //This is shit. Corresponds to 9-14 t
     double pXimPotParsI1S1[8] = { pXim_HALQCD1, QCDTime, 1, 1, 1, 1, 0, 1 };  // this value 1-6
+    */
+    
+    double pXimPotParsI0S0[8] = { pXim_HALQCDPaper2020, QCDTime, 0, -1, 1, 0, 0, 0 };  //4th argument is the t parameter and can be:
+    double pXimPotParsI0S1[8] = { pXim_HALQCDPaper2020, QCDTime, 0, -1, 1, 1, 0, 1 };  // 9, 10, 11, 12
+    double pXimPotParsI1S0[8] = { pXim_HALQCDPaper2020, QCDTime, 1,  1, 1, 0, 0, 0 };  //This is shit. Corresponds to 9-14 t
+    double pXimPotParsI1S1[8] = { pXim_HALQCDPaper2020, QCDTime, 1,  1, 1, 1, 0, 1 };  // this value 1-6
+    
     CATSparameters* cPotParsI0S0 = new CATSparameters(
         CATSparameters::tPotential, 8, true);
     cPotParsI0S0->SetParameters(pXimPotParsI0S0);
@@ -704,6 +734,11 @@ void TidyCats::GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins,
       cPars->SetParameter(0, 1.2);
       AB_pXim1530->SetAnaSource(GaussSource, *cPars);
       break;
+    case TidyCats::sCauchy:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      AB_pXim1530->SetAnaSource(CauchySource, *cPars);
+      break;
     default:
       std::cout << "Source not implemented \n";
       break;
@@ -743,22 +778,132 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       cPars->SetParameter(0, 1.3);
       AB_pSigma0->SetAnaSource(GaussSource, *cPars);
       break;
-    case TidyCats::sResonance:
-      fpSigma0CleverMcLevy = new DLM_CleverMcLevyReso();
-      fpSigma0CleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
-      fpSigma0CleverMcLevy->InitScale(35, 0.25, 2.0);
-      fpSigma0CleverMcLevy->InitRad(512, 0, 64);
-      fpSigma0CleverMcLevy->InitType(2);
-      fpSigma0CleverMcLevy->InitReso(0, 1);
-      fpSigma0CleverMcLevy->InitReso(1, 1);
-      fpSigma0CleverMcLevy->SetUpReso(0, 0, 1. - 0.3578, 1361.52, 1.65,
-                                      massProton, massPion);
-      fpSigma0CleverMcLevy->SetUpReso(1, 0, 1. - 0.3735, 1581.73, 4.28,
-                                      massSigma0, massPion);
-      fpSigma0CleverMcLevy->InitNumMcIter(1000000);
+    case TidyCats::sResonance: {
+      fmassLamRes = 1581.73;
+      ftauLamRes = 4.28;
+      fpSigma0CleverMcLevy = new DLM_CleverMcLevyResoTM();
+      fpSigma0CleverMcLevy->SetUpReso(0, 0.6422);
+      fpSigma0CleverMcLevy->SetUpReso(1, 0.3735);
+      DLM_Random RanGen(11);
+      double RanVal1;
+      double RanVal2;
+      Float_t k_D;
+      Float_t fP1;
+      Float_t fP2;
+      Float_t fM1;
+      Float_t fM2;
+      Float_t Tau1;
+      Float_t Tau2;
+      Float_t AngleRcP1;
+      Float_t AngleRcP2;
+      Float_t AngleP1P2;
+      // there are no EPOS productions at the moment for p-Sigma0
+      // since the masses and lifetimes are close to the ones of the Lambda this is considered
+      TFile* F_EposDisto_p_LamReso = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_p_LamReso.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_p_LamReso = (TNtuple*) F_EposDisto_p_LamReso->Get(
+          "InfoTuple_ClosePairs");
+      unsigned N_EposDisto_p_LamReso = T_EposDisto_p_LamReso->GetEntries();
+      T_EposDisto_p_LamReso->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_p_LamReso->SetBranchAddress("P1", &fP1);
+      T_EposDisto_p_LamReso->SetBranchAddress("P2", &fP2);
+      T_EposDisto_p_LamReso->SetBranchAddress("M1", &fM1);
+      T_EposDisto_p_LamReso->SetBranchAddress("M2", &fM2);
+      T_EposDisto_p_LamReso->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_p_LamReso->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_p_LamReso->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_p_LamReso->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_p_LamReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < N_EposDisto_p_LamReso; uEntry++) {
+        T_EposDisto_p_LamReso->GetEntry(uEntry);
+        fM1 = 0;
+        fM2 = fmassLamRes;
+        Tau1 = 0;
+        Tau2 = ftauLamRes;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal2 = RanGen.Exponential(fM2 / (fP2 * Tau2));
+        fpSigma0CleverMcLevy->AddBGT_PR(RanVal2, cos(AngleRcP2));
+      }
+      delete F_EposDisto_p_LamReso;
+
+      // there are no EPOS productions at the moment for p-Sigma0
+      // since the masses and lifetimes are close to the ones of the Lambda this is considered
+      TFile* F_EposDisto_pReso_Lam = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Lam.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_pReso_Lam = (TNtuple*) F_EposDisto_pReso_Lam->Get(
+          "InfoTuple_ClosePairs");
+      unsigned N_EposDisto_pReso_Lam = T_EposDisto_pReso_Lam->GetEntries();
+      T_EposDisto_pReso_Lam->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_pReso_Lam->SetBranchAddress("P1", &fP1);
+      T_EposDisto_pReso_Lam->SetBranchAddress("P2", &fP2);
+      T_EposDisto_pReso_Lam->SetBranchAddress("M1", &fM1);
+      T_EposDisto_pReso_Lam->SetBranchAddress("M2", &fM2);
+      T_EposDisto_pReso_Lam->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_pReso_Lam->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_pReso_Lam->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_pReso_Lam->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_pReso_Lam->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_Lam; uEntry++) {
+        T_EposDisto_pReso_Lam->GetEntry(uEntry);
+        fM1 = fmassProRes;
+        fM2 = 0;
+        Tau1 = ftauProRes;
+        Tau2 = 0;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+        fpSigma0CleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP1));
+      }
+      delete F_EposDisto_pReso_Lam;
+      // there are no EPOS productions at the moment for p-Sigma0
+      // since the masses and lifetimes are close to the ones of the Lambda this is considered
+      TFile* F_EposDisto_pReso_LamReso = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_LamReso.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_pReso_LamReso = (TNtuple*) F_EposDisto_pReso_LamReso
+          ->Get("InfoTuple_ClosePairs");
+      unsigned N_EposDisto_pReso_LamReso =
+          T_EposDisto_pReso_LamReso->GetEntries();
+      T_EposDisto_pReso_LamReso->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("P1", &fP1);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("P2", &fP2);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("M1", &fM1);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("M2", &fM2);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_pReso_LamReso->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < N_EposDisto_pReso_LamReso; uEntry++) {
+        T_EposDisto_pReso_LamReso->GetEntry(uEntry);
+        fM1 = fmassProRes;
+        fM2 = fmassLamRes;
+        Tau1 = ftauProRes;
+        Tau2 = ftauLamRes;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+        RanVal2 = RanGen.Exponential(fM2 / (fP2 * Tau2));
+        fpSigma0CleverMcLevy->AddBGT_RR(RanVal1, cos(AngleRcP1), RanVal2,
+                                        cos(AngleRcP2), cos(AngleP1P2));
+      }
+      delete F_EposDisto_pReso_LamReso;
+      fpSigma0CleverMcLevy->InitNumMcIter(262144);
       AB_pSigma0->SetAnaSource(CatsSourceForwarder, fpSigma0CleverMcLevy, 2);
-      AB_pSigma0->SetAnaSource(0, 0.743);  //r0
-      AB_pSigma0->SetAnaSource(1, 2.0);  //Stability alpha ( 1= Cauchy, ... 2 = Gauss)
+      AB_pSigma0->SetAnaSource(0, 1.2);
+      AB_pSigma0->SetAnaSource(1, 2.0);
+      break;
+    }
+    case TidyCats::sCauchy:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.);
+      AB_pSigma0->SetAnaSource(CauchySource, *cPars);
       break;
     default:
       std::cout << "Source not implemented \n";
@@ -930,30 +1075,53 @@ DLM_Histo<double>* TidyCats::ConvertThetaAngleHisto(const TString& FileName,
   return Result;
 }
 
-void TidyCats::Smear(const DLM_Histo<double>* CkToSmear,
-                     const DLM_ResponseMatrix* SmearMatrix,
-                     DLM_Histo<double>* CkSmeared) {
-  if (!CkToSmear || !SmearMatrix || !CkSmeared) {
-    Error("TidyCats::Smear", "Missing Input Histo");
-  }
-  if (!SmearMatrix) {
-    CkSmeared[0] = CkToSmear[0];
-  } else {
-    for (unsigned uBinSmear = 0; uBinSmear < CkToSmear->GetNbins();
-        uBinSmear++) {
-      CkSmeared->SetBinContent(uBinSmear, 0);
-      for (unsigned uBinTrue = 0; uBinTrue < CkToSmear->GetNbins();
-          uBinTrue++) {
-        //as the response matrix is normalized to the size of the bin, during the integration we multiply for it
-        CkSmeared->Add(
-            uBinSmear,
-            SmearMatrix->ResponseMatrix[uBinSmear][uBinTrue]
-                * CkToSmear->GetBinContent(uBinTrue)
-                * CkToSmear->GetBinSize(uBinTrue)
-                * CkSmeared->GetBinSize(uBinSmear));
-      }
+TH2F* TidyCats::ConvertHisto(TH2F* input, int nBins, double kMin, double kMax) { 
+  //only converts the histo along the y axis
+  
+  TString Histname = TString::Format("%sFixShiftRebinned", input->GetName());
+  int nBinsX = input->GetXaxis()->GetNbins();
+  double xMin = input->GetXaxis()->GetXmin();
+  double xMax = input->GetXaxis()->GetXmax();
+  //  int nBinsY = input->GetYaxis()->FindBin(kMax) - input->GetYaxis()->FindBin(kMin); 
+  std::cout << "Convert Histo ... nBins: " << nBins << " kMin: " << kMin << " kMax: " << kMax << std::endl;
+  
+  TH2F* out = new TH2F(Histname.Data(),Histname.Data(), nBinsX, xMin, xMax, nBins, kMin, kMax);
+  
+  for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
+    for (int iBinY = 1; iBinY <= nBins; ++iBinY) {
+      int binY = input->GetYaxis()->FindBin(out->GetYaxis()->GetBinCenter(iBinY));  
+      out->SetBinContent(iBinX,iBinY,input->GetBinContent(iBinX, binY));
+      out->SetBinError(iBinX,iBinY,input->GetBinError(iBinX, binY)); 
     }
   }
+  return out; 
+} 
+
+void TidyCats::Smear(CATS& CATS, TH2F* smearing, TH1F* Smeared) {
+  int nBinsY = Smeared->GetXaxis()->GetNbins();
+  int nBinsX = smearing->GetXaxis()->GetNbins(); 
+  for (int iksOut = 1; iksOut <= nBinsY; ++iksOut) {
+    double Norm = 0;
+    double CkAdded = 0; 
+    double ksTrans = Smeared->GetBinCenter(iksOut); 
+    int ksMrx = smearing->GetYaxis()->FindBin(ksTrans); 
+    for (int iksIn = 1; iksIn <= nBinsX; ++iksIn) {
+      double ksInMtrx = smearing->GetXaxis()->GetBinCenter(iksIn);
+      double ksInCATS = CATS.GetMomentum(iksIn-1);
+      if (TMath::Abs(ksInMtrx-ksInCATS) > 1e-2) {
+	std::cout << "Warning in smearing difference in momenta between matrix and CATS object: ksCATS = " << ksInCATS << " and ksMATRIX = " << ksInMtrx << std::endl; 
+      } 
+      Norm += smearing->GetBinContent(iksIn, ksMrx);
+      CkAdded += smearing->GetBinContent(iksIn, ksMrx)*CATS.GetCorrFun(iksIn-1);
+      // if (iksOut == 1) {
+      // 	std::cout << "iksIn: " << iksIn <<  " Cats: " << CATS.GetCorrFun(iksIn-1) << " Smearer: " << smearing->GetBinContent(iksIn, ksMrx) << std::endl;
+      // }
+    }
+    // normalize
+    CkAdded/=Norm; 
+    Smeared->SetBinContent(iksOut, CkAdded); 
+  }
+  return; 
 }
 
 DLM_Histo<double>* TidyCats::Convert2LargerOf2Evils(TH1F* CkInput) {
@@ -979,7 +1147,7 @@ DLM_Histo<double>* TidyCats::Convert2LargerOf2Evils(TH1F* CkInput) {
 TH1F* TidyCats::Convert2LesserOf2Evils(DLM_Histo<double>* CkInput, TH1F* dim) {
   TH1F* output = nullptr;
   int nBins;
-  if (dim) {
+  if (dim) { 
     nBins = dim->GetNbinsX();
     output = new TH1F("TidyCats::RenameMe", "TidyCats::RenameMe", nBins,
                       dim->GetXaxis()->GetXmin(), dim->GetXaxis()->GetXmax());
