@@ -55,6 +55,7 @@ class DreamKayTee {
   void ObtainTheCorrelationFunctionAncestorsSingle(const char* outFolder, const char* prefix =
                                         "MB",
                                     const char* pair = "pp", const char* isAlabama = "Common");
+
   void ObtainTheCorrelationFunctionBBar(const char* outFolder, const char* prefix =
                                         "MB",
                                     const char* pair = "pp");
