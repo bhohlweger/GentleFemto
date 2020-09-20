@@ -22,6 +22,8 @@ class ForgivingFitter {
                  float BkgRangeMax);
   void SetRangesSigma(float SigMin, float SigMax, float BkgRangeMin,
                       float BkgRangeMax);
+  void SetRangesPhi(float PhiMin, float PhiMax,
+                                       float BkgRangeMin, float BkgRangeMax);
   int GetSignalCounts() const {
     return fSignalCounts;
   }
@@ -53,9 +55,12 @@ class ForgivingFitter {
   void ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin, float pTMax,
                            const char* part);
   void FitInvariantMassSigma(TH1F* histo, float massCuts, int signalColor, int backgroundColor);
+  void FitInvariantMassPhi(TH1F* histo, float massCuts,
+                              int lineColor = kBlue + 4);
   TF1* GetBackgroundFunction() const { return fContinousBackGround; }
   TF1* GetSingleGaussian() const { return fSingleGaussian; }
   TF1* GetDoubleGaussian() const { return fDoubleGaussian; }
+  TF1* GetVoigt() const {return fVoigt; }
   TF1* GetFullFitFunction() const { return fFullFitFnct; }
  private:
   void CreateBackgroundFunction();
@@ -75,12 +80,15 @@ class ForgivingFitter {
   TF1* fContinousBackGround;
   TF1* fSingleGaussian;
   TF1* fDoubleGaussian;
+  TF1* fVoigt;
   TF1* fFullFitFnct;
   bool fRangesSet;
   float fBkgRangeMin;
   float fBkgRangeMax;
   float fSigRangeMin;
   float fSigRangeMax;
+  float fPhiRangeMin;
+  float fPhiRangeMax;
   int fSignalCounts;
   int fSignalCountsErr;
   int fWeightA;

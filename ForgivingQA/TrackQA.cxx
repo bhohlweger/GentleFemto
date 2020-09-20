@@ -86,6 +86,7 @@ void TrackQA::PlotKinematic(TList* cuts, const char* outname) {
   phiDist->GetXaxis()->SetTitle("#phi (rad)");
   phiDist->GetYaxis()->SetTitle(
       Form("Entries/ %.3f rad", phiDist->GetBinWidth(1)));
+  phiDist->SetMinimum(0);
   fHairyPlotter->FormatHistogram(phiDist, fStyler);
   fHairyPlotter->DrawAndStore( { phiDist }, Form("%s_phi", outname));
 
