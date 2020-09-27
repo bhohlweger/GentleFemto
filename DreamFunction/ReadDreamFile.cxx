@@ -994,14 +994,61 @@ DreamKayTee* ReadDreamFile::GetmTMultPairDistributions(int iPart1, int iPart2, i
   return pair;
 }
 
-DreamKayTee* ReadDreamFile::GetmTPairDistributionsBBar(int iPart1, int iPart2) {
+DreamKayTee* ReadDreamFile::GetmTPairDistributionsCommon(int iPart1, int iPart2,
+                                                   int iAPart1, int iAPart2) {
 //user needs to ensure deletion
   if (iPart2 < iPart1) {
     std::cout << "Particle Combination does not exist \n";
     return nullptr;
   }
   DreamKayTee* pair = new DreamKayTee();
-  pair->SetSEmTDist(0, fSEmT[iPart1][iPart2]);
+  pair->SetSEmTDist(0, fSEmTCommon[iPart1][iPart2]);
+  pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
+
+  pair->SetSEmTDist(1, fSEmTCommon[iAPart1][iAPart2]);
+  pair->SetMEmTDist(1, fMEmT[iAPart1][iAPart2]);
+
+  return pair;
+}
+
+DreamKayTee* ReadDreamFile::GetmTPairDistributionsNonCommon(int iPart1, int iPart2,
+                                                   int iAPart1, int iAPart2) {
+//user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEmTDist(0, fSEmTNonCommon[iPart1][iPart2]);
+  pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
+
+  pair->SetSEmTDist(1, fSEmTNonCommon[iAPart1][iAPart2]);
+  pair->SetMEmTDist(1, fMEmT[iAPart1][iAPart2]);
+
+  return pair;
+}
+
+DreamKayTee* ReadDreamFile::GetmTPairDistributionsCommon(int iPart1, int iPart2) {
+//user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEmTDist(0, fSEmTCommon[iPart1][iPart2]);
+  pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
+
+  return pair;
+}
+
+DreamKayTee* ReadDreamFile::GetmTPairDistributionsNonCommon(int iPart1, int iPart2) {
+//user needs to ensure deletion
+  if (iPart2 < iPart1) {
+    std::cout << "Particle Combination does not exist \n";
+    return nullptr;
+  }
+  DreamKayTee* pair = new DreamKayTee();
+  pair->SetSEmTDist(0, fSEmTNonCommon[iPart1][iPart2]);
   pair->SetMEmTDist(0, fMEmT[iPart1][iPart2]);
 
   return pair;

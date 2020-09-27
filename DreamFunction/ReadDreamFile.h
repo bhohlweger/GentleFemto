@@ -46,6 +46,8 @@ class ReadDreamFile {
                               const char* Addon = "");
   void ReaddEtadPhiHists(const unsigned int NBinsmT, const char* AnalysisFile,
                          const char* prefix, const char* Addon = "");
+  void ReaddEtadPhiHistsAncestors(const unsigned int NBinsmT, const char* AnalysisFile,
+                         const char* prefix, const char* Addon = "");
   void ReadmTMultHistos(const char* AnalysisFile, const char* prefix,
 			const char* addon, const int nmTBins);
   DreamDist* GetPairDistributions(int iPart1, int iPart2, const char* name);
@@ -56,6 +58,12 @@ class ReadDreamFile {
                                       int iAPart2);
   DreamKayTee* GetmTPairDistributions(int iPart1, int iPart2, int iAPart1,
                                       int iAPart2);
+  DreamKayTee* GetmTPairDistributionsCommon(int iPart1, int iPart2, int iAPart1,
+                                      int iAPart2);
+  DreamKayTee* GetmTPairDistributionsCommon(int iPart1, int iPart2);
+  DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2, int iAPart1,
+                                      int iAPart2);
+  DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2);
   DreamKayTee* GetmTMultPairDistributions(int iPart1, int iPart2, int iAPart1,
 					  int iAPart2, const int nmTBins);
   DreamKayTee* GetmTPairDistributionsBBar(int iPart1, int iPart2);
