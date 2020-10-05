@@ -58,6 +58,12 @@ class ReadDreamFile {
                                       int iAPart2);
   DreamKayTee* GetmTPairDistributions(int iPart1, int iPart2, int iAPart1,
                                       int iAPart2);
+  DreamKayTee* GetmTPairDistributionsCommon(int iPart1, int iPart2, int iAPart1,
+                                      int iAPart2);
+  DreamKayTee* GetmTPairDistributionsCommon(int iPart1, int iPart2);
+  DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2, int iAPart1,
+                                      int iAPart2);
+  DreamKayTee* GetmTPairDistributionsNonCommon(int iPart1, int iPart2);
   DreamKayTee* GetmTMultPairDistributions(int iPart1, int iPart2, int iAPart1,
 					  int iAPart2, const int nmTBins);
   DreamKayTee* GetmTPairDistributionsCommon(int iPart1, int iPart2, int iAPart1,
