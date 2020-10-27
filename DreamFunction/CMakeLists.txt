@@ -140,7 +140,3 @@ target_link_libraries(executeDreamAncestors DreamFunctions)
 
 add_executable(executeDPhiDEtaAncestors ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEtaAncestors.C)
 target_link_libraries(executeDPhiDEtaAncestors DreamFunctions)
-
-add_executable(executemTMult ${PROJECT_SOURCE_DIR}/Scripts/GetmTMult.C)
-target_link_libraries(executemTMult DreamFunctions)
-

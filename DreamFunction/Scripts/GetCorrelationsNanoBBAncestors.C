@@ -307,14 +307,6 @@ void GetCorrelationsNanoBBAncestors(const char* filename,
     LALNonCommon->Rebin(LALNonCommon->GetPairFixShifted(0), rebinVec[iReb]);
     LALNonCommon->ReweightMixedEvent(LALNonCommon->GetPairRebinned(iReb), 0.2, 0.9);
 
-  }
-
-  ppCommon->ReweightMixedEvent(ppCommon->GetPairFixShifted(0), 0.2, 0.9);
-  ApApCommon->ReweightMixedEvent(ApApCommon->GetPairFixShifted(0), 0.2, 0.9);
-  pApCommon->ReweightMixedEvent(pApCommon->GetPairFixShifted(0), 0.2, 0.9);
-  ppNonCommon->ReweightMixedEvent(ppNonCommon->GetPairFixShifted(0), 0.2, 0.9);
-  ApApNonCommon->ReweightMixedEvent(ApApNonCommon->GetPairFixShifted(0), 0.2, 0.9);
-  pApNonCommon->ReweightMixedEvent(pApNonCommon->GetPairFixShifted(0), 0.2, 0.9);
 
   std::cout << "===========Reweigthing pL common==============" << std::endl;
     pLCommon->ReweightMixedEvent(pLCommon->GetPairRebinned(iReb), 0.2, 0.9);
