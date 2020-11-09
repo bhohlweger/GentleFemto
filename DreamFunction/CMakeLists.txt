@@ -140,3 +140,6 @@ target_link_libraries(executeDreamAncestors DreamFunctions)
 
 add_executable(executeDPhiDEtaAncestors ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPhiDEtaAncestors.C)
 target_link_libraries(executeDPhiDEtaAncestors DreamFunctions)
+
+add_executable(executeD ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDmeson.C)
+target_link_libraries(executeD DreamFunctions)
