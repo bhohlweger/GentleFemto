@@ -43,6 +43,9 @@ class TidyCats {
     pSigma0ESC16,
     pSigma0NSC97f
   };
+  enum pDmesonPot {
+    pCoulombOnly,
+  };
   TidyCats();
   virtual ~TidyCats();
   void GetCatsProtonProton(CATS* AB_pp, int momBins, double kMin, double kMax,
@@ -66,6 +69,16 @@ class TidyCats {
   void GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
                            double kMax, TidyCats::Sources source,
                            TidyCats::pSigma0Pot pot);
+  void GetCatsProtonDplus(CATS* cats, int momBins, double kMin, double kMax,
+                          TidyCats::pDmesonPot pot, TidyCats::Sources source);
+  void GetCatsProtonDminus(CATS* cats, int momBins, double kMin, double kMax,
+                           TidyCats::pDmesonPot pot, TidyCats::Sources source);
+  void GetCatsProtonDstarplus(CATS* cats, int momBins, double kMin, double kMax,
+                              TidyCats::pDmesonPot pot,
+                              TidyCats::Sources source);
+  void GetCatsProtonDstarminus(CATS* cats, int momBins, double kMin,
+                               double kMax, TidyCats::pDmesonPot pot,
+                               TidyCats::Sources source);
   static double ESC16_pXim_EXAMPLE(double* Parameters);
   DLM_Histo<double>* ConvertThetaAngleHisto(const TString& FileName,
                                             const TString& HistoName,

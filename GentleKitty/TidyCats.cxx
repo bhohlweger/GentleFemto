@@ -763,6 +763,412 @@ void TidyCats::GetCatsProtonXiMinus1530(CATS* AB_pXim1530, int momBins,
   return;
 }
 
+void TidyCats::GetCatsProtonDplus(CATS* cats, int momBins, double kMin,
+                                  double kMax, TidyCats::pDmesonPot pot,
+                                  TidyCats::Sources source) {
+
+  const auto pdgDatabase = TDatabasePDG::Instance();
+  const double massProton = pdgDatabase->GetParticle(2212)->Mass() * 1000;
+  const double massDplus = pdgDatabase->GetParticle(411)->Mass() * 1000;
+  CATSparameters* cPars;
+
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      cats->SetAnaSource(GaussSource, *cPars);
+      break;
+    case TidyCats::sResonance: {
+      fpXimCleverMcLevy = new DLM_CleverMcLevyResoTM();
+      fpXimCleverMcLevy->InitNumMcIter(1000000);
+      fpXimCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+      fpXimCleverMcLevy->InitScale(38, 0.15, 2.0);
+      fpXimCleverMcLevy->InitRad(257, 0, 64);
+      fpXimCleverMcLevy->InitType(2);
+      fpXimCleverMcLevy->SetUpReso(0, 0.6422);
+      DLM_Random RanGen(11);
+      double RanVal1, RanVal2;
+      float k_D, fP1, fP2, fM1, fM2, Tau1, Tau2, AngleRcP1, AngleRcP2,
+          AngleP1P2;
+
+      // TODO For the moment we borrow the kinematics from the Xi which is closest in mass to the D
+      TFile* F_EposDisto_pReso_D = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Xim.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_pReso_D = (TNtuple*) F_EposDisto_pReso_D->Get(
+          "InfoTuple_ClosePairs");
+      T_EposDisto_pReso_D->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_pReso_D->SetBranchAddress("P1", &fP1);
+      T_EposDisto_pReso_D->SetBranchAddress("P2", &fP2);
+      T_EposDisto_pReso_D->SetBranchAddress("M1", &fM1);
+      T_EposDisto_pReso_D->SetBranchAddress("M2", &fM2);
+      T_EposDisto_pReso_D->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_pReso_D->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < T_EposDisto_pReso_D->GetEntries(); uEntry++) {
+        T_EposDisto_pReso_D->GetEntry(uEntry);
+        fM1 = fmassProRes;
+        fM2 = 0;
+        Tau1 = ftauProRes;
+        Tau2 = 0;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+        fpXimCleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP1));
+      }
+      delete F_EposDisto_pReso_D;
+      fpXimCleverMcLevy->InitNumMcIter(262144);
+      cats->SetAnaSource(CatsSourceForwarder, fpXimCleverMcLevy, 2);
+      cats->SetAnaSource(0, 1.2);
+      cats->SetAnaSource(1, 2.0);
+      break;
+    }
+    default:
+      std::cout << "Source not implemented \n";
+      break;
+  }
+  cats->SetUseAnalyticSource(true);
+  cats->SetMomentumDependentSource(false);
+  cats->SetThetaDependentSource(false);
+  cats->SetMomBins(momBins, kMin, kMax);
+
+//  TODO To be figured out
+//  cats->SetNumChannels(2);
+//  cats->SetNumPW(0, 1);
+//  cats->SetNumPW(1, 1);
+//  cats->SetSpin(0, 0);
+//  cats->SetSpin(1, 1);
+//  cats->SetChannelWeight(0, 0.25);
+//  cats->SetChannelWeight(1, 0.75);
+  cats->SetNumChannels(1);
+  cats->SetNumPW(0, 1);
+  cats->SetSpin(0, 0);
+  cats->SetChannelWeight(0, 1.);
+
+  cats->SetQ1Q2(1);
+  cats->SetPdgId(2212, 411);
+  cats->SetRedMass((massProton * massDplus) / (massProton + massDplus));
+  DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+
+  switch (pot) {
+    case TidyCats::pCoulombOnly:
+      std::cout << "Coulomb only\n";
+      break;
+    default:
+      std::cout << "Potential not implemented\n";
+      break;
+  }
+  return;
+}
+
+void TidyCats::GetCatsProtonDminus(CATS* cats, int momBins, double kMin,
+                                   double kMax, TidyCats::pDmesonPot pot,
+                                   TidyCats::Sources source) {
+
+  const auto pdgDatabase = TDatabasePDG::Instance();
+  const double massProton = pdgDatabase->GetParticle(2212)->Mass() * 1000;
+  const double massDminus = pdgDatabase->GetParticle(-411)->Mass() * 1000;
+  CATSparameters* cPars;
+
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      cats->SetAnaSource(GaussSource, *cPars);
+      break;
+    case TidyCats::sResonance: {
+      fpXimCleverMcLevy = new DLM_CleverMcLevyResoTM();
+      fpXimCleverMcLevy->InitNumMcIter(1000000);
+      fpXimCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+      fpXimCleverMcLevy->InitScale(38, 0.15, 2.0);
+      fpXimCleverMcLevy->InitRad(257, 0, 64);
+      fpXimCleverMcLevy->InitType(2);
+      fpXimCleverMcLevy->SetUpReso(0, 0.6422);
+      DLM_Random RanGen(11);
+      double RanVal1, RanVal2;
+      float k_D, fP1, fP2, fM1, fM2, Tau1, Tau2, AngleRcP1, AngleRcP2,
+          AngleP1P2;
+
+      // TODO For the moment we borrow the kinematics from the Xi which is closest in mass to the D
+      TFile* F_EposDisto_pReso_D = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Xim.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_pReso_D = (TNtuple*) F_EposDisto_pReso_D->Get(
+          "InfoTuple_ClosePairs");
+      T_EposDisto_pReso_D->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_pReso_D->SetBranchAddress("P1", &fP1);
+      T_EposDisto_pReso_D->SetBranchAddress("P2", &fP2);
+      T_EposDisto_pReso_D->SetBranchAddress("M1", &fM1);
+      T_EposDisto_pReso_D->SetBranchAddress("M2", &fM2);
+      T_EposDisto_pReso_D->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_pReso_D->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < T_EposDisto_pReso_D->GetEntries();
+          uEntry++) {
+        T_EposDisto_pReso_D->GetEntry(uEntry);
+        fM1 = fmassProRes;
+        fM2 = 0;
+        Tau1 = ftauProRes;
+        Tau2 = 0;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+        fpXimCleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP1));
+      }
+      delete F_EposDisto_pReso_D;
+      fpXimCleverMcLevy->InitNumMcIter(262144);
+      cats->SetAnaSource(CatsSourceForwarder, fpXimCleverMcLevy, 2);
+      cats->SetAnaSource(0, 1.2);
+      cats->SetAnaSource(1, 2.0);
+      break;
+    }
+    default:
+      std::cout << "Source not implemented \n";
+      break;
+  }
+  cats->SetUseAnalyticSource(true);
+  cats->SetMomentumDependentSource(false);
+  cats->SetThetaDependentSource(false);
+  cats->SetMomBins(momBins, kMin, kMax);
+
+//  TODO To be figured out
+//  cats->SetNumChannels(2);
+//  cats->SetNumPW(0, 1);
+//  cats->SetNumPW(1, 1);
+//  cats->SetSpin(0, 0);
+//  cats->SetSpin(1, 1);
+//  cats->SetChannelWeight(0, 0.25);
+//  cats->SetChannelWeight(1, 0.75);
+  cats->SetNumChannels(1);
+  cats->SetNumPW(0, 1);
+  cats->SetSpin(0, 0);
+  cats->SetChannelWeight(0, 1.);
+
+  cats->SetQ1Q2(-1);
+  cats->SetPdgId(2212, -411);
+  cats->SetRedMass((massProton * massDminus) / (massProton + massDminus));
+  DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+
+  switch (pot) {
+    case TidyCats::pCoulombOnly:
+      std::cout << "Coulomb only\n";
+      break;
+    default:
+      std::cout << "Potential not implemented\n";
+      break;
+  }
+  return;
+}
+
+void TidyCats::GetCatsProtonDstarplus(CATS* cats, int momBins, double kMin,
+                                      double kMax, TidyCats::pDmesonPot pot,
+                                      TidyCats::Sources source) {
+
+  const auto pdgDatabase = TDatabasePDG::Instance();
+  const double massProton = pdgDatabase->GetParticle(2212)->Mass() * 1000;
+  const double massDstarplus = pdgDatabase->GetParticle(413)->Mass() * 1000;
+  CATSparameters* cPars;
+
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      cats->SetAnaSource(GaussSource, *cPars);
+      break;
+    case TidyCats::sResonance: {
+      fpXimCleverMcLevy = new DLM_CleverMcLevyResoTM();
+      fpXimCleverMcLevy->InitNumMcIter(1000000);
+      fpXimCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+      fpXimCleverMcLevy->InitScale(38, 0.15, 2.0);
+      fpXimCleverMcLevy->InitRad(257, 0, 64);
+      fpXimCleverMcLevy->InitType(2);
+      fpXimCleverMcLevy->SetUpReso(0, 0.6422);
+      DLM_Random RanGen(11);
+      double RanVal1, RanVal2;
+      float k_D, fP1, fP2, fM1, fM2, Tau1, Tau2, AngleRcP1, AngleRcP2,
+          AngleP1P2;
+
+      // TODO For the moment we borrow the kinematics from the Xi which is closest in mass to the D
+      TFile* F_EposDisto_pReso_D = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Xim.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_pReso_D = (TNtuple*) F_EposDisto_pReso_D->Get(
+          "InfoTuple_ClosePairs");
+      T_EposDisto_pReso_D->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_pReso_D->SetBranchAddress("P1", &fP1);
+      T_EposDisto_pReso_D->SetBranchAddress("P2", &fP2);
+      T_EposDisto_pReso_D->SetBranchAddress("M1", &fM1);
+      T_EposDisto_pReso_D->SetBranchAddress("M2", &fM2);
+      T_EposDisto_pReso_D->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_pReso_D->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < T_EposDisto_pReso_D->GetEntries(); uEntry++) {
+        T_EposDisto_pReso_D->GetEntry(uEntry);
+        fM1 = fmassProRes;
+        fM2 = 0;
+        Tau1 = ftauProRes;
+        Tau2 = 0;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+        fpXimCleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP1));
+      }
+      delete F_EposDisto_pReso_D;
+      fpXimCleverMcLevy->InitNumMcIter(262144);
+      cats->SetAnaSource(CatsSourceForwarder, fpXimCleverMcLevy, 2);
+      cats->SetAnaSource(0, 1.2);
+      cats->SetAnaSource(1, 2.0);
+      break;
+    }
+    default:
+      std::cout << "Source not implemented \n";
+      break;
+  }
+  cats->SetUseAnalyticSource(true);
+  cats->SetMomentumDependentSource(false);
+  cats->SetThetaDependentSource(false);
+  cats->SetMomBins(momBins, kMin, kMax);
+
+//  TODO To be figured out
+//  cats->SetNumChannels(2);
+//  cats->SetNumPW(0, 1);
+//  cats->SetNumPW(1, 1);
+//  cats->SetSpin(0, 0);
+//  cats->SetSpin(1, 1);
+//  cats->SetChannelWeight(0, 0.25);
+//  cats->SetChannelWeight(1, 0.75);
+  cats->SetNumChannels(1);
+  cats->SetNumPW(0, 1);
+  cats->SetSpin(0, 0);
+  cats->SetChannelWeight(0, 1.);
+
+  cats->SetQ1Q2(1);
+  cats->SetPdgId(2212, 413);
+  cats->SetRedMass((massProton * massDstarplus) / (massProton + massDstarplus));
+  DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+
+  switch (pot) {
+    case TidyCats::pCoulombOnly:
+      std::cout << "Coulomb only\n";
+      break;
+    default:
+      std::cout << "Potential not implemented\n";
+      break;
+  }
+  return;
+}
+
+void TidyCats::GetCatsProtonDstarminus(CATS* cats, int momBins, double kMin,
+                                       double kMax, TidyCats::pDmesonPot pot,
+                                       TidyCats::Sources source) {
+
+  const auto pdgDatabase = TDatabasePDG::Instance();
+  const double massProton = pdgDatabase->GetParticle(2212)->Mass() * 1000;
+  const double massDstarminus = pdgDatabase->GetParticle(-413)->Mass() * 1000;
+  CATSparameters* cPars;
+
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      cats->SetAnaSource(GaussSource, *cPars);
+      break;
+    case TidyCats::sResonance: {
+      fpXimCleverMcLevy = new DLM_CleverMcLevyResoTM();
+      fpXimCleverMcLevy->InitNumMcIter(1000000);
+      fpXimCleverMcLevy->InitStability(1, 2 - 1e-6, 2 + 1e-6);
+      fpXimCleverMcLevy->InitScale(38, 0.15, 2.0);
+      fpXimCleverMcLevy->InitRad(257, 0, 64);
+      fpXimCleverMcLevy->InitType(2);
+      fpXimCleverMcLevy->SetUpReso(0, 0.6422);
+      DLM_Random RanGen(11);
+      double RanVal1, RanVal2;
+      float k_D, fP1, fP2, fM1, fM2, Tau1, Tau2, AngleRcP1, AngleRcP2,
+          AngleP1P2;
+
+      // TODO For the moment we borrow the kinematics from the Xi which is closest in mass to the D
+      TFile* F_EposDisto_pReso_D = new TFile(
+          TString::Format(
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Xim.root",
+              fHomeDir.Data()).Data());
+      TNtuple* T_EposDisto_pReso_D = (TNtuple*) F_EposDisto_pReso_D->Get(
+          "InfoTuple_ClosePairs");
+      T_EposDisto_pReso_D->SetBranchAddress("k_D", &k_D);
+      T_EposDisto_pReso_D->SetBranchAddress("P1", &fP1);
+      T_EposDisto_pReso_D->SetBranchAddress("P2", &fP2);
+      T_EposDisto_pReso_D->SetBranchAddress("M1", &fM1);
+      T_EposDisto_pReso_D->SetBranchAddress("M2", &fM2);
+      T_EposDisto_pReso_D->SetBranchAddress("Tau1", &Tau1);
+      T_EposDisto_pReso_D->SetBranchAddress("Tau2", &Tau2);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleRcP1", &AngleRcP1);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleRcP2", &AngleRcP2);
+      T_EposDisto_pReso_D->SetBranchAddress("AngleP1P2", &AngleP1P2);
+      for (unsigned uEntry = 0; uEntry < T_EposDisto_pReso_D->GetEntries();
+          uEntry++) {
+        T_EposDisto_pReso_D->GetEntry(uEntry);
+        fM1 = fmassProRes;
+        fM2 = 0;
+        Tau1 = ftauProRes;
+        Tau2 = 0;
+        if (k_D > fkStarCutOff)
+          continue;
+        RanVal1 = RanGen.Exponential(fM1 / (fP1 * Tau1));
+        fpXimCleverMcLevy->AddBGT_RP(RanVal1, cos(AngleRcP1));
+      }
+      delete F_EposDisto_pReso_D;
+      fpXimCleverMcLevy->InitNumMcIter(262144);
+      cats->SetAnaSource(CatsSourceForwarder, fpXimCleverMcLevy, 2);
+      cats->SetAnaSource(0, 1.2);
+      cats->SetAnaSource(1, 2.0);
+      break;
+    }
+    default:
+      std::cout << "Source not implemented \n";
+      break;
+  }
+  cats->SetUseAnalyticSource(true);
+  cats->SetMomentumDependentSource(false);
+  cats->SetThetaDependentSource(false);
+  cats->SetMomBins(momBins, kMin, kMax);
+
+//  TODO To be figured out
+//  cats->SetNumChannels(2);
+//  cats->SetNumPW(0, 1);
+//  cats->SetNumPW(1, 1);
+//  cats->SetSpin(0, 0);
+//  cats->SetSpin(1, 1);
+//  cats->SetChannelWeight(0, 0.25);
+//  cats->SetChannelWeight(1, 0.75);
+  cats->SetNumChannels(1);
+  cats->SetNumPW(0, 1);
+  cats->SetSpin(0, 0);
+  cats->SetChannelWeight(0, 1.);
+
+  cats->SetQ1Q2(-1);
+  cats->SetPdgId(2212, -411);
+  cats->SetRedMass((massProton * massDstarminus) / (massProton + massDstarminus));
+  DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+
+  switch (pot) {
+    case TidyCats::pCoulombOnly:
+      std::cout << "Coulomb only\n";
+      break;
+    default:
+      std::cout << "Potential not implemented\n";
+      break;
+  }
+  return;
+}
+
 void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
                                    double kMax, TidyCats::Sources source,
                                    TidyCats::pSigma0Pot pot) {
