@@ -245,3 +245,5 @@ target_link_libraries(SysVarExtractorLAL tidyCATS -L${DREAM_LIB_PATH} DreamFunct
 add_executable(LednickyPlay ${PROJECT_SOURCE_DIR}/Scripts/LednickyPlay.C)
 target_link_libraries(LednickyPlay tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(DmesonPlayground ${PROJECT_SOURCE_DIR}/Scripts/pDmeson/DmesonPlayground.C)
+target_link_libraries(DmesonPlayground tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
