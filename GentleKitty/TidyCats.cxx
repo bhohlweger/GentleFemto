@@ -791,10 +791,11 @@ void TidyCats::GetCatsProtonDplus(CATS* cats, int momBins, double kMin,
       float k_D, fP1, fP2, fM1, fM2, Tau1, Tau2, AngleRcP1, AngleRcP2,
           AngleP1P2;
 
-      // TODO For the moment we borrow the kinematics from the Xi which is closest in mass to the D
+      // we borrow the kinematics from the Omega which is closest in mass to the D
+      // as a cross-check the Xim distributions were used with a negligible effect on the outcome
       TFile* F_EposDisto_pReso_D = new TFile(
           TString::Format(
-              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Xim.root",
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Omega.root",
               fHomeDir.Data()).Data());
       TNtuple* T_EposDisto_pReso_D = (TNtuple*) F_EposDisto_pReso_D->Get(
           "InfoTuple_ClosePairs");
@@ -892,10 +893,11 @@ void TidyCats::GetCatsProtonDminus(CATS* cats, int momBins, double kMin,
       float k_D, fP1, fP2, fM1, fM2, Tau1, Tau2, AngleRcP1, AngleRcP2,
           AngleP1P2;
 
-      // TODO For the moment we borrow the kinematics from the Xi which is closest in mass to the D
+      // we borrow the kinematics from the Omega which is closest in mass to the D
+      // as a cross-check the Xim distributions were used with a negligible effect on the outcome
       TFile* F_EposDisto_pReso_D = new TFile(
           TString::Format(
-              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Xim.root",
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Omega.root",
               fHomeDir.Data()).Data());
       TNtuple* T_EposDisto_pReso_D = (TNtuple*) F_EposDisto_pReso_D->Get(
           "InfoTuple_ClosePairs");
@@ -994,10 +996,11 @@ void TidyCats::GetCatsProtonDstarplus(CATS* cats, int momBins, double kMin,
       float k_D, fP1, fP2, fM1, fM2, Tau1, Tau2, AngleRcP1, AngleRcP2,
           AngleP1P2;
 
-      // TODO For the moment we borrow the kinematics from the Xi which is closest in mass to the D
+      // we borrow the kinematics from the Omega which is closest in mass to the D
+      // as a cross-check the Xim distributions were used with a negligible effect on the outcome
       TFile* F_EposDisto_pReso_D = new TFile(
           TString::Format(
-              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Xim.root",
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Omega.root",
               fHomeDir.Data()).Data());
       TNtuple* T_EposDisto_pReso_D = (TNtuple*) F_EposDisto_pReso_D->Get(
           "InfoTuple_ClosePairs");
@@ -1095,10 +1098,11 @@ void TidyCats::GetCatsProtonDstarminus(CATS* cats, int momBins, double kMin,
       float k_D, fP1, fP2, fM1, fM2, Tau1, Tau2, AngleRcP1, AngleRcP2,
           AngleP1P2;
 
-      // TODO For the moment we borrow the kinematics from the Xi which is closest in mass to the D
+      // we borrow the kinematics from the Omega which is closest in mass to the D
+      // as a cross-check the Xim distributions were used with a negligible effect on the outcome
       TFile* F_EposDisto_pReso_D = new TFile(
           TString::Format(
-              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Xim.root",
+              "%s/cernbox/WaveFunctions/ThetaDist/EposDisto_pReso_Omega.root",
               fHomeDir.Data()).Data());
       TNtuple* T_EposDisto_pReso_D = (TNtuple*) F_EposDisto_pReso_D->Get(
           "InfoTuple_ClosePairs");
