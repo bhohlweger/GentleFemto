@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
   const double DmesonPurity = 0.35;   // rough estimate, to be improved
   const double Bfeeddown = 0.9;  // rough estimate, to be improved TODO - charged fractions?
-  const double DstarFeeding = 1. / 3.;  // rough estimate, to be improved
+  const double DstarFeeding = 0.3;  // data-driven Phythia studies - uncertainties to be included
   const double DmesonPrimary = Bfeeddown * 1.f / (1.f + DstarFeeding);
   const double DstarContribution = Bfeeddown * DstarFeeding
       / (1.f + DstarFeeding);
