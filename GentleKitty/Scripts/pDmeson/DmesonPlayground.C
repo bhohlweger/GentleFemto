@@ -9,6 +9,7 @@
 #include "CATSLambdaParam.h"
 #include "CATSInput.h"
 #include "TStyle.h"
+#include "TLatex.h"
 
 #include "DLM_CkDecomposition.h"
 
@@ -52,15 +53,15 @@ int main(int argc, char *argv[]) {
 
   const double kmin = 0;
   const double kmax = 300;
-  const int nBins = 300;
+  const int nBins = 150;
 
   /// Lambda parameters
   const double protonPurity = 0.994;
   const double protonPrimary = 0.823;
   const double protonLambda = 0.125;
 
-  const double DmesonPurity = 0.30;   // rough estimate, to be improved
-  const double Bfeeddown = 0.9;  // rough estimate, to be improved TODO - charged fractions?
+  const double DmesonPurity = 0.75;   // rough estimate, to be improved
+  const double Bfeeddown = 0.95;  // rough estimate, to be improved TODO - charged fractions?
   const double DstarFeeding = 0.3;  // data-driven Phythia studies - uncertainties to be included
   const double DmesonPrimary = Bfeeddown * 1.f / (1.f + DstarFeeding);
   const double DstarContribution = Bfeeddown * DstarFeeding
@@ -88,9 +89,13 @@ int main(int argc, char *argv[]) {
   std::cout << "Flat        " << flat << "\n";
   
   /// Femto radius
-  const double rCoreLow = 0.86;
-  const double rCoreDefault = 0.91;
-  const double rCoreUp = 0.96;
+  const double rCorepDplusLow = 0.72;
+  const double rCorepDplusDefault = 0.8;
+  const double rCorepDplusUp = 0.88;
+
+  const double rCorepDminusLow = 0.74;
+  const double rCorepDminusDefault = 0.81;
+  const double rCorepDminusUp = 0.89;
 
   /// -----------------------------------------------------------------------------------
   /// Calibration
@@ -178,9 +183,9 @@ int main(int argc, char *argv[]) {
                                    TidyCats::pCoulombOnly,
                                    TidyCats::sResonance);
 
-  catsDplusCoulombOnly.SetAnaSource(0, rCoreDefault);
+  catsDplusCoulombOnly.SetAnaSource(0, rCorepDplusDefault);
   catsDplusCoulombOnly.KillTheCat();
-  catsDstarplus.SetAnaSource(0, rCoreDefault);
+  catsDstarplus.SetAnaSource(0, rCorepDplusDefault);
   catsDstarplus.KillTheCat();
 
   FillSourceGraph(catsDplusCoulombOnly, grSourceDplus);
@@ -189,9 +194,14 @@ int main(int argc, char *argv[]) {
   auto cPlus = new TCanvas("p-D+ source", "p-D+ source");
   grSourceDplus->Draw("AL3");
   grSourceDplus->Fit(gaussFit, "Q", "R", 0, 12);
-  cPlus->Print("SourceDplus.pdf");
+  TLatex text;
+  text.SetNDC(true);
+  text.SetTextSize(23);
+  text.SetTextFont(43);
   const double dplusRad = gaussFit->GetParameter(0);
-  std::cout << "p-D+ radius " << gaussFit->GetParameter(0) << " fm\n";
+  text.DrawLatex(0.4, 0.8, Form("#it{r}_{eff} = %.2f fm", dplusRad));
+  cPlus->Print("SourceDplus.pdf");
+  std::cout << "p-D+ radius " << dplusRad << " fm\n";
 
   auto DLM_pDplusCoulomb = new DLM_Ck(1, 0, catsDplusCoulombOnly);
   auto DLM_pDstarplus = new DLM_Ck(1, 0, catsDstarplus);
@@ -232,6 +242,17 @@ int main(int argc, char *argv[]) {
 
   auto dPlusLambda = new TCanvas("p-D+ Experimental", "p-D+ Experimental");
   grDplusTotal->Draw("AL3");
+  auto legDplus2 = new TLegend(0.45, 0.25, 0.45 + 0.3, 0.25+0.125);
+  legDplus2->SetBorderSize(0);
+  legDplus2->SetTextFont(42);
+  legDplus2->SetHeader(
+      TString::Format("p#minus#kern[-0.95]{ }D^{+}, #it{r}_{eff} = %.2f fm",
+                      dplusRad));
+  legDplus2->SetTextSize(gStyle->GetTextSize() * 0.9);
+  legDplus2->AddEntry(grDplusTotal,
+                      "p#minus#kern[-0.95]{ }D^{+} (Coulomb only)", "l");
+  legDplus2->Draw("same");
+  dPlusLambda->Print("dplusExp.pdf");
   
   auto dDstarPlus = new TCanvas("p-D*+ Transformation", "p-D*+ Transformation");
   grDstarplusSmeared->Draw("AL3");
@@ -268,17 +289,17 @@ int main(int argc, char *argv[]) {
   auto legDplus = new TLegend(0.45, 0.25, 0.45 + 0.3, 0.55);
   legDplus->SetBorderSize(0);
   legDplus->SetTextFont(42);
-  legDplus->SetHeader(TString::Format("p#minus#kern[-0.95]{ }D^{+}, #it{r}_{eff} = %.1f fm", dplusRad));
+  legDplus->SetHeader(TString::Format("p#minus#kern[-0.95]{ }D^{+}, #it{r}_{eff} = %.2f fm", dplusRad));
   legDplus->SetTextSize(gStyle->GetTextSize() * 0.9);
   legDplus->AddEntry(grDplusTotal, "Total", "l");
   legDplus->AddEntry(
       grDplusLambda,
-      TString::Format("Genuine p#minus#kern[-0.95]{ }D^{+} (#lambda = %.1f %%)", primary * 100.f),
+      TString::Format("Genuine p#minus#kern[-0.95]{ }D^{+} (#lambda = %.2f %%)", primary * 100.f),
       "l");
   legDplus->AddEntry(
       grDstarplusLambda,
       TString::Format(
-          "p#minus#kern[-0.95]{ }D*^{+} #rightarrow p#minus#kern[-0.95]{ }D^{+} (#lambda = %.1f %%)",
+          "p#minus#kern[-0.95]{ }D*^{+} #rightarrow p#minus#kern[-0.95]{ }D^{+} (#lambda = %.2f %%)",
           pDstar * 100.),
       "l");
   legDplus->Draw("same");
@@ -287,7 +308,7 @@ int main(int argc, char *argv[]) {
   auto dPlus = new TCanvas("p-D+ Coulomb", "p-D+ Coulomb");
   grDplusCoulomb->Draw("AL3");
   grDplusLambda->Draw("L3");
-  dPlus->Print("dplus.pdf");
+  dPlus->Print("dplusCoul.pdf");
   
   /// -----------------------------------------------------------------------------------
   /// For the Dminus
@@ -334,9 +355,9 @@ int main(int argc, char *argv[]) {
                                    TidyCats::pCoulombOnly,
                                    TidyCats::sResonance);
 
-  catsDminusCoulombOnly.SetAnaSource(0, rCoreDefault);
+  catsDminusCoulombOnly.SetAnaSource(0, rCorepDminusDefault);
   catsDminusCoulombOnly.KillTheCat();
-  catsDstarminus.SetAnaSource(0, rCoreDefault);
+  catsDstarminus.SetAnaSource(0, rCorepDminusDefault);
   catsDstarminus.KillTheCat();
 
   FillSourceGraph(catsDminusCoulombOnly, grSourceDminus);
@@ -345,9 +366,10 @@ int main(int argc, char *argv[]) {
   auto cminus = new TCanvas("p-D- source", "p-D- source");
   grSourceDminus->Draw("AL3");
   grSourceDminus->Fit(gaussFit, "Q", "R", 0, 12);
-  cminus->Print("Source_Dminus.pdf");
   const double dminusRad = gaussFit->GetParameter(0);
-  std::cout << "p-D- radius " << gaussFit->GetParameter(0) << " fm\n";
+  text.DrawLatex(0.4, 0.8, Form("#it{r}_{eff} = %.2f fm", dminusRad));
+  cminus->Print("Source_Dminus.pdf");
+  std::cout << "p-D- radius " << dminusRad << " fm\n";
 
   auto DLM_pDminusCoulomb = new DLM_Ck(1, 0, catsDminusCoulombOnly);
   auto DLM_pDstarminus = new DLM_Ck(1, 0, catsDstarminus);
@@ -387,6 +409,17 @@ int main(int argc, char *argv[]) {
 
   auto dminusLambda = new TCanvas("p-D- Experimental", "p-D- Experimental");
   grDminusTotal->Draw("AL3");
+  auto legDminus2 = new TLegend(0.45, 0.9-0.125, 0.45 + 0.3, 0.9);
+  legDminus2->SetBorderSize(0);
+  legDminus2->SetTextFont(42);
+  legDminus2->SetHeader(
+      TString::Format("p#minus#kern[-0.95]{ }D^{#minus}, #it{r}_{eff} = %.2f fm",
+                      dminusRad));
+  legDminus2->SetTextSize(gStyle->GetTextSize() * 0.9);
+  legDminus2->AddEntry(grDminusTotal,
+                      "p#minus#kern[-0.95]{ }D^{#minus} (Coulomb only)", "l");
+  legDminus2->Draw("same");
+  dminusLambda->Print("dminusExp.pdf");
 
   auto dDstar = new TCanvas("p-D*- Transformation", "p-D*- Transformation");
   grDstarminusSmeared->Draw("AL3");
@@ -423,17 +456,17 @@ int main(int argc, char *argv[]) {
   auto legDminus = new TLegend(0.45, 0.6, 0.45 + 0.3, 0.9);
   legDminus->SetBorderSize(0);
   legDminus->SetTextFont(42);
-  legDminus->SetHeader(TString::Format("p#minus#kern[-0.95]{ }D^{#minus}, #it{r}_{eff} = %.1f fm", dminusRad));
+  legDminus->SetHeader(TString::Format("p#minus#kern[-0.95]{ }D^{#minus}, #it{r}_{eff} = %.2f fm", dminusRad));
   legDminus->SetTextSize(gStyle->GetTextSize() * 0.9);
   legDminus->AddEntry(grDminusTotal, "Total", "l");
   legDminus->AddEntry(
       grDminusLambda,
-      TString::Format("Genuine p#minus#kern[-0.95]{ }D^{#minus} (#lambda = %.1f %%)", primary * 100.f),
+      TString::Format("Genuine p#minus#kern[-0.95]{ }D^{#minus} (#lambda = %.2f %%)", primary * 100.f),
       "l");
   legDminus->AddEntry(
       grDstarminusLambda,
       TString::Format(
-          "p#minus#kern[-0.95]{ }D*^{#minus} #rightarrow p#minus#kern[-0.95]{ }D^{#minus} (#lambda = %.1f %%)",
+          "p#minus#kern[-0.95]{ }D*^{#minus} #rightarrow p#minus#kern[-0.95]{ }D^{#minus} (#lambda = %.2f %%)",
           pDstar * 100.),
       "l");
   legDminus->Draw("same");
@@ -442,7 +475,7 @@ int main(int argc, char *argv[]) {
   auto dminus = new TCanvas("p-D- Coulomb", "p-D- Coulomb");
   grDminusCoulomb->Draw("AL3");
   grDminusLambda->Draw("L3");
-  dminus->Print("dminus.pdf");
+  dminus->Print("dminusCoul.pdf");
   
   /// -----------------------------------------------------------------------------------
   /// Feeding from beauty
