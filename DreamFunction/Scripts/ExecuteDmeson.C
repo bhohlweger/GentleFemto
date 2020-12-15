@@ -7,13 +7,16 @@ int main(int argc, char* argv[]) {
   ReadDreamFile* DreamFile = new ReadDreamFile(4, 4);
   DreamFile->SetAnalysisFile(filename, appendix.Data(), suffix.Data());
 
+  const double normLower = 0.8;
+  const double normUpper = 1.;
+
   DreamCF* CF_pDplus = new DreamCF();
-  DreamPair* pDplus = new DreamPair("Part", 0.25, 0.4);
-  DreamPair* apDminus = new DreamPair("AntiPart", 0.25, 0.4);
+  DreamPair* pDplus = new DreamPair("Part", normLower, normUpper);
+  DreamPair* apDminus = new DreamPair("AntiPart", normLower, normUpper);
 
   DreamCF* CF_pDminus = new DreamCF();
-  DreamPair* pDminus = new DreamPair("Part", 0.25, 0.4);
-  DreamPair* apDplus = new DreamPair("AntiPart", 0.25, 0.4);
+  DreamPair* pDminus = new DreamPair("Part", normLower, normUpper);
+  DreamPair* apDplus = new DreamPair("AntiPart", normLower, normUpper);
 
   pDplus->SetPair(DreamFile->GetPairDistributions(0, 2, ""));
   apDminus->SetPair(DreamFile->GetPairDistributions(1, 3, ""));
