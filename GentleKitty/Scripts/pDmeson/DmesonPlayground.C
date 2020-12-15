@@ -44,6 +44,22 @@ void FillCkGraph(CATS &kitty, TGraph *gr) {
 }
 
 /// =====================================================================================
+TH2F* TransformToMeV(const TH2F* input) {
+  auto histMeV = new TH2F(
+      TString::Format("%s_MeV", input->GetName()).Data(), input->GetTitle(),
+      input->GetNbinsX(), 1000. * input->GetXaxis()->GetBinLowEdge(1),
+      1000. * input->GetXaxis()->GetBinUpEdge(input->GetNbinsX()),
+      input->GetNbinsY(), 1000. * input->GetYaxis()->GetBinLowEdge(1),
+      1000. * input->GetYaxis()->GetBinUpEdge(input->GetNbinsY()));
+  for (int iBinX = 1; iBinX <= input->GetNbinsX(); iBinX++) {
+    for (int iBinY = 1; iBinY <= input->GetNbinsY(); iBinY++) {
+      histMeV->SetBinContent(iBinX, iBinY, input->GetBinContent(iBinX, iBinY));
+    }
+  }
+  return histMeV;
+}
+
+/// =====================================================================================
 int main(int argc, char *argv[]) {
   TApplication *app = new TApplication("app", 0, 0);
   DreamPlot::SetStyle();
@@ -53,7 +69,7 @@ int main(int argc, char *argv[]) {
 
   const double kmin = 0;
   const double kmax = 300;
-  const int nBins = 150;
+  const int nBins = 30;
 
   /// Lambda parameters
   const double protonPurity = 0.994;
@@ -117,9 +133,24 @@ int main(int argc, char *argv[]) {
   histDecayKindematicsBeauty->Draw("colz");
   beautyCan->Print("DecayTransformationB.pdf");
   
-  // TODO Momentum resolution
-  TH2F* histMomentumResolution = nullptr;
-  //DreamPlot::SetStyleHisto(histMomentumResolution);
+  // Momentum resolution
+  auto momResFile = TFile::Open(TString::Format("%s/momRes_Dmesons.root", CalibBaseDir.Data()).Data());
+  auto histMomentumResolutionpDplus = TransformToMeV((TH2F*)momResFile->Get("pDplus"));
+  auto histMomentumResolutionpDminus = TransformToMeV((TH2F*)momResFile->Get("pDminus"));
+  DreamPlot::SetStyleHisto(histMomentumResolutionpDplus);
+  DreamPlot::SetStyleHisto(histMomentumResolutionpDminus);
+
+  // since the resolution is the same for p-D+ and p-D- we add them (see control histogram!)
+  auto histMomentumResolution = histMomentumResolutionpDplus;
+  histMomentumResolution->Add(histMomentumResolutionpDminus);
+
+  auto cMomRes1 = new TCanvas("Momentum resolution", "Momentum resolution");
+  histMomentumResolution->Draw("colz");
+
+  auto cMomRes2 = new TCanvas("Mom. res. - ratio p-Dplus p-Dminus", "Mom. res. - ratio p-Dplus p-Dminus");
+  auto ratio = (TH2F*)histMomentumResolutionpDminus->Clone("ratp");
+  ratio->Divide(histMomentumResolutionpDplus);
+  ratio->Draw("colz");
 
   /// -----------------------------------------------------------------------------------
 
