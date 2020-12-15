@@ -77,8 +77,12 @@ int main(int argc, char *argv[]) {
   const double protonLambda = 0.125;
 
   const double DmesonPurity = 0.75;   // rough estimate, to be improved
-  const double Bfeeddown = 0.95;  // rough estimate, to be improved TODO - charged fractions?
-  const double DstarFeeding = 0.3;  // data-driven Phythia studies - uncertainties to be included
+  // From syst. files, evaluated at pT = 2.8 GeV/c
+  // Beauty feeding: 0.0578102 +/- 0.0332809
+  const double Bfeeddown = 1.f - 0.0578102;
+  // From syst. files, evaluated at pT = 2.8 GeV/c
+  // D* feeding: 0.287128 +/- 0.0263223
+  const double DstarFeeding = 0.287128;
   const double DmesonPrimary = Bfeeddown * 1.f / (1.f + DstarFeeding);
   const double DstarContribution = Bfeeddown * DstarFeeding
       / (1.f + DstarFeeding);
