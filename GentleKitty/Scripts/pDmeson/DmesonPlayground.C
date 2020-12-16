@@ -72,14 +72,20 @@ int main(int argc, char *argv[]) {
   const int nBins = 30;
 
   /// Lambda parameters
-  const double protonPurity = 0.994;
-  const double protonPrimary = 0.823;
-  const double protonLambda = 0.125;
+  const double protonPurityDplus = 0.980983;
+  const double protonPrimaryDplus = 0.863268;
+  const double protonLambdaDplus = 0.0966698;
 
-  const double DmesonPurity = 0.75;   // rough estimate, to be improved
+  const double protonPurityDminus = 0.983773;
+  const double protonPrimaryDminus = 0.862303;
+  const double protonLambdaDminus = 0.0973517;
+
+  const double DmesonPurity = 0.65;   // rough estimate, to be improved
+
   // From syst. files, evaluated at pT = 2.8 GeV/c
   // Beauty feeding: 0.0578102 +/- 0.0332809
   const double Bfeeddown = 1.f - 0.0578102;
+
   // From syst. files, evaluated at pT = 2.8 GeV/c
   // D* feeding: 0.287128 +/- 0.0263223
   const double DstarFeeding = 0.287128;
@@ -89,24 +95,42 @@ int main(int argc, char *argv[]) {
 
   const Particle dmeson(DmesonPurity, DmesonPrimary,
                         { { DstarContribution, 1.f - Bfeeddown } });
-  const Particle proton(
-      protonPurity,
-      protonPrimary,
-      { { (1. - protonPrimary) * protonLambda, (1. - protonPrimary)
-          * (1 - protonLambda) } });
+  const Particle protonDplus(
+      protonPurityDplus,
+      protonPrimaryDplus,
+      { { (1. - protonPrimaryDplus) * protonLambdaDplus, (1. - protonPrimaryDplus)
+          * (1 - protonLambdaDplus) } });
+  const Particle protonDminus(
+      protonPurityDminus,
+      protonPrimaryDminus,
+      { { (1. - protonPrimaryDminus) * protonLambdaDminus, (1. - protonPrimaryDminus)
+          * (1 - protonLambdaDminus) } });
 
-  const CATSLambdaParam lambdaParam(proton, dmeson);
-  lambdaParam.PrintLambdaParams();
+  const CATSLambdaParam lambdaParampDplus(protonDplus, dmeson);
+  lambdaParampDplus.PrintLambdaParams();
 
-  const double primary = lambdaParam.GetLambdaParam(CATSLambdaParam::Primary);
-  const double pDstar = lambdaParam.GetLambdaParam(CATSLambdaParam::Primary,
+  const double primaryDplus = lambdaParampDplus.GetLambdaParam(CATSLambdaParam::Primary);
+  const double pDstarDplus = lambdaParampDplus.GetLambdaParam(CATSLambdaParam::Primary,
                                                    CATSLambdaParam::FeedDown, 0,
                                                    0);
-  const double flat = 1.f - primary - pDstar;
+  const double flatDplus = 1.f - primaryDplus - pDstarDplus;
   
-  std::cout << "Genuine p-D " << primary << "\n";
-  std::cout << "p-D* -> p-D " << pDstar << "\n";
-  std::cout << "Flat        " << flat << "\n";
+  std::cout << "Genuine p-D+ " << primaryDplus << "\n";
+  std::cout << "p-D* -> p-D+ " << pDstarDplus << "\n";
+  std::cout << "Flat in p-D+ " << flatDplus << "\n";
+
+  const CATSLambdaParam lambdaParampDminus(protonDminus, dmeson);
+  lambdaParampDminus.PrintLambdaParams();
+
+  const double primaryDminus = lambdaParampDminus.GetLambdaParam(CATSLambdaParam::Primary);
+  const double pDstarDminus = lambdaParampDminus.GetLambdaParam(CATSLambdaParam::Primary,
+                                                   CATSLambdaParam::FeedDown, 0,
+                                                   0);
+  const double flatDminus = 1.f - primaryDminus - pDstarDminus;
+
+  std::cout << "Genuine p-D- " << primaryDminus << "\n";
+  std::cout << "p-D* -> p-D- " << pDstarDminus << "\n";
+  std::cout << "Flat in p-D- " << flatDminus << "\n";
   
   /// Femto radius
   const double rCorepDplusLow = 0.72;
@@ -246,10 +270,10 @@ int main(int argc, char *argv[]) {
                                           histMomentumResolution);
   DLM_CkDecomposition CkDec_pDstarplus("pDstarplus", 0, *DLM_pDstarplus,
                                        nullptr);
-  CkDec_pDplusCoulomb.AddContribution(0, pDstar, DLM_CkDecomposition::cFeedDown,
+  CkDec_pDplusCoulomb.AddContribution(0, pDstarDplus, DLM_CkDecomposition::cFeedDown,
                                       &CkDec_pDstarplus,
                                       histDecayKindematicsDstar);
-  CkDec_pDplusCoulomb.AddContribution(1, flat,
+  CkDec_pDplusCoulomb.AddContribution(1, flatDplus,
                                       DLM_CkDecomposition::cFake);
   CkDec_pDplusCoulomb.Update();
   FillCkGraph(DLM_pDplusCoulomb, CkDec_pDplusCoulomb, grDplusTotal);
@@ -257,7 +281,7 @@ int main(int argc, char *argv[]) {
   DLM_CkDecomposition CkDec_pDplusLambda("pDplusCoulomb", 1,
                                          *DLM_pDplusCoulomb,
                                          histMomentumResolution);
-  CkDec_pDplusLambda.AddContribution(0, flat + pDstar,
+  CkDec_pDplusLambda.AddContribution(0, primaryDplus,
                                      DLM_CkDecomposition::cFake);
   CkDec_pDplusLambda.Update();
   FillCkGraph(DLM_pDplusCoulomb, CkDec_pDplusLambda, grDplusLambda);
@@ -268,7 +292,7 @@ int main(int argc, char *argv[]) {
   DLM_CkDecomposition CkDec_pDstarplus_Lambda("pDstarplus_lambda", 1,
                                               *DLM_pDstarplus,
                                               histDecayKindematicsDstar);
-  CkDec_pDstarplus_Lambda.AddContribution(0, 1.f - pDstar,
+  CkDec_pDstarplus_Lambda.AddContribution(0, 1.f - pDstarDplus,
                                           DLM_CkDecomposition::cFake);
   FillCkGraph(DLM_pDstarplus, CkDec_pDstarplus_Smeared, grDstarplusSmeared);
   FillCkGraph(DLM_pDstarplus, CkDec_pDstarplus, grDstarplusGenuine);
@@ -307,7 +331,7 @@ int main(int argc, char *argv[]) {
       grDstarplusLambda,
       TString::Format(
           "p#minus#kern[-0.95]{ }D*^{+} #rightarrow p#minus#kern[-0.95]{ }D^{+} (#lambda = %.2f %%)",
-          pDstar * 100.),
+          pDstarDplus * 100.),
       "l");
   legDstarplus->Draw("same");
   dDstarPlus->Print("Transformation_Dstar_Dplus.pdf");
@@ -329,13 +353,13 @@ int main(int argc, char *argv[]) {
   legDplus->AddEntry(grDplusTotal, "Total", "l");
   legDplus->AddEntry(
       grDplusLambda,
-      TString::Format("Genuine p#minus#kern[-0.95]{ }D^{+} (#lambda = %.2f %%)", primary * 100.f),
+      TString::Format("Genuine p#minus#kern[-0.95]{ }D^{+} (#lambda = %.2f %%)", primaryDplus * 100.f),
       "l");
   legDplus->AddEntry(
       grDstarplusLambda,
       TString::Format(
           "p#minus#kern[-0.95]{ }D*^{+} #rightarrow p#minus#kern[-0.95]{ }D^{+} (#lambda = %.2f %%)",
-          pDstar * 100.),
+          pDstarDplus * 100.),
       "l");
   legDplus->Draw("same");
   cDplusTotal->Print("p-Dplus_total.pdf");
@@ -414,10 +438,10 @@ int main(int argc, char *argv[]) {
                                           histMomentumResolution);
   DLM_CkDecomposition CkDec_pDstarminus("pDstarminus", 0, *DLM_pDstarminus,
                                        nullptr);
-  CkDec_pDminusCoulomb.AddContribution(0, pDstar, DLM_CkDecomposition::cFeedDown,
+  CkDec_pDminusCoulomb.AddContribution(0, pDstarDminus, DLM_CkDecomposition::cFeedDown,
                                       &CkDec_pDstarminus,
                                       histDecayKindematicsDstar);
-  CkDec_pDminusCoulomb.AddContribution(1, flat,
+  CkDec_pDminusCoulomb.AddContribution(1, flatDminus,
                                       DLM_CkDecomposition::cFake);
   CkDec_pDminusCoulomb.Update();
   FillCkGraph(DLM_pDminusCoulomb, CkDec_pDminusCoulomb, grDminusTotal);
@@ -425,7 +449,7 @@ int main(int argc, char *argv[]) {
   DLM_CkDecomposition CkDec_pDminusLambda("pDminusCoulomb", 1,
                                           *DLM_pDminusCoulomb,
                                           histMomentumResolution);
-  CkDec_pDminusLambda.AddContribution(0, 1.f - primary,
+  CkDec_pDminusLambda.AddContribution(0, 1.f - primaryDminus,
                                       DLM_CkDecomposition::cFake);
   CkDec_pDminusLambda.Update();
   FillCkGraph(DLM_pDminusCoulomb, CkDec_pDminusLambda, grDminusLambda);
@@ -436,7 +460,7 @@ int main(int argc, char *argv[]) {
   DLM_CkDecomposition CkDec_pDstarminus_Lambda("pDstarminus_lambda", 1,
                                               *DLM_pDstarminus,
                                               histDecayKindematicsDstar);
-  CkDec_pDstarminus_Lambda.AddContribution(0, 1.f - pDstar,
+  CkDec_pDstarminus_Lambda.AddContribution(0, 1.f - pDstarDminus,
                                           DLM_CkDecomposition::cFake);
   FillCkGraph(DLM_pDstarminus, CkDec_pDstarminus_Smeared, grDstarminusSmeared);
   FillCkGraph(DLM_pDstarminus, CkDec_pDstarminus, grDstarminusGenuine);
@@ -474,7 +498,7 @@ int main(int argc, char *argv[]) {
       grDstarminusLambda,
       TString::Format(
           "p#minus#kern[-0.95]{ }D*^{#minus} #rightarrow p#minus#kern[-0.95]{ }D^{#minus} (#lambda = %.2f %%)",
-          pDstar * 100.),
+          pDstarDminus * 100.),
       "l");
   legDstarminus->Draw("same");
   dDstar->Print("Transformation_Dstar_Dminus.pdf");
@@ -496,13 +520,13 @@ int main(int argc, char *argv[]) {
   legDminus->AddEntry(grDminusTotal, "Total", "l");
   legDminus->AddEntry(
       grDminusLambda,
-      TString::Format("Genuine p#minus#kern[-0.95]{ }D^{#minus} (#lambda = %.2f %%)", primary * 100.f),
+      TString::Format("Genuine p#minus#kern[-0.95]{ }D^{#minus} (#lambda = %.2f %%)", primaryDminus * 100.f),
       "l");
   legDminus->AddEntry(
       grDstarminusLambda,
       TString::Format(
           "p#minus#kern[-0.95]{ }D*^{#minus} #rightarrow p#minus#kern[-0.95]{ }D^{#minus} (#lambda = %.2f %%)",
-          pDstar * 100.),
+          pDstarDminus * 100.),
       "l");
   legDminus->Draw("same");
   cDminusTotal->Print("p-Dminus_total.pdf");
