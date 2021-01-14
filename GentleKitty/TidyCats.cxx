@@ -5,6 +5,7 @@
  *      Author: hohlweger
  */
 
+#include "DLM_Potentials.h"
 #include <TidyCats.h>
 #include <iostream>
 #include "TDatabasePDG.h"
@@ -1366,6 +1367,63 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
       std::cout << "Potential not implemented \n";
       break;
   }
+}
+
+void TidyCats::GetCatsProtonPhi(CATS* cats, int momBins, double kMin, double kMax, TidyCats::pPhiPot pot, TidyCats::Sources source) {
+  const auto pdgDatabase = TDatabasePDG::Instance();
+  const double massProton = pdgDatabase->GetParticle(2212)->Mass() * 1000;
+  const double massPhi = pdgDatabase->GetParticle(333)->Mass() * 1000;
+  CATSparameters* cPars;
+
+  switch (source) {
+    case TidyCats::sGaussian:
+      cPars = new CATSparameters(CATSparameters::tSource, 1, true);
+      cPars->SetParameter(0, 1.2);
+      cats->SetAnaSource(GaussSource, *cPars);
+      break;
+    default:
+      std::cout << "Source not implemented \n";
+      break;
+  }
+  cats->SetUseAnalyticSource(true);
+  cats->SetMomentumDependentSource(false);
+  cats->SetThetaDependentSource(false);
+  cats->SetExcludeFailedBins(false);
+  cats->SetMomBins(momBins, kMin, kMax);
+
+  // spin-averaged results: one channel only!
+  cats->SetNumChannels(1);
+  cats->SetNumPW(0, 1);
+  cats->SetSpin(0, 0);
+  cats->SetChannelWeight(0, 1.);
+
+  cats->SetQ1Q2(0);
+  cats->SetPdgId(2212, 333);
+
+  cats->SetRedMass((massProton * massPhi) / (massProton + massPhi));
+
+  CATSparameters potPars(CATSparameters::tPotential, 4, true);
+  potPars.SetParameter(0, 1);
+  potPars.SetParameter(1, 2137);
+  switch (pot) {
+    case TidyCats::pYukawa:
+      // some start parameters that give a somewhat reasonable CF
+      potPars.SetParameter(2, -0.1);
+      potPars.SetParameter(3, 50);
+      cats->SetShortRangePotential(0, 0, Yukawa, potPars);
+      break;
+    case TidyCats::pGaussian:
+      // some start parameters that give a somewhat reasonable CF
+      potPars.SetParameter(2, 30);
+      potPars.SetParameter(3, 0.1);
+      cats->SetShortRangePotential(0, 0, Gaussian, potPars);
+      break;
+    default:
+      std::cout << "Potential not implemented\n";
+      break;
+  }
+  return;
+  
 }
 
 double TidyCats::ESC16_pXim_EXAMPLE(double* Parameters) {
