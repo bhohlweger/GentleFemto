@@ -250,3 +250,6 @@ target_link_libraries(DmesonPlayground tidyCATS -L${DREAM_LIB_PATH} DreamFunctio
 
 add_executable(pPhiPotentials ${PROJECT_SOURCE_DIR}/Scripts/pPhiPotentials.C)
 target_link_libraries(pPhiPotentials tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(fitDminus ${PROJECT_SOURCE_DIR}/Scripts/pDmeson/fitDminus.C)
+target_link_libraries(fitDminus tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
