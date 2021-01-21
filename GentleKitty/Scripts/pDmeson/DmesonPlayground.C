@@ -237,9 +237,9 @@ int main(int argc, char *argv[]) {
   CATS catsDplusCoulombOnly, catsDstarplus;
   TidyCats *tidyCats = new TidyCats();
   tidyCats->GetCatsProtonDplus(&catsDplusCoulombOnly, nBins, kmin, kmax,
-                               TidyCats::pCoulombOnly, TidyCats::sResonance);
+                               TidyCats::pDCoulombOnly, TidyCats::sResonance);
   tidyCats->GetCatsProtonDstarplus(&catsDstarplus, nBins, kmin, kmax,
-                                   TidyCats::pCoulombOnly,
+                                   TidyCats::pDCoulombOnly,
                                    TidyCats::sResonance);
 
   catsDplusCoulombOnly.SetAnaSource(0, rCorepDplusDefault);
@@ -381,6 +381,10 @@ int main(int argc, char *argv[]) {
   DreamPlot::SetStyleGraph(grDminusCoulomb, 20, kBlue + 3, 0.8);
   grDminusCoulomb->SetLineWidth(2);
   grDminusCoulomb->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
+  auto grDminusHaidenbauer = new TGraph();
+  DreamPlot::SetStyleGraph(grDminusHaidenbauer, 20, kRed + 3, 0.8);
+  grDminusHaidenbauer->SetLineWidth(2);
+  grDminusHaidenbauer->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
   auto grDminusLambda = new TGraph();
   DreamPlot::SetStyleGraph(grDminusLambda, 20, kBlue + 3, 0.8);
   grDminusLambda->SetLineWidth(2);
@@ -407,20 +411,25 @@ int main(int argc, char *argv[]) {
   grDstarminusLambda->SetLineStyle(2);
   grDstarminusLambda->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
 
-  CATS catsDminusCoulombOnly, catsDstarminus;
+  CATS catsDminusCoulombOnly, catsDstarminus, catsDminusHaidenbauer;
   tidyCats->GetCatsProtonDminus(&catsDminusCoulombOnly, nBins, kmin, kmax,
-                               TidyCats::pCoulombOnly, TidyCats::sResonance);
+                               TidyCats::pDCoulombOnly, TidyCats::sResonance);
   tidyCats->GetCatsProtonDstarminus(&catsDstarminus, nBins, kmin, kmax,
-                                   TidyCats::pCoulombOnly,
+                                   TidyCats::pDCoulombOnly,
                                    TidyCats::sResonance);
+  tidyCats->GetCatsProtonDminus(&catsDminusHaidenbauer, nBins, kmin, kmax,
+                               TidyCats::pDminusHaidenbauer, TidyCats::sResonance);
 
   catsDminusCoulombOnly.SetAnaSource(0, rCorepDminusDefault);
   catsDminusCoulombOnly.KillTheCat();
   catsDstarminus.SetAnaSource(0, rCorepDminusDefault);
   catsDstarminus.KillTheCat();
+  catsDminusHaidenbauer.SetAnaSource(0, rCorepDminusDefault);
+  catsDminusHaidenbauer.KillTheCat();
 
   FillSourceGraph(catsDminusCoulombOnly, grSourceDminus);
   FillCkGraph(catsDminusCoulombOnly, grDminusCoulomb);
+  FillCkGraph(catsDminusHaidenbauer, grDminusHaidenbauer);
 
   auto cminus = new TCanvas("p-D- source", "p-D- source");
   grSourceDminus->Draw("AL3");
@@ -429,6 +438,24 @@ int main(int argc, char *argv[]) {
   text.DrawLatex(0.4, 0.8, Form("#it{r}_{eff} = %.2f fm", dminusRad));
   cminus->Print("Source_Dminus.pdf");
   std::cout << "p-D- radius " << dminusRad << " fm\n";
+
+  auto cCompareDminus = new TCanvas("Compare", "Compare");
+  grDminusCoulomb->Draw("AL3");
+  grDminusCoulomb->GetXaxis()->SetRangeUser(0, 300);
+  grDminusCoulomb->GetYaxis()->SetRangeUser(0.6, 1.5);
+  grDminusHaidenbauer->Draw("L3");
+  auto legComp = new TLegend(0.45, 0.735, 0.45 + 0.3, 0.9);
+  legComp->SetBorderSize(0);
+  legComp->SetTextFont(42);
+  legComp->SetHeader(
+      TString::Format(
+          "p#minus#kern[-0.95]{ }D^{#minus}, #it{r}_{eff} = %.2f fm",
+          dminusRad));
+  legComp->SetTextSize(gStyle->GetTextSize() * 0.9);
+  legComp->AddEntry(grDminusCoulomb, "Coulomb-only", "l");
+  legComp->AddEntry(grDminusHaidenbauer, "Coulomb+strong", "l");
+  legComp->Draw("same");
+  cCompareDminus->Print("Dminus_model.pdf");
 
   auto DLM_pDminusCoulomb = new DLM_Ck(1, 0, catsDminusCoulombOnly);
   auto DLM_pDstarminus = new DLM_Ck(1, 0, catsDstarminus);

@@ -44,7 +44,8 @@ class TidyCats {
     pSigma0NSC97f
   };
   enum pDmesonPot {
-    pCoulombOnly,
+    pDCoulombOnly,
+    pDminusHaidenbauer
   };
   enum pPhiPot {
     pYukawa,

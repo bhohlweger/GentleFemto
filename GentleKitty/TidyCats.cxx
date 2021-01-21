@@ -856,7 +856,7 @@ void TidyCats::GetCatsProtonDplus(CATS* cats, int momBins, double kMin,
   DLM_Histo<complex<double>>*** ExternalWF = nullptr;
 
   switch (pot) {
-    case TidyCats::pCoulombOnly:
+    case TidyCats::pDCoulombOnly:
       std::cout << "Coulomb only\n";
       break;
     default:
@@ -940,27 +940,31 @@ void TidyCats::GetCatsProtonDminus(CATS* cats, int momBins, double kMin,
   cats->SetThetaDependentSource(false);
   cats->SetMomBins(momBins, kMin, kMax);
 
-//  TODO To be figured out
-//  cats->SetNumChannels(2);
-//  cats->SetNumPW(0, 1);
-//  cats->SetNumPW(1, 1);
-//  cats->SetSpin(0, 0);
-//  cats->SetSpin(1, 1);
-//  cats->SetChannelWeight(0, 0.25);
-//  cats->SetChannelWeight(1, 0.75);
-  cats->SetNumChannels(1);
-  cats->SetNumPW(0, 1);
-  cats->SetSpin(0, 0);
-  cats->SetChannelWeight(0, 1.);
-
-  cats->SetQ1Q2(-1);
   cats->SetPdgId(2212, -411);
   cats->SetRedMass((massProton * massDminus) / (massProton + massDminus));
   DLM_Histo<complex<double>>*** ExternalWF = nullptr;
+  TString HomeDir = gSystem->GetHomeDirectory().c_str();
 
   switch (pot) {
-    case TidyCats::pCoulombOnly:
+    case TidyCats::pDCoulombOnly:
+      cats->SetNumChannels(1);
+      cats->SetNumPW(0, 1);
+      cats->SetSpin(0, 0);
+      cats->SetChannelWeight(0, 1.);
+      cats->SetQ1Q2(-1);
       std::cout << "Coulomb only\n";
+      break;
+    case TidyCats::pDminusHaidenbauer:
+      cats->SetQ1Q2(0); // Coulomb is already included in the calculations!
+      ExternalWF = Init_pDminus_Haidenbauer(
+          TString::Format("%s/cernbox/WaveFunctions/Haidenbauer/pDminus/",
+                          HomeDir.Data()),
+          cats);
+      for (unsigned uCh = 0; uCh < cats->GetNumChannels(); uCh++) {
+        cats->SetExternalWaveFunction(uCh, 0, ExternalWF[0][uCh][0],
+                                      ExternalWF[1][uCh][0]);
+      }
+      CleanUpWfHisto(cats->GetNumChannels(), ExternalWF);
       break;
     default:
       std::cout << "Potential not implemented\n";
@@ -1061,7 +1065,7 @@ void TidyCats::GetCatsProtonDstarplus(CATS* cats, int momBins, double kMin,
   DLM_Histo<complex<double>>*** ExternalWF = nullptr;
 
   switch (pot) {
-    case TidyCats::pCoulombOnly:
+    case TidyCats::pDCoulombOnly:
       std::cout << "Coulomb only\n";
       break;
     default:
@@ -1164,7 +1168,7 @@ void TidyCats::GetCatsProtonDstarminus(CATS* cats, int momBins, double kMin,
   DLM_Histo<complex<double>>*** ExternalWF = nullptr;
 
   switch (pot) {
-    case TidyCats::pCoulombOnly:
+    case TidyCats::pDCoulombOnly:
       std::cout << "Coulomb only\n";
       break;
     default:

@@ -368,9 +368,9 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
   auto tidyCats = new TidyCats();
   CATS catsCoulombOnly, catsDstar;
   tidyCats->GetCatsProtonDminus(&catsCoulombOnly, nBins, kmin, kmax,
-                                TidyCats::pCoulombOnly, TidyCats::sResonance);
+                                TidyCats::pDCoulombOnly, TidyCats::sResonance);
   tidyCats->GetCatsProtonDstarminus(&catsDstar, nBins, kmin, kmax,
-                                    TidyCats::pCoulombOnly,
+                                    TidyCats::pDCoulombOnly,
                                     TidyCats::sResonance);
 
   catsCoulombOnly.SetAnaSource(0, rCoreDefault);

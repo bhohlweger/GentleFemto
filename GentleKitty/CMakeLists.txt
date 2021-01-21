@@ -248,6 +248,9 @@ target_link_libraries(LednickyPlay tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 add_executable(DmesonPlayground ${PROJECT_SOURCE_DIR}/Scripts/pDmeson/DmesonPlayground.C)
 target_link_libraries(DmesonPlayground tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(DmesonHaidenbauer ${PROJECT_SOURCE_DIR}/Scripts/pDmeson/DmesonHaidenbauer.C)
+target_link_libraries(DmesonHaidenbauer tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(pPhiPotentials ${PROJECT_SOURCE_DIR}/Scripts/pPhiPotentials.C)
 target_link_libraries(pPhiPotentials tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
