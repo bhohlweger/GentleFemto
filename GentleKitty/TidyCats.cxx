@@ -1402,20 +1402,18 @@ void TidyCats::GetCatsProtonPhi(CATS* cats, int momBins, double kMin, double kMa
 
   cats->SetRedMass((massProton * massPhi) / (massProton + massPhi));
 
-  CATSparameters potPars(CATSparameters::tPotential, 4, true);
-  potPars.SetParameter(0, 1);
-  potPars.SetParameter(1, 2137);
+  CATSparameters potPars(CATSparameters::tPotential, 2, true);
   switch (pot) {
     case TidyCats::pYukawa:
       // some start parameters that give a somewhat reasonable CF
-      potPars.SetParameter(2, -0.1);
-      potPars.SetParameter(3, 50);
+      potPars.SetParameter(0, -0.1);
+      potPars.SetParameter(1, 50);
       cats->SetShortRangePotential(0, 0, Yukawa, potPars);
       break;
     case TidyCats::pGaussian:
       // some start parameters that give a somewhat reasonable CF
-      potPars.SetParameter(2, 30);
-      potPars.SetParameter(3, 0.1);
+      potPars.SetParameter(0, 30);
+      potPars.SetParameter(1, 0.1);
       cats->SetShortRangePotential(0, 0, Gaussian, potPars);
       break;
     default:

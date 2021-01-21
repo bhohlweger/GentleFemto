@@ -23,10 +23,10 @@ void FillCkGraph(DLM_Ck *ck, TGraph *gr) {
 
 /// =====================================================================================
 void FillPotentialGraph(CATS& cats, TGraph* gr) {
-  for (double i=0; i < 1000; ++i) {
-    double radius = i / 100.;
-    gr->SetPoint(i, radius, cats.EvaluateThePotential(0, 0, 2137, radius));
-   }
+  for (double i=1; i < 100; ++i) {
+    double radius = i / 10.;
+    gr->SetPoint(i-1, radius, cats.EvaluateThePotential(0, 0, 10, radius));
+  }
 }
 
 /// =====================================================================================
@@ -62,9 +62,8 @@ int main(int argc, char *argv[]) {
 
   FillCkGraph(DLM_pphi1, grPot1);
   FillPotentialGraph(cats1, grPotential1);
-
-  DLM_pphi1->SetPotPar(2, -0.5);
-  DLM_pphi1->SetPotPar(3, 100);
+  DLM_pphi1->SetPotPar(0, -0.5);
+  DLM_pphi1->SetPotPar(1, 100);
   DLM_pphi1->Update();
   FillCkGraph(DLM_pphi1, grPot2);
   FillPotentialGraph(cats1, grPotential2);
@@ -78,8 +77,8 @@ int main(int argc, char *argv[]) {
   FillCkGraph(DLM_pphi2, grPot3);
   FillPotentialGraph(cats2, grPotential3);
 
-  DLM_pphi2->SetPotPar(2, 300);
-  DLM_pphi2->SetPotPar(3, 10);
+  DLM_pphi2->SetPotPar(0, 300);
+  DLM_pphi2->SetPotPar(1, 10);
   DLM_pphi2->Update();
   FillCkGraph(DLM_pphi2, grPot4);
   FillPotentialGraph(cats2, grPotential4);
