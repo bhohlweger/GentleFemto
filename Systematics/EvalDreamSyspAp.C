@@ -7,6 +7,7 @@
 #include <iostream>
 #include "TMath.h"
 #include "TSystem.h"
+#include "TROOT.h"
 
 void EvalDreamSystematics(TString InputDir, TString prefix,
                           float upperFitRange) {

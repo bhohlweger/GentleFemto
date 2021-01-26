@@ -32,6 +32,8 @@
 #include <chrono>
 #include <ctime>
 #include <numeric>
+#include "TLine.h"
+
 static double radCutoff = 0;
 
 static std::vector<int> fFillColors = { kGray + 1, kRed - 10, kBlue - 9, kGreen

@@ -4,6 +4,7 @@
 #include "TLegend.h"
 #include "TLatex.h"
 #include "TStyle.h"
+#include "TROOT.h"
 
 void SigmaEvalSidebands(TString InputDir, TString trigger) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");

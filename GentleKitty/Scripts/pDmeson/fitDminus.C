@@ -25,6 +25,7 @@
 #include "DreamSystematics.h"
 #include "TVirtualFitter.h"
 #include "TSpline.h"
+#include "TROOT.h"
 
 int nBins;
 double kmin, kmax, binWidth;

@@ -6,6 +6,7 @@
 #include "TCanvas.h"
 #include "TSystem.h"
 #include <iostream>
+#include "TROOT.h"
 
 void EvalDreamSystematics(TString InputDir, TString prefix, float upperFitRange) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
