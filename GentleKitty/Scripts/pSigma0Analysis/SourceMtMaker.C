@@ -17,6 +17,7 @@
 #include "CATSLambdaParam.h"
 #include "TDatabasePDG.h"
 #include "TidyCats.h"
+#include "TROOT.h"
 
 void boundaries(TNtuple* tuple, double radVal, TGraph *grUpper,
                 TGraph *grLower) {

@@ -31,6 +31,7 @@
 #include <vector>
 #include "PlayWithCats.h"
 #include "DreamPlot.h"
+#include "TLine.h"
 
 PlayWithCats::PlayWithCats()
   : fCFHistData(nullptr),
