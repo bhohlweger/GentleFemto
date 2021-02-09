@@ -84,6 +84,8 @@ class TidyCats {
   void GetCatsProtonDstarminus(CATS* cats, int momBins, double kMin,
                                double kMax, TidyCats::pDmesonPot pot,
                                TidyCats::Sources source);
+  void GetCatsProtonPhi(CATS* cats, std::vector<double> &bins,
+			TidyCats::pPhiPot pot, TidyCats::Sources source);
   void GetCatsProtonPhi(CATS* cats, int momBins, double kMin, double kMax,
 			TidyCats::pPhiPot pot, TidyCats::Sources source);
   static double ESC16_pXim_EXAMPLE(double* Parameters);
@@ -109,6 +111,7 @@ class TidyCats {
     fkStarCutOff = ks;
   };
  private:
+  void GetCatsProtonPhi(CATS* cats, TidyCats::pPhiPot pot, TidyCats::Sources source);
   TString fHomeDir;
   double fkStarCutOff;
   double ftauProRes;

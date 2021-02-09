@@ -1374,6 +1374,16 @@ void TidyCats::GetCatsProtonSigma0(CATS* AB_pSigma0, int momBins, double kMin,
 }
 
 void TidyCats::GetCatsProtonPhi(CATS* cats, int momBins, double kMin, double kMax, TidyCats::pPhiPot pot, TidyCats::Sources source) {
+  cats->SetMomBins(momBins, kMin, kMax);
+  GetCatsProtonPhi(cats, pot, source);
+}
+
+void TidyCats::GetCatsProtonPhi(CATS* cats, std::vector<double> &bins, TidyCats::pPhiPot pot, TidyCats::Sources source) {
+  cats->SetMomBins(bins.size() - 1, &bins[0]);
+  GetCatsProtonPhi(cats, pot, source);
+}
+
+void TidyCats::GetCatsProtonPhi(CATS* cats, TidyCats::pPhiPot pot, TidyCats::Sources source) {
   const auto pdgDatabase = TDatabasePDG::Instance();
   const double massProton = pdgDatabase->GetParticle(2212)->Mass() * 1000;
   const double massPhi = pdgDatabase->GetParticle(333)->Mass() * 1000;
@@ -1393,7 +1403,6 @@ void TidyCats::GetCatsProtonPhi(CATS* cats, int momBins, double kMin, double kMa
   cats->SetMomentumDependentSource(false);
   cats->SetThetaDependentSource(false);
   cats->SetExcludeFailedBins(false);
-  cats->SetMomBins(momBins, kMin, kMax);
 
   // spin-averaged results: one channel only!
   cats->SetNumChannels(1);
