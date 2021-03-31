@@ -181,10 +181,10 @@ TH2F* TransformToMeV(const TH2F *input) {
 }
 
 /// =====================================================================================
-double getBootstrapFromVec(const std::vector<double> &vec) {
+template<typename T>
+T getBootstrapFromVec(const std::vector<T> &vec) {
   return vec.at(gRandom->Uniform() * vec.size());
 }
-double i = 0;
 
 /// =====================================================================================
 TGraphAsymmErrors* getBootstrapGraph(TGraphAsymmErrors *gr) {
@@ -232,8 +232,8 @@ void getImprovedStartParamsPol3(TGraphAsymmErrors *gr, const double range,
   gr->Fit(pol3, "RQ");
   pol3->ReleaseParameter(0);
   gr->Fit(pol3, "RQ");
-  params = { { pol3->GetParameter(0), pol3->GetParameter(1), pol3->GetParameter(
-      2), pol3->GetParameter(3) } };
+  params = { {pol3->GetParameter(0), pol3->GetParameter(1), pol3->GetParameter(
+          2), pol3->GetParameter(3)}};
   delete pol3;
   delete pol2;
   delete pol1;
@@ -258,34 +258,121 @@ void getImprovedStartParamsGaussPol1(TGraphAsymmErrors *gr, const double range,
   total->ReleaseParameter(1);
   total->SetParLimits(1, -25, 25);
   gr->Fit(total, "RQ");
-  params = { { total->GetParameter(0), total->GetParameter(1), total
-      ->GetParameter(2), total->GetParameter(3), total->GetParameter(4) } };
+  params = { {total->GetParameter(0), total->GetParameter(1), total
+      ->GetParameter(2), total->GetParameter(3), total->GetParameter(4)}};
   delete total;
   delete pol1;
 }
 
 /// =====================================================================================
-void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
+TGraphErrors* EvalBootstrap(TNtuple *tuple, TList* debug, TString OutputDir,
+                            TString potName) {
+  auto grOut = new TGraphErrors(Form("gr_%s", tuple->GetName()));
+
+  int count = 0;
+  for (double kstar = kmin; kstar < kmax;) {
+    tuple->Draw("cf >> h(10000, 0, 10)",
+                Form("TMath::Abs(kstar - %.3f) < 1e-1", kstar));
+    auto hist = (TH1F*) gROOT->FindObject("h");
+    if (hist->GetEntries() == 0) {
+      continue;
+    }
+
+    double error = hist->GetRMS();
+
+    tuple->Draw("cf >> h2",
+                Form("TMath::Abs(kstar - %.3f) < 1e-1 && BootID == 0", kstar));
+    auto hist2 = (TH1F*) gROOT->FindObject("h2");
+    if (hist2->GetEntries() == 0) {
+      continue;
+    }
+    double cfDefault = hist2->GetMean();
+    grOut->SetPoint(count, kstar, cfDefault);
+    grOut->SetPointError(count, 0, error);
+
+    if (debug) {
+      auto c = new TCanvas();
+      DreamPlot::SetStyleHisto(hist);
+      hist->SetTitle(
+          Form("#it{k}* = %.1f MeV/#it{c} ;#Delta C(#it{k}*); Entries", kstar));
+      hist->Draw();
+      hist->GetXaxis()->SetRangeUser(hist->GetMean() - 10 * hist->GetRMS(),
+                                     hist->GetMean() + 10 * hist->GetRMS());
+      auto gr = new TGraphErrors();
+      gr->SetPoint(0, cfDefault, 0.5 * hist->GetMaximum());
+      gr->SetPointError(0, error, 0);
+      gr->Draw("pe same");
+      c->Print(
+          Form("%s/Debug/Debug_%s_%s_%i.pdf", OutputDir.Data(),
+               tuple->GetName(), potName.Data(), int(kstar)));
+      delete gr;
+      delete c;
+      debug->Add(hist);
+    }
+
+    delete hist;
+    delete hist2;
+
+    count++;
+    kstar += binWidth;
+  }
+  return grOut;
+}
+
+/// =====================================================================================
+void fitDminus(TString InputDir, TString trigger, TString OutputDir,
+               int errorVar, int potential) {
+  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   const int nBoot = 1000;
+
+  int nSystVars = -1;
+  TString errorName;
+  if (errorVar == 0) {
+    std::cout << "PROCESSING TOTAL ERRORS\n";
+    errorName = "totErr";
+    nSystVars = 20;
+  } else if (errorVar == 1) {
+    std::cout << "PROCESSING STATISTICAL ERRORS ONLY\n";
+    errorName = "statErr";
+    nSystVars = 0;
+  }
+
+  TString potName;
+  if (potential == 0) {
+    potName = "flat";
+  } else if (potential == 1) {
+    potName = "Coulomb";
+  } else if (potential == 2) {
+    potName = "Haidenbauer";
+  } else {
+    std::cout << "ERROR: Potential not defined \n";
+    return;
+  }
 
   DreamPlot::SetStyle();
 
   TRandom3 rangen(0);
 
-  int nArguments = 9;
-  TString varList = TString::Format(
-      "BootID:ppRadius:primaryContrib:flatContrib:dstarContrib:sidebandContrib:"
-      "chi2Local:ndf:nSigma200").Data();
+  int nArguments = 11;
+  TString varList =
+      TString::Format(
+          "BootID:ppRadius:primaryContrib:flatContrib:dstarContrib:sidebandContrib:chi2SidebandLeft:chi2SidebandRight:"
+          "chi2Local:ndf:nSigma200").Data();
   auto ntResult = new TNtuple("fitResult", "fitResult", varList.Data());
-  auto tupleSideband = new TNtuple("sideband", "sideband", "kstar:cf");
-  auto tupleTotalFit = new TNtuple("totalFit", "totalFit", "kstar:cf");
+  auto tupleSideband = new TNtuple("sideband", "sideband", "kstar:cf:BootID");
+  auto tupleTotalFit = new TNtuple("totalFit", "totalFit", "kstar:cf:BootID");
+  auto tupleSidebandLeft = new TNtuple("sidebandLeft", "sidebandLeft",
+                                       "kstar:cf:BootID");
+  auto tupleSidebandRight = new TNtuple("sidebandRight", "sidebandRight",
+                                        "kstar:cf:BootID");
 
   float ntBuffer[nArguments];
   bool useBaseline = true;
 
-  TString graphfilename = TString::Format("%s/Fit_pDminus.root",
-                                          OutputDir.Data());
+  TString graphfilename = TString::Format("%s/Fit_pDminus_%s_%s.root",
+                                          OutputDir.Data(), errorName.Data(), potName.Data());
   auto param = new TFile(graphfilename, "RECREATE");
+  param->mkdir("bootVars");
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input
@@ -304,34 +391,39 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
   auto momentumResolution = histMomentumResolutionpDplus;
   momentumResolution->Add(histMomentumResolutionpDminus);
 
-  std::vector < TGraphAsymmErrors > grCFvec;
+  std::vector<TGraphAsymmErrors> grCFvec, grSBLeftvec, grSBRightvec;
 
-  const double normLower = 0.8;
-  const double normUpper = 1.;
+  const double normLower = 1.5;
+  const double normUpper = 2.;
   const int rebin = 10;
   TString dataGrName = "Graph_from_hCk_Reweighted_0MeV";
   TString InputFileName = InputDir;
   InputFileName += "/AnalysisResults.root";
-  TString systVar = "0";
 
-  auto grCF = GetCorrelationGraph(InputFileName, trigger, systVar, dataGrName,
-                                  normLower, normUpper, rebin);
-  auto grCFSidebandLeft = GetCorrelationGraph(InputFileName, trigger, "7",
-                                              dataGrName, normLower, normUpper,
-                                              rebin);
-  auto grCFSidebandRight = GetCorrelationGraph(InputFileName, trigger, "3",
-                                               dataGrName, normLower, normUpper,
-                                               rebin);
+  for (int i = 0; i <= nSystVars; ++i) {
+    grCFvec.push_back(
+        GetCorrelationGraph(InputFileName, "HM_CharmFemto_", Form("%i", i),
+                            dataGrName, normLower, normUpper, rebin));
+    grSBLeftvec.push_back(
+        GetCorrelationGraph(InputFileName, "HM_CharmFemto_SBLeft_",
+                            Form("%i", i), dataGrName, normLower, normUpper,
+                            rebin));
+    grSBRightvec.push_back(
+        GetCorrelationGraph(InputFileName, "HM_CharmFemto_SBRight_",
+                            Form("%i", i), dataGrName, normLower, normUpper,
+                            rebin));
+  }
+
   std::vector<double> startParams;
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Set up the CATS ranges, lambda parameters, etc.
 
-  std::vector<double> sidebandFitRange = { { 700, 600, 800 } };
+  std::vector<double> sidebandFitRange = { { 1000, 800, 1200 } };
 
-  nBins = 80;
+  nBins = (potential == 0) ? 160 : 80;
   kmin = 50;
-  kmax = 450;
+  kmax = (potential == 0) ? 900 : 450;
   binWidth = (kmax - kmin) / double(nBins);
 
   /// Femtoscopic radius systematic variations
@@ -351,35 +443,49 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
       protonLambda / (1. - protonPrimary) * 1.2 } };
 
   /// D-
-  const double DmesonPurity = 0.65;   // rough estimate, to be improved
+  // Purity 64.8 +/- 0.9 % 
+  const std::vector<double> DmesonPurity = { { 0.648, 0.648 - 0.009, 0.648
+      + 0.009 } };
 
-  // From syst. files, evaluated at pT = 2.8 GeV/c
-  // Beauty feeding: 0.0578102 +/- 0.0332809
-  const std::vector<double> Bfeeddown = {
-      { 0.058, 0.058 - 0.033, 0.058 + 0.033 } };
+  // Beauty feeding: 7.48 +/- 0.35 %
+  const std::vector<double> Bfeeddown = { { 0.0748, 0.0748 - 0.0035, 0.0748
+      + 0.0035 } };
 
-  // From syst. files, evaluated at pT = 2.8 GeV/c
-  // D* feeding: 0.287128 +/- 0.0263223
-  const std::vector<double> DstarFeeding = { { 0.287, 0.287 - 0.026, 0.287
-      + 0.026 } };
+  // D* feeding: 27.5 +/- 0.8 %
+  const std::vector<double> DstarFeeding = { { 0.275, 0.275 - 0.008, 0.275
+      + 0.008 } };
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Set up the model, fitter, etc.
 
   auto tidyCats = new TidyCats();
-  CATS catsCoulombOnly, catsDstar;
-  tidyCats->GetCatsProtonDminus(&catsCoulombOnly, nBins, kmin, kmax,
-                                TidyCats::pDCoulombOnly, TidyCats::sResonance);
+  CATS cats, catsDstar;
+  if (potential == 1) {
+    tidyCats->GetCatsProtonDminus(&cats, nBins, kmin, kmax,
+                                  TidyCats::pDCoulombOnly,
+                                  TidyCats::sResonance);
+    cats.SetAnaSource(0, rCoreDefault);
+    cats.KillTheCat();
+  } else if (potential == 2) {
+    tidyCats->GetCatsProtonDminus(&cats, nBins, kmin, kmax,
+                                  TidyCats::pDminusHaidenbauer,
+                                  TidyCats::sResonance);
+    cats.SetAnaSource(0, rCoreDefault);
+    cats.KillTheCat();
+  }
   tidyCats->GetCatsProtonDstarminus(&catsDstar, nBins, kmin, kmax,
                                     TidyCats::pDCoulombOnly,
                                     TidyCats::sResonance);
-
-  catsCoulombOnly.SetAnaSource(0, rCoreDefault);
-  catsCoulombOnly.KillTheCat();
   catsDstar.SetAnaSource(0, rCoreDefault);
   catsDstar.KillTheCat();
 
-  auto DLM_Coulomb = new DLM_Ck(1, 0, catsCoulombOnly);
+  DLM_Ck *DLM_Coulomb;
+  if (potential == 0) {
+    DLM_Coulomb = new DLM_Ck(1, 0, nBins, kmin, kmax, Flat_Residual);
+    DLM_Coulomb->Update();
+  } else {
+    DLM_Coulomb = new DLM_Ck(1, 0, cats);
+  }
   auto DLM_pDstar = new DLM_Ck(1, 0, catsDstar);
 
   auto grSidebandLeft = new TGraphErrors(nBins);
@@ -397,22 +503,30 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
 
   // first iteration is the default
   for (int iBoot = 0; iBoot < nBoot;) {
-    std::cout << "\r Processing progress: " << iBoot << std::flush;
+    if (iBoot % 10 == 0) {
+      std::cout << "\r Processing progress: "
+                << double(iBoot) / double(nBoot) * 100.f << "%" << std::flush;
+    }
+
+    auto grVarCF = getBootstrapFromVec(grCFvec);
+    auto grVarCFSidebandLeft = getBootstrapFromVec(grSBLeftvec);
+    auto grVarCFSidebandRight = getBootstrapFromVec(grSBRightvec);
 
     const double femtoRad =
-        (iBoot == 0) ? sourceSize.at(0) : getBootstrapFromVec(sourceSize);
+        (iBoot == 0 || errorVar == 1) ? sourceSize.at(0) : getBootstrapFromVec(sourceSize);
+    const double dMesonPur =
+        (iBoot == 0 || errorVar == 1) ? DmesonPurity.at(0) : getBootstrapFromVec(DmesonPurity);
     const double bFeed =
-        (iBoot == 0) ? Bfeeddown.at(0) : getBootstrapFromVec(Bfeeddown);
+        (iBoot == 0 || errorVar == 1) ? Bfeeddown.at(0) : getBootstrapFromVec(Bfeeddown);
     const double dStarFeed =
-        (iBoot == 0) ? DstarFeeding.at(0) : getBootstrapFromVec(DstarFeeding);
+        (iBoot == 0 || errorVar == 1) ? DstarFeeding.at(0) : getBootstrapFromVec(DstarFeeding);
 
     const double DmesonPrimary = 1.f - bFeed - dStarFeed;
 
-    const Particle dmeson(DmesonPurity, DmesonPrimary,
-                          { { dStarFeed, bFeed } });
+    const Particle dmeson(dMesonPur, DmesonPrimary, { { dStarFeed, bFeed } });
 
     const double lambdaFeed =
-        (iBoot == 0) ?
+        (iBoot == 0 || errorVar == 1) ?
             protonSecondary.at(0) : getBootstrapFromVec(protonSecondary);
     const Particle proton(
         protonPurity,
@@ -446,45 +560,36 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
     }
 
     auto grCFBootstrapSidebandLeft =
-        (iBoot == 0) ? &grCFSidebandLeft : getBootstrapGraph(&grCFSidebandLeft);
+        (iBoot == 0) ?
+            &grSBLeftvec.at(0) : getBootstrapGraph(&grVarCFSidebandLeft);
     auto grCFBootstrapSidebandRight =
         (iBoot == 0) ?
-            &grCFSidebandRight : getBootstrapGraph(&grCFSidebandRight);
+            &grSBRightvec.at(0) : getBootstrapGraph(&grVarCFSidebandRight);
 
     const double sidebandRange =
         (iBoot == 0) ?
             sidebandFitRange.at(0) : getBootstrapFromVec(sidebandFitRange);
 
-//    auto fitSidebandLeft = new TF1("fitSidebandLeft", "pol3", 0, sidebandRange);
-//    getImprovedStartParamsPol3(grCFBootstrapSidebandLeft, sidebandRange,
-//                               startParams);
-    auto fitSidebandLeft = new TF1("fitSidebandLeft", "gaus(0) + pol1(3)", 0,
-                                   sidebandRange);
-    getImprovedStartParamsGaussPol1(grCFBootstrapSidebandLeft, sidebandRange,
-                                    startParams);
-
+    auto fitSidebandLeft = new TF1("fitSidebandLeft", "pol3", 0, sidebandRange);
+    getImprovedStartParamsPol3(grCFBootstrapSidebandLeft, sidebandRange,
+                               startParams);
     fitSidebandLeft->SetParameters(&startParams[0]);
-    fitSidebandLeft->SetParLimits(0, -1e4, 1e4);
-    fitSidebandLeft->SetParLimits(1, -25, 25);
 
     int workedLeft = grCFBootstrapSidebandLeft->Fit(fitSidebandLeft, "RQ");
+    const double chiSqSidebandLeft = fitSidebandLeft->GetChisquare();
 
     (TVirtualFitter::GetFitter())->GetConfidenceIntervals(grSidebandLeft,
                                                           0.683);
 
-//    auto fitSidebandRight = new TF1("fitSidebandRight", "pol3", 0,
-//                                    sidebandRange);
-//    getImprovedStartParamsPol3(grCFBootstrapSidebandRight, sidebandRange,
-//                               startParams);
-    auto fitSidebandRight = new TF1("fitSidebandRight", "gaus(0) + pol1(3)", 0,
+    auto fitSidebandRight = new TF1("fitSidebandRight", "pol3", 0,
                                     sidebandRange);
-    getImprovedStartParamsGaussPol1(grCFBootstrapSidebandRight, sidebandRange,
-                                    startParams);
-
+    getImprovedStartParamsPol3(grCFBootstrapSidebandRight, sidebandRange,
+                               startParams);
     fitSidebandRight->SetParameters(&startParams[0]);
-    fitSidebandRight->SetParLimits(0, -1e4, 1e4);
-    fitSidebandRight->SetParLimits(1, -25, 25);
+
     int workedRight = grCFBootstrapSidebandRight->Fit(fitSidebandRight, "RQ");
+    const double chiSqSidebandRight = fitSidebandRight->GetChisquare();
+
     (TVirtualFitter::GetFitter())->GetConfidenceIntervals(grSidebandRight,
                                                           0.683);
 
@@ -508,8 +613,9 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
     DLM_pDstar->Update();
     auto DLM_sideband = getDLMCk(totalSideband);
 
-    DLM_CkDecomposition CkDec_Coulomb("pDminusTotal", 3, *DLM_Coulomb,
-                                      momentumResolution);
+    DLM_CkDecomposition CkDec_Coulomb(
+        "pDminusTotal", 3, *DLM_Coulomb,
+        (potential == 0) ? nullptr : momentumResolution);  // mom res not necessary for flat
     DLM_CkDecomposition CkDec_pDstar("pDstarminus", 0, *DLM_pDstar, nullptr);
     DLM_CkDecomposition CkDec_sideband("sideband", 0, *DLM_sideband, nullptr);
 
@@ -530,19 +636,22 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
 
     static double mom, dataY, dataErr, theoryX, theoryY;
 
-    auto grCFBootstrap = (iBoot == 0) ? &grCF : getBootstrapGraph(&grCF);
+    auto grCFBootstrap =
+        (iBoot == 0) ? &grCFvec.at(0) : getBootstrapGraph(&grVarCF);
 
     count = 0;
     for (int i = kmin; i < kmax;) {
       double mom = i;
       grFitTotalFine->SetPoint(count, mom, CkDec_Coulomb.EvalCk(mom));
-      tupleTotalFit->Fill(mom, CkDec_Coulomb.EvalCk(mom));
-      tupleSideband->Fill(mom, totalSideband->Eval(mom));
+      tupleTotalFit->Fill(mom, CkDec_Coulomb.EvalCk(mom), iBoot);
+      tupleSideband->Fill(mom, totalSideband->Eval(mom), iBoot);
+      tupleSidebandLeft->Fill(mom, fitSidebandLeft->Eval(mom), iBoot);
+      tupleSidebandRight->Fill(mom, fitSidebandRight->Eval(mom), iBoot);
       i += binWidth;
       count++;
     }
 
-    for (int iPoint = 0; iPoint <= grCF.GetN(); ++iPoint) {
+    for (int iPoint = 0; iPoint <= grCFBootstrap->GetN(); ++iPoint) {
       grCFBootstrap->GetPoint(iPoint, mom, dataY);
       if (mom > 1000) {
         break;
@@ -563,11 +672,10 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
     double nSigma = TMath::Sqrt(2) * TMath::ErfcInverse(pval);
 
     param->cd();
-    param->mkdir(TString::Format("Graph_%i", iBoot));
-    param->cd(TString::Format("Graph_%i", iBoot));
+    param->mkdir(TString::Format("bootVars/Graph_%i", iBoot));
+    param->cd(TString::Format("bootVars/Graph_%i", iBoot));
     grCFBootstrap->Write("dataBootstrap");
 
-//    if (iBoot == 0) {
     grCFBootstrapSidebandLeft->Write("dataBootstrapSidebandLeft");
     fitSidebandLeft->Write("sidebandFitLeft");
     grSidebandLeft->Write("sidebandErrorLeft");
@@ -575,8 +683,6 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
     grCFBootstrapSidebandRight->Write("dataBootstrapSidebandRight");
     fitSidebandRight->Write("sidebandFitRight");
     grSidebandRight->Write("sidebandErrorRight");
-
-//    }
 
     totalSideband->Write("sidebandWeightedMean");
     grFitTotal->Write("TotalFit");
@@ -589,9 +695,11 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
     ntBuffer[3] = flatContrib;
     ntBuffer[4] = pDstarContrib;
     ntBuffer[5] = sidebandContrib;
-    ntBuffer[6] = Chi2;
-    ntBuffer[7] = (float) EffNumBins;
-    ntBuffer[8] = nSigma;
+    ntBuffer[6] = chiSqSidebandLeft;
+    ntBuffer[7] = chiSqSidebandRight;
+    ntBuffer[8] = Chi2;
+    ntBuffer[9] = (float) EffNumBins;
+    ntBuffer[10] = nSigma;
     ntResult->Fill(ntBuffer);
 
     delete fitSidebandLeft;
@@ -620,9 +728,21 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
   tupleTotalFit->Write();
   tupleSideband->Write();
 
-  grCF.Write("dataDefault");
-  grCFSidebandLeft.Write("sidebandLeftDefault");
-  grCFSidebandRight.Write("sidebandRightDefault");
+  grCFvec.at(0).Write("dataDefault");
+  grSBLeftvec.at(0).Write("sidebandLeftDefault");
+  grSBRightvec.at(0).Write("sidebandRightDefault");
+
+  auto list = new TList();
+  auto fitFull = EvalBootstrap(tupleTotalFit, list, OutputDir, potName);
+  auto sidebandFull = EvalBootstrap(tupleSideband, nullptr, OutputDir, potName);
+  auto sidebandLeft = EvalBootstrap(tupleSidebandLeft, nullptr, OutputDir,
+                                    potName);
+  auto sidebandRight = EvalBootstrap(tupleSidebandRight, nullptr, OutputDir,
+                                     potName);
+  fitFull->Write("fitFull");
+  sidebandFull->Write("sidebandFull");
+  sidebandLeft->Write("sidebandLeft");
+  sidebandRight->Write("sidebandRight");
 
   param->Close();
 
@@ -634,10 +754,11 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir) {
 
 /// =====================================================================================
 int main(int argc, char *argv[]) {
-  gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   TString InputDir = argv[1];
   TString trigger = argv[2];
   TString OutputDir = argv[3];
+  int errorVar = atoi(argv[4]);
+  int potential = atoi(argv[5]);
 
-  fitDminus(InputDir, trigger, OutputDir);
+  fitDminus(InputDir, trigger, OutputDir, errorVar, potential);
 }
