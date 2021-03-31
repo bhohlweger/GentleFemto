@@ -50,11 +50,23 @@ TH1F* GetCorrelation(TString filename, TString appendix, TString suffix,
   return outputGraph;
 }
 
-void EvalSystematics(TString InputDir) {
+void EvalSystematics(TString InputDir, int signal) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   const int rebin = 10;
 
   DreamPlot::SetStyle(false, true);
+
+  TString name, dirName;
+  if (signal == 0) {
+    name = "";
+    dirName = "HM_CharmFemto_";
+  } else if (signal == 1) {
+    name = "_SBLeft";
+    dirName = "HM_CharmFemto_SBLeft_";
+  } else if (signal == 2) {
+    name = "_SBRight";
+    dirName = "HM_CharmFemto_SBRight_";
+  }
 
   TString dataGrName = "hCk_ReweightedMeV_0";
   TString InputFileName = InputDir;
@@ -63,7 +75,7 @@ void EvalSystematics(TString InputDir) {
   const double normLower = 1.5;
   const double normUpper = 2.;
   double nPairs;
-  auto grCF = GetCorrelation(InputFileName, "HM_CharmFemto_", systVar,
+  auto grCF = GetCorrelation(InputFileName, dirName, systVar,
                              dataGrName, normLower, normUpper, rebin, nPairs);
   double nPairsDefault = nPairs;
 
@@ -74,7 +86,7 @@ void EvalSystematics(TString InputDir) {
   syst.SetEstimator(DreamSystematics::Uniform);
 
   for (int i = 1; i <= 20; ++i) {
-    auto grCF = GetCorrelation(InputFileName, "HM_CharmFemto_", Form("%i", i),
+    auto grCF = GetCorrelation(InputFileName, dirName, Form("%i", i),
                                dataGrName, normLower, normUpper, rebin, nPairs);
     syst.SetVarHist(grCF);
     syst.SetPair(nPairsDefault,nPairs);
@@ -82,11 +94,11 @@ void EvalSystematics(TString InputDir) {
   }
   syst.EvalSystematics();
   syst.EvalDifferenceInPairs();
-  syst.WriteOutput();
+  syst.WriteOutput(name);
 }
 
 int main(int argc, char* argv[]) {
-  EvalSystematics(argv[1]);
+  EvalSystematics(argv[1], atoi(argv[2]));
 
   return 1;
 }
