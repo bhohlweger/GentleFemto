@@ -80,21 +80,13 @@ int main(int argc, char *argv[]) {
   const double protonPrimaryDminus = 0.862303;
   const double protonLambdaDminus = 0.0973517;
 
-  const double DmesonPurity = 0.65;   // rough estimate, to be improved
-
-  // From syst. files, evaluated at pT = 2.8 GeV/c
-  // Beauty feeding: 0.0578102 +/- 0.0332809
-  const double Bfeeddown = 1.f - 0.0578102;
-
-  // From syst. files, evaluated at pT = 2.8 GeV/c
-  // D* feeding: 0.287128 +/- 0.0263223
-  const double DstarFeeding = 0.287128;
-  const double DmesonPrimary = Bfeeddown * 1.f / (1.f + DstarFeeding);
-  const double DstarContribution = Bfeeddown * DstarFeeding
-      / (1.f + DstarFeeding);
-
+  const double DmesonPurity = 0.648;
+  const double Bfeeddown = 0.0748;
+  const double DstarFeeding = 0.275;
+  const double DmesonPrimary = 1.f - Bfeeddown - DstarFeeding;
   const Particle dmeson(DmesonPurity, DmesonPrimary,
-                        { { DstarContribution, 1.f - Bfeeddown } });
+                        { { DstarFeeding,  Bfeeddown} });
+
   const Particle protonDplus(
       protonPurityDplus,
       protonPrimaryDplus,
@@ -583,8 +575,8 @@ int main(int argc, char *argv[]) {
   
   const double protonMass = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
-  const double bplusMass =
-      TDatabasePDG::Instance()->GetParticle(521)->Mass() * 1000;
+  const double bminusMass =
+      TDatabasePDG::Instance()->GetParticle(-521)->Mass() * 1000;
 
   CATS beautyCats;
   CATSparameters* cPars = nullptr;
@@ -599,9 +591,9 @@ int main(int argc, char *argv[]) {
   beautyCats.SetNumPW(0, 1);
   beautyCats.SetSpin(0, 0);
   beautyCats.SetChannelWeight(0, 1.);
-  beautyCats.SetQ1Q2(1);
+  beautyCats.SetQ1Q2(-1);
   beautyCats.SetPdgId(2212, 521);
-  beautyCats.SetRedMass((protonMass * bplusMass) / (protonMass + bplusMass));
+  beautyCats.SetRedMass((protonMass * bminusMass) / (protonMass + bminusMass));
   beautyCats.KillTheCat();
 
   auto DLM_pB = new DLM_Ck(1, 0, beautyCats);
@@ -610,7 +602,7 @@ int main(int argc, char *argv[]) {
   
   DLM_CkDecomposition CkDec_pB("pB", 1, *DLM_pB,
                                 histDecayKindematicsBeauty);
-  CkDec_pB.AddContribution(0, Bfeeddown, DLM_CkDecomposition::cFake);
+  CkDec_pB.AddContribution(0, 1.f - Bfeeddown, DLM_CkDecomposition::cFake);
   CkDec_pB.Update();
   FillCkGraph(DLM_pB, CkDec_pB, grBpLambda);
   
@@ -619,27 +611,28 @@ int main(int argc, char *argv[]) {
   FillCkGraph(DLM_pB, CkDec_pB_Smeared, grBpSmeared);
   FillCkGraph(DLM_pB, CkDec_pBGenuine, grBpGenuine);
 
-  auto dB = new TCanvas("p-B+ Transformation", "p-B+ Transformation");
+  auto dB = new TCanvas("p-B- Transformation", "p-B- Transformation");
   grBpGenuine->Draw("AL3");
   grBpGenuine->GetXaxis()->SetRangeUser(0, 1000);
+  grBpGenuine->GetYaxis()->SetRangeUser(0.8, 2);
   grBpLambda->Draw("L3");
   grBpSmeared->Draw("L3");
-  auto legB = new TLegend(0.45, 0.25, 0.45 + 0.3, 0.55);
+  auto legB = new TLegend(0.45, 0.55, 0.45 + 0.3, 0.85);
   legB->SetBorderSize(0);
   legB->SetTextFont(42);
-  legB->SetHeader("p#minus#kern[-0.95]{ }B^{+} Coulomb");
+  legB->SetHeader("p#minus#kern[-0.95]{ }B^{-} Coulomb");
   legB->SetTextSize(gStyle->GetTextSize() * 0.9);
   legB->AddEntry(grBpGenuine, "Genuine", "l");
   legB->AddEntry(grBpSmeared,
-      "p#minus#kern[-0.95]{ }B^{+} #rightarrow p#minus#kern[-0.95]{ }D^{+}",
+      "p#minus#kern[-0.95]{ }B^{-} #rightarrow p#minus#kern[-0.95]{ }D^{-}",
       "l");
   legB->AddEntry(grBpLambda,
       TString::Format(
-          "p#minus#kern[-0.95]{ }B^{+} #rightarrow p#minus#kern[-0.95]{ }D^{+} (#lambda = %.2f %%)",
-          (1.f - Bfeeddown) * 100.),
+          "p#minus#kern[-0.95]{ }B^{-} #rightarrow p#minus#kern[-0.95]{ }D^{-} (#lambda = %.2f %%)",
+          (Bfeeddown) * 100.),
       "l");
   legB->Draw("same");
-  dB->Print("Transformation_Bplus_Dplus.pdf");
+  dB->Print("Transformation_Bminus_Dminus.pdf");
 
   app->Run();
 }
