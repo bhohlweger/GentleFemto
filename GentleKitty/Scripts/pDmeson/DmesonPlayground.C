@@ -80,9 +80,9 @@ int main(int argc, char *argv[]) {
   const double protonPrimaryDminus = 0.862303;
   const double protonLambdaDminus = 0.0973517;
 
-  const double DmesonPurity = 0.648;
-  const double Bfeeddown = 0.0748;
-  const double DstarFeeding = 0.275;
+  const double DmesonPurity = 0.61669272;
+  const double Bfeeddown = 0.076733507;
+  const double DstarFeeding = 0.276;
   const double DmesonPrimary = 1.f - Bfeeddown - DstarFeeding;
   const Particle dmeson(DmesonPurity, DmesonPrimary,
                         { { DstarFeeding,  Bfeeddown} });
@@ -129,9 +129,9 @@ int main(int argc, char *argv[]) {
   const double rCorepDplusDefault = 0.8;
   const double rCorepDplusUp = 0.88;
 
-  const double rCorepDminusLow = 0.74;
-  const double rCorepDminusDefault = 0.81;
-  const double rCorepDminusUp = 0.89;
+  const double rCorepDminusLow = 0.72;
+  const double rCorepDminusDefault = 0.80;
+  const double rCorepDminusUp = 0.88;
 
   /// -----------------------------------------------------------------------------------
   /// Calibration
@@ -369,6 +369,9 @@ int main(int argc, char *argv[]) {
   grSourceDminus->SetLineWidth(2);
   grSourceDminus->SetTitle(";#it{r} (fm); 4#pi#it{r}^{2} S(#it{r}) (fm^{-1})");
 
+  auto grSourceDminusUp = new TGraph();
+  auto grSourceDminusLow = new TGraph();
+  
   auto grDminusCoulomb = new TGraph();
   DreamPlot::SetStyleGraph(grDminusCoulomb, 20, kBlue + 3, 0.8);
   grDminusCoulomb->SetLineWidth(2);
@@ -412,6 +415,17 @@ int main(int argc, char *argv[]) {
   tidyCats->GetCatsProtonDminus(&catsDminusHaidenbauer, nBins, kmin, kmax,
                                TidyCats::pDminusHaidenbauer, TidyCats::sResonance);
 
+  catsDminusCoulombOnly.SetAnaSource(0, rCorepDminusLow);
+  catsDminusCoulombOnly.KillTheCat();
+  FillSourceGraph(catsDminusCoulombOnly, grSourceDminusLow);
+  grSourceDminusLow->Fit(gaussFit, "Q", "R", 0, 12);
+  const double dminusRadLow = gaussFit->GetParameter(0);
+  catsDminusCoulombOnly.SetAnaSource(0, rCorepDminusUp);
+  catsDminusCoulombOnly.KillTheCat();
+  FillSourceGraph(catsDminusCoulombOnly, grSourceDminusUp);
+  grSourceDminusUp->Fit(gaussFit, "Q", "R", 0, 12);
+  const double dminusRadUp = gaussFit->GetParameter(0);
+  
   catsDminusCoulombOnly.SetAnaSource(0, rCorepDminusDefault);
   catsDminusCoulombOnly.KillTheCat();
   catsDstarminus.SetAnaSource(0, rCorepDminusDefault);
@@ -422,14 +436,21 @@ int main(int argc, char *argv[]) {
   FillSourceGraph(catsDminusCoulombOnly, grSourceDminus);
   FillCkGraph(catsDminusCoulombOnly, grDminusCoulomb);
   FillCkGraph(catsDminusHaidenbauer, grDminusHaidenbauer);
-
+  
   auto cminus = new TCanvas("p-D- source", "p-D- source");
   grSourceDminus->Draw("AL3");
+  grSourceDminus->GetXaxis()->SetRangeUser(0, 10);
   grSourceDminus->Fit(gaussFit, "Q", "R", 0, 12);
   const double dminusRad = gaussFit->GetParameter(0);
-  text.DrawLatex(0.4, 0.8, Form("#it{r}_{eff} = %.2f fm", dminusRad));
+  double err = 0.5 * (dminusRadUp-dminusRadLow);
+  auto leg = new TLegend(0.5, 0.72, 0.8, 0.87);
+  leg->SetTextFont(42);
+  leg->SetTextSize(0.9 * gStyle->GetTextSize());
+  leg->AddEntry(grSourceDminus, Form("#it{r}_{core} = (%.2f #pm 0.08) fm", rCorepDminusDefault), "l");
+  leg->AddEntry(gaussFit, Form("#it{r}_{eff} = (%.2f #pm %.2f) fm", dminusRad, err));
+  leg->Draw("same");
   cminus->Print("Source_Dminus.pdf");
-  std::cout << "p-D- radius " << dminusRad << " fm\n";
+  std::cout << "p-D- radius " << dminusRad << "" << dminusRadLow << " " << dminusRadUp << " fm\n";
 
   auto cCompareDminus = new TCanvas("Compare", "Compare");
   grDminusCoulomb->Draw("AL3");
