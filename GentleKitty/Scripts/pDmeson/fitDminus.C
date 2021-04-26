@@ -139,17 +139,6 @@ TGraphErrors* WeightedMean(TGraphErrors *gr1, TGraphErrors *gr2,
   }
   return grOut;
 }
-/// =====================================================================================
-TGraphErrors* WeightedMean(TSpline *gr1, TSpline *gr2, const double weight1) {
-  auto grOut = new TGraphErrors;
-  int count = 0;
-  for (int i = kmin; i < kmax; ++i) {
-    grOut->SetPoint(count++, i,
-                    weight1 * gr1->Eval(i) + (1. - weight1) * gr2->Eval(i));
-    i += binWidth;
-  }
-  return grOut;
-}
 
 /// =====================================================================================
 DLM_Ck* getDLMCk(TGraphErrors *gr) {
@@ -240,56 +229,30 @@ void getImprovedStartParamsPol3(TGraphAsymmErrors *gr, const double range,
 }
 
 /// =====================================================================================
-void getImprovedStartParamsGaussPol1(TGraphAsymmErrors *gr, const double range,
-                                     std::vector<double> &params) {
-  auto pol1 = new TF1("pol1", "pol1", 200, range);
-  gr->Fit(pol1, "RQ");
-  auto total = new TF1("total", "gaus(0) + pol1(3)", 0, range);
-  total->SetParameter(0, 1);
-  total->FixParameter(1, 0);
-  total->SetParameter(2, 100);
-  total->FixParameter(3, pol1->GetParameter(0));
-  total->FixParameter(4, pol1->GetParameter(1));
-  gr->Fit(total, "RQ");
-  total->ReleaseParameter(3);
-  gr->Fit(total, "RQ");
-  total->ReleaseParameter(4);
-  gr->Fit(total, "RQ");
-  total->ReleaseParameter(1);
-  total->SetParLimits(1, -25, 25);
-  gr->Fit(total, "RQ");
-  params = { {total->GetParameter(0), total->GetParameter(1), total
-      ->GetParameter(2), total->GetParameter(3), total->GetParameter(4)}};
-  delete total;
-  delete pol1;
-}
-
-/// =====================================================================================
 TGraphErrors* EvalBootstrap(TNtuple *tuple, TList* debug, TString OutputDir,
                             TString potName) {
   auto grOut = new TGraphErrors(Form("gr_%s", tuple->GetName()));
-
   int count = 0;
   for (double kstar = kmin; kstar < kmax;) {
     tuple->Draw("cf >> h(10000, 0, 10)",
-                Form("TMath::Abs(kstar - %.3f) < 1e-1", kstar));
+                Form("TMath::Abs(kstar - %.3f) < 1e-1", kstar), "N");
     auto hist = (TH1F*) gROOT->FindObject("h");
     if (hist->GetEntries() == 0) {
+      kstar += binWidth;
       continue;
     }
-
     double error = hist->GetRMS();
 
     tuple->Draw("cf >> h2",
                 Form("TMath::Abs(kstar - %.3f) < 1e-1 && BootID == 0", kstar));
     auto hist2 = (TH1F*) gROOT->FindObject("h2");
     if (hist2->GetEntries() == 0) {
+      kstar += binWidth;
       continue;
     }
     double cfDefault = hist2->GetMean();
     grOut->SetPoint(count, kstar, cfDefault);
     grOut->SetPointError(count, 0, error);
-
     if (debug) {
       auto c = new TCanvas();
       DreamPlot::SetStyleHisto(hist);
@@ -299,6 +262,10 @@ TGraphErrors* EvalBootstrap(TNtuple *tuple, TList* debug, TString OutputDir,
       hist->GetXaxis()->SetRangeUser(hist->GetMean() - 10 * hist->GetRMS(),
                                      hist->GetMean() + 10 * hist->GetRMS());
       auto gr = new TGraphErrors();
+      gr->SetMarkerStyle(20);
+      gr->SetMarkerSize(1);
+      gr->SetMarkerColor(kRed+2);
+      gr->SetLineColor(kRed+2);
       gr->SetPoint(0, cfDefault, 0.5 * hist->GetMaximum());
       gr->SetPointError(0, error, 0);
       gr->Draw("pe same");
@@ -370,7 +337,8 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
   bool useBaseline = true;
 
   TString graphfilename = TString::Format("%s/Fit_pDminus_%s_%s.root",
-                                          OutputDir.Data(), errorName.Data(), potName.Data());
+                                          OutputDir.Data(), errorName.Data(),
+                                          potName.Data());
   auto param = new TFile(graphfilename, "RECREATE");
   param->mkdir("bootVars");
 
@@ -422,15 +390,15 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
   std::vector<double> sidebandFitRange = { { 1000, 800, 1200 } };
 
   nBins = (potential == 0) ? 160 : 80;
-  kmin = 50;
-  kmax = (potential == 0) ? 900 : 450;
+  kmin = 55;
+  kmax = (potential == 0) ? 905 : 455;
   binWidth = (kmax - kmin) / double(nBins);
 
   /// Femtoscopic radius systematic variations
-  const double rCoreLow = 0.74;
-  const double rCoreDefault = 0.81;
-  const double rCoreUp = 0.89;
-  std::vector<double> sourceSize = { { rCoreDefault, rCoreLow, rCoreUp } };
+  const double rLow = 0.81;
+  const double rDefault = 0.89;
+  const double rUp = 0.97;
+  std::vector<double> sourceSize = { { rDefault, rLow, rUp } };
 
   /// Lambda parameters
 
@@ -442,18 +410,46 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
       / (1. - protonPrimary), protonLambda / (1. - protonPrimary) * 0.8,
       protonLambda / (1. - protonPrimary) * 1.2 } };
 
-  /// D-
-  // Purity 64.8 +/- 0.9 % 
-  const std::vector<double> DmesonPurity = { { 0.648, 0.648 - 0.009, 0.648
-      + 0.009 } };
+  // obtain D-meson properties from Fabrizios files
+  std::vector<double> DmesonPurity, DmesonPurityErr;
+  std::vector<double> Bfeeddown, BfeeddownErr;
+  std::vector<double> DstarFeeding, DstarFeedingErr;
 
-  // Beauty feeding: 7.48 +/- 0.35 %
-  const std::vector<double> Bfeeddown = { { 0.0748, 0.0748 - 0.0035, 0.0748
-      + 0.0035 } };
 
-  // D* feeding: 27.5 +/- 0.8 %
-  const std::vector<double> DstarFeeding = { { 0.275, 0.275 - 0.008, 0.275
-      + 0.008 } };
+  TString fileAppendix;
+  for (int i = 0; i <= nSystVars; ++i) {
+    if (i == 0) {
+      fileAppendix = "centralcuts";
+    } else if (i > 0 && i < 6) {
+      fileAppendix = "loose_1";
+    } else if (i > 5 && i < 11) {
+      fileAppendix = "loose_2";
+    } else if (i > 10 && i < 16) {
+      fileAppendix = "tight_1";
+    } else if (i > 15 && i < 21) {
+      fileAppendix = "tight_2";
+    }
+    auto file = TFile::Open(Form("%s/Fractions_masswindow_2sigma_sphericity_0_1_%s.root", InputDir.Data(), fileAppendix.Data()));
+    auto histFracStat = (TH1F*)file->Get("hFractions_DmPr");
+    auto grFracSyst = (TGraphAsymmErrors*)file->Get("gFractionsSyst_DmPr");
+    double purity = histFracStat->GetBinContent(1);
+    double purityStatErr = histFracStat->GetBinError(1);
+    double puritySystErr = (errorVar == 1) ? 0 : grFracSyst->GetErrorY(0);
+    DmesonPurity.push_back(purity);
+    DmesonPurityErr.push_back(std::sqrt(purityStatErr*purityStatErr + puritySystErr*puritySystErr));
+
+    double bfeed = histFracStat->GetBinContent(2);
+    double bfeedStatErr = histFracStat->GetBinError(2);
+    double bfeedSystErr = (errorVar == 1) ? 0 : grFracSyst->GetErrorY(1);
+    Bfeeddown.push_back(bfeed);
+    BfeeddownErr.push_back(std::sqrt(bfeedStatErr*bfeedStatErr + bfeedSystErr*bfeedSystErr));
+
+    double dstarfeed = histFracStat->GetBinContent(3);
+    double dstarfeedStatErr = histFracStat->GetBinError(3);
+    double dstarfeedSystErr = (errorVar == 1) ? 0 : grFracSyst->GetErrorY(2);
+    DstarFeeding.push_back(dstarfeed);
+    DstarFeedingErr.push_back(std::sqrt(dstarfeedStatErr*dstarfeedStatErr + dstarfeedSystErr*dstarfeedSystErr));
+  }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Set up the model, fitter, etc.
@@ -463,20 +459,21 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
   if (potential == 1) {
     tidyCats->GetCatsProtonDminus(&cats, nBins, kmin, kmax,
                                   TidyCats::pDCoulombOnly,
-                                  TidyCats::sResonance);
-    cats.SetAnaSource(0, rCoreDefault);
+                                  TidyCats::sGaussian);
+    cats.SetAnaSource(0, rDefault);
     cats.KillTheCat();
+    DLM_Coulomb = new DLM_Ck(1, 0, cats);
   } else if (potential == 2) {
     tidyCats->GetCatsProtonDminus(&cats, nBins, kmin, kmax,
                                   TidyCats::pDminusHaidenbauer,
-                                  TidyCats::sResonance);
-    cats.SetAnaSource(0, rCoreDefault);
+                                  TidyCats::sGaussian);
+    cats.SetAnaSource(0, rDefault);
     cats.KillTheCat();
   }
   tidyCats->GetCatsProtonDstarminus(&catsDstar, nBins, kmin, kmax,
                                     TidyCats::pDCoulombOnly,
-                                    TidyCats::sResonance);
-  catsDstar.SetAnaSource(0, rCoreDefault);
+                                    TidyCats::sGaussian);
+  catsDstar.SetAnaSource(0, rDefault);
   catsDstar.KillTheCat();
 
   DLM_Ck *DLM_Coulomb;
@@ -508,19 +505,27 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
                 << double(iBoot) / double(nBoot) * 100.f << "%" << std::flush;
     }
 
-    auto grVarCF = getBootstrapFromVec(grCFvec);
-    auto grVarCFSidebandLeft = getBootstrapFromVec(grSBLeftvec);
-    auto grVarCFSidebandRight = getBootstrapFromVec(grSBRightvec);
-
     const double femtoRad =
-        (iBoot == 0 || errorVar == 1) ? sourceSize.at(0) : getBootstrapFromVec(sourceSize);
-    const double dMesonPur =
-        (iBoot == 0 || errorVar == 1) ? DmesonPurity.at(0) : getBootstrapFromVec(DmesonPurity);
-    const double bFeed =
-        (iBoot == 0 || errorVar == 1) ? Bfeeddown.at(0) : getBootstrapFromVec(Bfeeddown);
-    const double dStarFeed =
-        (iBoot == 0 || errorVar == 1) ? DstarFeeding.at(0) : getBootstrapFromVec(DstarFeeding);
+        (iBoot == 0 || errorVar == 1) ?
+            sourceSize.at(0) : getBootstrapFromVec(sourceSize);
 
+    // since purity etc. depends on the cut variation, this needs to be done consistently
+    int nSystVar = (iBoot == 0) ? 0 : gRandom->Uniform() * grCFvec.size();
+    auto grVarCF = grCFvec.at(nSystVar);
+    auto grVarCFSidebandLeft = grSBLeftvec.at(nSystVar);
+    auto grVarCFSidebandRight = grSBRightvec.at(nSystVar);
+    
+    double dMesonPur = DmesonPurity.at(nSystVar);
+    double bFeed = Bfeeddown.at(nSystVar);
+    double dStarFeed = DstarFeeding.at(nSystVar);
+
+    // now let's sample the uncertainties
+    if (iBoot != 0) {
+      dMesonPur += DmesonPurityErr.at(nSystVar) * std::round(gRandom->Uniform(-1.4999, 1.4999));
+      bFeed += BfeeddownErr.at(nSystVar) * std::round(gRandom->Uniform(-1.4999, 1.4999));
+      dStarFeed += DstarFeedingErr.at(nSystVar) * std::round(gRandom->Uniform(-1.4999, 1.4999));
+    }
+    
     const double DmesonPrimary = 1.f - bFeed - dStarFeed;
 
     const Particle dmeson(dMesonPur, DmesonPrimary, { { dStarFeed, bFeed } });
@@ -576,7 +581,7 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     fitSidebandLeft->SetParameters(&startParams[0]);
 
     int workedLeft = grCFBootstrapSidebandLeft->Fit(fitSidebandLeft, "RQ");
-    const double chiSqSidebandLeft = fitSidebandLeft->GetChisquare();
+    const double chiSqSidebandLeft = fitSidebandLeft->GetChisquare() / double(fitSidebandLeft->GetNDF());
 
     (TVirtualFitter::GetFitter())->GetConfidenceIntervals(grSidebandLeft,
                                                           0.683);
@@ -588,13 +593,13 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     fitSidebandRight->SetParameters(&startParams[0]);
 
     int workedRight = grCFBootstrapSidebandRight->Fit(fitSidebandRight, "RQ");
-    const double chiSqSidebandRight = fitSidebandRight->GetChisquare();
+    const double chiSqSidebandRight = fitSidebandRight->GetChisquare() / double(fitSidebandRight->GetNDF());
 
     (TVirtualFitter::GetFitter())->GetConfidenceIntervals(grSidebandRight,
                                                           0.683);
 
     // stop here when the fit fails!
-    if (workedLeft != 0 || workedRight != 0) {
+    if (workedLeft != 0 || workedRight != 0 || chiSqSidebandLeft > 50 || chiSqSidebandRight > 50) {
       std::cout << "Sideband parametrization failed - repeating\n";
       delete fitSidebandLeft;
       delete fitSidebandRight;
@@ -630,6 +635,7 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
 
     TGraph *grFitTotal = new TGraph();
     TGraph *grFitTotalFine = new TGraph();
+    TGraph *grCFRaw = new TGraph();
 
     double Chi2 = 0;
     double EffNumBins = 0;
@@ -642,6 +648,7 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     count = 0;
     for (int i = kmin; i < kmax;) {
       double mom = i;
+      grCFRaw->SetPoint(count, mom, DLM_Coulomb->Eval(mom));
       grFitTotalFine->SetPoint(count, mom, CkDec_Coulomb.EvalCk(mom));
       tupleTotalFit->Fill(mom, CkDec_Coulomb.EvalCk(mom), iBoot);
       tupleSideband->Fill(mom, totalSideband->Eval(mom), iBoot);
@@ -651,13 +658,13 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
       count++;
     }
 
-    for (int iPoint = 0; iPoint <= grCFBootstrap->GetN(); ++iPoint) {
-      grCFBootstrap->GetPoint(iPoint, mom, dataY);
+    for (int iPoint = 0; iPoint <= grVarCF.GetN(); ++iPoint) {
+      grVarCF.GetPoint(iPoint, mom, dataY);
       if (mom > 1000) {
         break;
       }
 
-      dataErr = grCFBootstrap->GetErrorY(iPoint);
+      dataErr = grVarCF.GetErrorY(iPoint);
 
       theoryY = CkDec_Coulomb.EvalCk(mom);
       grFitTotal->SetPoint(iPoint, mom, theoryY);
@@ -684,9 +691,14 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     fitSidebandRight->Write("sidebandFitRight");
     grSidebandRight->Write("sidebandErrorRight");
 
+    totalSideband->SetName("totalSideband");
     totalSideband->Write("sidebandWeightedMean");
+    grFitTotal->SetName("TotalFit");
     grFitTotal->Write("TotalFit");
+    grFitTotalFine->SetName("TotalFitFine");
     grFitTotalFine->Write("fitFineGrain");
+
+    grCFRaw->Write("raw");
 
     param->cd();
     ntBuffer[0] = iBoot;
