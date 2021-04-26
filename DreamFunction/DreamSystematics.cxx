@@ -713,6 +713,8 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<T*>& histvec,
     case Pair::pXiRes:
       c->Divide(3,4);
       break;
+    case Pair::pD:
+      c->Divide(4,5);
     default:
       break;
   }
@@ -722,6 +724,10 @@ void DreamSystematics::WriteOutput(TFile* file, std::vector<T*>& histvec,
     it->Write(Form("histVar_%i", iVar++));
     c->cd(iVar);
     it->Draw("pe");
+    it->GetXaxis()->SetTitleSize(18);
+    it->GetXaxis()->SetLabelSize(18);
+    it->GetYaxis()->SetTitleSize(18);
+    it->GetYaxis()->SetLabelSize(18);
     if (name == TString("ErrBudget")) {
       auto fit = it->GetFunction(Form("%s_fit", it->GetName()));
       if (fit) {
