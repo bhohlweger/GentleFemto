@@ -52,7 +52,7 @@ TH1F* GetCorrelation(TString filename, TString appendix, TString suffix,
 
 void EvalSystematics(TString InputDir, int signal) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
-  const int rebin = 10;
+  const int rebin = 20;
 
   DreamPlot::SetStyle(false, true);
 
@@ -82,7 +82,7 @@ void EvalSystematics(TString InputDir, int signal) {
   DreamSystematics syst(DreamSystematics::pD);
   syst.SetDefaultHist(grCF);
   syst.SetUpperFitRange(1000);
-  syst.SetBarlowUpperRange(1000);
+  syst.SetBarlowUpperRange(500);
   syst.SetEstimator(DreamSystematics::Uniform);
 
   for (int i = 1; i <= 20; ++i) {
