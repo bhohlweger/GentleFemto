@@ -1,3 +1,4 @@
+#include "TSystem.h"
 #include "DLM_Source.h"
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
@@ -151,6 +152,54 @@ DLM_Ck* getDLMCk(TGraphErrors *gr) {
   }
   out->Update();
   return out;
+}
+
+/// =====================================================================================
+DLM_Ck* getDLMCk(TGraphErrors *gr, int nbins, double kmin, double kmax) {
+  DLM_Ck *out = new DLM_Ck(nbins, kmin, kmax);
+  for (int i = 0; i < nbins; ++i) {
+    out->SetBinContent(i, gr->Eval(out->GetBinCenter(0, i)));
+  }
+  out->Update();
+  return out;
+}
+
+/// =====================================================================================
+TGraphErrors* getCkFromYuki(int potential = 5) {
+  TGraph *ingraph1, *ingraph2;
+  TGraphErrors* ingraph;
+  double x, y, x2, y2;
+  TString HomeDir = gSystem->GetHomeDirectory().c_str();
+  if ( potential == 3) {
+    ingraph = new TGraphErrors(TString::Format("%s/CERNHome/D-mesons/Analysis/Models/corr_model1_0.9fm_wC.dat", HomeDir.Data()));
+    for (int i = 0; i < ingraph->GetN(); ++i) {
+      ingraph->GetPoint(i, x, y);
+      ingraph->SetPoint(i, 0.5f * x, y); // Yuki files are in q*, we need k*!
+      ingraph->SetPointError(i, 0., 0.);
+    }
+  } else if ( potential == 4 ) {
+    ingraph = new TGraphErrors(TString::Format("%s/CERNHome/D-mesons/Analysis/Models/corr_model3_0.9fm_wC.dat", HomeDir.Data()));
+    for (int i = 0; i < ingraph->GetN(); ++i) {
+      ingraph->GetPoint(i, x, y);
+      ingraph->SetPoint(i, 0.5f * x, y); // Yuki files are in q*, we need k*!
+      ingraph->SetPointError(i, 0., 0.);
+    }
+  } else if ( potential == 5 ) {
+    ingraph1 = new TGraphErrors(TString::Format("%s/CERNHome/D-mesons/Analysis/Models/corr_model4_1_0.9fm_wC.dat", HomeDir.Data()));
+    ingraph2 = new TGraphErrors(TString::Format("%s/CERNHome/D-mesons/Analysis/Models/corr_model4_2_0.9fm_wC.dat", HomeDir.Data()));
+    ingraph = new TGraphErrors();
+    for (int i = 0; i < ingraph1->GetN(); ++i) {
+      ingraph1->GetPoint(i, x, y);
+      ingraph2->GetPoint(i, x2, y2);
+      if ( std::abs(x-x2 ) > 0.01) continue;
+      ingraph->SetPoint(i, 0.5f * x, 0.5f * (y+y2)); // Yuki files are in q*, we need k*!
+      ingraph->SetPointError(i, 0., 0.5 * (y-y2));
+    }
+  } else {
+    std::cout << "ERROR: getCkFromYuki - potential not available\n";
+    return nullptr;
+  }
+  return ingraph;
 }
 
 /// =====================================================================================
@@ -311,7 +360,14 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     potName = "Coulomb";
   } else if (potential == 2) {
     potName = "Haidenbauer";
-  } else {
+  } else if ( potential == 3 ) {
+    potName = "Model1";
+  } else if ( potential == 4) {
+    potName = "Model3";
+  } else if ( potential == 5) {
+    potName = "Model4";
+  }
+  else {
     std::cout << "ERROR: Potential not defined \n";
     return;
   }
@@ -456,7 +512,12 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
 
   auto tidyCats = new TidyCats();
   CATS cats, catsDstar;
-  if (potential == 1) {
+  DLM_Ck *DLM_Coulomb;
+  TGraphErrors *grYukiModel;
+  if( potential == 0 ) {
+    DLM_Coulomb = new DLM_Ck(1, 0, nBins, kmin, kmax, Flat_Residual);
+    DLM_Coulomb->Update();
+  } else if (potential == 1) {
     tidyCats->GetCatsProtonDminus(&cats, nBins, kmin, kmax,
                                   TidyCats::pDCoulombOnly,
                                   TidyCats::sGaussian);
@@ -469,20 +530,17 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
                                   TidyCats::sGaussian);
     cats.SetAnaSource(0, rDefault);
     cats.KillTheCat();
+    DLM_Coulomb = new DLM_Ck(1, 0, cats);
+  } else if ( potential == 3 || potential == 4 || potential == 5 ) {
+    grYukiModel = getCkFromYuki(potential);
   }
+
   tidyCats->GetCatsProtonDstarminus(&catsDstar, nBins, kmin, kmax,
                                     TidyCats::pDCoulombOnly,
                                     TidyCats::sGaussian);
   catsDstar.SetAnaSource(0, rDefault);
   catsDstar.KillTheCat();
 
-  DLM_Ck *DLM_Coulomb;
-  if (potential == 0) {
-    DLM_Coulomb = new DLM_Ck(1, 0, nBins, kmin, kmax, Flat_Residual);
-    DLM_Coulomb->Update();
-  } else {
-    DLM_Coulomb = new DLM_Ck(1, 0, cats);
-  }
   auto DLM_pDstar = new DLM_Ck(1, 0, catsDstar);
 
   auto grSidebandLeft = new TGraphErrors(nBins);
@@ -612,6 +670,12 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
 
     auto totalSideband = WeightedMean(grSidebandLeft, grSidebandRight, 0.51);  // weight extracted from background integral
 
+    if ( potential == 3 || potential == 4 || potential == 5) {
+      auto grTempYuki = getBootstrapGraph(grYukiModel);
+      DLM_Coulomb = getDLMCk(grTempYuki);
+      delete grTempYuki;
+    }
+    
     DLM_Coulomb->SetSourcePar(0, femtoRad);
     DLM_Coulomb->Update();
     DLM_pDstar->SetSourcePar(0, femtoRad);
