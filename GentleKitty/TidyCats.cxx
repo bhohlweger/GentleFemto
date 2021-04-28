@@ -869,7 +869,6 @@ void TidyCats::GetCatsProtonDplus(CATS* cats, int momBins, double kMin,
 void TidyCats::GetCatsProtonDminus(CATS* cats, int momBins, double kMin,
                                    double kMax, TidyCats::pDmesonPot pot,
                                    TidyCats::Sources source) {
-
   const auto pdgDatabase = TDatabasePDG::Instance();
   const double massProton = pdgDatabase->GetParticle(2212)->Mass() * 1000;
   const double massDminus = pdgDatabase->GetParticle(-411)->Mass() * 1000;
@@ -878,7 +877,7 @@ void TidyCats::GetCatsProtonDminus(CATS* cats, int momBins, double kMin,
   switch (source) {
     case TidyCats::sGaussian:
       cPars = new CATSparameters(CATSparameters::tSource, 1, true);
-      cPars->SetParameter(0, 1.2);
+      cPars->SetParameter(0, 1.0);
       cats->SetAnaSource(GaussSource, *cPars);
       break;
     case TidyCats::sResonance: {
@@ -940,6 +939,7 @@ void TidyCats::GetCatsProtonDminus(CATS* cats, int momBins, double kMin,
   cats->SetThetaDependentSource(false);
   cats->SetMomBins(momBins, kMin, kMax);
 
+  cats->SetQ1Q2(-1);
   cats->SetPdgId(2212, -411);
   cats->SetRedMass((massProton * massDminus) / (massProton + massDminus));
   DLM_Histo<complex<double>>*** ExternalWF = nullptr;
@@ -951,7 +951,6 @@ void TidyCats::GetCatsProtonDminus(CATS* cats, int momBins, double kMin,
       cats->SetNumPW(0, 1);
       cats->SetSpin(0, 0);
       cats->SetChannelWeight(0, 1.);
-      cats->SetQ1Q2(-1);
       std::cout << "Coulomb only\n";
       break;
     case TidyCats::pDminusHaidenbauer:
