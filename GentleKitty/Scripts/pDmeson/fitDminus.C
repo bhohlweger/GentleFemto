@@ -170,30 +170,43 @@ TGraphErrors* getCkFromYuki(int potential = 5) {
   TGraphErrors* ingraph;
   double x, y, x2, y2;
   TString HomeDir = gSystem->GetHomeDirectory().c_str();
-  if ( potential == 3) {
-    ingraph = new TGraphErrors(TString::Format("%s/CERNHome/D-mesons/Analysis/Models/corr_model1_0.9fm_wC.dat", HomeDir.Data()));
+  if (potential == 3) {
+    ingraph = new TGraphErrors(
+        TString::Format(
+            "%s/CERNHome/D-mesons/Analysis/Models/corr_model1_0.9fm_wC.dat",
+            HomeDir.Data()));
     for (int i = 0; i < ingraph->GetN(); ++i) {
       ingraph->GetPoint(i, x, y);
-      ingraph->SetPoint(i, 0.5f * x, y); // Yuki files are in q*, we need k*!
+      ingraph->SetPoint(i, x, y);
       ingraph->SetPointError(i, 0., 0.);
     }
-  } else if ( potential == 4 ) {
-    ingraph = new TGraphErrors(TString::Format("%s/CERNHome/D-mesons/Analysis/Models/corr_model3_0.9fm_wC.dat", HomeDir.Data()));
+  } else if (potential == 4) {
+    ingraph = new TGraphErrors(
+        TString::Format(
+            "%s/CERNHome/D-mesons/Analysis/Models/corr_model3_0.9fm_wC.dat",
+            HomeDir.Data()));
     for (int i = 0; i < ingraph->GetN(); ++i) {
       ingraph->GetPoint(i, x, y);
-      ingraph->SetPoint(i, 0.5f * x, y); // Yuki files are in q*, we need k*!
+      ingraph->SetPoint(i, x, y);
       ingraph->SetPointError(i, 0., 0.);
     }
-  } else if ( potential == 5 ) {
-    ingraph1 = new TGraphErrors(TString::Format("%s/CERNHome/D-mesons/Analysis/Models/corr_model4_1_0.9fm_wC.dat", HomeDir.Data()));
-    ingraph2 = new TGraphErrors(TString::Format("%s/CERNHome/D-mesons/Analysis/Models/corr_model4_2_0.9fm_wC.dat", HomeDir.Data()));
+  } else if (potential == 5) {
+    ingraph1 = new TGraphErrors(
+        TString::Format(
+            "%s/CERNHome/D-mesons/Analysis/Models/corr_model4_1_0.9fm_wC.dat",
+            HomeDir.Data()));
+    ingraph2 = new TGraphErrors(
+        TString::Format(
+            "%s/CERNHome/D-mesons/Analysis/Models/corr_model4_2_0.9fm_wC.dat",
+            HomeDir.Data()));
     ingraph = new TGraphErrors();
     for (int i = 0; i < ingraph1->GetN(); ++i) {
       ingraph1->GetPoint(i, x, y);
       ingraph2->GetPoint(i, x2, y2);
-      if ( std::abs(x-x2 ) > 0.01) continue;
-      ingraph->SetPoint(i, 0.5f * x, 0.5f * (y+y2)); // Yuki files are in q*, we need k*!
-      ingraph->SetPointError(i, 0., 0.5 * (y-y2));
+      if (std::abs(x - x2) > 0.01)
+        continue;
+      ingraph->SetPoint(i, x, 0.5f * (y + y2));
+      ingraph->SetPointError(i, 0., 0.5 * (y - y2));
     }
   } else {
     std::cout << "ERROR: getCkFromYuki - potential not available\n";
@@ -313,8 +326,8 @@ TGraphErrors* EvalBootstrap(TNtuple *tuple, TList* debug, TString OutputDir,
       auto gr = new TGraphErrors();
       gr->SetMarkerStyle(20);
       gr->SetMarkerSize(1);
-      gr->SetMarkerColor(kRed+2);
-      gr->SetLineColor(kRed+2);
+      gr->SetMarkerColor(kRed + 2);
+      gr->SetLineColor(kRed + 2);
       gr->SetPoint(0, cfDefault, 0.5 * hist->GetMaximum());
       gr->SetPointError(0, error, 0);
       gr->Draw("pe same");
@@ -360,14 +373,13 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     potName = "Coulomb";
   } else if (potential == 2) {
     potName = "Haidenbauer";
-  } else if ( potential == 3 ) {
+  } else if (potential == 3) {
     potName = "Model1";
-  } else if ( potential == 4) {
+  } else if (potential == 4) {
     potName = "Model3";
-  } else if ( potential == 5) {
+  } else if (potential == 5) {
     potName = "Model4";
-  }
-  else {
+  } else {
     std::cout << "ERROR: Potential not defined \n";
     return;
   }
@@ -376,10 +388,10 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
 
   TRandom3 rangen(0);
 
-  int nArguments = 11;
+  int nArguments = 12;
   TString varList =
       TString::Format(
-          "BootID:ppRadius:primaryContrib:flatContrib:dstarContrib:sidebandContrib:chi2SidebandLeft:chi2SidebandRight:"
+          "BootID:systID:ppRadius:primaryContrib:flatContrib:dstarContrib:beautyContrib:sidebandContrib:chi2SidebandLeft:chi2SidebandRight:"
           "chi2Local:ndf:nSigma200").Data();
   auto ntResult = new TNtuple("fitResult", "fitResult", varList.Data());
   auto tupleSideband = new TNtuple("sideband", "sideband", "kstar:cf:BootID");
@@ -443,18 +455,19 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// Set up the CATS ranges, lambda parameters, etc.
 
-  std::vector<double> sidebandFitRange = { { 1000, 800, 1200 } };
+  std::vector<double> sidebandFitRange = { { 1500, 1200, 1800 } };
 
-  nBins = (potential == 0) ? 160 : 80;
-  kmin = 55;
-  kmax = (potential == 0) ? 905 : 455;
+  nBins = (potential == 0) ? 176 : 96;
+  kmin = 25;
+  kmax = (potential == 0) ? 905 : 505;
   binWidth = (kmax - kmin) / double(nBins);
 
   /// Femtoscopic radius systematic variations
-  const double rLow = 0.81;
+  const double rErr = 0.08;
   const double rDefault = 0.89;
-  const double rUp = 0.97;
-  std::vector<double> sourceSize = { { rDefault, rLow, rUp } };
+  const double rScale = 0.84;
+  std::vector<double> sourceSize = { { rDefault, rScale * rDefault - rErr,
+      rDefault + rErr } };
 
   /// Lambda parameters
 
@@ -471,7 +484,6 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
   std::vector<double> Bfeeddown, BfeeddownErr;
   std::vector<double> DstarFeeding, DstarFeedingErr;
 
-
   TString fileAppendix;
   for (int i = 0; i <= nSystVars; ++i) {
     if (i == 0) {
@@ -485,26 +497,34 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     } else if (i > 15 && i < 21) {
       fileAppendix = "tight_2";
     }
-    auto file = TFile::Open(Form("%s/Fractions_masswindow_2sigma_sphericity_0_1_%s.root", InputDir.Data(), fileAppendix.Data()));
-    auto histFracStat = (TH1F*)file->Get("hFractions_DmPr");
-    auto grFracSyst = (TGraphAsymmErrors*)file->Get("gFractionsSyst_DmPr");
+    auto file = TFile::Open(
+        Form("%s/Fractions_masswindow_2sigma_sphericity_0_1_%s.root",
+             InputDir.Data(), fileAppendix.Data()));
+    auto histFracStat = (TH1F*) file->Get("hFractions_DmPr");
+    auto grFracSyst = (TGraphAsymmErrors*) file->Get("gFractionsSyst_DmPr");
     double purity = histFracStat->GetBinContent(1);
     double purityStatErr = histFracStat->GetBinError(1);
     double puritySystErr = (errorVar == 1) ? 0 : grFracSyst->GetErrorY(0);
     DmesonPurity.push_back(purity);
-    DmesonPurityErr.push_back(std::sqrt(purityStatErr*purityStatErr + puritySystErr*puritySystErr));
+    DmesonPurityErr.push_back(
+        std::sqrt(
+            purityStatErr * purityStatErr + puritySystErr * puritySystErr));
 
     double bfeed = histFracStat->GetBinContent(2);
     double bfeedStatErr = histFracStat->GetBinError(2);
     double bfeedSystErr = (errorVar == 1) ? 0 : grFracSyst->GetErrorY(1);
     Bfeeddown.push_back(bfeed);
-    BfeeddownErr.push_back(std::sqrt(bfeedStatErr*bfeedStatErr + bfeedSystErr*bfeedSystErr));
+    BfeeddownErr.push_back(
+        std::sqrt(bfeedStatErr * bfeedStatErr + bfeedSystErr * bfeedSystErr));
 
     double dstarfeed = histFracStat->GetBinContent(3);
     double dstarfeedStatErr = histFracStat->GetBinError(3);
     double dstarfeedSystErr = (errorVar == 1) ? 0 : grFracSyst->GetErrorY(2);
     DstarFeeding.push_back(dstarfeed);
-    DstarFeedingErr.push_back(std::sqrt(dstarfeedStatErr*dstarfeedStatErr + dstarfeedSystErr*dstarfeedSystErr));
+    DstarFeedingErr.push_back(
+        std::sqrt(
+            dstarfeedStatErr * dstarfeedStatErr
+                + dstarfeedSystErr * dstarfeedSystErr));
   }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -514,13 +534,12 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
   CATS cats, catsDstar;
   DLM_Ck *DLM_Coulomb;
   TGraphErrors *grYukiModel;
-  if( potential == 0 ) {
+  if (potential == 0) {
     DLM_Coulomb = new DLM_Ck(1, 0, nBins, kmin, kmax, Flat_Residual);
     DLM_Coulomb->Update();
   } else if (potential == 1) {
     tidyCats->GetCatsProtonDminus(&cats, nBins, kmin, kmax,
-                                  TidyCats::pDCoulombOnly,
-                                  TidyCats::sGaussian);
+                                  TidyCats::pDCoulombOnly, TidyCats::sGaussian);
     cats.SetAnaSource(0, rDefault);
     cats.KillTheCat();
     DLM_Coulomb = new DLM_Ck(1, 0, cats);
@@ -531,7 +550,7 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     cats.SetAnaSource(0, rDefault);
     cats.KillTheCat();
     DLM_Coulomb = new DLM_Ck(1, 0, cats);
-  } else if ( potential == 3 || potential == 4 || potential == 5 ) {
+  } else if (potential == 3 || potential == 4 || potential == 5) {
     grYukiModel = getCkFromYuki(potential);
   }
 
@@ -572,18 +591,21 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     auto grVarCF = grCFvec.at(nSystVar);
     auto grVarCFSidebandLeft = grSBLeftvec.at(nSystVar);
     auto grVarCFSidebandRight = grSBRightvec.at(nSystVar);
-    
+
     double dMesonPur = DmesonPurity.at(nSystVar);
     double bFeed = Bfeeddown.at(nSystVar);
     double dStarFeed = DstarFeeding.at(nSystVar);
 
     // now let's sample the uncertainties
     if (iBoot != 0) {
-      dMesonPur += DmesonPurityErr.at(nSystVar) * std::round(gRandom->Uniform(-1.4999, 1.4999));
-      bFeed += BfeeddownErr.at(nSystVar) * std::round(gRandom->Uniform(-1.4999, 1.4999));
-      dStarFeed += DstarFeedingErr.at(nSystVar) * std::round(gRandom->Uniform(-1.4999, 1.4999));
+      dMesonPur += DmesonPurityErr.at(nSystVar)
+          * std::round(gRandom->Uniform(-1.4999, 1.4999));
+      bFeed += BfeeddownErr.at(nSystVar)
+          * std::round(gRandom->Uniform(-1.4999, 1.4999));
+      dStarFeed += DstarFeedingErr.at(nSystVar)
+          * std::round(gRandom->Uniform(-1.4999, 1.4999));
     }
-    
+
     const double DmesonPrimary = 1.f - bFeed - dStarFeed;
 
     const Particle dmeson(dMesonPur, DmesonPrimary, { { dStarFeed, bFeed } });
@@ -639,7 +661,8 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     fitSidebandLeft->SetParameters(&startParams[0]);
 
     int workedLeft = grCFBootstrapSidebandLeft->Fit(fitSidebandLeft, "RQ");
-    const double chiSqSidebandLeft = fitSidebandLeft->GetChisquare() / double(fitSidebandLeft->GetNDF());
+    const double chiSqSidebandLeft = fitSidebandLeft->GetChisquare()
+        / double(fitSidebandLeft->GetNDF());
 
     (TVirtualFitter::GetFitter())->GetConfidenceIntervals(grSidebandLeft,
                                                           0.683);
@@ -651,13 +674,15 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     fitSidebandRight->SetParameters(&startParams[0]);
 
     int workedRight = grCFBootstrapSidebandRight->Fit(fitSidebandRight, "RQ");
-    const double chiSqSidebandRight = fitSidebandRight->GetChisquare() / double(fitSidebandRight->GetNDF());
+    const double chiSqSidebandRight = fitSidebandRight->GetChisquare()
+        / double(fitSidebandRight->GetNDF());
 
     (TVirtualFitter::GetFitter())->GetConfidenceIntervals(grSidebandRight,
                                                           0.683);
 
     // stop here when the fit fails!
-    if (workedLeft != 0 || workedRight != 0 || chiSqSidebandLeft > 50 || chiSqSidebandRight > 50) {
+    if (workedLeft != 0 || workedRight != 0 || chiSqSidebandLeft > 50
+        || chiSqSidebandRight > 50) {
       std::cout << "Sideband parametrization failed - repeating\n";
       delete fitSidebandLeft;
       delete fitSidebandRight;
@@ -670,12 +695,12 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
 
     auto totalSideband = WeightedMean(grSidebandLeft, grSidebandRight, 0.51);  // weight extracted from background integral
 
-    if ( potential == 3 || potential == 4 || potential == 5) {
+    if (potential == 3 || potential == 4 || potential == 5) {
       auto grTempYuki = getBootstrapGraph(grYukiModel);
       DLM_Coulomb = getDLMCk(grTempYuki);
       delete grTempYuki;
     }
-    
+
     DLM_Coulomb->SetSourcePar(0, femtoRad);
     DLM_Coulomb->Update();
     DLM_pDstar->SetSourcePar(0, femtoRad);
@@ -688,7 +713,7 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
     DLM_CkDecomposition CkDec_pDstar("pDstarminus", 0, *DLM_pDstar, nullptr);
     DLM_CkDecomposition CkDec_sideband("sideband", 0, *DLM_sideband, nullptr);
 
-    CkDec_Coulomb.AddContribution(0, primaryContrib,
+    CkDec_Coulomb.AddContribution(0, pDstarContrib,
                                   DLM_CkDecomposition::cFeedDown, &CkDec_pDstar,
                                   decayKindematicsDstar);
     CkDec_Coulomb.AddContribution(1, flatContrib, DLM_CkDecomposition::cFake);
@@ -766,16 +791,18 @@ void fitDminus(TString InputDir, TString trigger, TString OutputDir,
 
     param->cd();
     ntBuffer[0] = iBoot;
-    ntBuffer[1] = femtoRad;
-    ntBuffer[2] = primaryContrib;
-    ntBuffer[3] = flatContrib;
-    ntBuffer[4] = pDstarContrib;
-    ntBuffer[5] = sidebandContrib;
-    ntBuffer[6] = chiSqSidebandLeft;
-    ntBuffer[7] = chiSqSidebandRight;
-    ntBuffer[8] = Chi2;
-    ntBuffer[9] = (float) EffNumBins;
-    ntBuffer[10] = nSigma;
+    ntBuffer[1] = nSystVar;
+    ntBuffer[2] = femtoRad;
+    ntBuffer[3] = primaryContrib;
+    ntBuffer[4] = flatContrib;
+    ntBuffer[5] = pDstarContrib;
+    ntBuffer[6] = bFeed;
+    ntBuffer[7] = sidebandContrib;
+    ntBuffer[8] = chiSqSidebandLeft;
+    ntBuffer[9] = chiSqSidebandRight;
+    ntBuffer[10] = Chi2;
+    ntBuffer[11] = (float) EffNumBins;
+    ntBuffer[12] = nSigma;
     ntResult->Fill(ntBuffer);
 
     delete fitSidebandLeft;
