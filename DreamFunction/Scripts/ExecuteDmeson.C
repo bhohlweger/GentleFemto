@@ -1,4 +1,6 @@
 #include "ReadDreamFile.h"
+#include "TLegend.h"
+#include "METoSEReweighting.C"
 
 int main(int argc, char* argv[]) {
   const char* filename = argv[1];
@@ -37,7 +39,6 @@ int main(int argc, char* argv[]) {
                                 apDplus->GetPair());
   }
 
-
   TString foldername = filename;
   foldername.ReplaceAll("AnalysisResults.root", "");
 
@@ -50,5 +51,18 @@ int main(int argc, char* argv[]) {
       Form("%s/CFOutput_pDminus%s.root", foldername.Data(),
            fileAppendix.Data()));
 
+  TString FileName = Form("%s/CFOutput_pDminus%s.root", foldername.Data(),
+                          fileAppendix.Data());
+  TFile* file = TFile::Open(FileName, "update");
+  TList* PairDist = (TList*) file->Get("PairDist");
+  if (PairDist) {
+    ReweightingQA(PairDist);
+  } else {
+    file->ls();
+  }
+  TList* AntiPairDist = (TList*) file->Get("AntiPairDist");
+  if (AntiPairDist) {
+    ReweightingQA(AntiPairDist);
+  }
   return 1;
 }
