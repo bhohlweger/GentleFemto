@@ -355,7 +355,7 @@ void DreamPair::Rebin(DreamDist* pair, int rebin, bool seMean) {
   if (Rebinned->GetMEMultDist())
     Rebinned->GetMEMultDist()->Rebin2D(rebin, 1);
   if (seMean) {
-    Rebinned->Calculate_CF(fNormLeft, fNormRight, pair->GetSEDist());
+    Rebinned->Calculate_CF(fNormLeft, fNormRight, pair->GetMEDist());
   } else {
     Rebinned->Calculate_CF(fNormLeft, fNormRight);
   }
@@ -427,7 +427,7 @@ void DreamPair::ReweightMixedEvent(DreamDist* pair, float kSMin, float kSMax,
   //  MultProjMEReweighted->DrawCopy("same");
   if (pairNotRebinned) {
     PairReweighted->Calculate_CF(fNormLeft, fNormRight,
-                                 pairNotRebinned->GetSEDist());
+                                 pairNotRebinned->GetMEDist());
   } else {
     PairReweighted->Calculate_CF(fNormLeft, fNormRight);
   }
