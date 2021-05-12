@@ -151,12 +151,12 @@ int main(int argc, char *argv[]) {
   auto leg = new TLegend(xmin, ymin, xmin + xwidth, ymin + ywidth);
   leg->SetBorderSize(0);
   leg->SetTextFont(42);
-  leg->SetTextSize(gStyle->GetTextSize() * 0.9);
+  leg->SetTextSize(gStyle->GetTextSize() * 0.8);
   leg->AddEntry(grCoulomb, "Coulomb", "l");
-  leg->AddEntry(grHaidenbauer, "Haidenbauer", "l");
-  leg->AddEntry(grModel1, "Model1", "l");
-  leg->AddEntry(grModel3, "Model3", "l");
-  leg->AddEntry(grModel4Dummy, "Model4", "l");
+  leg->AddEntry(grHaidenbauer, "J. Haidenbauer #it{et al.}", "l");
+  leg->AddEntry(grModel1, "J. Hofmann and M. Lutz", "l");
+  leg->AddEntry(grModel3, "Y. Yamaguchi #it{et al.}", "l");
+  leg->AddEntry(grModel4Dummy, "C. Fontoura #it{et al.}", "l");
   leg->SetHeader(Form("#it{r}_{0} = %.1f fm", radius));
   leg->Draw("same");
   c->Print("models.pdf");

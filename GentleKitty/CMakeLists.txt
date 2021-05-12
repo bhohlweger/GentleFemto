@@ -257,5 +257,8 @@ target_link_libraries(pPhiPotentials tidyCATS -L${DREAM_LIB_PATH} DreamFunctions
 add_executable(fitDminus ${PROJECT_SOURCE_DIR}/Scripts/pDmeson/fitDminus.C)
 target_link_libraries(fitDminus tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
+add_executable(correctDminus ${PROJECT_SOURCE_DIR}/Scripts/pDmeson/correctDminus.C)
+target_link_libraries(correctDminus tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
 add_executable(DmesonModels ${PROJECT_SOURCE_DIR}/Scripts/pDmeson/DmesonModels.C)
 target_link_libraries(DmesonModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
