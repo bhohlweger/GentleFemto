@@ -4,6 +4,7 @@
 #include "SidebandSigma.h"
 #include "TCanvas.h"
 #include <iostream>
+#include "TROOT.h"
 
 void SigmaEvalSystematics(TString InputDir, TString trigger) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");

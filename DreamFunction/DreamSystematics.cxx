@@ -9,6 +9,7 @@
 #include "TMath.h"
 #include <cmath>
 #include "TRandom3.h"
+#include "TROOT.h"
 
 DreamSystematics::DreamSystematics()
     : fSystematicFitRangeLow(0.f),

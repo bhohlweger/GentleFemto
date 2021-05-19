@@ -3,6 +3,7 @@
 #include "ForgivingReader.h"
 #include "MakeHistosGreat.h"
 #include "TrackQA.h"
+#include "TROOT.h"
 
 int main(int argc, char* argv[]) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");

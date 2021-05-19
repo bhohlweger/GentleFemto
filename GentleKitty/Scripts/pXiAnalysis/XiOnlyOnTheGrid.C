@@ -23,6 +23,8 @@
 #include "CATSLambdaParam.h"
 #include "TObject.h"
 #include "TDirectoryFile.h"
+#include "TROOT.h"
+
 void GetXiForRadius(const unsigned& NumIter, int system, int iPot, int iSource,
                     TString DataFile, TString HistpXiDefaultName,
                     TString OutputDir) {
