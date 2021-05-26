@@ -77,6 +77,39 @@ TGraphAsymmErrors GetCorrelationGraph(TString filename, TString appendix,
 }
 
 /// =====================================================================================
+TH1F GetMEDist(TString filename, TString appendix, TString suffix,
+                TString graphName, const double normLower,
+                const double normUpper, const int rebin) {
+  ReadDreamFile *DreamFile = new ReadDreamFile(4, 4);
+  DreamFile->SetAnalysisFile(filename.Data(), appendix.Data(), suffix.Data());
+
+  DreamPair *pDminus = new DreamPair("Part", normLower, normUpper);
+  DreamPair *apDplus = new DreamPair("AntiPart", normLower, normUpper);
+
+  pDminus->SetPair(DreamFile->GetPairDistributions(0, 3, ""));
+  apDplus->SetPair(DreamFile->GetPairDistributions(1, 2, ""));
+  pDminus->ShiftForEmpty(pDminus->GetPair());
+  apDplus->ShiftForEmpty(apDplus->GetPair());
+  pDminus->FixShift(pDminus->GetPairShiftedEmpty(0),
+                    apDplus->GetPairShiftedEmpty(0), apDplus->GetFirstBin());
+  apDplus->FixShift(apDplus->GetPairShiftedEmpty(0),
+                    pDminus->GetPairShiftedEmpty(0), pDminus->GetFirstBin());
+  pDminus->Rebin(pDminus->GetPairFixShifted(0), rebin, true);
+  apDplus->Rebin(apDplus->GetPairFixShifted(0), rebin, true);
+  pDminus->ReweightMixedEvent(pDminus->GetPairRebinned(0), 0.2, 0.9,
+                              pDminus->GetPair());
+  apDplus->ReweightMixedEvent(apDplus->GetPairRebinned(0), 0.2, 0.9,
+                              apDplus->GetPair());
+  auto meDist = *(pDminus->GetPairReweighted(0)->GetMEDist());
+  meDist.Add(apDplus->GetPairReweighted(0)->GetMEDist());
+
+  delete apDplus;
+  delete pDminus;
+  delete DreamFile;
+  return meDist;
+}
+
+/// =====================================================================================
 TGraphErrors* WeightedMean(TGraphErrors *gr1, TGraphErrors *gr2,
                            const double weight1) {
   if (gr1->GetN() != gr2->GetN()) {
@@ -376,8 +409,8 @@ TGraphErrors* EvalBootstrap(TNtuple *tuple, TList* debug, TString OutputDir,
       gr->SetPointError(0, error, 0);
       gr->Draw("pe same");
       c->Print(
-          Form("%s/Debug/Debug_%s_%i.pdf", OutputDir.Data(),
-               potName.Data(), int(kstar)));
+          Form("%s/Debug/Debug_%s_%i.pdf", OutputDir.Data(), potName.Data(),
+               int(kstar)));
       delete gr;
       delete c;
       debug->Add(hist);

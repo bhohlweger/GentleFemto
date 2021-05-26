@@ -92,6 +92,9 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
                             rebin));
   }
 
+  auto meDistForFeedDown = GetMEDist(InputFileName, "HM_CharmFemto_", "0",
+                                     dataGrName, normLower, normUpper, 1);
+
   std::vector<double> startParams;
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -402,8 +405,10 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     auto DLM_sideband = getDLMCk(totalSideband);
 
     DLM_CkDecomposition CkDec_CFflat("pDminusTotal", 3, *DLM_CFflat, nullptr);
+    CkDec_CFflat.AddPhaseSpace(0, &meDistForFeedDown);
     DLM_CkDecomposition CkDec_pDstar("pDstarminus", 0, *DLM_pDstar,
                                      momentumResolution);
+    CkDec_pDstar.AddPhaseSpace(&meDistForFeedDown);
     DLM_CkDecomposition CkDec_sideband("sideband", 0, *DLM_sideband, nullptr);
 
     CkDec_CFflat.AddContribution(0, pDstarContrib,
@@ -631,6 +636,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   grCFvec.at(0).Write("dataDefault");
   grSBLeftvec.at(0).Write("sidebandLeftDefault");
   grSBRightvec.at(0).Write("sidebandRightDefault");
+  meDistForFeedDown.Write("meDistDefault");
 
   auto list = new TList();
   auto fitFull = EvalBootstrap(tupleTotalFit, list, OutputDir, "background",
