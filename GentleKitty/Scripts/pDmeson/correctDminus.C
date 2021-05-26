@@ -30,7 +30,9 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
           .Data();
   auto ntResult = new TNtuple("fitResult", "fitResult", varList.Data());
   auto tupleSideband = new TNtuple("sideband", "sideband", "kstar:cf:BootID");
+  auto tupleDstar = new TNtuple("Dstar", "Dstar", "kstar:cf:BootID");
   auto tupleTotalFit = new TNtuple("totalFit", "totalFit", "kstar:cf:BootID");
+  auto tupleRaw = new TNtuple("rawCF", "rawCF", "kstar:cf:BootID");
   auto tupleCorrected = new TNtuple("correctedCF", "correctedCF",
                                     "kstar:cf:BootID");
   auto tupleSidebandLeft = new TNtuple("sidebandLeft", "sidebandLeft",
@@ -420,6 +422,12 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
                                  &CkDec_sideband);
     CkDec_CFflat.Update();
 
+    DLM_CkDecomposition CkDec_CFDstar("pDstar", 1, *DLM_CFflat, nullptr);
+    CkDec_CFDstar.AddPhaseSpace(0, &meDistForFeedDown);
+    CkDec_CFDstar.AddContribution(0, 0.999, DLM_CkDecomposition::cFeedDown,
+                                  &CkDec_pDstar, decayKindematicsDstar);
+    CkDec_CFDstar.Update();
+
     TGraph *grFitTotalFine = new TGraph();
     TGraph *grCFRaw = new TGraph();
 
@@ -433,6 +441,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
       grFitTotalFine->SetPoint(count, mom, CkDec_CFflat.EvalCk(mom));
       tupleTotalFit->Fill(mom, CkDec_CFflat.EvalCk(mom), iBoot);
       tupleSideband->Fill(mom, totalSideband->Eval(mom), iBoot);
+      tupleDstar->Fill(mom, CkDec_CFDstar.EvalCk(mom), iBoot);
       tupleSidebandLeft->Fill(mom, fitSidebandLeft->Eval(mom), iBoot);
       tupleSidebandRight->Fill(mom, fitSidebandRight->Eval(mom), iBoot);
       i += binWidth;
@@ -493,6 +502,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
       corrBootstrapY = 1.f
           + 1.f / primaryContrib * (dataBootstrapY - CkDec_CFflat.EvalCk(mom));
 
+      tupleRaw->Fill(mom, dataBootstrapY, iBoot);
       tupleCorrected->Fill(mom, corrBootstrapY, iBoot);
 
       flatY = CkDec_CFflat.EvalCk(mom);
@@ -641,10 +651,14 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   auto list = new TList();
   auto fitFull = EvalBootstrap(tupleTotalFit, list, OutputDir, "background",
                                kmin, kmax, binWidth);
+  auto dataRaw = EvalBootstrap(tupleRaw, &grCFvec.at(0), list, OutputDir,
+                               "raw");
   auto dataCorrected = EvalBootstrap(tupleCorrected, &grCFvec.at(0), list,
                                      OutputDir, "corrected");
   auto sidebandFull = EvalBootstrap(tupleSideband, nullptr, OutputDir,
                                     "sidebandFull", kmin, kmax, binWidth);
+  auto dstarFull = EvalBootstrap(tupleDstar, nullptr, OutputDir, "Dstar", kmin,
+                                 kmax, binWidth);
   auto sidebandLeft = EvalBootstrap(tupleSidebandLeft, nullptr, OutputDir,
                                     "sidebandLeft", kmin, kmax, binWidth);
   auto sidebandRight = EvalBootstrap(tupleSidebandRight, nullptr, OutputDir,
@@ -666,8 +680,10 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   sidebandFull->Write("sidebandFull");
   sidebandLeft->Write("sidebandLeft");
   sidebandRight->Write("sidebandRight");
+  dstarFull->Write("Dstar");
 
   dataCorrected->Write("correctedData");
+  dataRaw->Write("rawData");
 
   coulomb->Write("Ck_coulomb");
   haidenbauer->Write("Ck_haidenbauer");

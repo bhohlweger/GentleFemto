@@ -52,7 +52,7 @@ TH1F* GetCorrelation(TString filename, TString appendix, TString suffix,
 
 void EvalSystematics(TString InputDir, int signal) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
-  const int rebin = 20;
+  const int rebin = 25;
 
   DreamPlot::SetStyle(false, true);
 
