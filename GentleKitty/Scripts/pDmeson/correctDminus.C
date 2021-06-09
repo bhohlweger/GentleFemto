@@ -56,13 +56,12 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input
-  TString CalibBaseDir = "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
   auto calibFile = TFile::Open(
-      TString::Format("%s/dstar.root", CalibBaseDir.Data()));
+      TString::Format("%s/dstar.root", InputDir.Data()));
   auto decayKindematicsDstar = (TH2F*) calibFile->Get("histSmearDmeson");
 
   auto momResFile = TFile::Open(
-      TString::Format("%s/momRes_Dmesons.root", CalibBaseDir.Data()).Data());
+      TString::Format("%s/momRes_Dmesons.root", InputDir.Data()).Data());
   auto histMomentumResolutionpDplus = TransformToMeV(
       (TH2F*) momResFile->Get("pDplus"));
   auto histMomentumResolutionpDminus = TransformToMeV(
@@ -190,7 +189,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   DLM_CFflat->Update();
 
   auto tidyCats = new TidyCats();
-  CATS catsDstar, catsDminusCoulomb, catsDminusHaidenbauer;
+  CATS catsDstar, catsDminusCoulomb;
 
   // Coulomb
   tidyCats->GetCatsProtonDminus(&catsDminusCoulomb, nBinsModel, kminModel,
@@ -199,14 +198,6 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   catsDminusCoulomb.SetAnaSource(0, rDefault);
   catsDminusCoulomb.KillTheCat();
   DLM_Ck* DLM_Coulomb = new DLM_Ck(1, 0, catsDminusCoulomb);
-
-  // Haidenbauer
-  tidyCats->GetCatsProtonDminus(&catsDminusHaidenbauer, nBinsModel, kminModel,
-                                kmaxModel, TidyCats::pDminusHaidenbauer,
-                                TidyCats::sGaussian);
-  catsDminusHaidenbauer.SetAnaSource(0, rDefault);
-  catsDminusHaidenbauer.KillTheCat();
-  //DLM_Ck* DLM_Haidenbauer = new DLM_Ck(1, 0, catsDminusHaidenbauer);
 
   // now store all of them for further computation
   std::vector<DLM_CkDecomposition*> coulombModels, haidenbauerModels,
@@ -227,7 +218,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
         TString::Format(
             "%s/CERNHome/D-mesons/Analysis/Models/Haidenbauer_%.2f_fm.dat",
             HomeDir.Data(), sourceRad));
-    auto DLM_Haidenbauer = getDLMCk(grHaidenbauer);
+    auto DLM_Haidenbauer = getDLMCk(grHaidenbauer, 180, 0, 360);
 
     DLM_CkDecomposition *CkDec_CFHaidenbauer = new DLM_CkDecomposition(
         Form("pDminusHaidenbauer_%f", sourceRad), 0, *DLM_Haidenbauer,
@@ -274,9 +265,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   }
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  /// Systematic variations
-
-  // first iteration is the default
+  /// BOOTSTRAP
+  /// first iteration is the default
   for (int iBoot = 0; iBoot < nBoot;) {
     if (iBoot % 10 == 0) {
       std::cout << "\r Processing progress: "
