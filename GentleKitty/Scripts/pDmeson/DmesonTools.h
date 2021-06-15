@@ -88,14 +88,8 @@ TH1F GetMEDist(TString filename, TString appendix, TString suffix,
 
   pDminus->SetPair(DreamFile->GetPairDistributions(0, 3, ""));
   apDplus->SetPair(DreamFile->GetPairDistributions(1, 2, ""));
-  pDminus->ShiftForEmpty(pDminus->GetPair());
-  apDplus->ShiftForEmpty(apDplus->GetPair());
-  pDminus->FixShift(pDminus->GetPairShiftedEmpty(0),
-                    apDplus->GetPairShiftedEmpty(0), apDplus->GetFirstBin());
-  apDplus->FixShift(apDplus->GetPairShiftedEmpty(0),
-                    pDminus->GetPairShiftedEmpty(0), pDminus->GetFirstBin());
-  pDminus->Rebin(pDminus->GetPairFixShifted(0), rebin, true);
-  apDplus->Rebin(apDplus->GetPairFixShifted(0), rebin, true);
+  pDminus->Rebin(pDminus->GetPair(), rebin, true);
+  apDplus->Rebin(apDplus->GetPair(), rebin, true);
   pDminus->ReweightMixedEvent(pDminus->GetPairRebinned(0), 0.2, 0.9,
                               pDminus->GetPair());
   apDplus->ReweightMixedEvent(apDplus->GetPairRebinned(0), 0.2, 0.9,
