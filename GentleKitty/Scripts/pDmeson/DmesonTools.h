@@ -164,7 +164,7 @@ TGraphErrors* getCkFromYuki(int potential, double rad = 0.9) {
   if (potential == 3) {
     ingraph = new TGraphErrors(
         TString::Format(
-            "%s/CERNHome/D-mesons/Analysis/Models/corr_model1_%.1f_fm_wC.dat",
+            "%s/CERNHome/D-mesons/Analysis/Models/corr_model1_%.2f_fm_wC.dat",
             HomeDir.Data(), rad));
     for (int i = 0; i < ingraph->GetN(); ++i) {
       ingraph->GetPoint(i, x, y);
@@ -174,7 +174,7 @@ TGraphErrors* getCkFromYuki(int potential, double rad = 0.9) {
   } else if (potential == 4) {
     ingraph = new TGraphErrors(
         TString::Format(
-            "%s/CERNHome/D-mesons/Analysis/Models/corr_model3_%.1f_fm_wC.dat",
+            "%s/CERNHome/D-mesons/Analysis/Models/corr_model3_%.2f_fm_wC.dat",
             HomeDir.Data(), rad));
     for (int i = 0; i < ingraph->GetN(); ++i) {
       ingraph->GetPoint(i, x, y);
@@ -184,11 +184,11 @@ TGraphErrors* getCkFromYuki(int potential, double rad = 0.9) {
   } else if (potential == 5) {
     ingraph1 = new TGraphErrors(
         TString::Format(
-            "%s/CERNHome/D-mesons/Analysis/Models/corr_model4_1_%.1f_fm_wC.dat",
+            "%s/CERNHome/D-mesons/Analysis/Models/corr_model4_1_%.2f_fm_wC.dat",
             HomeDir.Data(), rad));
     ingraph2 = new TGraphErrors(
         TString::Format(
-            "%s/CERNHome/D-mesons/Analysis/Models/corr_model4_2_%.1f_fm_wC.dat",
+            "%s/CERNHome/D-mesons/Analysis/Models/corr_model4_2_%.2f_fm_wC.dat",
             HomeDir.Data(), rad));
     ingraph = new TGraphErrors();
     for (int i = 0; i < ingraph1->GetN(); ++i) {

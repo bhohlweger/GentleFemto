@@ -201,7 +201,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
 
   // now store all of them for further computation
   std::vector<DLM_CkDecomposition*> coulombModels, haidenbauerModels,
-      model1Models, model3Models;
+    model1Models, model3Models;
   std::vector<TGraphErrors*> model4Models;
   TString HomeDir = gSystem->GetHomeDirectory().c_str();
 
@@ -218,33 +218,47 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
         TString::Format(
             "%s/CERNHome/D-mesons/Analysis/Models/Haidenbauer_%.2f_fm.dat",
             HomeDir.Data(), sourceRad));
-    auto DLM_Haidenbauer = getDLMCk(grHaidenbauer, 180, 0, 360);
-
+    if (grHaidenbauer->GetN() == 0) {
+      std::cout << "ERROR: Haidenbauer CF not found\n";
+      return;
+    }
+    auto DLM_Haidenbauer = getDLMCk(grHaidenbauer, nBinsModel, kminModel, kmaxModel);
     DLM_CkDecomposition *CkDec_CFHaidenbauer = new DLM_CkDecomposition(
         Form("pDminusHaidenbauer_%f", sourceRad), 0, *DLM_Haidenbauer,
         momentumResolution);
     CkDec_CFHaidenbauer->Update();
     haidenbauerModels.push_back(CkDec_CFHaidenbauer);
+  
+    auto grYukiModel1 = getCkFromYuki(3, sourceRad);
+    if (grYukiModel1->GetN() == 0) {
+      std::cout << "ERROR: Yuki model 1 CF not found\n";
+      return;
+    }
+    auto DLM_YukiModel1 = getDLMCk(grYukiModel1, nBinsModel, kminModel, kmaxModel);
+    DLM_CkDecomposition *CkDec_Model1 = new DLM_CkDecomposition(
+        Form("pDminusModel1_%f", sourceRad), 0, *DLM_YukiModel1,
+        momentumResolution);
+    model1Models.push_back(CkDec_Model1);
+
+    auto grYukiModel3 = getCkFromYuki(4, sourceRad);
+    if (grYukiModel3->GetN() == 0) {
+      std::cout << "ERROR: Yuki model 3 CF not found\n";
+      return;
+    }
+    auto DLM_YukiModel3 = getDLMCk(grYukiModel3, nBinsModel, kminModel, kmaxModel);
+    DLM_CkDecomposition *CkDec_Model3 = new DLM_CkDecomposition(
+        Form("pDminusModel2_%f", sourceRad), 0, *DLM_YukiModel3,
+        momentumResolution);
+    model3Models.push_back(CkDec_Model3);
+
+    auto grYukiModel4 = getCkFromYuki(5, sourceRad);  // here things need to be done a bit differently as we have uncertainties on the scat. params that need to be bootstrapped
+    if (grYukiModel4->GetN() == 0) {
+      std::cout << "ERROR: Yuki model 4 CF not found\n";
+      return;
+    }
+    model4Models.push_back(grYukiModel4);
   }
 
-  // TODO For now we have the Yuki CF only for 0.9 fm! To be updated
-  const double sourceRadYuki = 0.9;
-  auto grYukiModel1 = getCkFromYuki(3, sourceRadYuki);  // model 1 = potential 3
-  auto DLM_YukiModel1 = getDLMCk(grYukiModel1);
-  DLM_CkDecomposition *CkDec_Model1 = new DLM_CkDecomposition(
-      Form("pDminusModel1_%f", sourceRadYuki), 0, *DLM_YukiModel1,
-      momentumResolution);
-  model1Models.push_back(CkDec_Model1);
-
-  auto grYukiModel3 = getCkFromYuki(4, sourceRadYuki);  // model 3 = potential 4
-  auto DLM_YukiModel3 = getDLMCk(grYukiModel3);
-  DLM_CkDecomposition *CkDec_Model3 = new DLM_CkDecomposition(
-      Form("pDminusModel2_%f", sourceRadYuki), 0, *DLM_YukiModel3,
-      momentumResolution);
-  model3Models.push_back(CkDec_Model3);
-
-  auto grYukiModel4 = getCkFromYuki(5, sourceRadYuki);  // model 4 = potential 5 - here things need to be done a bit differently as we have uncertainties on the scat. params that need to be bootstrapped
-  model4Models.push_back(grYukiModel4);
 
   tidyCats->GetCatsProtonDstarminus(&catsDstar, nBins, kmin, kmax,
                                     TidyCats::pDCoulombOnly,
@@ -441,10 +455,10 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     // Correct the correlation function and do the model comparison
     auto coulombModelIt = coulombModels.at(femtoIt);
     auto haidenbauerModelIt = haidenbauerModels.at(femtoIt);
-    auto model1ModelIt = model1Models.at(0);  // TODO - FIX THE RADIUS
-    auto model3ModelIt = model3Models.at(0);  // TODO - FIX THE RADIUS
-    auto model4GraphIt = model4Models.at(0);  // TODO - FIX THE RADIUS
-    auto DLM_YukiModel4 = getDLMCk(getBootstrapGraph(model4GraphIt));
+    auto model1ModelIt = model1Models.at(femtoIt);
+    auto model3ModelIt = model3Models.at(femtoIt);
+    auto model4GraphIt = model4Models.at(femtoIt);
+    auto DLM_YukiModel4 = getDLMCk(getBootstrapGraph(model4GraphIt), nBinsModel, kminModel, kmaxModel);
     auto model4ModelIt = new DLM_CkDecomposition("pDminusModel4", 0,
                                                  *DLM_YukiModel4,
                                                  momentumResolution);  // TODO eventually remove the momRes
