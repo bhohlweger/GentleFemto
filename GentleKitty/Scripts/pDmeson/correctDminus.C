@@ -46,6 +46,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   auto tupleModel3 = new TNtuple("model3", "model3", "kstar:cf:BootID");
   auto tupleModel4 = new TNtuple("model4", "model4", "kstar:cf:BootID");
 
+  auto tuplePotential = new TNtuple("potentials", "potentials", "potVal:chi2:nSigma");
+
   float ntBuffer[nArguments];
   bool useBaseline = true;
 
@@ -109,8 +111,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   double binWidth = (kmax - kmin) / double(nBins);
 
   const int nBinsModel = 80;
-  const double kminModel = 10;
-  const double kmaxModel = 410;
+  const double kminModel = 5;
+  const double kmaxModel = 405;
   double binWidthModel = (kmaxModel - kminModel) / double(nBinsModel);
 
   /// Femtoscopic radius systematic variations
@@ -259,6 +261,41 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     model4Models.push_back(grYukiModel4);
   }
 
+  const int potMin = -2000;
+  const int potMax = 1000;
+  const int potStep = 20;
+  float npot = (potMax - potMin) / potStep;
+  float ipot = 0;
+  std::cout << "Reading potentials \n";
+  std::vector<std::vector<DLM_CkDecomposition*>> potentialModels;
+  std::vector<float> potentialVals;
+  param->cd();
+  param->mkdir("Potential");
+  param->cd("Potential");
+  for (int i = potMin; i <= potMax; i += potStep) {
+    std::cout << "\r Processing progress: "
+                << ipot++/npot * 100.f << "%" << std::flush;
+    if (i == 0) continue;
+    std::vector<DLM_CkDecomposition*> tmpVec;
+    for (const auto &sourceRad : sourceSize) {
+      auto grTmp = getCkPotential(i, sourceRad);
+      if (grTmp->GetN() == 0) {
+	std::cout << "ERROR: Potential CF not found \n";
+      }
+      grTmp->Write(Form("pot_%d_%.2f", i, sourceRad));
+      
+      auto DLM_tmp = getDLMCk(grTmp, nBinsModel, kminModel, kmaxModel);
+      DLM_CkDecomposition *CkDec_tmp = new DLM_CkDecomposition(
+							       Form("pDminusPot_%d_%f", i, sourceRad), 0, *DLM_tmp,
+        momentumResolution);
+      tmpVec.push_back(CkDec_tmp);
+      delete grTmp;
+    }
+    potentialModels.push_back(tmpVec);
+    potentialVals.push_back(i);
+  }
+  std::cout << " - done!\n";
+  param->cd();
 
   tidyCats->GetCatsProtonDstarminus(&catsDstar, nBins, kmin, kmax,
                                     TidyCats::pDCoulombOnly,
@@ -473,6 +510,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     }
 
     TGraph *grFitTotal = new TGraph();
+    auto grCorrected = new TGraphErrors();
 
     double EffNumBinsFlat = 0;
     double Chi2Flat = 0;
@@ -527,6 +565,9 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
             dataErr * dataErr / (primaryContrib * primaryContrib)
                 + sbErr * sbErr * sidebandContrib * sidebandContrib
                     / (primaryContrib * primaryContrib));
+	grCorrected->SetPoint(iPoint, mom, corrDataY);
+	grCorrected->SetPointError(iPoint, 0, corrErr);
+	
         Chi2Coulomb += (corrDataY - coulombY) * (corrDataY - coulombY)
             / (corrErr * corrErr);
 
@@ -563,6 +604,23 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     double pvalModel4 = TMath::Prob(Chi2Model4, round(EffNumBins));
     double nSigmaModel4 = TMath::Sqrt(2) * TMath::ErfcInverse(pvalModel4);
 
+    // now the chi2 of all the different potentials
+    float modelCf, nSigma, pVal, currentChi2;
+    for(size_t i=0; i<potentialModels.size(); ++i) {
+      auto presentDLM = potentialModels.at(i).at(femtoIt);
+      currentChi2=0.f;
+      for(int i=0; i < grCorrected->GetN(); ++i) {
+	grCorrected->GetPoint(i, mom, corrDataY);
+	corrErr = grCorrected->GetErrorY(i);
+        modelCf = presentDLM->EvalCk(mom);
+        currentChi2 += (corrDataY - modelCf) * (corrDataY - modelCf)
+            / (corrErr * corrErr);
+      }
+      pVal = TMath::Prob(currentChi2, round(EffNumBins));
+      nSigma = TMath::Sqrt(2) * TMath::ErfcInverse(pVal);
+      tuplePotential->Fill(potentialVals.at(i), currentChi2, nSigma);      
+    }
+
     param->cd();
     param->mkdir(TString::Format("bootVars/Graph_%i", iBoot));
     param->cd(TString::Format("bootVars/Graph_%i", iBoot));
@@ -582,7 +640,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     grFitTotal->Write("TotalFit");
     grFitTotalFine->SetName("TotalFitFine");
     grFitTotalFine->Write("fitFineGrain");
-
+    grCorrected->Write("defaultCorrected");
+    
     grCFRaw->Write("raw");
 
     param->cd();
@@ -619,6 +678,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
       delete grCFBootstrapSidebandLeft;
       delete grCFBootstrapSidebandRight;
       delete grCFBootstrap;
+      delete grCorrected;
     }
 
     delete DLM_sideband;
@@ -646,6 +706,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   tupleModel1->Write();
   tupleModel3->Write();
   tupleModel4->Write();
+  tuplePotential->Write();
 
   grCFvec.at(0).Write("dataDefault");
   grSBLeftvec.at(0).Write("sidebandLeftDefault");
@@ -680,6 +741,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   auto model4 = EvalBootstrap(tupleModel4, list, OutputDir, "model4", kminModel,
                               kmaxModel, binWidthModel);  // here also the scat. params are varied so we use the RMS
 
+  auto potentialChi = EvalPotentials(tuplePotential, potentialVals);
+  
   fitFull->Write("fitFull");
   sidebandFull->Write("sidebandFull");
   sidebandLeft->Write("sidebandLeft");
@@ -694,6 +757,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   model1->Write("Ck_model1");
   model3->Write("Ck_model3");
   model4->Write("Ck_model4");
+  potentialChi->Write("potentialChi2");
 
   param->Close();
 

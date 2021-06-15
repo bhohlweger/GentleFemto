@@ -27,6 +27,10 @@
 #include "TVirtualFitter.h"
 #include "TSpline.h"
 
+#include <fstream>
+#include <iostream>
+#include <string>
+
 #ifndef GENTLEKITTY_SCRIPTS_PDMESON_DMESONTOOLS_H_
 #define GENTLEKITTY_SCRIPTS_PDMESON_DMESONTOOLS_H_
 
@@ -204,6 +208,35 @@ TGraphErrors* getCkFromYuki(int potential, double rad = 0.9) {
     return nullptr;
   }
   return ingraph;
+}
+
+/// =====================================================================================
+TGraph* getCkPotential(int potVal, double rad) {
+  TString HomeDir = gSystem->GetHomeDirectory().c_str();
+  TString filename = HomeDir.Data();
+  filename += "/CERNHome/D-mesons/Analysis/Models/corr_VI0_";
+  filename += TString::Format("%.2f/corr", rad);
+  if (potVal > 0) {
+    filename += TString::Format("%04dMeV_", potVal);
+  } else {
+    filename += TString::Format("-%04dMeV_", std::abs(potVal));
+  }
+  filename += TString::Format("%.2ffm_wC.dat", rad);
+
+  auto grOut = new TGraph();
+  int count = 0;
+  std::ifstream potFile;
+  potFile.open(filename.Data());
+  std::string line;
+  double p, kstar, c1, c2;
+  while(!potFile.eof()) {
+    getline(potFile,line);
+    std::istringstream is(line);
+    while(is >> p >> kstar >> c1 >> c2) {
+      grOut->SetPoint(count++, kstar, 1.f + c1 + c2);
+    }
+  }
+  return grOut;
 }
 
 /// =====================================================================================
@@ -396,10 +429,25 @@ TGraphErrors* EvalBootstrap(TNtuple *tuple, TList* debug, TString OutputDir,
     }
 
     delete hist;
-    delete hist2;
-
     count++;
     kstar += binWidth;
+  }
+  return grOut;
+}
+
+/// =====================================================================================
+TGraphErrors* EvalPotentials(TNtuple *tuple, std::vector<float> &pots) {
+  auto grOut = new TGraphErrors("potentials");
+  int count = 0;
+  for( const auto &it : pots) {
+    tuple->Draw("chi2 >> htemp(1000,0,100)",
+		Form("TMath::Abs(potVal - %f) < 1e-3", it), "N");    
+    auto hist = (TH1F*) gROOT->FindObject("htemp");
+    if (hist->GetEntries() == 0) {
+      continue;
+    }
+    grOut->SetPoint(count, it, hist->GetMean());
+    grOut->SetPointError(count++, 0, hist->GetRMS());
   }
   return grOut;
 }
