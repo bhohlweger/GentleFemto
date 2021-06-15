@@ -358,32 +358,17 @@ TGraphErrors* EvalBootstrap(TNtuple *tuple, TList* debug, TString OutputDir,
     double mean = 0;
     double error = 0;
     if (useRMS) {
+      mean = hist->GetMean();
       error = hist->GetRMS();
     } else {
       const float binLow = hist->GetXaxis()->GetBinLowEdge(
           hist->FindFirstBinAbove(0.1, 1));
       const float binUp = hist->GetXaxis()->GetBinUpEdge(
           hist->FindLastBinAbove(0.1, 1));
+      mean = (binUp + binLow) / 2.;
       error = std::abs(binLow - binUp) / std::sqrt(12);
     }
 
-    tuple->Draw("cf >> h2",
-                Form("TMath::Abs(kstar - %.3f) < 0.01 && BootID == 0", kstar));
-    auto hist2 = (TH1F*) gROOT->FindObject("h2");
-    if (hist2->GetEntries() == 0) {
-      kstar += binWidth;
-      continue;
-    }
-
-    if (useRMS) {
-      mean = hist2->GetMean();
-    } else {
-      const float binLow = hist2->GetXaxis()->GetBinLowEdge(
-          hist2->FindFirstBinAbove(0.1, 1));
-      const float binUp = hist2->GetXaxis()->GetBinUpEdge(
-          hist2->FindLastBinAbove(0.1, 1));
-      mean = (binUp + binLow) / 2.;
-    }
     grOut->SetPoint(count, kstar, mean);
     grOut->SetPointError(count, 0, error);
     if (debug) {
