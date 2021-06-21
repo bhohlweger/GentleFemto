@@ -46,7 +46,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   auto tupleModel3 = new TNtuple("model3", "model3", "kstar:cf:BootID");
   auto tupleModel4 = new TNtuple("model4", "model4", "kstar:cf:BootID");
 
-  auto tuplePotential = new TNtuple("potentials", "potentials", "potVal:chi2:nSigma");
+  auto tuplePotential = new TNtuple("potentials", "potentials", "potVal:chi2:nSigma:femtoRad:systID");
 
   float ntBuffer[nArguments];
   bool useBaseline = true;
@@ -123,7 +123,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   if (errorVar == 1) {
     sourceSize = { {rDefault}};
   } else {
-    sourceSize = { {rDefault, rScale * rDefault - rErr, rDefault + rErr}};
+    sourceSize = { {rDefault, 0.67, rDefault + rErr, 0.72, 0.78, 0.84, 0.93}};
   }
 
   /// Lambda parameters
@@ -262,7 +262,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   }
 
   const int potMin = -2000;
-  const int potMax = 1000;
+  const int potMax = -500;
   const int potStep = 20;
   float npot = (potMax - potMin) / potStep;
   float ipot = 0;
@@ -618,7 +618,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
       }
       pVal = TMath::Prob(currentChi2, round(EffNumBins));
       nSigma = TMath::Sqrt(2) * TMath::ErfcInverse(pVal);
-      tuplePotential->Fill(potentialVals.at(i), currentChi2, nSigma);      
+      tuplePotential->Fill(potentialVals.at(i), currentChi2, nSigma, femtoRad, nSystVar);
     }
 
     param->cd();
@@ -741,7 +741,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   auto model4 = EvalBootstrap(tupleModel4, list, OutputDir, "model4", kminModel,
                               kmaxModel, binWidthModel);  // here also the scat. params are varied so we use the RMS
 
-  auto potentialChi = EvalPotentials(tuplePotential, potentialVals);
+  auto potentialChi = EvalPotentials(tuplePotential, potentialVals, sourceSize, nSystVars);
   
   fitFull->Write("fitFull");
   sidebandFull->Write("sidebandFull");

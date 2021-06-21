@@ -82,8 +82,8 @@ TGraphAsymmErrors GetCorrelationGraph(TString filename, TString appendix,
 
 /// =====================================================================================
 TH1F GetMEDist(TString filename, TString appendix, TString suffix,
-                TString graphName, const double normLower,
-                const double normUpper, const int rebin) {
+               TString graphName, const double normLower,
+               const double normUpper, const int rebin) {
   ReadDreamFile *DreamFile = new ReadDreamFile(4, 4);
   DreamFile->SetAnalysisFile(filename.Data(), appendix.Data(), suffix.Data());
 
@@ -222,17 +222,16 @@ TGraph* getCkPotential(int potVal, double rad) {
     filename += TString::Format("-%04dMeV_", std::abs(potVal));
   }
   filename += TString::Format("%.2ffm_wC.dat", rad);
-
   auto grOut = new TGraph();
   int count = 0;
   std::ifstream potFile;
   potFile.open(filename.Data());
   std::string line;
   double p, kstar, c1, c2;
-  while(!potFile.eof()) {
-    getline(potFile,line);
+  while (!potFile.eof()) {
+    getline(potFile, line);
     std::istringstream is(line);
-    while(is >> p >> kstar >> c1 >> c2) {
+    while (is >> p >> kstar >> c1 >> c2) {
       grOut->SetPoint(count++, kstar, 1.f + c1 + c2);
     }
   }
@@ -436,20 +435,23 @@ TGraphErrors* EvalBootstrap(TNtuple *tuple, TList* debug, TString OutputDir,
 }
 
 /// =====================================================================================
-TGraphErrors* EvalPotentials(TNtuple *tuple, std::vector<float> &pots) {
-  auto grOut = new TGraphErrors("potentials");
+TNtuple* EvalPotentials(TNtuple *tuple, std::vector<float> &pots, std::vector<double> &sourceSizes, int nSystVars) {
+  auto tupleOut = new TNtuple("potentialsChi2", "potentialsChi2", "potVal:chi2:femtoRad:systID");
   int count = 0;
-  for( const auto &it : pots) {
-    tuple->Draw("chi2 >> htemp(1000,0,100)",
-		Form("TMath::Abs(potVal - %f) < 1e-3", it), "N");    
-    auto hist = (TH1F*) gROOT->FindObject("htemp");
-    if (hist->GetEntries() == 0) {
-      continue;
+  for (const auto &potIt : pots) {
+    for (const auto &radIt : sourceSizes) {
+      for (int systIt=0; systIt <= nSystVars; ++systIt) {
+        tuple->Draw("chi2 >> htemp(5000,0,50)",
+                    Form("TMath::Abs(potVal - %f) < 1e-3 && TMath::Abs(femtoRad - %f) < 1e-3 && systID == %d", potIt, radIt, systIt), "N");
+        auto hist = (TH1F*) gROOT->FindObject("htemp");
+        if (hist->GetEntries() == 0) {
+          continue;
+        }
+	tupleOut->Fill(potIt, hist->GetMean(), radIt, systIt);
+      }
     }
-    grOut->SetPoint(count, it, hist->GetMean());
-    grOut->SetPointError(count++, 0, hist->GetRMS());
   }
-  return grOut;
+  return tupleOut;
 }
 
 #endif /* GENTLEKITTY_SCRIPTS_PDMESON_DMESONTOOLS_H_ */
