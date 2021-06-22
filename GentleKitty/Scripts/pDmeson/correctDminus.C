@@ -22,11 +22,11 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
 
   DreamPlot::SetStyle();
 
-  int nArguments = 25;
+  int nArguments = 27;
   TString varList =
       TString::Format(
           "BootID:systID:ppRadius:primaryContrib:flatContrib:dstarContrib:beautyContrib:sidebandContrib:chi2SidebandLeft:chi2SidebandRight:"
-          "ndfBkg:chi2bkg:nSigmaBkf:ndfSig:chi2Coulomb:nSigmaCoulomb:chi2Haidenbauer:nSigmaHaidenbauer:chi2Model1:nSigmaModel1:chi2Model3:nSigmaModel3:chi2Model4:nSigmaModel4")
+          "ndfBkg:chi2bkg:nSigmaBkf:ndfSig:chi2Coulomb:nSigmaCoulomb:chi2Haidenbauer:nSigmaHaidenbauer:chi2Model1:nSigmaModel1:chi2Model3:nSigmaModel3:chi2Model4:nSigmaModel4:chi2HaidenbauerMod:nSigmaHaidenbauerMod")
           .Data();
   auto ntResult = new TNtuple("fitResult", "fitResult", varList.Data());
   auto tupleSideband = new TNtuple("sideband", "sideband", "kstar:cf:BootID");
@@ -42,6 +42,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   auto tupleCoulomb = new TNtuple("coulomb", "coulomb", "kstar:cf:BootID");
   auto tupleHaidenbauer = new TNtuple("haidenbauer", "haidenbauer",
                                       "kstar:cf:BootID");
+  auto tupleHaidenbauerMod =  new TNtuple("haidenbauerMod", "haidenbauerMod",
+					    "kstar:cf:BootID");
   auto tupleModel1 = new TNtuple("model1", "model1", "kstar:cf:BootID");
   auto tupleModel3 = new TNtuple("model3", "model3", "kstar:cf:BootID");
   auto tupleModel4 = new TNtuple("model4", "model4", "kstar:cf:BootID");
@@ -202,7 +204,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   DLM_Ck* DLM_Coulomb = new DLM_Ck(1, 0, catsDminusCoulomb);
 
   // now store all of them for further computation
-  std::vector<DLM_CkDecomposition*> coulombModels, haidenbauerModels,
+  std::vector<DLM_CkDecomposition*> coulombModels, haidenbauerModels, haidenbauerModModels,
     model1Models, model3Models;
   std::vector<TGraphErrors*> model4Models;
   TString HomeDir = gSystem->GetHomeDirectory().c_str();
@@ -230,6 +232,20 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
         momentumResolution);
     CkDec_CFHaidenbauer->Update();
     haidenbauerModels.push_back(CkDec_CFHaidenbauer);
+
+    auto grHaidenbauerMod = new TGraph(
+				       TString::Format(
+						       "%s/CERNHome/D-mesons/Analysis/Models/Haidenbauer_%.2f_fm_mod225.dat",
+						       HomeDir.Data(), sourceRad));
+    if (grHaidenbauerMod->GetN() == 0) {
+      std::cout << "ERROR: Haidenbauer mod CF not found\n";
+      return;
+    }
+    auto DLM_HaidenbauerMod = getDLMCk(grHaidenbauerMod, nBinsModel, kminModel, kmaxModel);
+    DLM_CkDecomposition *CkDec_CFHaidenbauerMod = new DLM_CkDecomposition(
+									    Form("pDminusHaidenbauerMod_%f", sourceRad), 0, *DLM_HaidenbauerMod, momentumResolution);
+    CkDec_CFHaidenbauerMod->Update();
+    haidenbauerModModels.push_back(CkDec_CFHaidenbauerMod);
   
     auto grYukiModel1 = getCkFromYuki(3, sourceRad);
     if (grYukiModel1->GetN() == 0) {
@@ -492,6 +508,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     // Correct the correlation function and do the model comparison
     auto coulombModelIt = coulombModels.at(femtoIt);
     auto haidenbauerModelIt = haidenbauerModels.at(femtoIt);
+    auto haidenbauerModModelIt = haidenbauerModModels.at(femtoIt);
     auto model1ModelIt = model1Models.at(femtoIt);
     auto model3ModelIt = model3Models.at(femtoIt);
     auto model4GraphIt = model4Models.at(femtoIt);
@@ -504,6 +521,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
       double mom = i;
       tupleCoulomb->Fill(mom, coulombModelIt->EvalCk(mom), iBoot);
       tupleHaidenbauer->Fill(mom, haidenbauerModelIt->EvalCk(mom), iBoot);
+      tupleHaidenbauerMod->Fill(mom, haidenbauerModModelIt->EvalCk(mom), iBoot);
       tupleModel1->Fill(mom, model1ModelIt->EvalCk(mom), iBoot);
       tupleModel3->Fill(mom, model3ModelIt->EvalCk(mom), iBoot);
       tupleModel4->Fill(mom, model4ModelIt->EvalCk(mom), iBoot);
@@ -517,12 +535,13 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     double EffNumBins = 0;
     double Chi2Coulomb = 0;
     double Chi2Haidenbauer = 0;
+    double Chi2HaidenbauerMod = 0;
     double Chi2Model1 = 0;
     double Chi2Model3 = 0;
     double Chi2Model4 = 0;
 
     static double mom, dataY, dataBootstrapY, dataErr, corrBootstrapY,
-        corrDataY, corrErr, flatY, coulombY, haidenbauerY, model1Y, model3Y,
+      corrDataY, corrErr, flatY, coulombY, haidenbauerY, haidenbauerModY,  model1Y, model3Y,
         model4Y, sbmom, sbY, sbErr;
 
     for (int iPoint = 0; iPoint <= grVarCF.GetN(); ++iPoint) {
@@ -555,6 +574,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
 
         coulombY = coulombModelIt->EvalCk(mom);
         haidenbauerY = haidenbauerModelIt->EvalCk(mom);
+	haidenbauerModY = haidenbauerModModelIt->EvalCk(mom);
         model1Y = model1ModelIt->EvalCk(mom);
         model3Y = model3ModelIt->EvalCk(mom);
         model4Y = model4ModelIt->EvalCk(mom);
@@ -574,6 +594,9 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
         Chi2Haidenbauer += (corrDataY - haidenbauerY)
             * (corrDataY - haidenbauerY) / (corrErr * corrErr);
 
+        Chi2HaidenbauerMod += (corrDataY - haidenbauerModY)
+	  * (corrDataY - haidenbauerModY) / (corrErr * corrErr);
+	
         Chi2Model1 += (corrDataY - model1Y) * (corrDataY - model1Y)
             / (corrErr * corrErr);
 
@@ -597,6 +620,9 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     double pvalHaidenbauer = TMath::Prob(Chi2Haidenbauer, round(EffNumBins));
     double nSigmaHaidenbauer = TMath::Sqrt(2)
         * TMath::ErfcInverse(pvalHaidenbauer);
+    double pvalHaidenbauerMod = TMath::Prob(Chi2HaidenbauerMod, round(EffNumBins));
+    double nSigmaHaidenbauerMod = TMath::Sqrt(2)
+      * TMath::ErfcInverse(pvalHaidenbauerMod);
     double pvalModel1 = TMath::Prob(Chi2Model1, round(EffNumBins));
     double nSigmaModel1 = TMath::Sqrt(2) * TMath::ErfcInverse(pvalModel1);
     double pvalModel3 = TMath::Prob(Chi2Model3, round(EffNumBins));
@@ -669,6 +695,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     ntBuffer[21] = nSigmaModel3;
     ntBuffer[22] = Chi2Model4;
     ntBuffer[23] = nSigmaModel4;
+    ntBuffer[24] = Chi2HaidenbauerMod;
+    ntBuffer[25] = nSigmaHaidenbauerMod;
     ntResult->Fill(ntBuffer);
 
     delete fitSidebandLeft;
@@ -734,6 +762,9 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   auto haidenbauer = EvalBootstrap(tupleHaidenbauer, list, OutputDir,
                                    "haidenbauer", kminModel, kmaxModel,
                                    binWidthModel, false);  // use full width as we have only the three radii to vary
+  auto haidenbauerMod = EvalBootstrap(tupleHaidenbauerMod, list, OutputDir,
+				      "haidenbauerMod", kminModel, kmaxModel,
+				      binWidthModel, false);  // use full width as we have only the three radii to vary 
   auto model1 = EvalBootstrap(tupleModel1, list, OutputDir, "model1", kminModel,
                               kmaxModel, binWidthModel, false);  // use full width as we have only the three radii to vary
   auto model3 = EvalBootstrap(tupleModel3, list, OutputDir, "model3", kminModel,
@@ -754,6 +785,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
 
   coulomb->Write("Ck_coulomb");
   haidenbauer->Write("Ck_haidenbauer");
+  haidenbauerMod->Write("Ck_haidenbauer_mod");
   model1->Write("Ck_model1");
   model3->Write("Ck_model3");
   model4->Write("Ck_model4");
