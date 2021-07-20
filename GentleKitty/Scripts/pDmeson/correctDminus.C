@@ -4,6 +4,7 @@
 void correctDminus(TString InputDir, TString trigger, int errorVar) {
   gROOT->ProcessLine("gErrorIgnoreLevel = 3001");
   const int nBoot = 2500;
+  const bool doUnfold = false;
 
   TString OutputDir = InputDir;
   OutputDir += "/fit/";
@@ -22,11 +23,11 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
 
   DreamPlot::SetStyle();
 
-  int nArguments = 27;
+  int nArguments = 29;
   TString varList =
       TString::Format(
           "BootID:systID:ppRadius:primaryContrib:flatContrib:dstarContrib:beautyContrib:sidebandContrib:chi2SidebandLeft:chi2SidebandRight:"
-          "ndfBkg:chi2bkg:nSigmaBkf:ndfSig:chi2Coulomb:nSigmaCoulomb:chi2Haidenbauer:nSigmaHaidenbauer:chi2Model1:nSigmaModel1:chi2Model3:nSigmaModel3:chi2Model4:nSigmaModel4:chi2HaidenbauerMod:nSigmaHaidenbauerMod")
+          "ndfBkg:chi2bkg:nSigmaBkf:ndfSig:chi2Coulomb:nSigmaCoulomb:chi2Haidenbauer:nSigmaHaidenbauer:chi2Model1:nSigmaModel1:chi2Model3:nSigmaModel3:chi2Model4_1:nSigmaModel4_1:chi2Model4_2:nSigmaModel4_2:chi2HaidenbauerMod:nSigmaHaidenbauerMod")
           .Data();
   auto ntResult = new TNtuple("fitResult", "fitResult", varList.Data());
   auto tupleSideband = new TNtuple("sideband", "sideband", "kstar:cf:BootID");
@@ -42,13 +43,15 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   auto tupleCoulomb = new TNtuple("coulomb", "coulomb", "kstar:cf:BootID");
   auto tupleHaidenbauer = new TNtuple("haidenbauer", "haidenbauer",
                                       "kstar:cf:BootID");
-  auto tupleHaidenbauerMod =  new TNtuple("haidenbauerMod", "haidenbauerMod",
-					    "kstar:cf:BootID");
+  auto tupleHaidenbauerMod = new TNtuple("haidenbauerMod", "haidenbauerMod",
+                                         "kstar:cf:BootID");
   auto tupleModel1 = new TNtuple("model1", "model1", "kstar:cf:BootID");
   auto tupleModel3 = new TNtuple("model3", "model3", "kstar:cf:BootID");
-  auto tupleModel4 = new TNtuple("model4", "model4", "kstar:cf:BootID");
+  auto tupleModel4_1 = new TNtuple("model4_1", "model4_1", "kstar:cf:BootID");
+  auto tupleModel4_2 = new TNtuple("model4_2", "model4_2", "kstar:cf:BootID");
 
-  auto tuplePotential = new TNtuple("potentials", "potentials", "potVal:chi2:nSigma:femtoRad:systID");
+  auto tuplePotential = new TNtuple("potentials", "potentials",
+                                    "potVal:chi2:nSigma:femtoRad:systID");
 
   float ntBuffer[nArguments];
   bool useBaseline = true;
@@ -56,7 +59,6 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   TString graphfilename = TString::Format("%s/Fit_pDminus_corrected_%s.root",
                                           OutputDir.Data(), errorName.Data());
   auto param = new TFile(graphfilename, "RECREATE");
-  param->mkdir("bootVars");
 
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// CATS input
@@ -66,36 +68,85 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
 
   auto momResFile = TFile::Open(
       TString::Format("%s/momRes_Dmesons.root", InputDir.Data()).Data());
+  auto histMomentumResolutionpDplusGeV = (TH2F*) momResFile->Get("pDplus");
   auto histMomentumResolutionpDplus = TransformToMeV(
-      (TH2F*) momResFile->Get("pDplus"));
+      histMomentumResolutionpDplusGeV);
+  auto histMomentumResolutionpDminusGeV = (TH2F*) momResFile->Get("pDminus");
   auto histMomentumResolutionpDminus = TransformToMeV(
-      (TH2F*) momResFile->Get("pDminus"));
+      histMomentumResolutionpDminusGeV);
   // since the resolution is the same for p-D+ and p-D- we add them
   auto momentumResolution = histMomentumResolutionpDplus;
   momentumResolution->Add(histMomentumResolutionpDminus);
+
+  auto momentumResolutionGeV = histMomentumResolutionpDplusGeV;
+  momentumResolutionGeV->Add(histMomentumResolutionpDminusGeV);
+
+  param->cd();
+  momentumResolution->Write();
+  momentumResolutionGeV->Write();
+
+  /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  /// Unfolding
+  MomentumGami *folderFolder = nullptr;
+  if (doUnfold) {
+    folderFolder = new MomentumGami(3);
+    folderFolder->SetDoMomentumResolutionParametrization(false);
+    folderFolder->SetResolution(momentumResolutionGeV, 1);
+    folderFolder->SetIterVariation(5);
+    folderFolder->SetUnfoldingMethod(MomentumGami::kBayes);
+    momentumResolution = nullptr;
+  }
 
   std::vector<TGraphAsymmErrors> grCFvec, grSBLeftvec, grSBRightvec;
 
   const double normLower = 1.5;
   const double normUpper = 2.;
   const int rebin = 10;
-  TString dataGrName = "Graph_from_hCk_Reweighted_0MeV";
+  TString dataGrName =
+      (doUnfold) ?
+          "Graph_from_hCk_Unfolded_0MeV" : "Graph_from_hCk_Reweighted_0MeV";
   TString InputFileName = InputDir;
   InputFileName += "/AnalysisResults.root";
 
   for (int i = 0; i <= nSystVars; ++i) {
     grCFvec.push_back(
         GetCorrelationGraph(InputFileName, "HM_CharmFemto_", Form("%i", i),
-                            dataGrName, normLower, normUpper, rebin));
+                            dataGrName, normLower, normUpper, rebin,
+                            folderFolder));
     grSBLeftvec.push_back(
         GetCorrelationGraph(InputFileName, "HM_CharmFemto_SBLeft_",
                             Form("%i", i), dataGrName, normLower, normUpper,
-                            rebin));
+                            rebin, folderFolder));
     grSBRightvec.push_back(
         GetCorrelationGraph(InputFileName, "HM_CharmFemto_SBRight_",
                             Form("%i", i), dataGrName, normLower, normUpper,
-                            rebin));
+                            rebin, folderFolder));
   }
+  param->cd();
+  if (doUnfold)
+    folderFolder->GetQAList()->Write("MomGami", 1);
+
+  param->cd();
+  param->mkdir("signalCF");
+  param->cd("signalCF");
+  for (size_t i = 0; i < grCFvec.size(); ++i) {
+    grCFvec.at(i).Write(Form("%s_i", grCFvec.at(i).GetName()));
+  }
+
+  param->cd();
+  param->mkdir("sbLeftCF");
+  param->cd("sbLeftCF");
+  for (size_t i = 0; i < grSBLeftvec.size(); ++i) {
+    grSBLeftvec.at(i).Write(Form("%s_i", grSBLeftvec.at(i).GetName()));
+  }
+
+  param->cd();
+  param->mkdir("sbRightCF");
+  param->cd("sbRightCF");
+  for (size_t i = 0; i < grSBRightvec.size(); ++i) {
+    grSBRightvec.at(i).Write(Form("%s_i", grSBRightvec.at(i).GetName()));
+  }
+  param->cd();
 
   auto meDistForFeedDown = GetMEDist(InputFileName, "HM_CharmFemto_", "0",
                                      dataGrName, normLower, normUpper, 1);
@@ -204,9 +255,9 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   DLM_Ck* DLM_Coulomb = new DLM_Ck(1, 0, catsDminusCoulomb);
 
   // now store all of them for further computation
-  std::vector<DLM_CkDecomposition*> coulombModels, haidenbauerModels, haidenbauerModModels,
-    model1Models, model3Models;
-  std::vector<TGraphErrors*> model4Models;
+  std::vector<DLM_CkDecomposition*> coulombModels, haidenbauerModels,
+      haidenbauerModModels, model1Models, model3Models, model4_1Models,
+      model4_2Models;
   TString HomeDir = gSystem->GetHomeDirectory().c_str();
 
   for (const auto &sourceRad : sourceSize) {
@@ -226,33 +277,38 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
       std::cout << "ERROR: Haidenbauer CF not found\n";
       return;
     }
-    auto DLM_Haidenbauer = getDLMCk(grHaidenbauer, nBinsModel, kminModel, kmaxModel);
+    auto DLM_Haidenbauer = getDLMCk(grHaidenbauer, nBinsModel, kminModel,
+                                    kmaxModel);
     DLM_CkDecomposition *CkDec_CFHaidenbauer = new DLM_CkDecomposition(
         Form("pDminusHaidenbauer_%f", sourceRad), 0, *DLM_Haidenbauer,
         momentumResolution);
     CkDec_CFHaidenbauer->Update();
     haidenbauerModels.push_back(CkDec_CFHaidenbauer);
 
-    auto grHaidenbauerMod = new TGraph(
-				       TString::Format(
-						       "%s/CERNHome/D-mesons/Analysis/Models/Haidenbauer_%.2f_fm_mod225.dat",
-						       HomeDir.Data(), sourceRad));
+    auto grHaidenbauerMod =
+        new TGraph(
+            TString::Format(
+                "%s/CERNHome/D-mesons/Analysis/Models/Haidenbauer_%.2f_fm_mod225.dat",
+                HomeDir.Data(), sourceRad));
     if (grHaidenbauerMod->GetN() == 0) {
       std::cout << "ERROR: Haidenbauer mod CF not found\n";
       return;
     }
-    auto DLM_HaidenbauerMod = getDLMCk(grHaidenbauerMod, nBinsModel, kminModel, kmaxModel);
+    auto DLM_HaidenbauerMod = getDLMCk(grHaidenbauerMod, nBinsModel, kminModel,
+                                       kmaxModel);
     DLM_CkDecomposition *CkDec_CFHaidenbauerMod = new DLM_CkDecomposition(
-									    Form("pDminusHaidenbauerMod_%f", sourceRad), 0, *DLM_HaidenbauerMod, momentumResolution);
+        Form("pDminusHaidenbauerMod_%f", sourceRad), 0, *DLM_HaidenbauerMod,
+        momentumResolution);
     CkDec_CFHaidenbauerMod->Update();
     haidenbauerModModels.push_back(CkDec_CFHaidenbauerMod);
-  
+
     auto grYukiModel1 = getCkFromYuki(3, sourceRad);
     if (grYukiModel1->GetN() == 0) {
       std::cout << "ERROR: Yuki model 1 CF not found\n";
       return;
     }
-    auto DLM_YukiModel1 = getDLMCk(grYukiModel1, nBinsModel, kminModel, kmaxModel);
+    auto DLM_YukiModel1 = getDLMCk(grYukiModel1, nBinsModel, kminModel,
+                                   kmaxModel);
     DLM_CkDecomposition *CkDec_Model1 = new DLM_CkDecomposition(
         Form("pDminusModel1_%f", sourceRad), 0, *DLM_YukiModel1,
         momentumResolution);
@@ -263,18 +319,36 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
       std::cout << "ERROR: Yuki model 3 CF not found\n";
       return;
     }
-    auto DLM_YukiModel3 = getDLMCk(grYukiModel3, nBinsModel, kminModel, kmaxModel);
+    auto DLM_YukiModel3 = getDLMCk(grYukiModel3, nBinsModel, kminModel,
+                                   kmaxModel);
     DLM_CkDecomposition *CkDec_Model3 = new DLM_CkDecomposition(
-        Form("pDminusModel2_%f", sourceRad), 0, *DLM_YukiModel3,
+        Form("pDminusModel3_%f", sourceRad), 0, *DLM_YukiModel3,
         momentumResolution);
     model3Models.push_back(CkDec_Model3);
 
-    auto grYukiModel4 = getCkFromYuki(5, sourceRad);  // here things need to be done a bit differently as we have uncertainties on the scat. params that need to be bootstrapped
-    if (grYukiModel4->GetN() == 0) {
-      std::cout << "ERROR: Yuki model 4 CF not found\n";
+    auto grYukiModel4_1 = getCkFromYuki(5, sourceRad);
+    if (grYukiModel4_1->GetN() == 0) {
+      std::cout << "ERROR: Yuki model 4-1 CF not found\n";
       return;
     }
-    model4Models.push_back(grYukiModel4);
+    auto DLM_YukiModel4_1 = getDLMCk(grYukiModel4_1, nBinsModel, kminModel,
+                                     kmaxModel);
+    DLM_CkDecomposition *CkDec_Model4_1 = new DLM_CkDecomposition(
+        Form("pDminusModel4_1_%f", sourceRad), 0, *DLM_YukiModel4_1,
+        momentumResolution);
+    model4_1Models.push_back(CkDec_Model4_1);
+
+    auto grYukiModel4_2 = getCkFromYuki(6, sourceRad);
+    if (grYukiModel4_2->GetN() == 0) {
+      std::cout << "ERROR: Yuki model 4-1 CF not found\n";
+      return;
+    }
+    auto DLM_YukiModel4_2 = getDLMCk(grYukiModel4_2, nBinsModel, kminModel,
+                                     kmaxModel);
+    DLM_CkDecomposition *CkDec_Model4_2 = new DLM_CkDecomposition(
+        Form("pDminusModel4_2_%f", sourceRad), 0, *DLM_YukiModel4_2,
+        momentumResolution);
+    model4_2Models.push_back(CkDec_Model4_2);
   }
 
   const int potMin = -2000;
@@ -289,21 +363,22 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   param->mkdir("Potential");
   param->cd("Potential");
   for (int i = potMin; i <= potMax; i += potStep) {
-    std::cout << "\r Processing progress: "
-                << ipot++/npot * 100.f << "%" << std::flush;
-    if (i == 0) continue;
+    std::cout << "\r Processing progress: " << ipot++ / npot * 100.f << "%"
+              << std::flush;
+    if (i == 0)
+      continue;
     std::vector<DLM_CkDecomposition*> tmpVec;
     for (const auto &sourceRad : sourceSize) {
       auto grTmp = getCkPotential(i, sourceRad);
       if (grTmp->GetN() == 0) {
-	std::cout << "ERROR: Potential CF not found \n";
+        std::cout << "ERROR: Potential CF not found \n";
       }
       grTmp->Write(Form("pot_%d_%.2f", i, sourceRad));
-      
+
       auto DLM_tmp = getDLMCk(grTmp, nBinsModel, kminModel, kmaxModel);
       DLM_CkDecomposition *CkDec_tmp = new DLM_CkDecomposition(
-							       Form("pDminusPot_%d_%f", i, sourceRad), 0, *DLM_tmp,
-        momentumResolution);
+          Form("pDminusPot_%d_%f", i, sourceRad), 0, *DLM_tmp,
+          momentumResolution);
       tmpVec.push_back(CkDec_tmp);
       delete grTmp;
     }
@@ -334,6 +409,10 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   /// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /// BOOTSTRAP
   /// first iteration is the default
+
+  param->mkdir("bootVars");
+  param->cd("bootVars");
+
   for (int iBoot = 0; iBoot < nBoot;) {
     if (iBoot % 10 == 0) {
       std::cout << "\r Processing progress: "
@@ -511,11 +590,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     auto haidenbauerModModelIt = haidenbauerModModels.at(femtoIt);
     auto model1ModelIt = model1Models.at(femtoIt);
     auto model3ModelIt = model3Models.at(femtoIt);
-    auto model4GraphIt = model4Models.at(femtoIt);
-    auto DLM_YukiModel4 = getDLMCk(getBootstrapGraph(model4GraphIt), nBinsModel, kminModel, kmaxModel);
-    auto model4ModelIt = new DLM_CkDecomposition("pDminusModel4", 0,
-                                                 *DLM_YukiModel4,
-                                                 momentumResolution);  // TODO eventually remove the momRes
+    auto model4_1ModelIt = model4_1Models.at(femtoIt);
+    auto model4_2ModelIt = model4_2Models.at(femtoIt);
 
     for (int i = kminModel; i < kmaxModel; i += binWidthModel) {
       double mom = i;
@@ -524,7 +600,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
       tupleHaidenbauerMod->Fill(mom, haidenbauerModModelIt->EvalCk(mom), iBoot);
       tupleModel1->Fill(mom, model1ModelIt->EvalCk(mom), iBoot);
       tupleModel3->Fill(mom, model3ModelIt->EvalCk(mom), iBoot);
-      tupleModel4->Fill(mom, model4ModelIt->EvalCk(mom), iBoot);
+      tupleModel4_1->Fill(mom, model4_1ModelIt->EvalCk(mom), iBoot);
+      tupleModel4_2->Fill(mom, model4_2ModelIt->EvalCk(mom), iBoot);
     }
 
     TGraph *grFitTotal = new TGraph();
@@ -538,11 +615,12 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     double Chi2HaidenbauerMod = 0;
     double Chi2Model1 = 0;
     double Chi2Model3 = 0;
-    double Chi2Model4 = 0;
+    double Chi2Model4_1 = 0;
+    double Chi2Model4_2 = 0;
 
     static double mom, dataY, dataBootstrapY, dataErr, corrBootstrapY,
-      corrDataY, corrErr, flatY, coulombY, haidenbauerY, haidenbauerModY,  model1Y, model3Y,
-        model4Y, sbmom, sbY, sbErr;
+        corrDataY, corrErr, flatY, coulombY, haidenbauerY, haidenbauerModY,
+        model1Y, model3Y, model4_1Y, model4_2Y, sbmom, sbY, sbErr;
 
     for (int iPoint = 0; iPoint <= grVarCF.GetN(); ++iPoint) {
       grCFBootstrap->GetPoint(iPoint, mom, dataBootstrapY);
@@ -574,10 +652,11 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
 
         coulombY = coulombModelIt->EvalCk(mom);
         haidenbauerY = haidenbauerModelIt->EvalCk(mom);
-	haidenbauerModY = haidenbauerModModelIt->EvalCk(mom);
+        haidenbauerModY = haidenbauerModModelIt->EvalCk(mom);
         model1Y = model1ModelIt->EvalCk(mom);
         model3Y = model3ModelIt->EvalCk(mom);
-        model4Y = model4ModelIt->EvalCk(mom);
+        model4_1Y = model4_1ModelIt->EvalCk(mom);
+        model4_2Y = model4_2ModelIt->EvalCk(mom);
 
         corrDataY = 1.f
             + 1.f / primaryContrib * (dataY - CkDec_CFflat.EvalCk(mom));
@@ -585,9 +664,9 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
             dataErr * dataErr / (primaryContrib * primaryContrib)
                 + sbErr * sbErr * sidebandContrib * sidebandContrib
                     / (primaryContrib * primaryContrib));
-	grCorrected->SetPoint(iPoint, mom, corrDataY);
-	grCorrected->SetPointError(iPoint, 0, corrErr);
-	
+        grCorrected->SetPoint(iPoint, mom, corrDataY);
+        grCorrected->SetPointError(iPoint, 0, corrErr);
+
         Chi2Coulomb += (corrDataY - coulombY) * (corrDataY - coulombY)
             / (corrErr * corrErr);
 
@@ -595,15 +674,18 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
             * (corrDataY - haidenbauerY) / (corrErr * corrErr);
 
         Chi2HaidenbauerMod += (corrDataY - haidenbauerModY)
-	  * (corrDataY - haidenbauerModY) / (corrErr * corrErr);
-	
+            * (corrDataY - haidenbauerModY) / (corrErr * corrErr);
+
         Chi2Model1 += (corrDataY - model1Y) * (corrDataY - model1Y)
             / (corrErr * corrErr);
 
         Chi2Model3 += (corrDataY - model3Y) * (corrDataY - model3Y)
             / (corrErr * corrErr);
 
-        Chi2Model4 += (corrDataY - model4Y) * (corrDataY - model4Y)
+        Chi2Model4_1 += (corrDataY - model4_1Y) * (corrDataY - model4_1Y)
+            / (corrErr * corrErr);
+
+        Chi2Model4_2 += (corrDataY - model4_2Y) * (corrDataY - model4_2Y)
             / (corrErr * corrErr);
 
       } else {  // evaluate the chi2 of the background description
@@ -620,31 +702,35 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     double pvalHaidenbauer = TMath::Prob(Chi2Haidenbauer, round(EffNumBins));
     double nSigmaHaidenbauer = TMath::Sqrt(2)
         * TMath::ErfcInverse(pvalHaidenbauer);
-    double pvalHaidenbauerMod = TMath::Prob(Chi2HaidenbauerMod, round(EffNumBins));
+    double pvalHaidenbauerMod = TMath::Prob(Chi2HaidenbauerMod,
+                                            round(EffNumBins));
     double nSigmaHaidenbauerMod = TMath::Sqrt(2)
-      * TMath::ErfcInverse(pvalHaidenbauerMod);
+        * TMath::ErfcInverse(pvalHaidenbauerMod);
     double pvalModel1 = TMath::Prob(Chi2Model1, round(EffNumBins));
     double nSigmaModel1 = TMath::Sqrt(2) * TMath::ErfcInverse(pvalModel1);
     double pvalModel3 = TMath::Prob(Chi2Model3, round(EffNumBins));
     double nSigmaModel3 = TMath::Sqrt(2) * TMath::ErfcInverse(pvalModel3);
-    double pvalModel4 = TMath::Prob(Chi2Model4, round(EffNumBins));
-    double nSigmaModel4 = TMath::Sqrt(2) * TMath::ErfcInverse(pvalModel4);
+    double pvalModel4_1 = TMath::Prob(Chi2Model4_1, round(EffNumBins));
+    double nSigmaModel4_1 = TMath::Sqrt(2) * TMath::ErfcInverse(pvalModel4_1);
+    double pvalModel4_2 = TMath::Prob(Chi2Model4_2, round(EffNumBins));
+    double nSigmaModel4_2 = TMath::Sqrt(2) * TMath::ErfcInverse(pvalModel4_2);
 
     // now the chi2 of all the different potentials
     float modelCf, nSigma, pVal, currentChi2;
-    for(size_t i=0; i<potentialModels.size(); ++i) {
+    for (size_t i = 0; i < potentialModels.size(); ++i) {
       auto presentDLM = potentialModels.at(i).at(femtoIt);
-      currentChi2=0.f;
-      for(int i=0; i < grCorrected->GetN(); ++i) {
-	grCorrected->GetPoint(i, mom, corrDataY);
-	corrErr = grCorrected->GetErrorY(i);
+      currentChi2 = 0.f;
+      for (int i = 0; i < grCorrected->GetN(); ++i) {
+        grCorrected->GetPoint(i, mom, corrDataY);
+        corrErr = grCorrected->GetErrorY(i);
         modelCf = presentDLM->EvalCk(mom);
         currentChi2 += (corrDataY - modelCf) * (corrDataY - modelCf)
             / (corrErr * corrErr);
       }
       pVal = TMath::Prob(currentChi2, round(EffNumBins));
       nSigma = TMath::Sqrt(2) * TMath::ErfcInverse(pVal);
-      tuplePotential->Fill(potentialVals.at(i), currentChi2, nSigma, femtoRad, nSystVar);
+      tuplePotential->Fill(potentialVals.at(i), currentChi2, nSigma, femtoRad,
+                           nSystVar);
     }
 
     param->cd();
@@ -667,7 +753,7 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     grFitTotalFine->SetName("TotalFitFine");
     grFitTotalFine->Write("fitFineGrain");
     grCorrected->Write("defaultCorrected");
-    
+
     grCFRaw->Write("raw");
 
     param->cd();
@@ -693,10 +779,12 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     ntBuffer[19] = nSigmaModel1;
     ntBuffer[20] = Chi2Model3;
     ntBuffer[21] = nSigmaModel3;
-    ntBuffer[22] = Chi2Model4;
-    ntBuffer[23] = nSigmaModel4;
-    ntBuffer[24] = Chi2HaidenbauerMod;
-    ntBuffer[25] = nSigmaHaidenbauerMod;
+    ntBuffer[22] = Chi2Model4_1;
+    ntBuffer[23] = nSigmaModel4_1;
+    ntBuffer[24] = Chi2Model4_2;
+    ntBuffer[25] = nSigmaModel4_2;
+    ntBuffer[26] = Chi2HaidenbauerMod;
+    ntBuffer[27] = nSigmaHaidenbauerMod;
     ntResult->Fill(ntBuffer);
 
     delete fitSidebandLeft;
@@ -715,9 +803,6 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
     delete grFitTotal;
     delete grFitTotalFine;
 
-    delete DLM_YukiModel4;
-    delete model4ModelIt;
-
     ++iBoot;
   }
 
@@ -733,7 +818,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   tupleHaidenbauer->Write();
   tupleModel1->Write();
   tupleModel3->Write();
-  tupleModel4->Write();
+  tupleModel4_1->Write();
+  tupleModel4_2->Write();
   tuplePotential->Write();
 
   grCFvec.at(0).Write("dataDefault");
@@ -758,22 +844,25 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
                                      "sidebandRight", kmin, kmax, binWidth);
 
   auto coulomb = EvalBootstrap(tupleCoulomb, list, OutputDir, "coulomb",
-                               kminModel, kmaxModel, binWidthModel, false);  // use full width as we have only the three radii to vary
+                               kminModel, kmaxModel, binWidthModel, false);  // use full width as we have only the radii to vary
   auto haidenbauer = EvalBootstrap(tupleHaidenbauer, list, OutputDir,
                                    "haidenbauer", kminModel, kmaxModel,
-                                   binWidthModel, false);  // use full width as we have only the three radii to vary
+                                   binWidthModel, false);  // use full width as we have only the radii to vary
   auto haidenbauerMod = EvalBootstrap(tupleHaidenbauerMod, list, OutputDir,
-				      "haidenbauerMod", kminModel, kmaxModel,
-				      binWidthModel, false);  // use full width as we have only the three radii to vary 
+                                      "haidenbauerMod", kminModel, kmaxModel,
+                                      binWidthModel, false);  // use full width as we have only the radii to vary
   auto model1 = EvalBootstrap(tupleModel1, list, OutputDir, "model1", kminModel,
-                              kmaxModel, binWidthModel, false);  // use full width as we have only the three radii to vary
+                              kmaxModel, binWidthModel, false);  // use full width as we have only the radii to vary
   auto model3 = EvalBootstrap(tupleModel3, list, OutputDir, "model3", kminModel,
-                              kmaxModel, binWidthModel, false);  // use full width as we have only the three radii to vary
-  auto model4 = EvalBootstrap(tupleModel4, list, OutputDir, "model4", kminModel,
-                              kmaxModel, binWidthModel);  // here also the scat. params are varied so we use the RMS
+                              kmaxModel, binWidthModel, false);  // use full width as we have only the radii to vary
+  auto model4_1 = EvalBootstrap(tupleModel4_1, list, OutputDir, "model4",
+                                kminModel, kmaxModel, binWidthModel, false);  // use full width as we have only the radii to vary
+  auto model4_2 = EvalBootstrap(tupleModel4_2, list, OutputDir, "model4",
+                                kminModel, kmaxModel, binWidthModel, false);  // use full width as we have only the radii to vary
 
-  auto potentialChi = EvalPotentials(tuplePotential, potentialVals, sourceSize, nSystVars);
-  
+  auto potentialChi = EvalPotentials(tuplePotential, potentialVals, sourceSize,
+                                     nSystVars);
+
   fitFull->Write("fitFull");
   sidebandFull->Write("sidebandFull");
   sidebandLeft->Write("sidebandLeft");
@@ -788,7 +877,8 @@ void correctDminus(TString InputDir, TString trigger, int errorVar) {
   haidenbauerMod->Write("Ck_haidenbauer_mod");
   model1->Write("Ck_model1");
   model3->Write("Ck_model3");
-  model4->Write("Ck_model4");
+  model4_1->Write("Ck_model4_1");
+  model4_2->Write("Ck_model4_2");
   potentialChi->Write("potentialChi2");
 
   param->Close();

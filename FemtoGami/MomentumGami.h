@@ -39,6 +39,9 @@ class MomentumGami {
   void SetUnfoldingMethod(Unfolding meth) {
     fHowToUnfold = meth;
   }
+  void SetDoMomentumResolutionParametrization(bool doIt) {
+    fDoMomResParametrization = doIt;
+  }
   TList* GetQAList() {return fQAList; }
  private:
   bool fResponseMatrixSetup; 
@@ -55,6 +58,7 @@ class MomentumGami {
   float fMaxkStar;
   float fUnitConversion;
   Unfolding fHowToUnfold;
+  bool fDoMomResParametrization;
 };
 
 #endif /* FEMTOGAMI_MOMENTUMGAMI_H_ */

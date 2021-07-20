@@ -38,9 +38,9 @@
 TGraphAsymmErrors GetCorrelationGraph(TString filename, TString appendix,
                                       TString suffix, TString graphName,
                                       const double normLower,
-                                      const double normUpper, const int rebin) {
+                                      const double normUpper, const int rebin,
+                                      MomentumGami* folderFolder = nullptr) {
   TGraphAsymmErrors outputGraph;
-
   ReadDreamFile *DreamFile = new ReadDreamFile(4, 4);
   DreamFile->SetAnalysisFile(filename.Data(), appendix.Data(), suffix.Data());
 
@@ -62,11 +62,41 @@ TGraphAsymmErrors GetCorrelationGraph(TString filename, TString appendix,
                               pDminus->GetPair());
   apDplus->ReweightMixedEvent(apDplus->GetPairRebinned(0), 0.2, 0.9,
                               apDplus->GetPair());
+  if (folderFolder) {
+    auto meUnscaled = pDminus->GetPair()->GetMEDist();
+    auto meScaled = pDminus->GetPairReweighted(0)->GetMEDist();
+    double ScalingFactor_pDminus = meUnscaled->Integral()
+        / (double) meScaled->Integral();
+
+    meUnscaled = apDplus->GetPair()->GetMEDist();
+    meScaled = apDplus->GetPairReweighted(0)->GetMEDist();
+    double ScalingFactor_ApDplus = meUnscaled->Integral()
+        / (double) meScaled->Integral();
+
+    pDminus->UnfoldMomentum(pDminus->GetPair(), folderFolder,
+                            ScalingFactor_pDminus);
+    apDplus->UnfoldMomentum(apDplus->GetPair(), folderFolder,
+                            ScalingFactor_ApDplus);
+    pDminus->ShiftForEmpty(pDminus->GetPairUnfolded(0));
+    apDplus->ShiftForEmpty(apDplus->GetPairUnfolded(0));
+    pDminus->FixShift(pDminus->GetPairShiftedEmpty(1),
+                      apDplus->GetPairShiftedEmpty(1), apDplus->GetFirstBin());
+    apDplus->FixShift(apDplus->GetPairShiftedEmpty(1),
+                      pDminus->GetPairShiftedEmpty(1), pDminus->GetFirstBin());
+    pDminus->Rebin(pDminus->GetPairFixShifted(1), rebin, true);
+    apDplus->Rebin(apDplus->GetPairFixShifted(1), rebin, true);
+//    pDminus->ReweightMixedEvent(pDminus->GetPairRebinned(1), 0.2, 0.9,
+//                                pDminus->GetPair());
+//    apDplus->ReweightMixedEvent(apDplus->GetPairRebinned(1), 0.2, 0.9,
+//                                apDplus->GetPair());
+  }
+
   CF_pDminus->SetPairs(pDminus, apDplus);
   CF_pDminus->GetCorrelations();
 
   for (auto it : CF_pDminus->GetCorrelationFunctionGraphs()) {
     TString itName = it->GetName();
+    std::cout << it->GetName() << std::endl;
     if (graphName == itName) {
       std::cout << it->GetName() << std::endl;
       outputGraph = *it;
@@ -161,7 +191,6 @@ DLM_Ck* getDLMCk(TGraph *gr, int nbins, double kmin, double kmax) {
 
 /// =====================================================================================
 TGraphErrors* getCkFromYuki(int potential, double rad = 0.9) {
-  TGraph *ingraph1, *ingraph2;
   TGraphErrors* ingraph;
   double x, y, x2, y2;
   TString HomeDir = gSystem->GetHomeDirectory().c_str();
@@ -186,22 +215,24 @@ TGraphErrors* getCkFromYuki(int potential, double rad = 0.9) {
       ingraph->SetPointError(i, 0., 0.);
     }
   } else if (potential == 5) {
-    ingraph1 = new TGraphErrors(
+    ingraph = new TGraphErrors(
         TString::Format(
             "%s/CERNHome/D-mesons/Analysis/Models/corr_model4_1_%.2f_fm_wC.dat",
             HomeDir.Data(), rad));
-    ingraph2 = new TGraphErrors(
+    for (int i = 0; i < ingraph->GetN(); ++i) {
+      ingraph->GetPoint(i, x, y);
+      ingraph->SetPoint(i, x, y);
+      ingraph->SetPointError(i, 0., 0.);
+    }
+  } else if (potential == 6) {
+    ingraph = new TGraphErrors(
         TString::Format(
             "%s/CERNHome/D-mesons/Analysis/Models/corr_model4_2_%.2f_fm_wC.dat",
             HomeDir.Data(), rad));
-    ingraph = new TGraphErrors();
-    for (int i = 0; i < ingraph1->GetN(); ++i) {
-      ingraph1->GetPoint(i, x, y);
-      ingraph2->GetPoint(i, x2, y2);
-      if (std::abs(x - x2) > 0.01)
-        continue;
-      ingraph->SetPoint(i, x, 0.5f * (y + y2));
-      ingraph->SetPointError(i, 0., 0.5 * (y - y2));
+    for (int i = 0; i < ingraph->GetN(); ++i) {
+      ingraph->GetPoint(i, x, y);
+      ingraph->SetPoint(i, x, y);
+      ingraph->SetPointError(i, 0., 0.);
     }
   } else {
     std::cout << "ERROR: getCkFromYuki - potential not available\n";
@@ -236,6 +267,21 @@ TGraph* getCkPotential(int potVal, double rad) {
     }
   }
   return grOut;
+}
+
+/// =====================================================================================
+TH2F* CutRange(const TH2F *input) {
+  auto HistExtendes = new TH2F(
+      TString::Format("%s_extended", input->GetName()).Data(),
+      input->GetTitle(), 595, 0.025, 3, 600, 0, 3);
+  for (int iBinX = 1; iBinX <= input->GetNbinsX(); iBinX++) {
+    for (int iBinY = 1; iBinY <= input->GetNbinsY(); iBinY++) {
+      HistExtendes->Fill(input->GetXaxis()->GetBinCenter(iBinX),
+                         input->GetYaxis()->GetBinCenter(iBinY),
+                         input->GetBinContent(iBinX, iBinY));
+    }
+  }
+  return HistExtendes;
 }
 
 /// =====================================================================================
@@ -435,19 +481,25 @@ TGraphErrors* EvalBootstrap(TNtuple *tuple, TList* debug, TString OutputDir,
 }
 
 /// =====================================================================================
-TNtuple* EvalPotentials(TNtuple *tuple, std::vector<float> &pots, std::vector<double> &sourceSizes, int nSystVars) {
-  auto tupleOut = new TNtuple("potentialsChi2", "potentialsChi2", "potVal:chi2:femtoRad:systID");
+TNtuple* EvalPotentials(TNtuple *tuple, std::vector<float> &pots,
+                        std::vector<double> &sourceSizes, int nSystVars) {
+  auto tupleOut = new TNtuple("potentialsChi2", "potentialsChi2",
+                              "potVal:chi2:femtoRad:systID");
   int count = 0;
   for (const auto &potIt : pots) {
     for (const auto &radIt : sourceSizes) {
-      for (int systIt=0; systIt <= nSystVars; ++systIt) {
-        tuple->Draw("chi2 >> htemp(5000,0,50)",
-                    Form("TMath::Abs(potVal - %f) < 1e-3 && TMath::Abs(femtoRad - %f) < 1e-3 && systID == %d", potIt, radIt, systIt), "N");
+      for (int systIt = 0; systIt <= nSystVars; ++systIt) {
+        tuple->Draw(
+            "chi2 >> htemp(5000,0,50)",
+            Form(
+                "TMath::Abs(potVal - %f) < 1e-3 && TMath::Abs(femtoRad - %f) < 1e-3 && systID == %d",
+                potIt, radIt, systIt),
+            "N");
         auto hist = (TH1F*) gROOT->FindObject("htemp");
         if (hist->GetEntries() == 0) {
           continue;
         }
-	tupleOut->Fill(potIt, hist->GetMean(), radIt, systIt);
+        tupleOut->Fill(potIt, hist->GetMean(), radIt, systIt);
       }
     }
   }
